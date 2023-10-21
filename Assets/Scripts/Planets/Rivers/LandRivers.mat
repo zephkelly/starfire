@@ -109,7 +109,7 @@ Material:
     - _ReceiveShadows: 1
     - _River_cutoff: 0.368
     - _Rotation: 6.28
-    - _Seed: 3.68
+    - _Seed: 3.6
     - _Size: 4.6
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -131,7 +131,7 @@ Material:
     - seed: 7.947
     - size: 4.2
     - stretch: 2.001
-    - time: 29.18033
+    - time: 17.574558
     - time_speed: 1.1990646
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
@@ -141,7 +141,7 @@ Material:
     - _Color3: {r: 0.18431373, g: 0.34117648, b: 0.3254902, a: 1}
     - _Color4: {r: 0.15686275, g: 0.20784314, b: 0.2509804, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Light_origin: {r: 0.87785107, g: 0.55813956, b: 0, a: 0}
+    - _Light_origin: {r: 0.3739046, g: -0.06518447, b: 0, a: 0}
     - _River_color: {r: 0.30980393, g: 0.6431373, b: 0.72156864, a: 1}
     - _River_color_dark: {r: 0.2509804, g: 0.28627452, b: 0.4509804, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
