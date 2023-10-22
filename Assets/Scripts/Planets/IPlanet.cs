@@ -11,5 +11,4 @@ public interface IPlanet {
     Color[] GetColors();
     void SetColors(Color[] _colors);
     void SetInitialColors();
-
 }

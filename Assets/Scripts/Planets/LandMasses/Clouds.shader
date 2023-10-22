@@ -32,7 +32,7 @@ Shader "Unlit/Clouds"
 
         Pass
         {
-			Tags { "LightMode"="UniversalForward"}
+			//Tags { "LightMode"="UniversalForward"}
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 

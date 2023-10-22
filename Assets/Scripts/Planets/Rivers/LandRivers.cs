@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class LandRivers : MonoBehaviour, IPlanet {
     [SerializeField] private GameObject Land;
@@ -15,11 +11,18 @@ public class LandRivers : MonoBehaviour, IPlanet {
     private string[] init_colors1 = new string[] {"#63AB3F", "#3B7D4F", "#2F5753", "#283540", "#4FA4B8", "#404973"};
     private string[] color_vars2 = new string[]{"_Base_color", "_Outline_color", "_Shadow_Base_color","_Shadow_Outline_color"};
     private string[] init_colors2 = new string[] {"#FFFFFF", "#DFE0E8", "#686F99","#404973"};
+
     private void Awake()
     {
-        m_Land = Land.GetComponent<Image>().material;
-        m_Cloud = Cloud.GetComponent<Image>().material;
+        m_Land = Land.GetComponent<SpriteRenderer>().material;
+        m_Cloud = Cloud.GetComponent<SpriteRenderer>().material;
         SetInitialColors();
+    }
+
+    public void Update()
+    {
+      //move the game object to the right a little every frame
+      transform.position += new Vector3(0.01f, 0, 0);
     }
 
     public void SetPixel(float amount)

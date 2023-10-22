@@ -23,6 +23,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BaseMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -51,7 +55,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -91,25 +103,26 @@ Material:
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _Dither_Size: 2
+    - _Dither_Size: 3.07
     - _Dither__Size: 3.951
     - _DstBlend: 0
+    - _EnableExternalAlpha: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _Light_border_1: 0.287
+    - _Light_border_1: 0.303
     - _Light_border_2: 0.476
     - _Metallic: 0
-    - _OCTAVES: 6
+    - _OCTAVES: 4.4
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _Pixels: 69.84067
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _River_cutoff: 0.368
+    - _River_cutoff: 0.25
     - _Rotation: 6.28
-    - _Seed: 3.6
+    - _Seed: 2.4
     - _Size: 4.6
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -131,7 +144,7 @@ Material:
     - seed: 7.947
     - size: 4.2
     - stretch: 2.001
-    - time: 17.574558
+    - time: 4.6228204
     - time_speed: 1.1990646
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
@@ -141,7 +154,10 @@ Material:
     - _Color3: {r: 0.18431373, g: 0.34117648, b: 0.3254902, a: 1}
     - _Color4: {r: 0.15686275, g: 0.20784314, b: 0.2509804, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Light_origin: {r: 0.3739046, g: -0.06518447, b: 0, a: 0}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _LightColor: {r: 1, g: 0, b: 0, a: 1}
+    - _Light_origin: {r: 0.22154471, g: 0.48193315, b: 0, a: 0}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _River_color: {r: 0.30980393, g: 0.6431373, b: 0.72156864, a: 1}
     - _River_color_dark: {r: 0.2509804, g: 0.28627452, b: 0.4509804, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
