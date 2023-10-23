@@ -6,6 +6,9 @@ namespace Starfire.Ship
   {
     ShipConfiguration Configuration { get; }
     // ShipInventory Inventory { get; }
+    bool IsOrbiting { get; }
+    // bool SetOrbitingBody(ICelestialBody orbitingBody);
+
     int Damage(int damage, DamageType damageType);
     void Repair(int repair, DamageType damageType);
     void Move(Vector2 direction);
@@ -16,15 +19,17 @@ namespace Starfire.Ship
   public abstract class ShipController : MonoBehaviour, IShipController
   {
     protected ShipConfiguration configuration;
-    protected ShipInventory inventory;
+    // protected ShipInventory inventory;
     protected Rigidbody2D rigidBody;
+    protected bool isOrbiting = false;
 
     public ShipConfiguration Configuration => configuration;
-    public ShipInventory Inventory => inventory;
+    // public ShipInventory Inventory => inventory;
+    public bool IsOrbiting => isOrbiting;
 
     protected virtual void Awake()
     {
-      configuration = new ShipConfiguration();
+      // configuration = new ShipConfiguration();
       rigidBody = GetComponent<Rigidbody2D>();
     }
 

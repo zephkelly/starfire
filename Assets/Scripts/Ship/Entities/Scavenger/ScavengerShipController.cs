@@ -3,7 +3,7 @@ using Starfire.Ship;
 
 namespace Starfire.Ship.Entities.Scavenger
 {
-  public class PlayerShipController : ShipController
+  public class ScavengerShipController : ShipController
   {
     public override void Move(Vector2 direction)
     {

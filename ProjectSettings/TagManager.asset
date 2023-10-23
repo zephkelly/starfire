@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Planet
+  - Star
   layers:
   - Default
   - TransparentFX
@@ -42,6 +43,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Planets
+  - name: Planet
     uniqueID: 1529745907
+    locked: 0
+  - name: Star
+    uniqueID: 761367231
     locked: 0
