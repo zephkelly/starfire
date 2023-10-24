@@ -4,7 +4,7 @@ Shader "Unlit/StarFlares"
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,300)) = 200.0
+	    _Pixels("Pixels", range(10,2000)) = 300.0
     	_GradientTex("Texture", 2D) = "white" {}	    
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
     	time("time",float) = 0.0
@@ -18,7 +18,7 @@ Shader "Unlit/StarFlares"
     	_Circle_amount("Circle Amount",range(2, 30)) = 5
     	_Circle_Size("Circle Size",range(0.0, 1.0)) = 1.0
 	    
-    	_Size("Size",float) = 50.0
+    	_Size("Size",float) = 100.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
     }
     SubShader

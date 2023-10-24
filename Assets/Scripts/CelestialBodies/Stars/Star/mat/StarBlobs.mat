@@ -104,7 +104,7 @@ Material:
     - _BumpScale: 1
     - _Circle_Size: 1
     - _Circle__Size: 1
-    - _Circle_amount: 2
+    - _Circle_amount: 3.1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2
@@ -117,21 +117,21 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
-    - _OCTAVES: 4
+    - _OCTAVES: 8.96
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _Pixels: 200
+    - _Pixels: 1000
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Rotation: 6.28
     - _Seed: 3.28
-    - _Size: 4.93
+    - _Size: 4.4
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _Surface: 0
-    - _Time_speed: 0.05
+    - _Time_speed: 0.045
     - _WorkflowMode: 1
     - _ZWrite: 1
     - circle_amount: 2

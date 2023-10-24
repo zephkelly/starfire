@@ -4,14 +4,14 @@ Shader "Unlit/Star"
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,100)) = 0.0
+	    _Pixels("Pixels", range(10,2000)) = 300.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
 	        	
 	    _GradientTex("Texture", 2D) = "white" {}
     	_TILES("TILES", range(0,20)) = 1
     	
-	    _Size("Size",float) = 50.0
+	    _Size("Size",float) = 100.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
 	    _Seed("Seed",range(1, 10)) = 1
 	    time("time",float) = 0.0
@@ -161,19 +161,19 @@ Shader "Unlit/Star"
 				pixelized = spherify(pixelized);
 				
 				// use two different _Sized cells for some variation
-				float n = Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 10);
-				n *= Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 20);
-				//n *= Cells(pixelized - vec2(time * _Time_speed * 2.0, 0), 30);
+				float n = Cells(pixelized - float2(time * _Time_speed * 3.0, 0), 4.3);
+        //n *= Cells(pixelized - float2(time * _Time_speed * 2.5, 0), 12.6);
+				n *= Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 12.6);
 				
 				// adjust cell value to get better looking stuff
-				n*= 2.;
-				n = clamp(n, 0.0, 1.0);
+				n*= 2.3;
+				n = clamp(n, 0.0, 1.4);
 				if (dith) { // here we dither
-					n *= 1.3;
+					n *= 1.2;
 				}
 				
 				// constrain values 4 possibilities and then choose color based on those
-				float interpolate = floor(n * 3.0) / 3.0;
+				float interpolate = floor(n * 4.0) / 4.0;
 				float3 c = tex2D(_GradientTex, float2(interpolate, 0.0)).rgb;
 				
 				// cut out a circle

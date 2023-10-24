@@ -13,6 +13,7 @@ using UnityEngine.UI;
       [SerializeField] private GameObject StarBackground;
       [SerializeField] private GameObject Star;
       [SerializeField] private GameObject StarFlares;
+      
       private Material m_Starbackground;
       private Material m_Star;
       private Material m_StarFlares;
@@ -21,7 +22,6 @@ using UnityEngine.UI;
       
       private string gradient_vars = "_GradientTex";
       
-
       private GradientColorKey[] colorKey1 = new GradientColorKey[4];
       private GradientColorKey[] colorKey2 = new GradientColorKey[2];
       private GradientAlphaKey[] alphaKey1 = new GradientAlphaKey[4];

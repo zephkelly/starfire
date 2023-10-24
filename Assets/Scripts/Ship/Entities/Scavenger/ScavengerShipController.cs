@@ -1,5 +1,4 @@
 using UnityEngine;
-using Starfire.Ship;
 
 namespace Starfire.Ship.Scavenger
 {

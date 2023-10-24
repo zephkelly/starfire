@@ -4,7 +4,7 @@ Shader "Unlit/DesertPlanet"
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,100)) = 100.0
+	    _Pixels("Pixels", range(10,1000)) = 100.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
     	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
     	
@@ -87,7 +87,7 @@ Shader "Unlit/DesertPlanet"
 				coord = mod(coord, float2(2.0,1.0)*round(_Size));
 				return frac(sin(dot(coord.xy ,float2(12.9898,78.233))) * 43758.5453 * _Seed);
 			}
-
+      
 			float noise(float2 coord){
 				float2 i = floor(coord);
 				float2 f = frac(coord);
@@ -103,13 +103,13 @@ Shader "Unlit/DesertPlanet"
 			}
 
 			float fbm(float2 coord){
-				float value = 0.05;
-				float scale = 0.6;
+				float value = 0.0;
+				float scale = 0.5;
 
 				for(int i = 0; i < _OCTAVES ; i++){
 					value += noise(coord) * scale;
 					coord *= 2.0;
-					scale *= 0.2;
+					scale *= 0.3;
 				}
 				return value;
 			}
@@ -128,11 +128,12 @@ Shader "Unlit/DesertPlanet"
 				return coord + 0.5;         	
 				
 			}
-			bool dither(float2 uv1, float2 uv2) {
-				return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
-        //float2 p = floor(uv1 * _Pixels) + uv2;
-        //float d = frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
-        //return d > 2.0;
+			float dither(float2 uv1, float2 uv2) {
+		    //return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
+        float2 p = floor(uv1 * 14/_Pixels) + uv2;
+        float d = frac(sin(dot(p, float2(123, 10.123))) * 98);
+        //float noise = (rand(p) - 0.9) * 0.1f;
+        return d;
 			}
 
 			fixed4 frag(v2f i) : COLOR {
@@ -140,7 +141,7 @@ Shader "Unlit/DesertPlanet"
             	
 				float2 uv = floor(i.uv*_Pixels)/_Pixels;				
 				//uv.y = 1 - uv.y;
-				bool dith = dither(uv, uv);
+				float dith = dither(uv, uv);
 					
 				// cut out a circle
 				float d_circle = distance(uv, float2(0.5,0.5));
@@ -160,23 +161,50 @@ Shader "Unlit/DesertPlanet"
 				d_light = smoothstep(-0.3, 1.2, d_light);
 				
 				if (d_light < _Light_distance1) {
-					d_light *= 0.9;
+					d_light *= 1.1;
 				}
 				if (d_light < _Light_distance2) {
 					d_light *= 0.9;
 				}
 				
-				
-				float c = d_light*pow(f,0.7)*3.5; // change the magic nums here for different light strengths
+				float c = d_light*pow(f,0.7)*3; // change the magic nums here for different light strengths
 				
 				// apply dithering
-				if (dith) {
-					c += 0.02;
+				if (dith < 0.2) {
+          c += 0.008;
 					c *= 1.05;
 				}
+        else if (dith < 0.3) {
+          c += 0.01;
+          c *= 1.04;
+        }
+        else if (dith < 0.43) {
+          c += 0.01;
+          c *= 1.03;
+        }
+        else if (dith < 0.5) {
+          c += 0.013;
+          c *= 1.13;
+        }
+        else if (dith < 0.6) {
+          c += 0.014;
+          c *= 1.1;
+        }
+        else if (dith < 0.7) {
+          c += 0.019;
+          c *= 0.96;
+        }
+        else if (dith < 0.8) {
+          c += 0.015;
+          c *= 0.9;
+        }
+        else if (dith < 0.9) {
+          c += 0.020;
+          c *= 0.9;
+        }
 				
 				// now we can assign colors based on distance to light origin
-				float posterize = floor(c*4.0)/4.0;
+				float posterize = floor(c*7)/7;
 				float3 col = tex2D(_GradientTex, float2(posterize, 0.0)).rgb;
 				
 				return fixed4(col, a);

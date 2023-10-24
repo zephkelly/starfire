@@ -4,13 +4,13 @@ Shader "Unlit/StarBlobs"
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,300)) = 200.0
+	    _Pixels("Pixels", range(10,2000)) = 300.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
 	        	
 	    _Color1("Color", Color) = (1,1,1,1)
     	
-	    _Size("Size",float) = 50.0
+	    _Size("Size",float) = 100.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
 	    _Seed("Seed",range(1, 10)) = 1
     	_Circle_amount("Circle Amount",range(2, 30)) = 5
