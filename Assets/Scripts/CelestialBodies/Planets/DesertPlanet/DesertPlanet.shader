@@ -161,7 +161,7 @@ Shader "Unlit/DesertPlanet"
 				d_light = smoothstep(-0.3, 1.2, d_light);
 				
 				if (d_light < _Light_distance1) {
-					d_light *= 1.1;
+					d_light *= 0.9;
 				}
 				if (d_light < _Light_distance2) {
 					d_light *= 0.9;

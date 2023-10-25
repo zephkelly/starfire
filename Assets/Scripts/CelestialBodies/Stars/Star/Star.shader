@@ -9,7 +9,7 @@ Shader "Unlit/Star"
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
 	        	
 	    _GradientTex("Texture", 2D) = "white" {}
-    	_TILES("TILES", range(0,20)) = 1
+    	_TILES("TILES", range(0,20)) = 3
     	
 	    _Size("Size",float) = 100.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
@@ -147,33 +147,27 @@ Shader "Unlit/Star"
 			}
 
 
-			fixed4 frag(v2f i) : COLOR {
-				// pixelize uv
-            	
-				float2 pixelized = floor(i.uv*_Pixels)/_Pixels;				
-				//uv.y = 1 - uv.y;
-				// use dither val later to mix between colors
+			fixed4 frag(v2f i) : COLOR {	
+				float2 pixelized = floor(i.uv*_Pixels)/_Pixels;	
 				bool dith = dither(i.uv, pixelized);
-				
+
 				pixelized = rotate(pixelized, _Rotation);
-				
-				// spherify has to go after dither
 				pixelized = spherify(pixelized);
 				
 				// use two different _Sized cells for some variation
-				float n = Cells(pixelized - float2(time * _Time_speed * 3.0, 0), 4.3);
-        //n *= Cells(pixelized - float2(time * _Time_speed * 2.5, 0), 12.6);
-				n *= Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 12.6);
+				float n = Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 4);
+				n *= Cells(pixelized - float2(time * _Time_speed * 3.0, 0), 9);
+        n *= Cells(pixelized - float2(time * _Time_speed * 2.5, 0), 10);
 				
 				// adjust cell value to get better looking stuff
-				n*= 2.3;
-				n = clamp(n, 0.0, 1.4);
+				n*= 2.4;
+				n = clamp(n, 0.0, 1.2);
 				if (dith) { // here we dither
 					n *= 1.2;
 				}
 				
 				// constrain values 4 possibilities and then choose color based on those
-				float interpolate = floor(n * 4.0) / 4.0;
+				float interpolate = floor(n * 6.0) / 6.0;
 				float3 c = tex2D(_GradientTex, float2(interpolate, 0.0)).rgb;
 				
 				// cut out a circle

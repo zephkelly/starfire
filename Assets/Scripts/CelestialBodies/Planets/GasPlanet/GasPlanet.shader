@@ -43,7 +43,7 @@ Shader "Unlit/GasPlanet"
             #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
-            #include "../cginc/hlmod.cginc"
+            #include "../../cginc/hlmod.cginc"
             
             struct appdata
             {

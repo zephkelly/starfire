@@ -45,15 +45,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Dither_size: 2.5
+    - _Dither_size: 2.31
     - _EnableExternalAlpha: 0
     - _Light_distance1: 0.23
     - _Light_distance2: 0.75
-    - _OCTAVES: 2.2
+    - _OCTAVES: 4.75
     - _Pixels: 250
     - _Rotation: 3.15
     - _Seed: 4.5
-    - _Size: 10
+    - _Size: 6.53
     - _Time_speed: 0.39
     - time: 78.57
     m_Colors:

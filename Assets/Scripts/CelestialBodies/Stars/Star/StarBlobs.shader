@@ -8,7 +8,7 @@ Shader "Unlit/StarBlobs"
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
 	        	
-	    _Color1("Color", Color) = (1,1,1,1)
+	    _Color1("Color", Color) = (0.75,1,1,1)
     	
 	    _Size("Size",float) = 100.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
