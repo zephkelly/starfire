@@ -8,8 +8,9 @@ namespace Starfire.WorldGen
   public class ChunkManager : MonoBehaviour
   {
     [SerializeField] static int chunkDiameter = 100;
-    [SerializeField] static int maxOriginDistance = 4000; // How far we can get from origin before we shift back to origin
+    [SerializeField] static int maxOriginDistance = 100;
 
+    private Transform cameraTransform;
     private Transform entityTransform;
     private Vector2 entityLastPosition;
     private Vector2D entityAbsolutePosition;
@@ -24,10 +25,16 @@ namespace Starfire.WorldGen
 
     private void Awake()
     {
+      cameraTransform = Camera.main.transform;
       entityTransform = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
-    private void Update()
+    private void Start()
+    {
+      maxOriginDistance += chunkDiameter / 2;
+    }
+
+    private void LateUpdate()
     {
       entityAbsolutePosition.x += entityTransform.position.x - entityLastPosition.x;
       entityAbsolutePosition.y += entityTransform.position.y - entityLastPosition.y;
@@ -52,6 +59,13 @@ namespace Starfire.WorldGen
 
     private void ShiftOrigin()
     {
+      cameraTransform.position = new Vector3(
+        cameraTransform.position.x - entityTransform.position.x,
+        cameraTransform.position.y - entityTransform.position.y,
+        cameraTransform.position.z
+      );
+
+
       entityTransform.position = Vector2.zero;
       entityLastPosition = Vector2.zero;
 

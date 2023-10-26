@@ -55,7 +55,7 @@ namespace Starfire.Controllers
       currentZoom = minZoom;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
       if (target == null) return;
 
