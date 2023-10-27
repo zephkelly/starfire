@@ -39,18 +39,12 @@ namespace Starfire
 
       SaveManager.SaveChunks(testInactiveChunks);
 
-      testInactiveChunks.Clear();
+      List<Chunk> testChunksToLoad = new List<Chunk>();
+      testChunksToLoad.Add(new Chunk(2, new Vector2Int(100, 200)));
+      testChunksToLoad.Add(new Chunk(5, new Vector2Int(2, 7)));
+      testChunksToLoad.Add(new Chunk(6, new Vector2Int(3, 4)));
 
-      List<Vector2Int> testChunksToLoad = new List<Vector2Int>();
-      testChunksToLoad.Add(new Vector2Int(100, 200));
-
-      testInactiveChunks = SaveManager.LoadChunks(testChunksToLoad);
-
-      SaveManager.SaveChunks(testInactiveChunks);
-
-      testChunksToLoad.Clear();
-
-      testInactiveChunks = SaveManager.LoadChunks(testChunksToLoad);
+      SaveManager.SaveChunks(testChunksToLoad);
     }
   }
 }

@@ -31,7 +31,7 @@ namespace Starfire.IO
     }
   }
 
-  // This is a serializable collection of ChunkSerializable objects 
+  This is a serializable collection of ChunkSerializable objects 
   [System.Serializable]
   public class ChunkListSerializable
   {

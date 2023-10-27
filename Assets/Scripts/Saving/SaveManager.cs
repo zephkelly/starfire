@@ -1,65 +1,54 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.IO;
+using System.Linq;
+using UnityEngine;
 using Starfire.Generation;
 
 namespace Starfire.IO
 {
   public class SaveManager
   {
-    public void SaveChunks(List<Chunk> inactiveChunks)
+    public void SaveChunks(List<Chunk> chunksToSave)
     {
-      // ChunkListSerializable serializableChunkList = new ChunkListSerializable(inactiveChunks);
-
-      // //Take SerializableChunkList and convert to JSON
-      // string path = Application.persistentDataPath + "/chunks.json";
-      // string json = JsonUtility.ToJson(serializableChunkList);
-
-      // //Write JSON to file
-      // if (File.Exists(path))
-      // {
-      //   File.AppendAllText(path, json);
-      //   Debug.Log("File appended. New chunk count: " + inactiveChunks.Count + ".");
-      // }
-      // else
-      // {
-      //   File.WriteAllText(path, json);
-      //   Debug.Log("File created. New chunk count: " + inactiveChunks.Count + ".");
-      // }
-
-      ChunkListSerializable serializableChunkList = new ChunkListSerializable(inactiveChunks);
-
-      //Take SerializableChunkList and convert to JSON
       string path = Application.persistentDataPath + "/chunks.json";
-      string json = JsonUtility.ToJson(serializableChunkList);
 
-      //Read existing JSON data from file
-      string existingJson = "";
       if (File.Exists(path))
       {
-          existingJson = File.ReadAllText(path);
-      }
+        string json = File.ReadAllText(path);
 
-      //Combine existing and new JSON data
-      if (existingJson != "")
-      {
-          //Remove the closing square bracket from the existing JSON data
-          existingJson = existingJson.Substring(0, existingJson.Length - 1);
+        List<Chunk> loadedChunks = JsonUtility.FromJson<ChunkListSerializable>(json).GetChunkList();
+        // List<Chunk> chunksToUpdate = new List<Chunk>();
 
-          //Add a comma to separate the existing and new JSON data
-          if (existingJson != "")
+        foreach (Chunk chunk in chunksToSave)
+        {
+          int index = loadedChunks.FindIndex(loadedChunk => loadedChunk.Index == chunk.Index);
+
+          if (index != -1)
           {
-            existingJson += ",";
+            loadedChunks[index] = chunk;
           }
+          else
+          {
+            loadedChunks.Add(chunk);
+          }
+        }
 
-          //Add the new JSON data to the existing JSON data
-          existingJson += json.Substring(1);
-          json = existingJson;
+        File.WriteAllText(path, "");
+
+        ChunkListSerializable chunkList = new ChunkListSerializable(loadedChunks);
+        json = JsonUtility.ToJson(chunkList);
+
+        File.WriteAllText(path, json);
       }
+      else
+      {
+        ChunkListSerializable chunkList = new ChunkListSerializable(chunksToSave);
+        string json = JsonUtility.ToJson(chunkList);
 
-      //Write combined JSON data to file
-      File.WriteAllText(path, json);
+        File.WriteAllText(path, json);
+        Debug.Log("File saved. Chunk count: " + chunksToSave.Count);
+      }
     }
 
     public List<Chunk> LoadChunks(List<Vector2Int> chunksToLoad)
