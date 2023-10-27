@@ -9,15 +9,15 @@ namespace Starfire.IO
   [System.Serializable]
   public class ChunkSerializable
   {
-    public int index;
+    public int chunkIndex;
     public int x;
     public int y;
 
     public ChunkSerializable(Chunk chunk)
     {
+      chunkIndex = chunk.ChunkIndex;
       x = chunk.ChunkKey.x;
       y = chunk.ChunkKey.y;
-      index = chunk.Index;
     }
 
     public Vector2Int ChunkKey
@@ -27,7 +27,7 @@ namespace Starfire.IO
 
     public Chunk ToChunk()
     {
-      return new Chunk(index, new Vector2Int(x, y));
+      return new Chunk(chunkIndex, new Vector2Int(x, y));
     }
   }
 

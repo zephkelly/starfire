@@ -10,6 +10,7 @@ namespace Starfire
   {
     public static GameManager Instance { get; private set; }
     public static SaveManager SaveManager { get; private set; }
+    //public static LoadManager LoadManager { get; private set; }
 
     private void Awake()
     {
@@ -31,18 +32,23 @@ namespace Starfire
 
     private void Start()
     {
+      SaveManager.CheckDirectoriesExist("zephyverse");
+
       List<Chunk> testInactiveChunks = new List<Chunk>();
-      testInactiveChunks.Add(new Chunk(1, new Vector2Int(0, 0)));
-      testInactiveChunks.Add(new Chunk(2, new Vector2Int(1, 0)));
-      testInactiveChunks.Add(new Chunk(3, new Vector2Int(0, 1)));
-      testInactiveChunks.Add(new Chunk(4, new Vector2Int(1, 1)));
+
+      for (int i = 0; i < 300; i++)
+      {
+        testInactiveChunks.Add(new Chunk(i, new Vector2Int(i, i)));
+      }
 
       SaveManager.SaveChunks(testInactiveChunks);
 
       List<Chunk> testChunksToLoad = new List<Chunk>();
-      testChunksToLoad.Add(new Chunk(2, new Vector2Int(100, 200)));
-      testChunksToLoad.Add(new Chunk(5, new Vector2Int(2, 7)));
-      testChunksToLoad.Add(new Chunk(6, new Vector2Int(3, 4)));
+      
+      for (int i = 300; i < 600; i++)
+      {
+        testChunksToLoad.Add(new Chunk(i, new Vector2Int(i, i)));
+      }
 
       SaveManager.SaveChunks(testChunksToLoad);
     }
