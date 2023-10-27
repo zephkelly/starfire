@@ -1,21 +1,30 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Starfire.Utils;
+using Starfire.IO;
 
-namespace Starfire.WorldGen
+namespace Starfire.Generation
 {
-  public class Chunk 
+  public interface IChunk
   {
-      // Start is called before the first frame update
-      void Start()
-      {
-          
-      }
+    int Index { get; }
+    Vector2Int ChunkKey { get; }
+  }
 
-      // Update is called once per frame
-      void Update()
-      {
-          
-      }
+  public class Chunk : IChunk
+  {
+    public int Index { get; private set; }
+    public Vector2Int ChunkKey { get; private set; }
+
+    public Chunk(int chunkIndex, Vector2Int key)
+    {
+      ChunkKey = key;
+      Index = chunkIndex;
+    }
+
+    public ChunkSerializable ToSerializable()
+    {
+      return new ChunkSerializable(this);
+    }
   }
 }

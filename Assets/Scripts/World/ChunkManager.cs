@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Utils;
 
-namespace Starfire.WorldGen
+namespace Starfire.Generation
 {
   public class ChunkManager : MonoBehaviour
   {
@@ -36,12 +36,9 @@ namespace Starfire.WorldGen
 
     private void LateUpdate()
     {
-      entityAbsolutePosition.x += entityTransform.position.x - entityLastPosition.x;
-      entityAbsolutePosition.y += entityTransform.position.y - entityLastPosition.y;
-
       entityChunkPosition = GetEntityChunkPosition(entityAbsolutePosition);
 
-      if (Vector2.Distance(entityTransform.position, Vector2.zero) > maxOriginDistance)
+      if (entityTransform.position.magnitude > maxOriginDistance)
       {
         ShiftOrigin(); // Here we shift everything back to origin.
       }
@@ -49,11 +46,36 @@ namespace Starfire.WorldGen
       entityLastPosition = entityTransform.position;
     }
 
+    // private void UpdateChunks()
+    // {
+    //   if (entityChunkPosition != entityLastChunkPosition)
+    //   {
+    //     for (int x = -1; x <= 1; x++)
+    //     {
+    //       for (int y = -1; y <= 1; y++)
+    //       {
+    //         Vector2Int chunkPosition = new Vector2Int(
+    //           entityChunkPosition.x + x,
+    //           entityChunkPosition.y + y
+    //         );
+
+    //         if (!chunks.ContainsKey(chunkPosition))
+    //         {
+    //           chunks.Add(chunkPosition, new Chunk(chunkPosition, chunkDiameter));
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+
     private Vector2Int GetEntityChunkPosition(Vector2D position)
     {
+      entityAbsolutePosition.x += entityTransform.position.x - entityLastPosition.x;
+      entityAbsolutePosition.y += entityTransform.position.y - entityLastPosition.y;
+
       return new Vector2Int(
-        Mathf.FloorToInt((float)entityAbsolutePosition.x / chunkDiameter),
-        Mathf.FloorToInt((float)entityAbsolutePosition.y / chunkDiameter)
+        Mathf.FloorToInt((float)position.x / chunkDiameter),
+        Mathf.FloorToInt((float)position.y / chunkDiameter)
       );
     }
 
@@ -65,11 +87,9 @@ namespace Starfire.WorldGen
         cameraTransform.position.z
       );
 
-
       entityTransform.position = Vector2.zero;
       entityLastPosition = Vector2.zero;
 
-      Debug.Log("Abs Pos X: " + entityAbsolutePosition.x + ", Abs Pos Y: " + entityAbsolutePosition.y);
       Debug.Log("Chunk position: " + entityChunkPosition.x + ", " + entityChunkPosition.y);
     }
   }
