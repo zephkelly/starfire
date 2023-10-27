@@ -53,23 +53,7 @@ namespace Starfire.IO
 
     public List<Chunk> LoadChunks(List<Vector2Int> chunksToLoad)
     {
-      string path = Application.persistentDataPath + "/chunks.json";
 
-      if (File.Exists(path))
-      {
-        string json = File.ReadAllText(path);
-
-        ChunkListSerializable savedChunks = JsonUtility.FromJson<ChunkListSerializable>(json);
-        List<Chunk> chunks = savedChunks.GetChunkList();
-
-        Debug.Log("File loaded. Chunk count: " + chunks.Count);
-        return chunks;
-      }
-      else
-      {
-        Debug.LogError("Save file not found in " + path);
-        return null;
-      }
     }
   }
 }
