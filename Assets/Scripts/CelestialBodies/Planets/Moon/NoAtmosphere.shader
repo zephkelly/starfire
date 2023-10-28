@@ -62,15 +62,15 @@ Shader "Unlit/NoAtmosphere"
             float _Pixels;
             float _Rotation;
             float _Dither_Size;
-			float2 _Light_origin;    	
-			float _Time_speed;
+			      float2 _Light_origin;    	
+			      float _Time_speed;
             float _Light_border_1;
-			float _Light_border_2;
+			      float _Light_border_2;
             float _Size;
             int _OCTAVES;
             int _Seed;
-			float time;
-    		fixed4 _Color1;
+			      float time;
+    		    fixed4 _Color1;
             fixed4 _Color2;
             fixed4 _Color3;
             

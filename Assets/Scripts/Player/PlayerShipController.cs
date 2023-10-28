@@ -4,6 +4,7 @@ namespace Starfire.Ship.Player
 {
   public class PlayerShipController : ShipController
   {
+    [SerializeField] private float moveSpeed = 360f;
     private Vector2 keyboardInput = Vector2.zero;
 
     protected override void Awake()
@@ -24,7 +25,7 @@ namespace Starfire.Ship.Player
 
     protected override void FixedUpdate()
     {
-      Move(keyboardInput, 120, Input.GetKey(KeyCode.LeftShift));
+      Move(keyboardInput, moveSpeed, Input.GetKey(KeyCode.LeftShift));
 
       base.FixedUpdate();
     }

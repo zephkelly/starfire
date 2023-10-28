@@ -123,16 +123,16 @@ Shader "Unlit/DesertPlanet"
 
 			float2 rotate(float2 coord, float angle){
 				coord -= 0.5;
-				//coord *= float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));
+				// coord *= float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));
             	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
 				return coord + 0.5;         	
 				
 			}
 			float dither(float2 uv1, float2 uv2) {
-		    //return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
+		    // return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
         float2 p = floor(uv1 * 14/_Pixels) + uv2;
         float d = frac(sin(dot(p, float2(123, 10.123))) * 98);
-        //float noise = (rand(p) - 0.9) * 0.1f;
+        // float noise = (rand(p) - 0.9) * 0.1f;
         return d;
 			}
 

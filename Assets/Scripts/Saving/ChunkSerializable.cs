@@ -9,7 +9,7 @@ namespace Starfire.IO
   [System.Serializable]
   public class ChunkSerializable
   {
-    public int chunkIndex;
+    public long chunkIndex;
     public int x;
     public int y;
 
