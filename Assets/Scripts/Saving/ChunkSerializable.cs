@@ -5,7 +5,6 @@ using Starfire.Generation;
 
 namespace Starfire.IO
 {
-  // This is a serializable form of the Chunk class
   [System.Serializable]
   public class ChunkSerializable
   {
@@ -36,24 +35,31 @@ namespace Starfire.IO
   {
     public List<ChunkSerializable> chunks = new List<ChunkSerializable>();
 
-    public ChunkListSerializable(List<Chunk> inactiveChunks)
+    public ChunkListSerializable(List<Chunk> serilizableChunks = null)
     {
-      foreach (Chunk chunk in inactiveChunks)
+      if (serilizableChunks == null) return;
+
+      foreach (Chunk chunk in serilizableChunks)
       {
         chunks.Add(chunk.ToSerializable());
       }
     }
 
-    public List<Chunk> GetChunkList()
+    public List<Chunk> ToChunkList()
     {
-      List<Chunk> loadedChunks = new List<Chunk>();
+      List<Chunk> deserializedChunks = new List<Chunk>();
 
       foreach (ChunkSerializable chunk in chunks)
       {
-        loadedChunks.Add(chunk.ToChunk());
+        deserializedChunks.Add(chunk.ToChunk());
       }
 
-      return loadedChunks;
+      return deserializedChunks;
+    }
+
+    public void Add(ChunkSerializable chunk)
+    {
+      chunks.Add(chunk);
     }
   }
 }

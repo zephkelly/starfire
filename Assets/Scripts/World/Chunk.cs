@@ -8,20 +8,20 @@ namespace Starfire.Generation
   public interface IChunk
   {
     long ChunkIndex { get; }
-    string ChunkGroupIndex { get; }
+    Vector2Int ChunkGroupIndex { get; }
     Vector2Int ChunkKey { get; }
   }
 
   public class Chunk : IChunk
   {
     public long ChunkIndex { get; private set; }
-    public string ChunkGroupIndex { get; private set; }
+    public Vector2Int ChunkGroupIndex { get; private set; }
     public Vector2Int ChunkKey { get; private set; }
 
     public Chunk(long chunkIndex, Vector2Int key)
     {
       ChunkIndex = chunkIndex;
-      ChunkGroupIndex = ChunkUtils.GetChunkGroupIndex(key);
+      ChunkGroupIndex = ChunkUtils.GetChunkGroup(key);
       ChunkKey = key;
     }
 

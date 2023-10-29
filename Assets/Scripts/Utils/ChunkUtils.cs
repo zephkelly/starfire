@@ -8,11 +8,11 @@ namespace Starfire.Utils
   {
     private static int chunkCellSize = 100;
 
-    public static string GetChunkGroupIndex(Vector2Int key)
+    public static Vector2Int GetChunkGroup(Vector2Int key)
     {
-      int cellX = Mathf.FloorToInt(key.x / chunkCellSize);
-      int cellY = Mathf.FloorToInt(key.y / chunkCellSize);
-      return $"cell{cellX}_{cellY}";
-    }
+      int cellX = key.x >= 0 ? Mathf.FloorToInt(key.x / chunkCellSize) : Mathf.CeilToInt(key.x / chunkCellSize) - 1;
+      int cellY = key.y >= 0 ? Mathf.FloorToInt(key.y / chunkCellSize) : Mathf.CeilToInt(key.y / chunkCellSize) - 1;
+      return new Vector2Int(cellX, cellY);
+    } 
   }
 }

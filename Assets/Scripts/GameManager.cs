@@ -10,7 +10,6 @@ namespace Starfire
   {
     public static GameManager Instance { get; private set; }
     public static SaveManager SaveManager { get; private set; }
-    //public static LoadManager LoadManager { get; private set; }
 
     private void Awake()
     {
@@ -34,23 +33,47 @@ namespace Starfire
     {
       SaveManager.CheckDirectoriesExist("zephyverse");
 
-      List<Chunk> testInactiveChunks = new List<Chunk>();
+      Dictionary<long, Chunk> testDict = new Dictionary<long, Chunk>();
 
       for (int i = 0; i < 300; i++)
       {
-        testInactiveChunks.Add(new Chunk(i, new Vector2Int(i, i)));
+        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+
+        testDict[newChunk.ChunkIndex] = newChunk;
       }
 
-      SaveManager.SaveChunks(testInactiveChunks);
-
-      List<Chunk> testChunksToLoad = new List<Chunk>();
+      SaveManager.SerializeDict(testDict, "zephyverse");
+      testDict.Clear();
       
-      for (int i = 300; i < 600; i++)
+      for (int i = -300; i < 600; i++)
       {
-        testChunksToLoad.Add(new Chunk(i, new Vector2Int(i, i)));
+        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+
+        testDict[newChunk.ChunkIndex] = newChunk;
       }
 
-      SaveManager.SaveChunks(testChunksToLoad);
+      SaveManager.SerializeDict(testDict, "zephyverse");
+
+      List<Chunk> testList = new List<Chunk>();
+
+      for (int i = 0; i < 300; i++)
+      {
+        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+
+        testList.Add(newChunk);
+      }
+
+      SaveManager.SerializeList(testList);
+      testList.Clear();
+
+      for (int i = -300; i < 600; i++)
+      {
+        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+
+        testList.Add(newChunk);
+      }
+
+      SaveManager.SerializeList(testList);
     }
   }
 }
