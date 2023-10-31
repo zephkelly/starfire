@@ -6,7 +6,7 @@ namespace Starfire.Utils
 {
   public static class ChunkUtils
   {
-    private static int chunkCellSize = 100;
+    private static int chunkCellSize = 16;
 
     public static Vector2Int GetChunkGroup(Vector2Int key)
     {

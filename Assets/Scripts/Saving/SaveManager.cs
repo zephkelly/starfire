@@ -11,6 +11,8 @@ namespace Starfire.IO
 {
   public class SaveManager
   {
+    public static SaveManager Instance { get; private set; }
+
     Dictionary<Vector2Int, ChunkListSerializable> chunkCells = new Dictionary<Vector2Int, ChunkListSerializable>();
 
     private static string directoryName = "zephyverse";
@@ -18,6 +20,16 @@ namespace Starfire.IO
 
     public SaveManager(string _directoryName)
     {
+      if (Instance == null)
+      {
+        Instance = this;
+      }
+      else
+      {
+        Debug.LogError("SaveManager already exists.");
+        return;
+      }
+
       directoryName = _directoryName;
       CheckDirectoriesExist();
     }
@@ -30,29 +42,29 @@ namespace Starfire.IO
       }
     }
 
-    public void SerializeDict(Dictionary<long, Chunk> chunksToSave)
+    public void SerializeChunks(Dictionary<Vector2Int, Chunk> chunksToSave)
     {
       foreach (Chunk chunk in chunksToSave.Values)
       {
-        if (chunkCells.ContainsKey(chunk.ChunkCellKey))
+        if (chunkCells.ContainsKey(chunk.GetChunkCellKey()))
         {
           UpdateOrAddChunkToDictionary(chunk);
           continue;
         }
 
-        if (File.Exists(path))
+        if (File.Exists(path + $"cells/cell{chunk.GetChunkCellKey()}.json"))
         {
-          string json = File.ReadAllText(path + $"cells/cell{chunk.ChunkCellKey}.json");
+          string json = File.ReadAllText(path + $"cells/cell{chunk.GetChunkCellKey()}.json");
 
-          chunkCells[chunk.ChunkCellKey] = JsonUtility.FromJson<ChunkListSerializable>(json);
-          chunkCells[chunk.ChunkCellKey].ListToDictionary();
-          
+          chunkCells[chunk.GetChunkCellKey()] = JsonUtility.FromJson<ChunkListSerializable>(json);
+          chunkCells[chunk.GetChunkCellKey()].ListToDictionary();
+
           UpdateOrAddChunkToDictionary(chunk);
           continue;
         }
       
-        chunkCells[chunk.ChunkCellKey] = new ChunkListSerializable();
-        chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
+        chunkCells[chunk.GetChunkCellKey()] = new ChunkListSerializable();
+        chunkCells[chunk.GetChunkCellKey()].AddChunk(chunk);
       }
 
       List<(string path, string json)> writeOperations = new List<(string, string)>();
@@ -69,40 +81,50 @@ namespace Starfire.IO
       {
         File.WriteAllText(writeOperation.path, writeOperation.json);
       }
+
     }
 
-    // public static Dictionary<long, Chunk> DeserializeDict(Vector2Int groupKey)
-    // {
-    //   Dictionary<long, Chunk> chunks = new Dictionary<long, Chunk>();
+    public bool DoesCellFileExist(Vector2Int groupKey)
+    {
+      return File.Exists(path + $"cells/cell{groupKey}.json");
+    }
 
-    //   string path = Application.persistentDataPath + $"/universes/{saveFileName}/cells/cell{groupKey.x}_{groupKey.y}.json";
+    public ChunkListSerializable DeserializeChunkCell(Vector2Int groupKey, bool preCheckedForFile = false)
+    {
+      ChunkListSerializable loadedChunkCell = new ChunkListSerializable();
 
-    //   if (!Directory.Exists(path))
-    //   {
-    //     Debug.LogError("No chunks found.");
-    //     return chunks;
-    //   }
+      if (!Directory.Exists(path))
+      {
+        Debug.LogError("No chunks found.");
+        return loadedChunkCell;
+      }
 
-    //   string json = File.ReadAllText(path);
-    //   ChunkListSerializable chunkSerializableList = JsonUtility.FromJson<ChunkListSerializable>(json);
+      if (!preCheckedForFile)
+      {
+        if (!File.Exists(path + $"cells/cell{groupKey}.json"))
+        {
+          Debug.LogError($"No chunk cell file found at {path + $"cells/cell{groupKey}.json"}.");
+          return loadedChunkCell;
+        }
+      }
 
-    //   foreach (var chunk in chunkSerializableList.ToChunkList())
-    //   {
-    //     chunks[chunk.ChunkIndex] = chunk;
-    //   }
+      string json = File.ReadAllText(path + $"/cells/cell{groupKey}.json");
 
-    //   return chunks;
-    // }
+      loadedChunkCell = JsonUtility.FromJson<ChunkListSerializable>(json);
+      loadedChunkCell.ListToDictionary();
+
+      return loadedChunkCell;
+    }
 
     private void UpdateOrAddChunkToDictionary(Chunk chunk)
     {
-      if (chunkCells[chunk.ChunkCellKey].chunksDict.ContainsKey(chunk.ChunkIndex))
+      if (chunkCells[chunk.GetChunkCellKey()].chunksDict.ContainsKey(chunk.ChunkKey))
       {
-        chunkCells[chunk.ChunkCellKey].chunksDict[chunk.ChunkIndex] = chunk;
+        chunkCells[chunk.GetChunkCellKey()].chunksDict[chunk.ChunkKey] = chunk;
       }
       else
       {
-        chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
+        chunkCells[chunk.GetChunkCellKey()].AddChunk(chunk);
       }
     }
   }

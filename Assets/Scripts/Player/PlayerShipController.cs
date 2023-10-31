@@ -4,7 +4,7 @@ namespace Starfire.Ship.Player
 {
   public class PlayerShipController : ShipController
   {
-    [SerializeField] private float moveSpeed = 360f;
+    [SerializeField] private float moveSpeed = 160f;
     private Vector2 keyboardInput = Vector2.zero;
 
     protected override void Awake()

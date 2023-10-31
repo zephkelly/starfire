@@ -25,6 +25,13 @@ namespace Starfire.Generation
     public Vector2Int ChunkKey { get => chunkKey; }
     public Vector2Int ChunkCellKey { get; private set; }
 
+    public Vector2Int GetChunkCellKey()
+    {
+      ChunkCellKey = ChunkUtils.GetChunkGroup(chunkKey);
+
+      return ChunkCellKey;
+    }
+
     public Chunk(long _chunkIndex, Vector2Int _chunkKey)
     {
       ChunkIndex = _chunkIndex;
@@ -41,17 +48,17 @@ namespace Starfire.Generation
   [System.Serializable]
   public class ChunkListSerializable
   {
-    public Dictionary<long, Chunk> chunksDict = new Dictionary<long, Chunk>();
+    public Dictionary<Vector2Int, Chunk> chunksDict = new Dictionary<Vector2Int, Chunk>();
     public List<Chunk> chunks = new List<Chunk>();
 
     public void AddChunk(Chunk newChunk)
     {
-      chunksDict[newChunk.ChunkIndex] = newChunk;
+      chunksDict[newChunk.ChunkKey] = newChunk;
     }
 
-    public Dictionary<long, Chunk> ListToDictionary()
+    public Dictionary<Vector2Int, Chunk> ListToDictionary()
     {
-      chunksDict = chunks.ToDictionary(chunk => chunk.ChunkIndex);
+      chunksDict = chunks.ToDictionary(chunk => chunk.ChunkKey);
       return chunksDict;
     }
 
