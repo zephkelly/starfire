@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using Starfire.Generation;
 using Starfire.IO;
+
 
 namespace Starfire
 {
@@ -25,55 +27,48 @@ namespace Starfire
 
       if (SaveManager == null)
       {
-        SaveManager = new SaveManager();
+        SaveManager = new SaveManager("zephyverse");
       }
     }
 
     private void Start()
     {
-      SaveManager.CheckDirectoriesExist("zephyverse");
+      SaveManager.CheckDirectoriesExist();
 
       Dictionary<long, Chunk> testDict = new Dictionary<long, Chunk>();
-
       for (int i = 0; i < 300; i++)
       {
-        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
-
-        testDict[newChunk.ChunkIndex] = newChunk;
+          Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+          testDict[newChunk.ChunkIndex] = newChunk;
       }
 
-      SaveManager.SerializeDict(testDict, "zephyverse");
+      Stopwatch sw = new Stopwatch();
+
+      // Timing SerializeDict method
+      sw.Start();
+      SaveManager.SerializeDict(testDict);
+      sw.Stop();
+      UnityEngine.Debug.Log($"SerializeDict took {sw.Elapsed.TotalMilliseconds} milliseconds");
       testDict.Clear();
-      
-      for (int i = -300; i < 600; i++)
-      {
-        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
 
-        testDict[newChunk.ChunkIndex] = newChunk;
+      for (int i = -600; i < 600; i++)
+      {
+          Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+          testDict[newChunk.ChunkIndex] = newChunk;
       }
 
-      SaveManager.SerializeDict(testDict, "zephyverse");
+      // Timing SerializeDict method again
+      sw.Restart();
+      SaveManager.SerializeDict(testDict);
+      sw.Stop();
+      UnityEngine.Debug.Log($"SerializeDict took {sw.Elapsed.TotalMilliseconds} milliseconds");
 
       List<Chunk> testList = new List<Chunk>();
-
       for (int i = 0; i < 300; i++)
       {
-        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
-
-        testList.Add(newChunk);
+          Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
+          testList.Add(newChunk);
       }
-
-      SaveManager.SerializeList(testList);
-      testList.Clear();
-
-      for (int i = -300; i < 600; i++)
-      {
-        Chunk newChunk = new Chunk((long)i, new Vector2Int(i, i));
-
-        testList.Add(newChunk);
-      }
-
-      SaveManager.SerializeList(testList);
     }
   }
 }

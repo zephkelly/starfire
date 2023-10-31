@@ -129,10 +129,10 @@ Shader "Unlit/DesertPlanet"
 				
 			}
 			float dither(float2 uv1, float2 uv2) {
-		    // return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
+		    return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
         float2 p = floor(uv1 * 14/_Pixels) + uv2;
         float d = frac(sin(dot(p, float2(123, 10.123))) * 98);
-        // float noise = (rand(p) - 0.9) * 0.1f;
+        float noise = (rand(p) - 0.9) * 0.1f;
         return d;
 			}
 

@@ -4,20 +4,37 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using Starfire.Generation;
+using System.Xml.Serialization;
+using Unity.VisualScripting;
 
 namespace Starfire.IO
 {
   public class SaveManager
   {
-    Dictionary<Vector2Int, ChunkListSerializable> chunkGroups = new Dictionary<Vector2Int, ChunkListSerializable>();
+    Dictionary<Vector2Int, ChunkListSerializable> chunkCells = new Dictionary<Vector2Int, ChunkListSerializable>();
 
-    public void SerializeDict(Dictionary<long, Chunk> chunksToSave, string saveFileName)
+    private static string directoryName = "zephyverse";
+    private static string path = Application.persistentDataPath + $"/universes/{directoryName}/";
+
+    public SaveManager(string _directoryName)
+    {
+      directoryName = _directoryName;
+      CheckDirectoriesExist();
+    }
+
+    public void CheckDirectoriesExist()
+    {
+      if (!Directory.Exists(path + "cells"))
+      {
+        Directory.CreateDirectory(path + "cells");
+      }
+    }
+
+    public void SerializeDict(Dictionary<long, Chunk> chunksToSave)
     {
       foreach (Chunk chunk in chunksToSave.Values)
       {
-        string path = Application.persistentDataPath + $"/universes/{saveFileName}/cells/cell{chunk.ChunkGroupIndex.x}_{chunk.ChunkGroupIndex.y}.json";
-
-        if (chunkGroups.ContainsKey(chunk.ChunkGroupIndex))
+        if (chunkCells.ContainsKey(chunk.ChunkCellKey))
         {
           UpdateOrAddChunkToDictionary(chunk);
           continue;
@@ -25,128 +42,68 @@ namespace Starfire.IO
 
         if (File.Exists(path))
         {
-          string json = File.ReadAllText(path);
-          chunkGroups[chunk.ChunkGroupIndex] = JsonUtility.FromJson<ChunkListSerializable>(json);
+          string json = File.ReadAllText(path + $"cells/cell{chunk.ChunkCellKey}.json");
+
+          chunkCells[chunk.ChunkCellKey] = JsonUtility.FromJson<ChunkListSerializable>(json);
+          chunkCells[chunk.ChunkCellKey].ListToDictionary();
           
           UpdateOrAddChunkToDictionary(chunk);
           continue;
         }
       
-        chunkGroups[chunk.ChunkGroupIndex] = new ChunkListSerializable();
-        chunkGroups[chunk.ChunkGroupIndex].Add(chunk.ToSerializable());
+        chunkCells[chunk.ChunkCellKey] = new ChunkListSerializable();
+        chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
       }
 
-      foreach (var chunkGroup in chunkGroups)
+      List<(string path, string json)> writeOperations = new List<(string, string)>();
+
+      foreach (var chunkGroup in chunkCells)
       {
-        string path = Application.persistentDataPath + $"/universes/{saveFileName}/cells/cell{chunkGroup.Key.x}_{chunkGroup.Key.y}.json";
+        chunkGroup.Value.DictionaryToList();
         string json = JsonUtility.ToJson(chunkGroup.Value);
 
-        File.WriteAllText(path, json);
+        writeOperations.Add((path + $"/cells/cell{chunkGroup.Key}.json", json));
+      }
+
+      foreach (var writeOperation in writeOperations)
+      {
+        File.WriteAllText(writeOperation.path, writeOperation.json);
       }
     }
 
-    public static Dictionary<long, Chunk> DeserializeDict(Vector2Int groupKey, string saveFileName)
-    {
-      Dictionary<long, Chunk> chunks = new Dictionary<long, Chunk>();
+    // public static Dictionary<long, Chunk> DeserializeDict(Vector2Int groupKey)
+    // {
+    //   Dictionary<long, Chunk> chunks = new Dictionary<long, Chunk>();
 
-      string path = Application.persistentDataPath + $"/universes/{saveFileName}/cells/cell{groupKey.x}_{groupKey.y}.json";
+    //   string path = Application.persistentDataPath + $"/universes/{saveFileName}/cells/cell{groupKey.x}_{groupKey.y}.json";
 
-      if (!Directory.Exists(path))
-      {
-        Debug.LogError("No chunks found.");
-        return chunks;
-      }
+    //   if (!Directory.Exists(path))
+    //   {
+    //     Debug.LogError("No chunks found.");
+    //     return chunks;
+    //   }
 
-      string json = File.ReadAllText(path);
-      ChunkListSerializable chunkSerializableList = JsonUtility.FromJson<ChunkListSerializable>(json);
+    //   string json = File.ReadAllText(path);
+    //   ChunkListSerializable chunkSerializableList = JsonUtility.FromJson<ChunkListSerializable>(json);
 
-      foreach (var chunk in chunkSerializableList.ToChunkList())
-      {
-        chunks[chunk.ChunkIndex] = chunk;
-      }
+    //   foreach (var chunk in chunkSerializableList.ToChunkList())
+    //   {
+    //     chunks[chunk.ChunkIndex] = chunk;
+    //   }
 
-      return chunks;
-    }
+    //   return chunks;
+    // }
 
     private void UpdateOrAddChunkToDictionary(Chunk chunk)
     {
-      int index = chunkGroups[chunk.ChunkGroupIndex].ToChunkList().FindIndex(loadedChunk => loadedChunk.ChunkIndex == chunk.ChunkIndex);
-
-      if (index != -1)
+      if (chunkCells[chunk.ChunkCellKey].chunksDict.ContainsKey(chunk.ChunkIndex))
       {
-        chunkGroups[chunk.ChunkGroupIndex].chunks[index] = chunk.ToSerializable();
+        chunkCells[chunk.ChunkCellKey].chunksDict[chunk.ChunkIndex] = chunk;
       }
       else
       {
-        chunkGroups[chunk.ChunkGroupIndex].Add(chunk.ToSerializable());
+        chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
       }
-    }
-
-    Dictionary<Vector2Int, List<Chunk>> chunkGroups2 = new Dictionary<Vector2Int, List<Chunk>>();
-
-    public void SerializeList(List<Chunk> chunksToSave)
-    {
-      CheckDirectoriesExist("zephyverse");
-
-      foreach (Chunk chunk in chunksToSave)
-      {
-        string filePath = Application.persistentDataPath + $"/universes/zephyverse/cellsList/cell{chunk.ChunkGroupIndex}.json";
-
-        if (!chunkGroups2.ContainsKey(chunk.ChunkGroupIndex))
-        {
-          chunkGroups2[chunk.ChunkGroupIndex] = LoadChunksFromFile(filePath);
-        }
-
-        UpdateOrAddChunkToList(chunkGroups2[chunk.ChunkGroupIndex], chunk);
-      }
-
-      foreach (var group in chunkGroups2)
-      {
-        string filePath = Application.persistentDataPath + $"/universes/zephyverse/cellsList/cell{group.Key}.json";
-        SaveChunkGroupToFile(group.Value, filePath);
-      }
-    }
-
-    private List<Chunk> LoadChunksFromFile(string filePath)
-    {
-      if (File.Exists(filePath))
-      {
-        string json = File.ReadAllText(filePath);
-        return JsonUtility.FromJson<ChunkListSerializable>(json).ToChunkList();
-      }
-      return new List<Chunk>();
-    }
-
-    private void UpdateOrAddChunkToList(List<Chunk> chunks, Chunk chunk)
-    {
-      int index = chunks.FindIndex(loadedChunk => loadedChunk.ChunkIndex == chunk.ChunkIndex);
-
-      if (index != -1)
-      {
-        chunks[index] = chunk;
-      }
-      else
-      {
-        chunks.Add(chunk);
-      }
-    }
-
-    public void CheckDirectoriesExist(string directoryName)
-    {
-      string directoryPath = Application.persistentDataPath + $"/universes/{directoryName}/cells";
-
-      if (!Directory.Exists(directoryPath))
-      {
-        Directory.CreateDirectory(directoryPath);
-      }
-    }
-
-    private void SaveChunkGroupToFile(List<Chunk> chunks, string filePath)
-    {
-      ChunkListSerializable chunkList = new ChunkListSerializable(chunks);
-
-      string json = JsonUtility.ToJson(chunkList);
-      File.WriteAllText(filePath, json);
     }
   }
 }
