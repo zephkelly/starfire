@@ -42,8 +42,11 @@ namespace Starfire.IO
       }
     }
 
-    public void SerializeChunks(Dictionary<Vector2Int, Chunk> chunksToSave)
+    public IEnumerator SerializeChunks(Dictionary<Vector2Int, Chunk> chunksToSave)
     {
+      int half = chunksToSave.Count / 2;
+      int processed = 0;
+
       foreach (Chunk chunk in chunksToSave.Values)
       {
         if (chunkCells.ContainsKey(chunk.GetChunkCellKey()))
@@ -62,9 +65,15 @@ namespace Starfire.IO
           UpdateOrAddChunkToDictionary(chunk);
           continue;
         }
+
       
         chunkCells[chunk.GetChunkCellKey()] = new ChunkListSerializable();
         chunkCells[chunk.GetChunkCellKey()].AddChunk(chunk);
+
+        if (++processed == half)
+        {
+            yield return null; // Wait for the next frame
+        }
       }
 
       List<(string path, string json)> writeOperations = new List<(string, string)>();
@@ -77,9 +86,17 @@ namespace Starfire.IO
         writeOperations.Add((path + $"/cells/cell{chunkGroup.Key}.json", json));
       }
 
+      half = writeOperations.Count / 2;
+      processed = 0;
+
       foreach (var writeOperation in writeOperations)
       {
         File.WriteAllText(writeOperation.path, writeOperation.json);
+
+        if (++processed == half)
+        {
+            yield return null; // Wait for the next frame
+        }
       }
 
     }

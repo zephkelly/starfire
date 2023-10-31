@@ -64,7 +64,7 @@ namespace Starfire.Generation
 
       if (inactiveChunks.Count > 1024)
       {
-        SaveManager.Instance.SerializeChunks(inactiveChunks);
+        StartCoroutine(SaveManager.Instance.SerializeChunks(inactiveChunks));
         inactiveChunks.Clear();
       }
 
