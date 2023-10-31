@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Starfire.Controllers
+namespace Starfire.Cam
 {
   public class CameraController : MonoBehaviour
   {
@@ -27,9 +27,7 @@ namespace Starfire.Controllers
 
     //Parallaxing-layers----------------------------------------------------------------------------
 
-    // [SerializeField] ParallaxStarfield[] starfieldsLayers;
-    // [SerializeField] ParallaxGasCloud[] gasCloudLayers;
-    // [SerializeField] DepoParallax depoParallax;
+    [SerializeField] StarfieldLayer[] starfieldLayers;
 
     //----------------------------------------------------------------------------------------------
 
@@ -90,26 +88,17 @@ namespace Starfire.Controllers
       Vector3 cameraLastPosition = cameraTransform.position;
       cameraTransform.position = Vector3.Lerp(cameraTransform.position, targetVector, cameraPanSpeed * (Mathf.Clamp(targetVelocityMagnitude, 25, 50) * 0.03f));
       
-      // UpdateParllaxing(cameraLastPosition);
+      UpdateParllaxing(cameraLastPosition);
     }
 
-    // private void UpdateParllaxing(Vector2 cameraLastPosition)
-    // {
-    //   //Starfields
-    //   for (int i = 0; i < starfieldsLayers.Length; i++)
-    //   {
-    //     starfieldsLayers[i].Parallax(cameraLastPosition);
-    //   }
-
-    //   //Gas clouds
-    //   foreach(ParallaxGasCloud gasCloud in gasCloudLayers)
-    //   {
-    //     gasCloud.Parallax(cameraLastPosition);
-    //   }
-
-    //   //Home depo
-    //   // depoParallax.Parallax(cameraLastPosition);
-    // }
+    private void UpdateParllaxing(Vector2 cameraLastPosition)
+    {
+      //Starfields
+      for (int i = 0; i < starfieldLayers.Length; i++)
+      {
+        starfieldLayers[i].Parallax(cameraLastPosition);
+      }
+    }
 
     public void ChangeFocus(Transform newFocus) => target = newFocus;
 
