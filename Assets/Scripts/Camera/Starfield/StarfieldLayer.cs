@@ -35,13 +35,16 @@ namespace Starfire.Cam
       CreateStars();
     }
 
+    private Vector3 lastStarPosition;
+
     private void CreateStars()
     {
       stars = new ParticleSystem.Particle[starsMax];
 
       for (int i = 0; i < starsMax; i++)
       {
-        stars[i].position = ((Vector3)Random.insideUnitCircle * starSpawnRadius) + cameraTransform.position;
+        stars[i].position = (lastStarPosition + ((Vector3)Random.insideUnitCircle * starSpawnRadius) + cameraTransform.position) / 2;
+        lastStarPosition = stars[i].position;
         stars[i].position = new Vector3(stars[i].position.x, stars[i].position.y, particleZ);
         stars[i].startColor = new Color(1,1,1, 1);
         stars[i].startSize = Random.Range(starSizeMin, starSizeMax);

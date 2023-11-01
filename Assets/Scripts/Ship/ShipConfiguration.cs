@@ -1,7 +1,7 @@
 using UnityEngine;
 using Starfire.Items;
 
-namespace Starfire.Ship
+namespace Starfire
 {
   public interface IShipConfiguration
   {

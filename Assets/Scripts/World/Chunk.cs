@@ -19,7 +19,6 @@ namespace Starfire.Generation
   public class Chunk : IChunk
   {
     public Vector2Int chunkKey;
-    public List<long> randLongs = new List<long>();
 
     public long ChunkIndex { get; private set; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -37,11 +36,6 @@ namespace Starfire.Generation
       ChunkIndex = _chunkIndex;
       ChunkCellKey = ChunkUtils.GetChunkGroup(_chunkKey);
       chunkKey = _chunkKey;
-
-      for (int i = 0; i < 100; i++)
-      {
-        randLongs.Add((long)UnityEngine.Random.Range(0, 1000000000000000000));
-      }
     }
   }
 

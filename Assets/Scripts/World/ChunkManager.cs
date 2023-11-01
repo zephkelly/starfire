@@ -12,7 +12,7 @@ namespace Starfire.Generation
 {
   public class ChunkManager : MonoBehaviour
   {
-    [SerializeField] static int chunkDiameter = 100;
+    [SerializeField] static int chunkDiameter = 300;
     [SerializeField] static int maxOriginDistance = 4000;
 
     private Transform cameraTransform;

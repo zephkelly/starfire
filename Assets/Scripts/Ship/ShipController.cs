@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Starfire.Ship
+namespace Starfire
 {
   public interface IShipController
   {
@@ -8,7 +8,8 @@ namespace Starfire.Ship
     ShipInventory Inventory { get; }
     ICelestialBody OrbitingBody { get; }
     bool IsOrbiting { get; }
-    bool SetOrbitingBody(ICelestialBody orbitingBody);
+    void SetOrbitingBody(ICelestialBody orbitingBody);
+    void RemoveOrbitingBody();
     int Damage(int damage, DamageType damageType);
     void Repair(int repair, DamageType damageType);
     void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed);
@@ -55,15 +56,22 @@ namespace Starfire.Ship
       ApplyLinearDrag();
     }
 
-    public bool SetOrbitingBody(ICelestialBody orbitingBody)
+    public void SetOrbitingBody(ICelestialBody _orbitingBody)
     {
-      if (orbitingBody == null) {
+      if (_orbitingBody == null) {
         Debug.LogError("Error: SetOrbitingBody() null reference");
-        return false;
+        return;
       }
 
+      orbitingBody = _orbitingBody;
       isOrbiting = true;
-      return true;
+      Debug.Log("Is orbiting");
+    }
+
+    public void RemoveOrbitingBody()
+    {
+      orbitingBody = null;
+      isOrbiting = false;
     }
 
     protected void StarOrbiting()
@@ -73,9 +81,11 @@ namespace Starfire.Ship
         return;
       }
 
+      Debug.Log("StarOrbiting()");
+
       //Set constant orbit velocity
       lastOrbitalVelocity = orbitalVelocity;
-      // orbitalVelocity = starController.OrbitingBehaviour.GetOrbitalVelocity(playerRigid2D);
+      orbitalVelocity = orbitingBody.OrbitingController.GetOrbitalVelocity(shipRigidBody);
 
       shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
       shipRigidBody.velocity += orbitalVelocity;

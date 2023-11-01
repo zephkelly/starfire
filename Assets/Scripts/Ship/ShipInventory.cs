@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Starfire.Ship
+namespace Starfire
 {
   public class ShipInventory : ScriptableObject
   {

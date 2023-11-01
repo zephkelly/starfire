@@ -2,13 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering.Universal;
 
-// namespace Starfire.CelestialBodies
-// {
-  public class Stars : MonoBehaviour, ICelestialBody, IPlanet
+namespace Starfire
+{
+  public class StarController : MonoBehaviour, ICelestialBody
   {
     public CelestialBodyType CelestialBodyType { get; private set; }
-    public PlanetType PlanetType { get; private set; }
+
+    [SerializeField] private OrbitingController orbitingController;
+    public OrbitingController OrbitingController => orbitingController;
+    // private Star starInfo;
+
+    [SerializeField] Light2D starLight;
+    [SerializeField] CircleCollider2D starRadiusCollider;
+    [SerializeField] SpriteRenderer starSpriteRenderer;
+
+    private Transform starTransform;
+    private Vector2 starPosition;
 
     [SerializeField] private GameObject star;
     [SerializeField] private GameObject starBlobs;
@@ -35,15 +46,52 @@ using UnityEngine.UI;
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
 
+    public float MaxOrbitRadius { get; private set; }
+    public float Temperature { get; private set; }
+    // public Star StarInfo { get => starInfo; }
+
+    // public Chunk ParentChunk { get => starInfo.ParentChunk; }
+    // public Vector2 StarPosition { get => starPosition; }
+    // public float StarRadius { get => starInfo.MaxOrbitRadius; }
+
     public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
-    public void SetPlanetType(PlanetType type) => PlanetType = type;
+
+    public void SetStarBehaviour()
+    {
+
+    }
+
+    // public void SetStarInfo(Star _starInfo)
+    // {
+    //   starInfo = _starInfo;
+
+    //   starPosition = starInfo.SpawnPoint;
+    //   starPosition = _starInfo.SpawnPoint;
+
+    //   starRadiusCollider.radius = starInfo.MaxOrbitRadius;
+    //   starLight.pointLightOuterRadius = starInfo.MaxOrbitRadius;
+
+    //   starInfo.SetStarObject(this.gameObject, starSpriteRenderer);
+    // }
+
+    private void Start()
+    {
+      orbitingController = gameObject.GetComponent<OrbitingController>();
+      MaxOrbitRadius = 160;
+    }
 
     private void Awake()
     {
+      orbitingController = gameObject.GetComponent<OrbitingController>();
       m_star = star.GetComponent<SpriteRenderer>().material;
       m_starBlobs = starBlobs.GetComponent<SpriteRenderer>().material;
       m_starFlares = starFlares.GetComponent<SpriteRenderer>().material;
       SetInitialColors();
+    }
+
+    private void Update()
+    {
+
     }
 
     public void SetPixel(float amount)
@@ -177,4 +225,4 @@ using UnityEngine.UI;
       _gradientStarFlare.SetColors(colorKey2, alphaKey2, gradient_vars);
     }
   }
-// }
+}

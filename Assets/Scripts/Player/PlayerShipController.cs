@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Starfire.Ship.Player
+namespace Starfire
 {
   public class PlayerShipController : ShipController
   {
