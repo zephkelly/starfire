@@ -291,6 +291,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1365084053574823292, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 529802606}
+    - targetCorrespondingSourceObject: {fileID: 1365084053574823292, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 529802607}
   m_SourcePrefab: {fileID: 100100000, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
 --- !u!1 &529802601 stripped
 GameObject:
@@ -379,6 +382,33 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 1
+--- !u!50 &529802607
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 529802601}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 50000
+  m_LinearDrag: 0
+  m_AngularDrag: 0
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &929815725
 GameObject:
   m_ObjectHideFlags: 0
