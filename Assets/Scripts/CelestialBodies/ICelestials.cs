@@ -36,6 +36,8 @@ namespace Starfire
     // void SetColors(Color[] _colors);
     void SetInitialColors();
     OrbitingController OrbitingController { get; }
+    float MaxOrbitRadius { get; }
+    float Temperature { get; }
   }
 
   public interface IPlanet 

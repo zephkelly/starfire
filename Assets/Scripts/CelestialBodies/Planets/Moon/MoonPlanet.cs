@@ -7,6 +7,9 @@ namespace Starfire
     public OrbitingController OrbitingController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }
     public PlanetType PlanetType { get; private set; }
+
+    public float MaxOrbitRadius { get; private set; }
+    public float Temperature { get; private set; }
     
     [SerializeField] private GameObject Land;
     [SerializeField] private GameObject Craters;

@@ -6,7 +6,7 @@ namespace Starfire
 {
   public class OrbitingController : MonoBehaviour
   {
-    private StarController starController;
+    private ICelestialBody celestialController;
 
     private Rigidbody2D celestialRigidbody;
     private List<Rigidbody2D> orbitingBodies = new List<Rigidbody2D>();
@@ -15,7 +15,7 @@ namespace Starfire
 
     private void Awake()
     {
-      starController = gameObject.GetComponent<StarController>();
+      celestialController = gameObject.GetComponent<ICelestialBody>();
       celestialRigidbody = gameObject.GetComponent<Rigidbody2D>();
     }
 
@@ -24,7 +24,14 @@ namespace Starfire
       if (c.CompareTag("Player"))
       {
         Debug.Log("Setting orbiting body");
-        c.gameObject.GetComponent<ShipController>().SetOrbitingBody(starController);
+        c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialController);
+        return;
+      }
+      else if (c.CompareTag("Planet"))
+      {
+        Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
+        orbitingBodies.Add(planetRigidbody);
+        ApplyInstantOrbitalVelocity(planetRigidbody);
         return;
       }
     }
@@ -91,11 +98,11 @@ namespace Starfire
 
     public float GetThermalGradient(float _objectDistance)
     {
-      var distanceNormalized = _objectDistance / starController.MaxOrbitRadius;
+      var distanceNormalized = _objectDistance / celestialController.MaxOrbitRadius;
 
       var trueDistance = 1 - distanceNormalized;
 
-      return Mathf.Lerp(0, starController.Temperature, trueDistance);
+      return Mathf.Lerp(0, celestialController.Temperature, trueDistance);
     }
   }
 }

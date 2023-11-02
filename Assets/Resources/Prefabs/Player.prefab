@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3337673184301437493}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Planet
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,6 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd9d227f8c6196a43a9c80d9423c640a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 360
 --- !u!60 &3337673184301437493
 PolygonCollider2D:
   m_ObjectHideFlags: 0

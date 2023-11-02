@@ -10,21 +10,19 @@ namespace Starfire
   {
     public CelestialBodyType CelestialBodyType { get; private set; }
 
+    public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
     [SerializeField] private OrbitingController orbitingController;
     public OrbitingController OrbitingController => orbitingController;
-    // private Star starInfo;
+    public float MaxOrbitRadius { get; private set; }
+    public float Temperature { get; private set; }
 
     [SerializeField] Light2D starLight;
     [SerializeField] CircleCollider2D starRadiusCollider;
     [SerializeField] SpriteRenderer starSpriteRenderer;
 
-    private Transform starTransform;
-    private Vector2 starPosition;
-
     [SerializeField] private GameObject star;
     [SerializeField] private GameObject starBlobs;
     [SerializeField] private GameObject starFlares;
-
     private Material m_star;
     private Material m_starBlobs;
     private Material m_starFlares;
@@ -40,39 +38,10 @@ namespace Starfire
 
     private string[] color_vars1 = new string[] { "_Color1" };
     private string[] init_colors1 = new string[] { "#acfaec" };
-
     private string[] _colors1 = new[] { "#9cffed", "#77d6c1", "#1c92a7", "#033e5e" };
     private string[] _colors2 = new[] { "#9cffed", "#c3e0f7" };
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
-
-    public float MaxOrbitRadius { get; private set; }
-    public float Temperature { get; private set; }
-    // public Star StarInfo { get => starInfo; }
-
-    // public Chunk ParentChunk { get => starInfo.ParentChunk; }
-    // public Vector2 StarPosition { get => starPosition; }
-    // public float StarRadius { get => starInfo.MaxOrbitRadius; }
-
-    public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
-
-    public void SetStarBehaviour()
-    {
-
-    }
-
-    // public void SetStarInfo(Star _starInfo)
-    // {
-    //   starInfo = _starInfo;
-
-    //   starPosition = starInfo.SpawnPoint;
-    //   starPosition = _starInfo.SpawnPoint;
-
-    //   starRadiusCollider.radius = starInfo.MaxOrbitRadius;
-    //   starLight.pointLightOuterRadius = starInfo.MaxOrbitRadius;
-
-    //   starInfo.SetStarObject(this.gameObject, starSpriteRenderer);
-    // }
 
     private void Start()
     {
@@ -87,11 +56,6 @@ namespace Starfire
       m_starBlobs = starBlobs.GetComponent<SpriteRenderer>().material;
       m_starFlares = starFlares.GetComponent<SpriteRenderer>().material;
       SetInitialColors();
-    }
-
-    private void Update()
-    {
-
     }
 
     public void SetPixel(float amount)

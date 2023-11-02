@@ -65,7 +65,6 @@ namespace Starfire
 
       orbitingBody = _orbitingBody;
       isOrbiting = true;
-      Debug.Log("Is orbiting");
     }
 
     public void RemoveOrbitingBody()
@@ -80,8 +79,6 @@ namespace Starfire
         Debug.LogError("Error: No orbiting body. Null reference");
         return;
       }
-
-      Debug.Log("StarOrbiting()");
 
       //Set constant orbit velocity
       lastOrbitalVelocity = orbitalVelocity;

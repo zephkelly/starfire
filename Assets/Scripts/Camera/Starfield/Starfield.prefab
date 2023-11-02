@@ -27,7 +27,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7267606973827192334}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -46,12 +46,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1feb4dde67974084baa3dbf05eea0fdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  starfieldTransform: {fileID: 0}
-  starsMax: 40
-  starSizeMin: 0.05
-  starSizeMax: 0.1
-  starSpawnRadius: 80
-  parallaxFactor: 20
+  starfieldTransform: {fileID: 4662355988510958583}
+  starsMax: 240
+  starSizeMin: 0.08
+  starSizeMax: 0.25
+  starSpawnRadius: 190
+  parallaxFactor: 1
 --- !u!198 &1479241513821542637
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -4814,9 +4814,9 @@ ParticleSystemRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: -1536444219
+  m_SortingLayer: -3
+  m_SortingOrder: -5
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0

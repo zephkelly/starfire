@@ -131,7 +131,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _Surface: 0
-    - _Time_speed: 0.045
+    - _Time_speed: 0.3
     - _WorkflowMode: 1
     - _ZWrite: 1
     - circle_amount: 2

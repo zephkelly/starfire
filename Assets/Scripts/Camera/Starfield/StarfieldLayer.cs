@@ -35,16 +35,13 @@ namespace Starfire.Cam
       CreateStars();
     }
 
-    private Vector3 lastStarPosition;
-
     private void CreateStars()
     {
       stars = new ParticleSystem.Particle[starsMax];
 
       for (int i = 0; i < starsMax; i++)
       {
-        stars[i].position = (lastStarPosition + ((Vector3)Random.insideUnitCircle * starSpawnRadius) + cameraTransform.position) / 2;
-        lastStarPosition = stars[i].position;
+        stars[i].position = ((Vector3)Random.insideUnitCircle * starSpawnRadius) + cameraTransform.position;
         stars[i].position = new Vector3(stars[i].position.x, stars[i].position.y, particleZ);
         stars[i].startColor = new Color(1,1,1, 1);
         stars[i].startSize = Random.Range(starSizeMin, starSizeMax);
@@ -53,6 +50,9 @@ namespace Starfire.Cam
       startfieldParticleSystem.SetParticles(stars, stars.Length);
     }
  
+    private Vector2 starRandomPosition;
+    private Vector2 starLastPosition;
+
     private void Update() 
     {
       Vector3 cameraParallaxDelta = (Vector2)(cameraTransform.position - starfieldTransform.position);
@@ -63,7 +63,9 @@ namespace Starfire.Cam
 
         if((starPosition - (Vector2)cameraTransform.position).sqrMagnitude > starDistanceSqr) 
         {
-          stars[i].position = (Vector3)(Random.insideUnitCircle.normalized * starSpawnRadius) + cameraParallaxDelta;
+          starRandomPosition = Random.insideUnitCircle;
+          stars[i].position =  ((starRandomPosition + starLastPosition) / 2).normalized * starSpawnRadius + (Vector2)cameraParallaxDelta;
+          starLastPosition = starRandomPosition;
         }
       }
     }

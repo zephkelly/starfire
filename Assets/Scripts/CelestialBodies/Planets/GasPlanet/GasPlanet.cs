@@ -11,6 +11,9 @@ namespace Starfire
     public CelestialBodyType CelestialBodyType { get; private set; }
     public PlanetType PlanetType { get; private set; }
 
+    public float MaxOrbitRadius { get; private set; }
+    public float Temperature { get; private set; }
+
     [SerializeField] private GameObject Cloud1;
     [SerializeField] private GameObject Cloud2;
     private Material m_cloud1;

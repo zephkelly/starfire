@@ -50,7 +50,7 @@ Material:
     - _Light_distance1: 0.23
     - _Light_distance2: 0.75
     - _OCTAVES: 4.92
-    - _Pixels: 74
+    - _Pixels: 200
     - _Rotation: 3.15
     - _Seed: 4.01
     - _Size: 5
