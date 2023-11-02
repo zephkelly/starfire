@@ -6,15 +6,21 @@ using UnityEngine.Rendering.Universal;
 
 namespace Starfire
 {
+  [RequireComponent(typeof(OrbitingController))]
   public class StarController : MonoBehaviour, ICelestialBody
   {
     public CelestialBodyType CelestialBodyType { get; private set; }
-
     public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
-    [SerializeField] private OrbitingController orbitingController;
-    public OrbitingController OrbitingController => orbitingController;
+
+    private OrbitingController orbitingController;
+    public OrbitingController OrbitController => orbitingController;
     public float MaxOrbitRadius { get; private set; }
     public float Temperature { get; private set; }
+
+    public ICelestialBody ParentOrbitingBody { get; private set; }
+    public ICelestialBody ChildOrbitingBody { get; private set; }
+    public bool IsOrbiting => ParentOrbitingBody != null;
+    public Vector2 GetWorldPosition() => transform.position;
 
     [SerializeField] Light2D starLight;
     [SerializeField] CircleCollider2D starRadiusCollider;
@@ -43,9 +49,21 @@ namespace Starfire
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
 
+    public void SetOrbitingBody(ICelestialBody _parentOrbitingBody)
+    {
+      ParentOrbitingBody = _parentOrbitingBody;
+    }
+
+    public void RemoveOrbitingBody()
+    {
+      ParentOrbitingBody = null;
+    }
+
     private void Start()
     {
       orbitingController = gameObject.GetComponent<OrbitingController>();
+
+      CelestialBodyType = CelestialBodyType.Star;
       MaxOrbitRadius = 160;
     }
 

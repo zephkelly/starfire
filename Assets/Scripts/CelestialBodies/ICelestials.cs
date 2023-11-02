@@ -22,6 +22,7 @@ namespace Starfire
     Moon
   }
 
+//Make this an abstract class at some point
   public interface ICelestialBody
   {
     CelestialBodyType CelestialBodyType { get; }
@@ -35,9 +36,15 @@ namespace Starfire
     Color[] GetColors();
     // void SetColors(Color[] _colors);
     void SetInitialColors();
-    OrbitingController OrbitingController { get; }
+    OrbitingController OrbitController { get; }
     float MaxOrbitRadius { get; }
     float Temperature { get; }
+    ICelestialBody ParentOrbitingBody { get; }
+    ICelestialBody ChildOrbitingBody { get; }
+    bool IsOrbiting { get; }
+    void SetOrbitingBody(ICelestialBody orbitingBody);
+    void RemoveOrbitingBody();
+    Vector2 GetWorldPosition();
   }
 
   public interface IPlanet 

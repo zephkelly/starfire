@@ -82,7 +82,7 @@ namespace Starfire
 
       //Set constant orbit velocity
       lastOrbitalVelocity = orbitalVelocity;
-      orbitalVelocity = orbitingBody.OrbitingController.GetOrbitalVelocity(shipRigidBody);
+      orbitalVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
       shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
       shipRigidBody.velocity += orbitalVelocity;

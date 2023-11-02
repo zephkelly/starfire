@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace Starfire
 {
-  public class GasPlanet : MonoBehaviour, ICelestialBody, IPlanet
+  public class GasPlanetController : MonoBehaviour, ICelestialBody, IPlanet
   {
-    public OrbitingController OrbitingController { get; private set; }
+    public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }
     public PlanetType PlanetType { get; private set; }
+
+    public ICelestialBody ParentOrbitingBody { get; private set; }
+    public ICelestialBody ChildOrbitingBody { get; private set; }
+    public bool IsOrbiting => ParentOrbitingBody != null;
+    public Vector2 GetWorldPosition() => transform.position;
 
     public float MaxOrbitRadius { get; private set; }
     public float Temperature { get; private set; }
@@ -26,22 +32,55 @@ namespace Starfire
     public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
     public void SetPlanetType(PlanetType type) => PlanetType = type;
 
+    private float time = 0f;
+
+    public void SetOrbitingBody(ICelestialBody _parentOrbitingBody)
+    {
+      ParentOrbitingBody = _parentOrbitingBody;
+    }
+
+    public void RemoveOrbitingBody()
+    {
+      ParentOrbitingBody = null;
+    }
+
     private void Awake()
     {
       m_cloud1 = Cloud1.GetComponent<SpriteRenderer>().material;
       m_cloud2 = Cloud2.GetComponent<SpriteRenderer>().material;
       SetInitialColors();
     }
+
+    private void Update()
+    {
+      if (ParentOrbitingBody is not null)
+      {
+        time += Time.deltaTime;
+        UpdateTime(Time.time);
+
+        if (ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
+        {
+          SetLight(ParentOrbitingBody.GetWorldPosition());
+        }
+      }
+    }
+
     public void SetPixel(float amount)
     {
       m_cloud1.SetFloat(ShaderProperties.Key_Pixels, amount);
       m_cloud2.SetFloat(ShaderProperties.Key_Pixels, amount);
     }
 
-    public void SetLight(Vector2 pos)
+    public void SetLight(Vector2 starPos)
     {
-      m_cloud1.SetVector(ShaderProperties.Key_Light_origin, pos);
-      m_cloud2.SetVector(ShaderProperties.Key_Light_origin, pos);
+      Vector2 relativePos = starPos - (Vector2)transform.position;
+      relativePos = relativePos.normalized * 0.6f;
+
+      //The final position should be in viewport space
+      Vector2 viewportPos = relativePos * 0.5f + new Vector2(0.5f, 0.5f);
+
+      m_cloud1.SetVector(ShaderProperties.Key_Light_origin, viewportPos);
+      m_cloud2.SetVector(ShaderProperties.Key_Light_origin, viewportPos);
     }
 
     public void SetSeed(float seed)

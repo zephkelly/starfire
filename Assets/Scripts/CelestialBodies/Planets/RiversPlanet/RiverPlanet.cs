@@ -4,12 +4,16 @@ namespace Starfire
 {
   public class RiverPlanet : MonoBehaviour, ICelestialBody, IPlanet
   {
-    public OrbitingController OrbitingController { get; private set; }
+    public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }
     public PlanetType PlanetType { get; private set; }
 
+    public ICelestialBody ParentOrbitingBody { get; private set; }
+    public ICelestialBody ChildOrbitingBody { get; private set; }
     public float MaxOrbitRadius { get; private set; }
     public float Temperature { get; private set; }
+    public bool IsOrbiting => ParentOrbitingBody != null;
+    public Vector2 GetWorldPosition() => transform.position;
 
     [SerializeField] private GameObject Land;
     [SerializeField] private GameObject Cloud;
@@ -24,6 +28,16 @@ namespace Starfire
 
     public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
     public void SetPlanetType(PlanetType type) => PlanetType = type;
+
+    public void SetOrbitingBody(ICelestialBody _parentOrbitingBody)
+    {
+      ParentOrbitingBody = _parentOrbitingBody;
+    }
+
+    public void RemoveOrbitingBody()
+    {
+      ParentOrbitingBody = null;
+    }
 
     private void Awake()
     {

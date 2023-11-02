@@ -30,6 +30,8 @@ namespace Starfire
       else if (c.CompareTag("Planet"))
       {
         Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
+        c.gameObject.GetComponent<ICelestialBody>().SetOrbitingBody(celestialController);
+        
         orbitingBodies.Add(planetRigidbody);
         ApplyInstantOrbitalVelocity(planetRigidbody);
         return;

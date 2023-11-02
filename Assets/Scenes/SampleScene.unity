@@ -180,11 +180,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e82a452b5601663418f2bcd444e88d33, type: 3}
---- !u!1 &201667468 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8025896834279777156, guid: e82a452b5601663418f2bcd444e88d33, type: 3}
-  m_PrefabInstance: {fileID: 201667467}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &318828166
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -718,7 +713,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   celestialObjects:
   - {fileID: 529802601}
-  - {fileID: 201667468}
   - {fileID: 1582086750}
   - {fileID: 1939947822}
   - {fileID: 692132924}
