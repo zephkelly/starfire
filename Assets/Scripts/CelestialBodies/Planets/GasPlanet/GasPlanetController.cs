@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Starfire
 {
+  [RequireComponent(typeof(OrbitingController))]
   public class GasPlanetController : MonoBehaviour, ICelestialBody, IPlanet
   {
     public OrbitingController OrbitController { get; private set; }
@@ -46,9 +47,14 @@ namespace Starfire
 
     private void Awake()
     {
+      OrbitController = GetComponent<OrbitingController>();
+
       m_cloud1 = Cloud1.GetComponent<SpriteRenderer>().material;
       m_cloud2 = Cloud2.GetComponent<SpriteRenderer>().material;
       SetInitialColors();
+      
+      MaxOrbitRadius = 80f;
+      CelestialBodyType = CelestialBodyType.Planet;
     }
 
     private void Update()

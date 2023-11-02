@@ -56,7 +56,6 @@ namespace Starfire
 
     public void SetLight(Vector2 pos)
     {
-      Debug.Log(pos);
         m_Land.SetVector(ShaderProperties.Key_Light_origin, pos);
     }
 

@@ -80,6 +80,11 @@ namespace Starfire
         return;
       }
 
+      if (orbitingBody.OrbitController == null) {
+        Debug.LogError("Error: No orbiting controller. Null reference");
+        return;
+      }
+
       //Set constant orbit velocity
       lastOrbitalVelocity = orbitalVelocity;
       orbitalVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
@@ -98,6 +103,11 @@ namespace Starfire
       if (shipRigidBody.velocity.y > orbitalVelocity.y || shipRigidBody.velocity.y < orbitalVelocity.y) {
         shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
       } 
+
+      var relativePosition = (Vector2)transform.position - orbitingBody.GetWorldPosition();
+
+      // Make the player's position relative to the orbiting body
+      transform.position = orbitingBody.GetWorldPosition() + relativePosition;
     }
 
     public virtual void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost

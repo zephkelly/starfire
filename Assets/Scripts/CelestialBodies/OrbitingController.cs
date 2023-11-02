@@ -23,15 +23,17 @@ namespace Starfire
     {
       if (c.CompareTag("Player"))
       {
-        Debug.Log("Setting orbiting body");
         c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialController);
+        Debug.Log("Setting orbiting body around: " + celestialController.CelestialBodyType);
         return;
       }
       else if (c.CompareTag("Planet"))
       {
+        if (celestialController.CelestialBodyType == CelestialBodyType.Planet) return;
+
         Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
         c.gameObject.GetComponent<ICelestialBody>().SetOrbitingBody(celestialController);
-        
+
         orbitingBodies.Add(planetRigidbody);
         ApplyInstantOrbitalVelocity(planetRigidbody);
         return;
@@ -42,7 +44,13 @@ namespace Starfire
     {
       if (c.CompareTag("Player"))
       {
-        c.gameObject.GetComponent<ShipController>().RemoveOrbitingBody();
+        if (celestialController.ParentOrbitingBody is not null)
+        {
+          c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialController.ParentOrbitingBody);
+          return;
+        }
+
+          c.gameObject.GetComponent<ShipController>().RemoveOrbitingBody();
         return;
       }
     }
@@ -95,7 +103,9 @@ namespace Starfire
       Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
       Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
 
-      return perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
+      Vector2 orbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
+
+      return orbitalVelocity + celestialRigidbody.velocity;
     }
 
     public float GetThermalGradient(float _objectDistance)

@@ -57,9 +57,9 @@ namespace Starfire.Generation
       { 
         DeactivateChunks();
         GetCurrentChunks();
-        Debug.Log($"Active chunks: {activeChunks.Count}");
-        Debug.Log("Lazy chunks: " + lazyChunks.Count);
-        Debug.Log("Inactive chunks: " + inactiveChunks.Count);
+        // Debug.Log($"Active chunks: {activeChunks.Count}");
+        // Debug.Log("Lazy chunks: " + lazyChunks.Count);
+        // Debug.Log("Inactive chunks: " + inactiveChunks.Count);
       }
 
       if (inactiveChunks.Count > 1024)
