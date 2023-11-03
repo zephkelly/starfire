@@ -2,7 +2,7 @@
 
 namespace Starfire
 {
-  public class Asteroid : MonoBehaviour, ICelestialBody 
+  public class Asteroid : MonoBehaviour 
   {
     public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }

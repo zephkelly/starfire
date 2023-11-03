@@ -5,24 +5,12 @@ using UnityEngine.UI;
 
 namespace Starfire
 {
-  public class DesertPlanet : MonoBehaviour, ICelestialBody, IPlanet
+  public class DesertPlanet : CelestialBehaviour, IPlanet
   {
-    public OrbitingController OrbitController { get; private set; }
-    public CelestialBodyType CelestialBodyType { get; private set; }
     public PlanetType PlanetType { get; private set; }
-
-    public ICelestialBody ParentOrbitingBody { get; private set; }
-    public ICelestialBody ChildOrbitingBody { get; private set; }
-    public float MaxOrbitRadius { get; private set; }
-    public float Temperature { get; private set; }
-    public bool IsOrbiting => ParentOrbitingBody != null;
-    public Vector2 GetWorldPosition() => transform.position;
 
     [SerializeField] private GameObject Land;
     [SerializeField] private GradientTextureGenerate _gradientLand;
-
-    private Material m_Land;
-    // private string gradient_vars = "_GradientTex";
 
     private GradientColorKey[] colorKey = new GradientColorKey[5];
     private GradientAlphaKey[] alphaKey = new GradientAlphaKey[5];
@@ -30,55 +18,47 @@ namespace Starfire
     private string[] _colors1 = new[] {"#ff8933", "#e64539", "#ad2f45", "#52333f", "#3d2936"};
     private float[] _color_times = new float[] { 0, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f };
 
-    public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
     public void SetPlanetType(PlanetType type) => PlanetType = type;
 
-    public void SetOrbitingBody(ICelestialBody _parentOrbitingBody)
+    protected override void Awake()
     {
-      ParentOrbitingBody = _parentOrbitingBody;
+      base.Awake();
+
+      SetInitialColors();
     }
 
-    public void RemoveOrbitingBody()
+    protected override void Update()
     {
-      ParentOrbitingBody = null;
-    }
+      time += Time.deltaTime;
+      UpdateTime(Time.time);
 
-    private void Start()
-    {
-        m_Land = Land.GetComponent<SpriteRenderer>().material;
-        SetInitialColors();
+      if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
+      {
+        SetLight(ParentOrbitingBody.WorldPosition, 0.8f);
+      }
     }
 
     public void SetPixel(float amount)
     {
-        m_Land.SetFloat(ShaderProperties.Key_Pixels, amount);
+      celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
     }
 
-    public void SetLight(Vector2 pos)
-    {
-        m_Land.SetVector(ShaderProperties.Key_Light_origin, pos);
-    }
 
     public void SetSeed(float seed)
     {
         var converted_seed = seed % 1000f / 100f;
-        m_Land.SetFloat(ShaderProperties.Key_Seed, converted_seed);
+        celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
     }
 
     public void SetRotate(float r)
     {
-        m_Land.SetFloat(ShaderProperties.Key_Rotation, r);
-    }
-
-    public void UpdateTime(float time)
-    {
-        m_Land.SetFloat(ShaderProperties.Key_time, time  );
+        celestialMaterials[0].SetFloat(ShaderProperties.Key_Rotation, r);
     }
 
     public void SetCustomTime(float time)
     {
         var dt = 10f + time * 60f;
-        m_Land.SetFloat(ShaderProperties.Key_time, dt);
+        celestialMaterials[0].SetFloat(ShaderProperties.Key_time, dt);
     }
 
     public void SetInitialColors()

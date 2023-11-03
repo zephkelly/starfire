@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Starfire
 {
-  public class LandPlanet : MonoBehaviour, ICelestialBody, IPlanet 
+  public class LandPlanet : MonoBehaviour, IPlanet 
   {
     public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }

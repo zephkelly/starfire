@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-  public class IceWorld : MonoBehaviour, ICelestialBody, IPlanet
+  public class IceWorld : MonoBehaviour, IPlanet
   {
     public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }

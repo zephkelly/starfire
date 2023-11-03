@@ -7,31 +7,17 @@ using UnityEngine.Rendering.Universal;
 namespace Starfire
 {
   [RequireComponent(typeof(OrbitingController))]
-  public class StarController : MonoBehaviour, ICelestialBody
+  public class StarController : CelestialBehaviour
   {
-    public CelestialBodyType CelestialBodyType { get; private set; }
-    public void SetCelestialBodyType(CelestialBodyType type) => CelestialBodyType = type;
-
-    private OrbitingController orbitingController;
-    public OrbitingController OrbitController => orbitingController;
-    public float MaxOrbitRadius { get; private set; }
-    public float Temperature { get; private set; }
-
-    public ICelestialBody ParentOrbitingBody { get; private set; }
-    public ICelestialBody ChildOrbitingBody { get; private set; }
-    public bool IsOrbiting => ParentOrbitingBody != null;
-    public Vector2 GetWorldPosition() => transform.position;
-
     [SerializeField] Light2D starLight;
     [SerializeField] CircleCollider2D starRadiusCollider;
     [SerializeField] SpriteRenderer starSpriteRenderer;
 
-    [SerializeField] private GameObject star;
-    [SerializeField] private GameObject starBlobs;
-    [SerializeField] private GameObject starFlares;
-    private Material m_star;
-    private Material m_starBlobs;
-    private Material m_starFlares;
+    // Order of Celestial Components:
+    // private GameObject star;
+    // private GameObject starFlares;
+    // private GameObject starBlobs;
+
     [SerializeField] private GradientTextureGenerate _gradientStar;
     [SerializeField] private GradientTextureGenerate _gradientStarFlare;
 
@@ -49,83 +35,63 @@ namespace Starfire
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
 
-    public void SetOrbitingBody(ICelestialBody _parentOrbitingBody)
+    protected  override void Awake()
     {
-      ParentOrbitingBody = _parentOrbitingBody;
-    }
+      base.Awake();
 
-    public void RemoveOrbitingBody()
-    {
-      ParentOrbitingBody = null;
-    }
-
-    private void Start()
-    {
-      orbitingController = gameObject.GetComponent<OrbitingController>();
-
-      CelestialBodyType = CelestialBodyType.Star;
+      _celestialBodyType = CelestialBodyType.Star;
       MaxOrbitRadius = 160;
+
+      SetInitialColors();
     }
 
-    private void Awake()
+    protected override void Update()
     {
-      orbitingController = gameObject.GetComponent<OrbitingController>();
-      m_star = star.GetComponent<SpriteRenderer>().material;
-      m_starBlobs = starBlobs.GetComponent<SpriteRenderer>().material;
-      m_starFlares = starFlares.GetComponent<SpriteRenderer>().material;
-      SetInitialColors();
+      base.Update();
+    }
+
+    protected override void UpdateTime(float time)
+    {
+      celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.1f);
+      celestialMaterials[1].SetFloat(ShaderProperties.Key_time, time);
+      celestialMaterials[2].SetFloat(ShaderProperties.Key_time, time);
     }
 
     public void SetPixel(float amount)
     {
-      m_star.SetFloat(ShaderProperties.Key_Pixels, amount);
-      m_starBlobs.SetFloat(ShaderProperties.Key_Pixels, amount * 2);
-      m_starFlares.SetFloat(ShaderProperties.Key_Pixels, amount * 2);
-    }
-
-    public void SetLight(Vector2 pos)
-    {
-      return;
+      celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
+      celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount * 2);
+      celestialMaterials[2].SetFloat(ShaderProperties.Key_Pixels, amount * 2);
     }
 
     public void SetSeed(float seed)
     {
       var converted_seed = seed % 1000f / 100f;
-      m_star.SetFloat(ShaderProperties.Key_Seed, converted_seed);
-      m_starBlobs.SetFloat(ShaderProperties.Key_Seed, converted_seed);
-      m_starFlares.SetFloat(ShaderProperties.Key_Seed, converted_seed);
-      setGragientColor();
+      
+      for (int i = 0; i < celestialMaterials.Length; i++)
+      {
+        celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
+      }
+
+      SetGradientColor();
     }
 
     public void SetRotate(float r)
     {
-      m_star.SetFloat(ShaderProperties.Key_Rotation, r);
-      m_starBlobs.SetFloat(ShaderProperties.Key_Rotation, r);
-      m_starFlares.SetFloat(ShaderProperties.Key_Rotation, r);
-    }
-
-    public void UpdateTime(float time)
-    {
-      m_star.SetFloat(ShaderProperties.Key_time, time * 0.1f);
-      m_starBlobs.SetFloat(ShaderProperties.Key_time, time);
-      m_starFlares.SetFloat(ShaderProperties.Key_time, time);
-    }
-
-    public void SetCustomTime(float time)
-    {
-      m_star.SetFloat(ShaderProperties.Key_time, time);
-      m_starBlobs.SetFloat(ShaderProperties.Key_time, time);
-      m_starFlares.SetFloat(ShaderProperties.Key_time, time);
+      for (int i = 0; i < celestialMaterials.Length; i++)
+      {
+        celestialMaterials[i].SetFloat(ShaderProperties.Key_Rotation, r);
+      }
     }
 
     public void SetInitialColors()
     {
-      setGragientColor();
+      SetGradientColor();
 
-      m_starBlobs.SetColor(color_vars1[0], ColorUtil.FromRGB(init_colors1[0]));
+      celestialMaterials[2].SetColor(color_vars1[0], ColorUtil.FromRGB(init_colors1[0]));
     }
 
-    private void setGragientColor()
+    private void SetGradientColor()
     {
       for (int i = 0; i < colorKey1.Length; i++)
       {
@@ -148,8 +114,8 @@ namespace Starfire
       var starTexture = _gradientStar.SetColors(colorKey1, alphaKey1, gradient_vars);
       var flareTexture = _gradientStarFlare.SetColors(colorKey2, alphaKey2, gradient_vars);
 
-      m_star.SetTexture(gradient_vars, starTexture);
-      m_starFlares.SetTexture(gradient_vars, flareTexture);
+      celestialMaterials[0].SetTexture(gradient_vars, starTexture);
+      celestialMaterials[1].SetTexture(gradient_vars, flareTexture);
     }
 
     public Color[] GetColors()
@@ -157,7 +123,7 @@ namespace Starfire
       var colors = new Color[7];
       for (int i = 0; i < color_vars1.Length; i++)
       {
-        colors[i] = m_starBlobs.GetColor(color_vars1[i]);
+        colors[i] = celestialMaterials[0].GetColor(color_vars1[i]);
       }
       var size = color_vars1.Length;
 
@@ -181,7 +147,7 @@ namespace Starfire
     {
       for (int i = 0; i < color_vars1.Length; i++)
       {
-        m_starBlobs.SetColor(color_vars1[i], _colors[i]);
+        celestialMaterials[2].SetColor(color_vars1[i], _colors[i]);
       }
 
       var size = color_vars1.Length;

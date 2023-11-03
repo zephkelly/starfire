@@ -2,7 +2,7 @@
 
 namespace Starfire
 {
-  public class MoonPlanet : MonoBehaviour, ICelestialBody, IPlanet 
+  public class MoonPlanet : MonoBehaviour, IPlanet 
   {
     public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }

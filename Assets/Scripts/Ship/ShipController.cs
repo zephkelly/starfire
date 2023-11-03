@@ -104,10 +104,10 @@ namespace Starfire
         shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
       } 
 
-      var relativePosition = (Vector2)transform.position - orbitingBody.GetWorldPosition();
+      var relativePosition = (Vector2)transform.position - orbitingBody.WorldPosition;
 
       // Make the player's position relative to the orbiting body
-      transform.position = orbitingBody.GetWorldPosition() + relativePosition;
+      transform.position = orbitingBody.WorldPosition + relativePosition;
     }
 
     public virtual void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-  public class LavaPlanet : MonoBehaviour, ICelestialBody, IPlanet
+  public class LavaPlanet : MonoBehaviour, IPlanet
   {
     public OrbitingController OrbitController { get; private set; }
     public CelestialBodyType CelestialBodyType { get; private set; }

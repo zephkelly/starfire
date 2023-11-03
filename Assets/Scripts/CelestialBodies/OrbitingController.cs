@@ -6,7 +6,7 @@ namespace Starfire
 {
   public class OrbitingController : MonoBehaviour
   {
-    private ICelestialBody celestialController;
+    private CelestialBehaviour celestialBehaviour;
 
     private Rigidbody2D celestialRigidbody;
     private List<Rigidbody2D> orbitingBodies = new List<Rigidbody2D>();
@@ -15,7 +15,7 @@ namespace Starfire
 
     private void Awake()
     {
-      celestialController = gameObject.GetComponent<ICelestialBody>();
+      celestialBehaviour = gameObject.GetComponent<CelestialBehaviour>();
       celestialRigidbody = gameObject.GetComponent<Rigidbody2D>();
     }
 
@@ -23,16 +23,16 @@ namespace Starfire
     {
       if (c.CompareTag("Player"))
       {
-        c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialController);
-        Debug.Log("Setting orbiting body around: " + celestialController.CelestialBodyType);
+        c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
+        Debug.Log("Setting orbiting body around: " + celestialBehaviour.CelestialBodyType);
         return;
       }
       else if (c.CompareTag("Planet"))
       {
-        if (celestialController.CelestialBodyType == CelestialBodyType.Planet) return;
+        if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
 
         Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
-        c.gameObject.GetComponent<ICelestialBody>().SetOrbitingBody(celestialController);
+        c.gameObject.GetComponent<CelestialBehaviour>().SetOrbitingBody(celestialBehaviour);
 
         orbitingBodies.Add(planetRigidbody);
         ApplyInstantOrbitalVelocity(planetRigidbody);
@@ -44,9 +44,9 @@ namespace Starfire
     {
       if (c.CompareTag("Player"))
       {
-        if (celestialController.ParentOrbitingBody is not null)
+        if (celestialBehaviour.ParentOrbitingBody is not null)
         {
-          c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialController.ParentOrbitingBody);
+          c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour.ParentOrbitingBody);
           return;
         }
 
@@ -110,11 +110,11 @@ namespace Starfire
 
     public float GetThermalGradient(float _objectDistance)
     {
-      var distanceNormalized = _objectDistance / celestialController.MaxOrbitRadius;
+      var distanceNormalized = _objectDistance / celestialBehaviour.MaxOrbitRadius;
 
       var trueDistance = 1 - distanceNormalized;
 
-      return Mathf.Lerp(0, celestialController.Temperature, trueDistance);
+      return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);
     }
   }
 }
