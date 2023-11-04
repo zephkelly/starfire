@@ -13,7 +13,7 @@ namespace Starfire.Generation
   public class ChunkManager : MonoBehaviour
   {
     const int chunkDiameter = 300;
-    private int maxOriginDistance = 4000;
+    private int maxOriginDistance = 3000;
 
     private Transform cameraTransform;
     private Transform entityTransform;
@@ -47,7 +47,7 @@ namespace Starfire.Generation
 
     private void Start()
     {
-      maxOriginDistance += chunkDiameter / 2;
+      maxOriginDistance += chunkDiameter;
     }
 
     private void Update()
@@ -59,7 +59,6 @@ namespace Starfire.Generation
     {
       entityAbsoluteChunkPosition = GetEntityChunkPosition(entityAbsolutePosition);
       entityRelativeChunkPosition = GetEntityChunkPosition(entityTransform.position);
-
 
       if (inactiveChunks.Count > 512)
       {
@@ -281,6 +280,8 @@ namespace Starfire.Generation
 
     private void ShiftOrigin()
     {
+      CalculateEntityAbsolutePosition();
+
       Vector2 shiftAmount = entityTransform.position;
 
       cameraTransform.position = new Vector3(
@@ -289,7 +290,7 @@ namespace Starfire.Generation
         cameraTransform.position.z
       );
 
-      entityAbsolutePosition = new Vector2D(entityAbsolutePosition.x - shiftAmount.x, entityAbsolutePosition.y - shiftAmount.y);
+      // entityAbsolutePosition = new Vector2D(entityAbsolutePosition.x - shiftAmount.x, entityAbsolutePosition.y - shiftAmount.y);
 
       entityTransform.position = Vector2.zero;
       entityLastPosition = Vector2.zero;
