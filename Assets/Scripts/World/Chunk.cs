@@ -1,9 +1,8 @@
-using System;
+// using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Utils;
 using Starfire.IO;
-using Unity.VisualScripting;
 using System.Linq;
 
 namespace Starfire.Generation
@@ -19,7 +18,7 @@ namespace Starfire.Generation
 
     Vector2 StarPosition { get; }
     bool HasStar { get; }
-    void SetStar();
+    void SetStar(GameObject _starObject);
   }
 
   [System.Serializable]
@@ -31,6 +30,7 @@ namespace Starfire.Generation
     
     private const int chunkDiameter = 300;
     private GameObject chunkObject;
+    private GameObject starObject;
 
     public long ChunkIndex { get; private set; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -57,17 +57,25 @@ namespace Starfire.Generation
       WorldPosition = _chunkWorldPosition;
     }
 
-    public void SetStar()
+    public void SetStar(GameObject _starObject = null)
     {
+      if (HasStar) 
+      {
+        starObject.SetActive(true);
+        starObject.transform.position = WorldPosition + starPosition;
+        return;
+      }
+
+      if (_starObject == null) return;
+      starObject = _starObject;
       hasStar = true;
 
       starPosition = new Vector2(
-        UnityEngine.Random.Range(-chunkDiameter / 2, chunkDiameter / 2), 
-        UnityEngine.Random.Range(-chunkDiameter / 2, chunkDiameter / 2)
+        UnityEngine.Random.Range(-chunkDiameter / 3, chunkDiameter / 3), 
+        UnityEngine.Random.Range(-chunkDiameter / 3, chunkDiameter / 3)
       );
 
-      starPosition += chunkKey * chunkDiameter;
-      //UnityEngine.GameObject.Instantiate(Resources.Load("Prefabs/Stars/Star"), starPosition, Quaternion.identity);
+      starObject.transform.position = starPosition + WorldPosition;
     }
 
     public void SetChunkObject(Vector2 _worldPosition)
@@ -78,6 +86,7 @@ namespace Starfire.Generation
         chunkObject.transform.position = WorldPosition;
 
         chunkObject.SetActive(true);
+        SetStar();
         return;
       }
 
@@ -99,8 +108,11 @@ namespace Starfire.Generation
 
     public void DeactivateChunkObject()
     {
-      if (chunkObject == null) return;
+      if (HasSetChunkObject == false) return;
       chunkObject.SetActive(false);
+      
+      if (HasStar == false) return;
+      starObject.SetActive(false);
     }
   }
 

@@ -96,7 +96,7 @@ namespace Starfire.Generation
       {
         if (inactiveChunks.ContainsKey(lazyChunk.Key)) continue;
         inactiveChunks.Add(lazyChunk.Key, lazyChunk.Value);
-        // lazyChunk.Value.DeactivateChunkObject();
+        lazyChunk.Value.DeactivateChunkObject();
       }
 
       foreach (var activeChunk in activeChunks)
@@ -168,7 +168,7 @@ namespace Starfire.Generation
             }
           }
 
-          if (Math.Abs(x) <= 1 && Math.Abs(y) <= 1)
+          if (Math.Abs(x) <= 3 && Math.Abs(y) <= 3)
           {
             Chunk activeChunk = lazyChunks[chunkPosition];
 
@@ -201,7 +201,12 @@ namespace Starfire.Generation
 
       if (ShouldSetStar(chunkKey))
       {
-        chunk.SetStar();
+        Debug.Log("Making Star");
+
+        var newStar = Instantiate(Resources.Load("Prefabs/Stars/Star") as GameObject, Vector3.zero, Quaternion.identity);
+        newStar.SetActive(false);
+
+        chunk.SetStar(newStar);
       }
 
       return chunk;
@@ -213,12 +218,12 @@ namespace Starfire.Generation
 
       if (perlinValue > starSpawnThreshold)
       {
-        if (UnityEngine.Random.Range(0, 100) > 6) return false; // 1% chance to spawn a star
+        // if (UnityEngine.Random.Range(0, 100) > 80) return false; // 1% chance to spawn a star
 
         //perform a search through the lazy and active chunks in the 3x3 area around the chunk
-        for (int x = -4; x <= 4; x++)
+        for (int x = -5; x <= 5; x++)
         {
-          for (int y = -4; y <= 4; y++)
+          for (int y = -5; y <= 5; y++)
           {
             Vector2Int searchChunkKey = new Vector2Int(
               chunkKey.x + x,
@@ -276,11 +281,15 @@ namespace Starfire.Generation
 
     private void ShiftOrigin()
     {
+      Vector2 shiftAmount = entityTransform.position;
+
       cameraTransform.position = new Vector3(
-        cameraTransform.position.x - entityTransform.position.x,
-        cameraTransform.position.y - entityTransform.position.y,
+        cameraTransform.position.x - shiftAmount.x,
+        cameraTransform.position.y - shiftAmount.y,
         cameraTransform.position.z
       );
+
+      entityAbsolutePosition = new Vector2D(entityAbsolutePosition.x - shiftAmount.x, entityAbsolutePosition.y - shiftAmount.y);
 
       entityTransform.position = Vector2.zero;
       entityLastPosition = Vector2.zero;
