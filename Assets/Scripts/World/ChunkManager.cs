@@ -12,8 +12,8 @@ namespace Starfire.Generation
 {
   public class ChunkManager : MonoBehaviour
   {
-    [SerializeField] static int chunkDiameter = 300;
-    [SerializeField] static int maxOriginDistance = 4000;
+    const int chunkDiameter = 300;
+    private int maxOriginDistance = 4000;
 
     private Transform cameraTransform;
     private Transform entityTransform;
@@ -22,6 +22,9 @@ namespace Starfire.Generation
 
     private Vector2Int entityChunkPosition;
     private Vector2Int entityLastChunkPosition;
+
+    [SerializeField] private float noiseScale = 0.02f; // Smaller values make smoother noise.
+    [SerializeField] private float starSpawnThreshold = 0.7f; // Threshold for spawning a star.
 
     private Dictionary<Vector2Int, Chunk> activeChunks = new Dictionary<Vector2Int, Chunk>();
     private Dictionary<Vector2Int, Chunk> lazyChunks = new Dictionary<Vector2Int, Chunk>();
@@ -182,7 +185,58 @@ namespace Starfire.Generation
 
     private Chunk GenerateChunk(Vector2Int chunkKey)
     {
-      return new Chunk(ChunkIndex, chunkKey);
+      var chunk = new Chunk(ChunkIndex, chunkKey);
+
+      if (ShouldSetStar(chunkKey))
+      {
+        chunk.SetStar();
+      }
+
+      return chunk;
+    }
+
+    private bool ShouldSetStar(Vector2Int chunkKey)
+    {
+      float perlinValue = Mathf.PerlinNoise(chunkKey.x * noiseScale, chunkKey.y * noiseScale);
+
+      if (perlinValue > starSpawnThreshold)
+      {
+        if (UnityEngine.Random.Range(0, 100) > 3) return false; // 1% chance to spawn a star
+
+        //perform a search through the lazy and active chunks in the 3x3 area around the chunk
+        for (int x = -4; x <= 4; x++)
+        {
+          for (int y = -4; y <= 4; y++)
+          {
+            Vector2Int searchChunkKey = new Vector2Int(
+              chunkKey.x + x,
+              chunkKey.y + y
+            );
+
+            if (inactiveChunks.ContainsKey(searchChunkKey) && inactiveChunks[searchChunkKey].HasStar) 
+            {
+              Debug.Log("Inactive chunk has star");
+              return false;
+            }
+
+            if (lazyChunks.ContainsKey(searchChunkKey) && lazyChunks[searchChunkKey].HasStar) 
+            {
+              Debug.Log("Lazy chunk has star");
+              return false;
+            }
+
+            if (activeChunks.ContainsKey(searchChunkKey) && activeChunks[searchChunkKey].HasStar) 
+            {
+              Debug.Log("Active chunk has star");
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      return false;
     }
 
     private void CalculateEntityAbsolutePosition()
