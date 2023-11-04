@@ -20,8 +20,11 @@ namespace Starfire.Generation
     private Vector2 entityLastPosition;
     private Vector2D entityAbsolutePosition;
 
-    private Vector2Int entityChunkPosition;
-    private Vector2Int entityLastChunkPosition;
+    private Vector2Int entityAbsoluteChunkPosition;
+    private Vector2Int entityLastAbsoluteChunkPosition;
+
+    private Vector2Int entityRelativeChunkPosition;
+    private Vector2Int entityLastRelativeChunkPosition;
 
     [SerializeField] private float noiseScale = 0.02f; // Smaller values make smoother noise.
     [SerializeField] private float starSpawnThreshold = 0.7f; // Threshold for spawning a star.
@@ -54,7 +57,9 @@ namespace Starfire.Generation
 
     private void LateUpdate()
     {
-      entityChunkPosition = GetEntityChunkPosition(entityAbsolutePosition);
+      entityAbsoluteChunkPosition = GetEntityChunkPosition(entityAbsolutePosition);
+      entityRelativeChunkPosition = GetEntityChunkPosition(entityTransform.position);
+
 
       if (inactiveChunks.Count > 512)
       {
@@ -62,7 +67,7 @@ namespace Starfire.Generation
         inactiveChunks.Clear();
       }
 
-      if (entityChunkPosition != entityLastChunkPosition)
+      if (entityAbsoluteChunkPosition != entityLastAbsoluteChunkPosition)
       { 
         DeactivateChunks();
         GetCurrentChunks();
@@ -70,12 +75,6 @@ namespace Starfire.Generation
         // Debug.Log("Lazy chunks: " + lazyChunks.Count);
         // Debug.Log("Inactive chunks: " + inactiveChunks.Count);
       }
-
-      // if (inactiveChunks.Count > 1024)
-      // {
-      //   StartCoroutine(SaveManager.Instance.SerializeChunks(inactiveChunks));
-      //   inactiveChunks.Clear();
-      // }
 
       CheckFloatingOrigins();
     }
@@ -87,7 +86,7 @@ namespace Starfire.Generation
         ShiftOrigin(); // Here we shift everything back to origin.
       }
 
-      entityLastChunkPosition = entityChunkPosition;
+      entityLastAbsoluteChunkPosition = entityAbsoluteChunkPosition;
       entityLastPosition = entityTransform.position;
     }
 
@@ -97,12 +96,14 @@ namespace Starfire.Generation
       {
         if (inactiveChunks.ContainsKey(lazyChunk.Key)) continue;
         inactiveChunks.Add(lazyChunk.Key, lazyChunk.Value);
+        // lazyChunk.Value.DeactivateChunkObject();
       }
 
       foreach (var activeChunk in activeChunks)
       {
         if (inactiveChunks.ContainsKey(activeChunk.Key)) continue;
         inactiveChunks.Add(activeChunk.Key, activeChunk.Value);
+        activeChunk.Value.DeactivateChunkObject();
       }
 
       lazyChunks.Clear();
@@ -111,13 +112,18 @@ namespace Starfire.Generation
 
     private void GetCurrentChunks()
     {
-      for (int x = -7; x <= 7; x++)
+      for (int x = -3; x <= 3; x++)
       {
-        for (int y = -7; y <= 7; y++)
+        for (int y = -3; y <= 3; y++)
         {
           Vector2Int chunkPosition = new Vector2Int(
-            entityChunkPosition.x + x,
-            entityChunkPosition.y + y
+            entityAbsoluteChunkPosition.x + x,
+            entityAbsoluteChunkPosition.y + y
+          );
+
+          Vector2Int chunkRelativePosition = new Vector2Int(
+            entityRelativeChunkPosition.x + x,
+            entityRelativeChunkPosition.y + y
           );
 
           Vector2Int chunkCellPosition = ChunkUtils.GetChunkGroup(chunkPosition);
@@ -150,7 +156,7 @@ namespace Starfire.Generation
             {
               if (!lazyChunks.ContainsKey(chunkPosition))
               {
-                lazyChunks.Add(chunkPosition, GenerateChunk(chunkPosition));
+                lazyChunks.Add(chunkPosition, GenerateChunk(chunkPosition, chunkRelativePosition));
               }
             }
           }
@@ -158,17 +164,18 @@ namespace Starfire.Generation
           {
             if (!lazyChunks.ContainsKey(chunkPosition))
             {
-              lazyChunks.Add(chunkPosition, GenerateChunk(chunkPosition));
+              lazyChunks.Add(chunkPosition, GenerateChunk(chunkPosition, chunkRelativePosition * chunkDiameter));
             }
           }
 
-          if (Math.Abs(x) <= 3 && Math.Abs(y) <= 3)
+          if (Math.Abs(x) <= 1 && Math.Abs(y) <= 1)
           {
             Chunk activeChunk = lazyChunks[chunkPosition];
 
             if (!activeChunks.ContainsKey(activeChunk.ChunkKey))
             {
               activeChunks.Add(activeChunk.ChunkKey, activeChunk);
+              PlaceActiveChunk(activeChunk, chunkRelativePosition * chunkDiameter);
             }
 
             lazyChunks.Remove(chunkPosition);
@@ -177,15 +184,20 @@ namespace Starfire.Generation
       }
     }
 
+    private void PlaceActiveChunk(Chunk _chunk, Vector2 _worldPosition)
+    {
+      _chunk.SetChunkObject(_worldPosition);
+    }
+
     private ChunkListSerializable LoadChunkCell(Vector2Int cellKey, bool preCheckedForFile = false)
     {
       return SaveManager.Instance.DeserializeChunkCell(cellKey, preCheckedForFile);
 
     }
 
-    private Chunk GenerateChunk(Vector2Int chunkKey)
+    private Chunk GenerateChunk(Vector2Int chunkKey, Vector2Int chunkRelativePosition)
     {
-      var chunk = new Chunk(ChunkIndex, chunkKey);
+      var chunk = new Chunk(ChunkIndex, chunkKey, chunkRelativePosition);
 
       if (ShouldSetStar(chunkKey))
       {
@@ -201,7 +213,7 @@ namespace Starfire.Generation
 
       if (perlinValue > starSpawnThreshold)
       {
-        if (UnityEngine.Random.Range(0, 100) > 3) return false; // 1% chance to spawn a star
+        if (UnityEngine.Random.Range(0, 100) > 6) return false; // 1% chance to spawn a star
 
         //perform a search through the lazy and active chunks in the 3x3 area around the chunk
         for (int x = -4; x <= 4; x++)
@@ -247,9 +259,18 @@ namespace Starfire.Generation
 
     private Vector2Int GetEntityChunkPosition(Vector2D position)
     {
+      //Create a new FloorToInt method for doubles to remove casting to float
       return new Vector2Int(
         Mathf.FloorToInt((float)position.x / chunkDiameter),
         Mathf.FloorToInt((float)position.y / chunkDiameter)
+      );
+    }
+
+    private Vector2Int GetEntityChunkPosition(Vector3 position)
+    {
+      return new Vector2Int(
+        Mathf.FloorToInt(position.x / chunkDiameter),
+        Mathf.FloorToInt(position.y / chunkDiameter)
       );
     }
 

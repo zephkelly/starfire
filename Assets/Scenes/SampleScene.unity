@@ -649,7 +649,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   noiseScale: 0.1
-  starSpawnThreshold: 0.5
+  starSpawnThreshold: 0.7
 --- !u!1001 &1467669817
 PrefabInstance:
   m_ObjectHideFlags: 0

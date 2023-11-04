@@ -13,6 +13,9 @@ namespace Starfire.Generation
     long ChunkIndex { get; }
     Vector2Int ChunkCellKey { get; }
     Vector2Int ChunkKey { get; }
+    Vector2 AbsolutePosition { get; }
+    Vector2 WorldPosition { get; }
+    bool HasSetChunkObject { get; }
 
     Vector2 StarPosition { get; }
     bool HasStar { get; }
@@ -27,12 +30,16 @@ namespace Starfire.Generation
     public bool hasStar = false;
     
     private const int chunkDiameter = 300;
+    private GameObject chunkObject;
 
     public long ChunkIndex { get; private set; }
     public Vector2Int ChunkKey { get => chunkKey; }
     public Vector2Int ChunkCellKey { get; private set; }
+    public Vector2 AbsolutePosition { get => chunkKey * chunkDiameter; }
+    public Vector2 WorldPosition { get; private set; }
 
     public Vector2 StarPosition { get => starPosition; }
+    public bool HasSetChunkObject { get; private set; }
     public bool HasStar { get => hasStar; }
 
     public Vector2Int GetChunkCellKey()
@@ -42,11 +49,12 @@ namespace Starfire.Generation
       return ChunkCellKey;
     }
 
-    public Chunk(long _chunkIndex, Vector2Int _chunkKey)
+    public Chunk(long _chunkIndex, Vector2Int _chunkKey, Vector2 _chunkWorldPosition)
     {
       ChunkIndex = _chunkIndex;
       ChunkCellKey = ChunkUtils.GetChunkGroup(_chunkKey);
       chunkKey = _chunkKey;
+      WorldPosition = _chunkWorldPosition;
     }
 
     public void SetStar()
@@ -59,7 +67,40 @@ namespace Starfire.Generation
       );
 
       starPosition += chunkKey * chunkDiameter;
-      UnityEngine.GameObject.Instantiate(Resources.Load("Prefabs/Stars/Star"), starPosition, Quaternion.identity);
+      //UnityEngine.GameObject.Instantiate(Resources.Load("Prefabs/Stars/Star"), starPosition, Quaternion.identity);
+    }
+
+    public void SetChunkObject(Vector2 _worldPosition)
+    {
+      if (HasSetChunkObject) 
+      {
+        WorldPosition = _worldPosition;
+        chunkObject.transform.position = WorldPosition;
+
+        chunkObject.SetActive(true);
+        return;
+      }
+
+      HasSetChunkObject = true;
+      chunkObject = new GameObject("Chunk");
+      chunkObject.transform.position = _worldPosition;
+
+      //Box Collider to visualise chunk
+      BoxCollider2D chunkCollider = chunkObject.AddComponent<BoxCollider2D>();
+      chunkCollider.size = new Vector2(chunkDiameter, chunkDiameter);
+      chunkCollider.isTrigger = true;
+    }
+
+    public void DestroyChunkObject()
+    {
+      if (chunkObject == null) return;
+      UnityEngine.Object.Destroy(chunkObject);
+    }
+
+    public void DeactivateChunkObject()
+    {
+      if (chunkObject == null) return;
+      chunkObject.SetActive(false);
     }
   }
 
