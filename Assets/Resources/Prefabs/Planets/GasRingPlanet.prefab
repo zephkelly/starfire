@@ -360,6 +360,7 @@ GameObject:
   - component: {fileID: 5322071931265457548}
   - component: {fileID: 8984531641204786804}
   - component: {fileID: 164822484683207735}
+  - component: {fileID: 118738232088594256}
   m_Layer: 0
   m_Name: GasRingPlanet
   m_TagString: Planet
@@ -377,7 +378,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 100, z: 1}
+  m_LocalScale: {x: 400, y: 400, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5402633263361113466}
@@ -396,8 +397,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0268b1f1d39e4040b928ddbff36af9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _GasLayers: {fileID: 3317950434879453123}
-  _Ring: {fileID: 460245557089136464}
+  celestialComponents:
+  - {fileID: 3317950434879453123}
+  - {fileID: 460245557089136464}
   _gradientGas1: {fileID: 3137024320729098265}
   _gradientGas2: {fileID: 3137024320729098265}
   _gradientRing1: {fileID: 8719779258763639460}
@@ -414,7 +416,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1000000
+  m_Mass: 90000
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
@@ -458,9 +460,21 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.07
+  m_Radius: 0.5
+--- !u!114 &118738232088594256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8421011848881246631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e850bd360222809469aa6ae559636ab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

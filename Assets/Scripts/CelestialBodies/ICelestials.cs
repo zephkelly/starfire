@@ -37,6 +37,7 @@ namespace Starfire
     void SetOrbitingBody(CelestialBehaviour orbitingBody);
     void RemoveOrbitingBody();
     Vector2 WorldPosition { get; }
+    float Mass { get; }
   }
 
   public interface IPlanet 
@@ -44,7 +45,8 @@ namespace Starfire
     PlanetType PlanetType { get; }
     void SetPlanetType(PlanetType type);
   }
-
+  
+  [RequireComponent(typeof(OrbitingController))]
   public abstract class CelestialBehaviour : MonoBehaviour, ICelestialBody
   { 
     protected CelestialBodyType _celestialBodyType;
@@ -53,8 +55,9 @@ namespace Starfire
     protected OrbitingController _orbitController;
     public OrbitingController OrbitController => _orbitController;
 
-    protected Transform celestialTransform;
-    public Vector2 WorldPosition => celestialTransform.position;
+    protected Rigidbody2D _celestialRigidBody;
+    protected Transform _celestialTransform;
+    public Vector2 WorldPosition => _celestialTransform.position;
 
     protected CelestialBehaviour parentOrbitingBody;
     protected CelestialBehaviour childOrbitingBody;
@@ -63,6 +66,8 @@ namespace Starfire
 
     [SerializeField] public GameObject[] celestialComponents;
     protected Material[] celestialMaterials;
+
+    public float Mass => _celestialRigidBody.mass;
 
     public void SetCelestialBodyType(CelestialBodyType type) 
     {
@@ -82,7 +87,8 @@ namespace Starfire
     protected virtual void Awake()
     {
       _orbitController = GetComponent<OrbitingController>();
-      celestialTransform = transform;
+      _celestialRigidBody = GetComponent<Rigidbody2D>();
+      _celestialTransform = transform;
 
       celestialMaterials = new Material[celestialComponents.Length];
       for (int i = 0; i < celestialComponents.Length; i++)

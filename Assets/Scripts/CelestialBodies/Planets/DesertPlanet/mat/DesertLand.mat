@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -47,13 +47,13 @@ Material:
     m_Floats:
     - _Dither_size: 1.38
     - _EnableExternalAlpha: 0
-    - _Light_distance1: 0.86
-    - _Light_distance2: 2.15
-    - _OCTAVES: 4.92
+    - _Light_distance1: 1
+    - _Light_distance2: 1
+    - _OCTAVES: 4
     - _Pixels: 200
     - _Rotation: 3.15
     - _Seed: 4.01
-    - _Size: 5
+    - _Size: 11
     - _Time_speed: 0.39
     - time: 78.57
     m_Colors:

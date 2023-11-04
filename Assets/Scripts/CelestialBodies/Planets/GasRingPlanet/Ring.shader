@@ -3,7 +3,7 @@ Shader "Unlit/Ring"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-	    _Pixels("Pixels", range(10,300)) = 100.0
+	    _Pixels("Pixels", range(10,1000)) = 100.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0    		    
     	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2

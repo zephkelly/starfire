@@ -55,16 +55,18 @@ namespace Starfire.Cam
 
     private void Update() 
     {
-      Vector3 cameraParallaxDelta = (Vector2)(cameraTransform.position - starfieldTransform.position);
+      Vector2 cameraTransformPosition = new Vector2(cameraTransform.position.x, cameraTransform.position.y);
+
+      Vector2 cameraParallaxDelta = cameraTransform.position - starfieldTransform.position;
 
       for (int i = 0; i < starsMax; i++)
       {
-        Vector2 starPosition = (Vector2)(stars[i].position + starfieldTransform.position);
+        Vector2 starPosition = stars[i].position + starfieldTransform.position;
 
-        if((starPosition - (Vector2)cameraTransform.position).sqrMagnitude > starDistanceSqr) 
+        if((starPosition - cameraTransformPosition).sqrMagnitude > starDistanceSqr) 
         {
           starRandomPosition = Random.insideUnitCircle;
-          stars[i].position =  ((starRandomPosition + starLastPosition) / 2).normalized * starSpawnRadius + (Vector2)cameraParallaxDelta;
+          stars[i].position =  ((starRandomPosition + starLastPosition) / 2).normalized * starSpawnRadius + cameraParallaxDelta;
           starLastPosition = starRandomPosition;
         }
       }

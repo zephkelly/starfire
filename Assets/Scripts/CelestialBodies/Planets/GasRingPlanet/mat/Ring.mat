@@ -118,12 +118,12 @@ Material:
     - _OCTAVES: 4
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _Pixels: 300
+    - _Pixels: 500
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Ring_perspective: 6
     - _Ring_width: 0.127
-    - _Rotation: 6.98
+    - _Rotation: 2.24
     - _Scale_rel_to_planet: 6
     - _Seed: 8.461
     - _Size: 15

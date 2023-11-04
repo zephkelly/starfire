@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5536783946561554539}
   m_Layer: 0
   m_Name: Star
-  m_TagString: Untagged
+  m_TagString: Star
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -52,13 +52,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d93493ff6282e784192df4cf02b355fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orbitingController: {fileID: 740131256037949361}
+  celestialComponents:
+  - {fileID: 8132036035649744051}
+  - {fileID: 3405946534158907249}
+  - {fileID: 8893661548593677750}
   starLight: {fileID: 4616552629836269554}
   starRadiusCollider: {fileID: 0}
   starSpriteRenderer: {fileID: 0}
-  star: {fileID: 8132036035649744051}
-  starBlobs: {fileID: 8893661548593677750}
-  starFlares: {fileID: 3405946534158907249}
   _gradientStar: {fileID: 544071947096438355}
   _gradientStarFlare: {fileID: 2442760740479620818}
 --- !u!114 &740131256037949361
@@ -155,7 +155,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 500000
+  m_Mass: 900000
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
@@ -280,7 +280,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.8, y: 1.8, z: 1}
+  m_LocalScale: {x: 1.7, y: 1.7, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6405514460553800156}
@@ -537,7 +537,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.0038, y: 0.00278, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalScale: {x: 1.8, y: 1.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6405514460553800156}

@@ -6,9 +6,9 @@ namespace Starfire
   {
     ShipConfiguration Configuration { get; }
     ShipInventory Inventory { get; }
-    ICelestialBody OrbitingBody { get; }
+    CelestialBehaviour OrbitingBody { get; }
     bool IsOrbiting { get; }
-    void SetOrbitingBody(ICelestialBody orbitingBody);
+    void SetOrbitingBody(CelestialBehaviour orbitingBody);
     void RemoveOrbitingBody();
     int Damage(int damage, DamageType damageType);
     void Repair(int repair, DamageType damageType);
@@ -23,14 +23,14 @@ namespace Starfire
     protected ShipInventory inventory;
     protected Rigidbody2D shipRigidBody;
     
-    protected ICelestialBody orbitingBody;
+    protected CelestialBehaviour orbitingBody;
     protected Vector2 orbitalVelocity;
     protected Vector2 lastOrbitalVelocity;
     protected bool isOrbiting = false;
 
     public ShipConfiguration Configuration => configuration;
     public ShipInventory Inventory => inventory;
-    public ICelestialBody OrbitingBody => orbitingBody;
+    public CelestialBehaviour OrbitingBody => orbitingBody;
     public bool IsOrbiting => isOrbiting;
 
     protected virtual void Awake()
@@ -56,10 +56,15 @@ namespace Starfire
       ApplyLinearDrag();
     }
 
-    public void SetOrbitingBody(ICelestialBody _orbitingBody)
+    public void SetOrbitingBody(CelestialBehaviour _orbitingBody)
     {
       if (_orbitingBody == null) {
         Debug.LogError("Error: SetOrbitingBody() null reference");
+        return;
+      }
+
+      if (orbitingBody is not null && orbitingBody.CelestialBodyType != CelestialBodyType.Star && _orbitingBody.Mass <= orbitingBody.Mass) {
+        Debug.LogError("Error: Current Orbiting body is larger than new orbiting body");
         return;
       }
 

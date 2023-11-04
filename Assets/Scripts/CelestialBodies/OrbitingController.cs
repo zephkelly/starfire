@@ -40,13 +40,41 @@ namespace Starfire
       }
     }
 
+    // private void OnTriggerStay2D(Collider2D c) 
+    // {
+    //   // IEnumerator CheckBodiesCoroutine() 
+    //   // {
+    //     // if (c.CompareTag("Player"))
+    //     // {
+    //     //   if (celestialBehaviour.ParentOrbitingBody is not null)
+    //     //   {
+    //     //     ShipController objectController = c.gameObject.GetComponent<ShipController>();
+
+    //     //     if (objectController.OrbitingBody.Mass > celestialBehaviour.Mass && objectController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
+    //     //     objectController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody);
+    //     //     return;
+    //     //   }
+
+    //     //   c.gameObject.GetComponent<ShipController>().RemoveOrbitingBody();
+    //     //   return;
+    //     // }
+
+    //     // yield return new WaitForSeconds(5);
+    //   // }
+
+    //   // StartCoroutine(CheckBodiesCoroutine());
+    // }
+
     private void OnTriggerExit2D(Collider2D c) 
     {
       if (c.CompareTag("Player"))
       {
         if (celestialBehaviour.ParentOrbitingBody is not null)
         {
-          c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour.ParentOrbitingBody);
+          ShipController objectController = c.gameObject.GetComponent<ShipController>();
+
+          if (objectController.OrbitingBody.Mass > celestialBehaviour.Mass && objectController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
+          objectController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody);
           return;
         }
 
@@ -77,7 +105,7 @@ namespace Starfire
       }
     }
 
-    public void ApplyInstantOrbitalVelocity(Rigidbody2D body)
+    public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool counterClockwise = false)
     {
       float bodyMass = body.mass;
       float starMass = celestialRigidbody.mass;
@@ -87,6 +115,12 @@ namespace Starfire
       Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
 
       Vector2 appliedOrbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
+
+
+      // if (Vector2.Dot(body.velocity, perpendicularDirection) < 0 || counterClockwise)
+      // {
+      //   appliedOrbitalVelocity *= -1;
+      // }
 
       //Only apply enough force to orbit the star
       if (body.velocity.magnitude > appliedOrbitalVelocity.magnitude) return;

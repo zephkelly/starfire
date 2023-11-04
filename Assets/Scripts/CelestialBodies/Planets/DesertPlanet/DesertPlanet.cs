@@ -24,6 +24,7 @@ namespace Starfire
     {
       base.Awake();
 
+      _celestialBodyType = CelestialBodyType.Planet;
       SetInitialColors();
     }
 

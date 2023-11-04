@@ -204,7 +204,7 @@ Shader "Unlit/DesertPlanet"
         }
 				
 				// now we can assign colors based on distance to light origin
-				float posterize = floor(c*6)/6;
+				float posterize = floor(c*7)/7;
 				float3 col = tex2D(_GradientTex, float2(posterize, 0.0)).rgb;
 				
 				return fixed4(col, a);

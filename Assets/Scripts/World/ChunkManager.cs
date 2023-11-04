@@ -53,6 +53,12 @@ namespace Starfire.Generation
     {
       entityChunkPosition = GetEntityChunkPosition(entityAbsolutePosition);
 
+      if (inactiveChunks.Count > 512)
+      {
+        StartCoroutine(SaveManager.Instance.SerializeChunks(inactiveChunks));
+        inactiveChunks.Clear();
+      }
+
       if (entityChunkPosition != entityLastChunkPosition)
       { 
         DeactivateChunks();
@@ -62,11 +68,11 @@ namespace Starfire.Generation
         // Debug.Log("Inactive chunks: " + inactiveChunks.Count);
       }
 
-      if (inactiveChunks.Count > 1024)
-      {
-        StartCoroutine(SaveManager.Instance.SerializeChunks(inactiveChunks));
-        inactiveChunks.Clear();
-      }
+      // if (inactiveChunks.Count > 1024)
+      // {
+      //   StartCoroutine(SaveManager.Instance.SerializeChunks(inactiveChunks));
+      //   inactiveChunks.Clear();
+      // }
 
       CheckFloatingOrigins();
     }
