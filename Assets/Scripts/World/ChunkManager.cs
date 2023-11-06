@@ -48,6 +48,11 @@ namespace Starfire.Generation
     private void Start()
     {
       maxOriginDistance += chunkDiameter;
+
+      entityAbsoluteChunkPosition = GetEntityChunkPosition(entityAbsolutePosition);
+      entityRelativeChunkPosition = GetEntityChunkPosition(entityTransform.position);
+
+      GetCurrentChunks(entityAbsoluteChunkPosition, entityRelativeChunkPosition);
     }
 
     private void Update()
@@ -69,7 +74,7 @@ namespace Starfire.Generation
       if (entityAbsoluteChunkPosition != entityLastAbsoluteChunkPosition)
       { 
         DeactivateChunks();
-        GetCurrentChunks();
+        GetCurrentChunks(entityAbsoluteChunkPosition, entityRelativeChunkPosition);
         // Debug.Log($"Active chunks: {activeChunks.Count}");
         // Debug.Log("Lazy chunks: " + lazyChunks.Count);
         // Debug.Log("Inactive chunks: " + inactiveChunks.Count);
@@ -96,7 +101,7 @@ namespace Starfire.Generation
       {
         if (inactiveChunks.ContainsKey(lazyChunk.Key)) continue;
         inactiveChunks.Add(lazyChunk.Key, lazyChunk.Value);
-        
+
         lazyChunk.Value.DeactivateChunkObject();
       }
 
@@ -111,20 +116,20 @@ namespace Starfire.Generation
       activeChunks.Clear();
     }
 
-    private void GetCurrentChunks()
+    private void GetCurrentChunks(Vector2Int _entityAbsoluteChunkPosition, Vector2Int _entityRelativeChunkPosition)
     {
-      for (int x = -3; x <= 3; x++)
+      for (int x = -5; x <= 5; x++)
       {
-        for (int y = -3; y <= 3; y++)
+        for (int y = -5; y <= 5; y++)
         {
           Vector2Int chunkPosition = new Vector2Int(
-            entityAbsoluteChunkPosition.x + x,
-            entityAbsoluteChunkPosition.y + y
+            _entityAbsoluteChunkPosition.x + x,
+            _entityAbsoluteChunkPosition.y + y
           );
 
           Vector2Int chunkRelativePosition = new Vector2Int(
-            entityRelativeChunkPosition.x + x,
-            entityRelativeChunkPosition.y + y
+            _entityRelativeChunkPosition.x + x,
+            _entityRelativeChunkPosition.y + y
           );
 
           Vector2Int chunkCellPosition = ChunkUtils.GetChunkGroup(chunkPosition);
@@ -200,6 +205,9 @@ namespace Starfire.Generation
     {
       var chunk = new Chunk(ChunkIndex, chunkKey, chunkRelativePosition);
 
+      chunk.SetChunkObject(chunkRelativePosition);
+      chunk.ChunkObject.SetActive(false);
+
       if (ShouldSetStar(chunkKey))
       {
         var star = Instantiate(Resources.Load("Prefabs/Stars/Star"), chunk.AbsolutePosition, Quaternion.identity) as GameObject;
@@ -217,7 +225,7 @@ namespace Starfire.Generation
       {
         var searchDistance = UnityEngine.Random.Range(4, 6);
 
-        if (UnityEngine.Random.Range(0, 100) > 6) return false; // 1% chance to spawn a star
+        if (UnityEngine.Random.Range(0, 100) > 6) return false;
 
         for (int x = -searchDistance; x <= searchDistance; x++)
         {
@@ -264,16 +272,16 @@ namespace Starfire.Generation
     {
       //Create a new FloorToInt method for doubles to remove casting to float
       return new Vector2Int(
-        Mathf.FloorToInt((float)position.x / chunkDiameter),
-        Mathf.FloorToInt((float)position.y / chunkDiameter)
+        Mathf.RoundToInt((float)position.x / chunkDiameter),
+        Mathf.RoundToInt((float)position.y / chunkDiameter)
       );
     }
 
     private Vector2Int GetEntityChunkPosition(Vector3 position)
     {
       return new Vector2Int(
-        Mathf.FloorToInt(position.x / chunkDiameter),
-        Mathf.FloorToInt(position.y / chunkDiameter)
+        Mathf.RoundToInt(position.x / chunkDiameter),
+        Mathf.RoundToInt(position.y / chunkDiameter)
       );
     }
 

@@ -9,6 +9,7 @@ using Unity.VisualScripting;
 
 namespace Starfire.IO
 {
+  //Need to remove string concatenation from this class.
   public class SaveManager
   {
     public static SaveManager Instance { get; private set; }

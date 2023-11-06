@@ -37,6 +37,7 @@ namespace Starfire.Generation
     public Vector2Int ChunkCellKey { get; private set; }
     public Vector2 AbsolutePosition { get => chunkKey * chunkDiameter; }
     public Vector2 WorldPosition { get; private set; }
+    public GameObject ChunkObject { get => chunkObject; }
 
     public Vector2 StarPosition { get => starPosition; }
     public bool HasSetChunkObject { get; private set; }
@@ -68,6 +69,8 @@ namespace Starfire.Generation
     {
       if (HasSetChunkObject) 
       {
+        chunkObject.SetActive(true);
+
         if (!HasStar) return;
         starObject.SetActive(true);
         return;
