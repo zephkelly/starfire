@@ -14,5 +14,21 @@ namespace Starfire.Utils
       int cellY = key.y >= 0 ? Mathf.FloorToInt(key.y / chunkCellSize) : Mathf.CeilToInt(key.y / chunkCellSize) - 1;
       return new Vector2Int(cellX, cellY);
     } 
+
+    public static Vector2Int GetEntityChunkPosition(Vector2D position, int chunkDiameter)
+    {
+      return new Vector2Int(
+        Mathf.RoundToInt((float)position.x / chunkDiameter),
+        Mathf.RoundToInt((float)position.y / chunkDiameter)
+      );
+    }
+
+    public static Vector2Int GetEntityChunkPosition(Vector3 position, int chunkDiameter)
+    {
+      return new Vector2Int(
+        Mathf.RoundToInt(position.x / chunkDiameter),
+        Mathf.RoundToInt(position.y / chunkDiameter)
+      );
+    }
   }
 }

@@ -5,20 +5,23 @@ using Starfire.Utils;
 using Starfire.IO;
 using System.Linq;
 
-namespace Starfire.Generation
+namespace Starfire
 {
   public interface IChunk
   {
     long ChunkIndex { get; }
     Vector2Int ChunkCellKey { get; }
     Vector2Int ChunkKey { get; }
+
     Vector2 AbsolutePosition { get; }
     Vector2 WorldPosition { get; }
+
+    GameObject ChunkObject { get; }
     bool HasSetChunkObject { get; }
 
     Vector2 StarPosition { get; }
     bool HasStar { get; }
-    void SetStar(GameObject _starObject);
+    void SetStar(GameObject _starObject, Vector2 _starPosition);
   }
 
   [System.Serializable]
@@ -55,14 +58,18 @@ namespace Starfire.Generation
       ChunkIndex = _chunkIndex;
       ChunkCellKey = ChunkUtils.GetChunkGroup(_chunkKey);
       chunkKey = _chunkKey;
+
       WorldPosition = _chunkWorldPosition;
     }
 
-    public void SetStar(GameObject _starObject)
+    public void SetStar(GameObject _starObject, Vector2 _starPosition)
     {
       hasStar = true;
       starObject = _starObject;
-      starObject.SetActive(false);
+      starPosition = _starPosition;
+
+      starObject.transform.position = WorldPosition + starPosition;
+      starObject.transform.SetParent(chunkObject.transform);
     }
 
     public void SetChunkObject(Vector2 _worldPosition)
@@ -71,13 +78,17 @@ namespace Starfire.Generation
       {
         chunkObject.SetActive(true);
 
-        if (!HasStar) return;
-        starObject.SetActive(true);
+        if (HasStar)
+        {
+          starObject = StarGenerator.Instance.GetStar;
+          starObject.SetActive(true);
+          starObject.transform.position = WorldPosition + starPosition;
+        }
         return;
       }
 
       HasSetChunkObject = true;
-      chunkObject = new GameObject("Chunk");
+      chunkObject = new GameObject("Chunk" + ChunkIndex);
       chunkObject.transform.position = _worldPosition;
 
       //Box Collider to visualise chunk
@@ -86,42 +97,21 @@ namespace Starfire.Generation
       chunkCollider.isTrigger = true;
     }
 
-    public void DestroyChunkObject()
-    {
-      if (chunkObject == null) return;
-      UnityEngine.Object.Destroy(chunkObject);
-    }
+    // public void DestroyChunkObject()
+    // {
+    //   if (chunkObject == null) return;
+    //   UnityEngine.Object.Destroy(chunkObject);
+    // }
 
     public void DeactivateChunkObject()
     {
+      if (HasStar)
+      {
+        StarGenerator.Instance.ReleaseStar(starObject);
+      }
+
+      if (chunkObject == null) return;
       chunkObject.SetActive(false);
-
-      if (!HasStar) return;
-      starObject.SetActive(false);
-    }
-  }
-
-  [System.Serializable]
-  public class ChunkListSerializable
-  {
-    public Dictionary<Vector2Int, Chunk> chunksDict = new Dictionary<Vector2Int, Chunk>();
-    public List<Chunk> chunks = new List<Chunk>();
-
-    public void AddChunk(Chunk newChunk)
-    {
-      chunksDict[newChunk.ChunkKey] = newChunk;
-    }
-
-    public Dictionary<Vector2Int, Chunk> ListToDictionary()
-    {
-      chunksDict = chunks.ToDictionary(chunk => chunk.ChunkKey);
-      return chunksDict;
-    }
-
-    public List<Chunk> DictionaryToList()
-    {
-      chunks = chunksDict.Values.ToList();
-      return chunks;
     }
   }
 }
