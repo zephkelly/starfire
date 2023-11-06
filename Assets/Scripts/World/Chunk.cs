@@ -57,36 +57,19 @@ namespace Starfire.Generation
       WorldPosition = _chunkWorldPosition;
     }
 
-    public void SetStar(GameObject _starObject = null)
+    public void SetStar(GameObject _starObject)
     {
-      if (HasStar) 
-      {
-        starObject.SetActive(true);
-        starObject.transform.position = WorldPosition + starPosition;
-        return;
-      }
-
-      if (_starObject == null) return;
-      starObject = _starObject;
       hasStar = true;
-
-      starPosition = new Vector2(
-        UnityEngine.Random.Range(-chunkDiameter / 3, chunkDiameter / 3), 
-        UnityEngine.Random.Range(-chunkDiameter / 3, chunkDiameter / 3)
-      );
-
-      starObject.transform.position = starPosition + WorldPosition;
+      starObject = _starObject;
+      starObject.SetActive(false);
     }
 
     public void SetChunkObject(Vector2 _worldPosition)
     {
       if (HasSetChunkObject) 
       {
-        WorldPosition = _worldPosition;
-        chunkObject.transform.position = WorldPosition;
-
-        chunkObject.SetActive(true);
-        SetStar();
+        if (!HasStar) return;
+        starObject.SetActive(true);
         return;
       }
 
@@ -108,10 +91,9 @@ namespace Starfire.Generation
 
     public void DeactivateChunkObject()
     {
-      if (HasSetChunkObject == false) return;
       chunkObject.SetActive(false);
-      
-      if (HasStar == false) return;
+
+      if (!HasStar) return;
       starObject.SetActive(false);
     }
   }

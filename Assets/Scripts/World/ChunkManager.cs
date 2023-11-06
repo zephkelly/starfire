@@ -75,7 +75,9 @@ namespace Starfire.Generation
         // Debug.Log("Inactive chunks: " + inactiveChunks.Count);
       }
 
-      CheckFloatingOrigins();
+      // CheckFloatingOrigins();
+      entityLastAbsoluteChunkPosition = entityAbsoluteChunkPosition;
+      entityLastPosition = entityTransform.position;
     }
 
     private void CheckFloatingOrigins()
@@ -85,8 +87,7 @@ namespace Starfire.Generation
         ShiftOrigin(); // Here we shift everything back to origin.
       }
 
-      entityLastAbsoluteChunkPosition = entityAbsoluteChunkPosition;
-      entityLastPosition = entityTransform.position;
+      
     }
 
     private void DeactivateChunks()
@@ -95,6 +96,7 @@ namespace Starfire.Generation
       {
         if (inactiveChunks.ContainsKey(lazyChunk.Key)) continue;
         inactiveChunks.Add(lazyChunk.Key, lazyChunk.Value);
+        
         lazyChunk.Value.DeactivateChunkObject();
       }
 
@@ -200,12 +202,8 @@ namespace Starfire.Generation
 
       if (ShouldSetStar(chunkKey))
       {
-        Debug.Log("Making Star");
-
-        var newStar = Instantiate(Resources.Load("Prefabs/Stars/Star") as GameObject, Vector3.zero, Quaternion.identity);
-        newStar.SetActive(false);
-
-        chunk.SetStar(newStar);
+        var star = Instantiate(Resources.Load("Prefabs/Stars/Star"), chunk.AbsolutePosition, Quaternion.identity) as GameObject;
+        chunk.SetStar(star);
       }
 
       return chunk;
@@ -217,12 +215,13 @@ namespace Starfire.Generation
 
       if (perlinValue > starSpawnThreshold)
       {
-        // if (UnityEngine.Random.Range(0, 100) > 80) return false; // 1% chance to spawn a star
+        var searchDistance = UnityEngine.Random.Range(4, 6);
 
-        //perform a search through the lazy and active chunks in the 3x3 area around the chunk
-        for (int x = -5; x <= 5; x++)
+        if (UnityEngine.Random.Range(0, 100) > 6) return false; // 1% chance to spawn a star
+
+        for (int x = -searchDistance; x <= searchDistance; x++)
         {
-          for (int y = -5; y <= 5; y++)
+          for (int y = -searchDistance; y <= searchDistance; y++)
           {
             Vector2Int searchChunkKey = new Vector2Int(
               chunkKey.x + x,
