@@ -23,6 +23,7 @@ namespace Starfire
 
     private Vector2 entityLastPosition;
     private Vector2D entityAbsolutePosition;
+    
     private Vector2Int entityAbsoluteChunkPosition;
     private Vector2Int entityLastAbsoluteChunkPosition;
     private Vector2Int entityRelativeChunkPosition;
