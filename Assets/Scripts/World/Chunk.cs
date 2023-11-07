@@ -1,30 +1,29 @@
-// using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Utils;
 using Starfire.IO;
-using System.Linq;
 
 namespace Starfire
 {
   public interface IChunk
   {
-    ChunkState ChunkState { get; }
-    bool IsModified { get; }
     long ChunkIndex { get; }
-    
-    Vector2Int ChunkCellKey { get; }
     Vector2Int ChunkKey { get; }
-
-    Vector2 AbsolutePosition { get; }
-    Vector2 WorldPosition { get; }
-
+    Vector2Int ChunkCellKey { get; }
+    ChunkState ChunkState { get; }
+    bool HasChunkObject { get; }
     GameObject ChunkObject { get; }
-    bool HasSetChunkObject { get; }
 
-    Vector2 StarPosition { get; }
     bool HasStar { get; }
-    void SetStar(GameObject _starObject, Vector2 _starPosition);
+    Vector2 StarPosition { get; }
+    bool HasStarObject { get; }
+    GameObject StarObject { get; }
+
+    bool IsModified { get; }
+
+    void SetActiveChunk();
+    void SetLazyChunk();
+    void SetInactiveChunk();
   }
 
   public enum ChunkState
@@ -37,60 +36,107 @@ namespace Starfire
   [System.Serializable]
   public class Chunk : IChunk
   {
+    // Chunk info
     [SerializeField] private long chunkIndex;
     [SerializeField] private Vector2Int chunkKey;
-    [SerializeField] private Vector2 starPosition;
-    [SerializeField] public bool hasStar = false;
-
+    private Vector2Int chunkCellKey;
+    private Vector2 chunkWorldPosition;
+    private bool hasChunkObject = false;
+    private GameObject chunkObject = null;
     private const int chunkDiameter = 300;
     private ChunkState chunkState = ChunkState.Inactive;
+
+    // Star info
+    [SerializeField] private bool hasStar = false;
+    [SerializeField] private Vector2 starPosition;
+    private bool hasStarObject = false;
+    private GameObject starObject = null;
+
     private bool isModified = false;
-    
-    private GameObject chunkObject;
-    private GameObject starObject;
 
-    public ChunkState ChunkState { get => chunkState; }
-    public bool IsModified { get => isModified; }
-
-    public long ChunkIndex { get => chunkIndex; }
-    public Vector2Int ChunkKey { get => chunkKey; }
-    public Vector2Int ChunkCellKey { get; private set; }
-
-    public Vector2 AbsolutePosition { get => chunkKey * chunkDiameter; }
-    public Vector2 WorldPosition { get; private set; }
-
-    public GameObject ChunkObject { get => chunkObject; }
-    public bool HasSetChunkObject { get; private set; }
-
-    public Vector2 StarPosition { get => starPosition; }
-    public bool HasStar { get => hasStar; }
-
-    public Chunk(long _chunkIndex, Vector2Int _chunkKey)
+    public Chunk(long _chunkIndex, Vector2Int _chunkKey, Vector2 _worldPosition)
     {
       chunkIndex = _chunkIndex;
       chunkKey = _chunkKey;
-      ChunkCellKey = GetChunkCellKey();
+      chunkWorldPosition = _worldPosition;
+      chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
     }
 
-    public Vector2Int GetChunkCellKey()
-    {
-      ChunkCellKey = ChunkUtils.GetChunkGroup(chunkKey);
-      return ChunkCellKey;
-    }
+    public long ChunkIndex { get => chunkIndex; }
+    public Vector2Int ChunkKey { get => chunkKey; }
+    public Vector2Int ChunkCellKey { get => chunkCellKey; }
+    public ChunkState ChunkState { get => chunkState; }
+    public bool HasChunkObject { get => hasChunkObject; }
+    public GameObject ChunkObject { get => chunkObject; }
 
-    public void ActiveChunk()
+    public bool HasStar { get => hasStar; }
+    public Vector2 StarPosition { get => starPosition; }
+    public bool HasStarObject { get => hasStarObject; }
+    public GameObject StarObject { get => starObject; }
+
+    public bool IsModified { get => isModified; }
+
+    public void SetActiveChunk()
     {
       chunkState = ChunkState.Active;
+
+      SetChunkObject();
+      SetStarObject();
     }
 
-    public void LazyChunk()
+    public void SetLazyChunk()
     {
       chunkState = ChunkState.Lazy;
+
+      RemoveChunkObject();
+      RemoveStarObject();
     }
 
-    public void InactiveChunk()
+    public void SetInactiveChunk()
     {
       chunkState = ChunkState.Inactive;
+
+      RemoveChunkObject();
+      RemoveStarObject();
+    }
+
+    private void SetChunkObject()
+    {
+      if (!hasChunkObject)
+      {
+        chunkObject = ChunkManager.Instance.ChunkPool.Get();
+        hasChunkObject = true;
+      }
+    }
+
+    private void SetStarObject()
+    {
+      if (hasStar && !hasStarObject)
+      {
+        starObject = StarGenerator.Instance.StarPool.Get();
+        starObject.transform.position = starPosition;
+        hasStarObject = true;
+      }
+    }
+
+    private void RemoveChunkObject()
+    {
+      if (hasChunkObject)
+      {
+        ChunkManager.Instance.ChunkPool.Release(chunkObject);
+        chunkObject = null;
+        hasChunkObject = false;
+      }
+    }
+
+    private void RemoveStarObject()
+    {
+      if (hasStar && hasStarObject)
+      {
+        StarGenerator.Instance.StarPool.Release(starObject);
+        starObject = null;
+        hasStarObject = false;
+      }
     }
   }
 }

@@ -613,7 +613,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1324174714}
-  - component: {fileID: 1324174715}
+  - component: {fileID: 1324174717}
   - component: {fileID: 1324174716}
   m_Layer: 0
   m_Name: PlanetManager
@@ -637,18 +637,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1324174715
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1324174712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed8a77c75fe58f74480a7cdb749b4daa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1324174716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -663,6 +651,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   noiseScale: 0.1
   starSpawnThreshold: 0.5
+--- !u!114 &1324174717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1324174712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6189bc684c2e494fb1c1078b252b72c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1467669817
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -46,26 +46,26 @@ namespace Starfire.IO
 
       foreach (Chunk chunk in chunksToSave.Values)
       {
-        if (chunkCells.ContainsKey(chunk.GetChunkCellKey()))
+        if (chunkCells.ContainsKey(chunk.ChunkCellKey))
         {
           UpdateOrAddChunkToDictionary(chunk);
           continue;
         }
 
-        if (File.Exists(path + $"cells/cell{chunk.GetChunkCellKey()}.json"))
+        if (File.Exists(path + $"cells/cell{chunk.ChunkCellKey}.json"))
         {
-          string json = File.ReadAllText(path + $"cells/cell{chunk.GetChunkCellKey()}.json");
+          string json = File.ReadAllText(path + $"cells/cell{chunk.ChunkCellKey}.json");
 
-          chunkCells[chunk.GetChunkCellKey()] = JsonUtility.FromJson<ChunkListSerializable>(json);
-          chunkCells[chunk.GetChunkCellKey()].ListToDictionary();
+          chunkCells[chunk.ChunkCellKey] = JsonUtility.FromJson<ChunkListSerializable>(json);
+          chunkCells[chunk.ChunkCellKey].ListToDictionary();
 
           UpdateOrAddChunkToDictionary(chunk);
           continue;
         }
 
       
-        chunkCells[chunk.GetChunkCellKey()] = new ChunkListSerializable();
-        chunkCells[chunk.GetChunkCellKey()].AddChunk(chunk);
+        chunkCells[chunk.ChunkCellKey] = new ChunkListSerializable();
+        chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
 
         if (++processed == half)
         {
@@ -95,7 +95,6 @@ namespace Starfire.IO
             yield return null; // Wait for the next frame
         }
       }
-
     }
 
     public bool DoesCellFileExist(Vector2Int groupKey)
@@ -132,13 +131,13 @@ namespace Starfire.IO
 
     private void UpdateOrAddChunkToDictionary(Chunk chunk)
     {
-      if (chunkCells[chunk.GetChunkCellKey()].chunksDict.ContainsKey(chunk.ChunkKey))
+      if (chunkCells[chunk.ChunkCellKey].chunksDict.ContainsKey(chunk.ChunkKey))
       {
-        chunkCells[chunk.GetChunkCellKey()].chunksDict[chunk.ChunkKey] = chunk;
+        chunkCells[chunk.ChunkCellKey].chunksDict[chunk.ChunkKey] = chunk;
       }
       else
       {
-        chunkCells[chunk.GetChunkCellKey()].AddChunk(chunk);
+        chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
       }
     }
   }

@@ -7,8 +7,7 @@ namespace Starfire
 {
   public interface IStarGenerator
   {
-    GameObject GetStar { get; }
-    void ReleaseStar(GameObject _starObject);
+    ObjectPool<GameObject> StarPool { get; }
     bool ShouldSpawnStar(Vector2Int _position);
     Vector2 GetStarPosition(int chunkDiameter, float divisionFactor = 3f);
   }
@@ -26,7 +25,7 @@ namespace Starfire
     [SerializeField] private float noiseScale = 0.1f; // Smaller values make smoother noise.
     [SerializeField] private float starSpawnThreshold = 0.7f; // Threshold for spawning a star.
 
-    public GameObject GetStar { get => starPool.Get(); }
+    public ObjectPool<GameObject> StarPool { get => starPool; }
 
     private void Awake()
     {
@@ -76,9 +75,7 @@ namespace Starfire
               chunkKey.y + y
             );
 
-            if (chunkManager.InactiveChunks.ContainsKey(searchChunkKey) && chunkManager.InactiveChunks[searchChunkKey].HasStar ||
-                chunkManager.LazyChunks.ContainsKey(searchChunkKey) && chunkManager.LazyChunks[searchChunkKey].HasStar ||
-                chunkManager.ActiveChunks.ContainsKey(searchChunkKey) && chunkManager.ActiveChunks[searchChunkKey].HasStar) 
+            if (chunkManager.ChunksDict.ContainsKey(searchChunkKey) && chunkManager.ChunksDict[searchChunkKey].HasStar)
             {
               return false;
             }
@@ -89,11 +86,6 @@ namespace Starfire
       }
 
       return false;
-    }
-
-    public void ReleaseStar(GameObject _starObject)
-    {
-      starPool.Release(_starObject);
     }
 
     public Vector2 GetStarPosition(int chunkDiameter, float divisionFactor = 3f)
