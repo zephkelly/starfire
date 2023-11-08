@@ -46,11 +46,10 @@ namespace Starfire
         return Instantiate(starPrefab);
       }, _starObject => 
       {
-        _starObject.SetActive(false);
+        _starObject.SetActive(true);
       }, _starObject => 
       {
         _starObject.SetActive(false);
-        _starObject.transform.position = Vector3.zero;
       }, _starObject => 
       {
         Destroy(_starObject);

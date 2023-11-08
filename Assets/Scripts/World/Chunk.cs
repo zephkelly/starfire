@@ -60,6 +60,13 @@ namespace Starfire
       chunkKey = _chunkKey;
       chunkWorldPosition = _worldPosition;
       chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
+
+      hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey);
+
+      if (hasStar)
+      {
+        starPosition = StarGenerator.Instance.GetStarPosition(chunkDiameter) + (chunkWorldPosition * chunkDiameter);
+      }
     }
 
     public long ChunkIndex { get => chunkIndex; }
@@ -104,18 +111,10 @@ namespace Starfire
     {
       if (!hasChunkObject)
       {
+        
+
         chunkObject = ChunkManager.Instance.ChunkPool.Get();
         hasChunkObject = true;
-      }
-    }
-
-    private void SetStarObject()
-    {
-      if (hasStar && !hasStarObject)
-      {
-        starObject = StarGenerator.Instance.StarPool.Get();
-        starObject.transform.position = starPosition;
-        hasStarObject = true;
       }
     }
 
@@ -126,6 +125,16 @@ namespace Starfire
         ChunkManager.Instance.ChunkPool.Release(chunkObject);
         chunkObject = null;
         hasChunkObject = false;
+      }
+    }
+
+    private void SetStarObject()
+    {
+      if (hasStar && hasStarObject == false)
+      {
+        starObject = StarGenerator.Instance.StarPool.Get();
+        starObject.transform.position = starPosition;
+        hasStarObject = true;
       }
     }
 
