@@ -111,9 +111,10 @@ namespace Starfire
     {
       if (!hasChunkObject)
       {
-        
-
         chunkObject = ChunkManager.Instance.ChunkPool.Get();
+        chunkObject.name = $"Chunk{chunkIndex}";
+        chunkObject.transform.position = chunkWorldPosition * chunkDiameter;
+
         hasChunkObject = true;
       }
     }
@@ -134,6 +135,8 @@ namespace Starfire
       {
         starObject = StarGenerator.Instance.StarPool.Get();
         starObject.transform.position = starPosition;
+        starObject.transform.SetParent(chunkObject.transform);
+
         hasStarObject = true;
       }
     }

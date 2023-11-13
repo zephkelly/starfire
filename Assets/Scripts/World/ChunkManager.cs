@@ -69,6 +69,8 @@ namespace Starfire
 
       GetEntityAbsolutePosition();
       GetEntityChunkPositions();
+
+      GetCurrentChunks();
     }
 
     private void Update()

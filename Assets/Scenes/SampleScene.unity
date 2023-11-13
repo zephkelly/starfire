@@ -307,7 +307,7 @@ MonoBehaviour:
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
-  m_Dithering: 0
+  m_Dithering: 1
   m_ClearDepth: 1
   m_AllowXRRendering: 1
   m_AllowHDROutput: 1
@@ -415,7 +415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mouseInterpolateDistance: 2.5
   cameraPanSpeed: 0.125
-  maxZoom: 70
+  maxZoom: 65
   minZoom: 30
   starfieldLayers:
   - {fileID: 1247123604}
@@ -520,7 +520,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8025896834279777156, guid: e82a452b5601663418f2bcd444e88d33, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -597,7 +597,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8421011848881246631, guid: 6400a8a6960fbf84f97baf309817fc07, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -677,7 +677,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1365084053574823292, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1684364744142639489, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_IsActive
@@ -994,7 +994,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 70
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
@@ -1187,7 +1187,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2342837292394173088, guid: b23eb1ab7a7eb334e96179159e535d15, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8281888313947051444, guid: b23eb1ab7a7eb334e96179159e535d15, type: 3}
       propertyPath: m_LocalPosition.x
