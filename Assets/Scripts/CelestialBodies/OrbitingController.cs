@@ -105,50 +105,50 @@ namespace Starfire
         }
     }
 
-    public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool counterClockwise = false)
+    public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool orbitClockwise = true)
     {
-      float bodyMass = body.mass;
-      float starMass = celestialRigidbody.mass;
-      float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+        float bodyMass = body.mass;
+        float starMass = celestialRigidbody.mass;
+        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-      Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
-      Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+        Vector2 appliedOrbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * starMass) / distanceToStar);
 
-      Vector2 appliedOrbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
-
-
-      // if (Vector2.Dot(body.velocity, perpendicularDirection) < 0 || counterClockwise)
-      // {
-      //   appliedOrbitalVelocity *= -1;
-      // }
-
-      //Only apply enough force to orbit the star
-      if (body.velocity.magnitude > appliedOrbitalVelocity.magnitude) return;
-      
-      var deltaVelocity = appliedOrbitalVelocity - body.velocity;
-      body.velocity += deltaVelocity;
+        //Only apply enough force to orbit the star
+        if (body.velocity.magnitude > appliedOrbitalVelocity.magnitude) return;
+        
+        var deltaVelocity = appliedOrbitalVelocity - body.velocity;
+        body.velocity += deltaVelocity;
     }
 
     public Vector2 GetOrbitalVelocity(Rigidbody2D body)
     {
-      float starMass = celestialRigidbody.mass;
-      float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+        float starMass = celestialRigidbody.mass;
+        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-      Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
-      Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+        Vector2 orbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * starMass) / distanceToStar);
+        return orbitalVelocity + celestialRigidbody.velocity;
+    }
 
-      Vector2 orbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
+    public Vector2 GetOrbitDirection(Rigidbody2D body)
+    {
+        Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
+        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
 
-      return orbitalVelocity + celestialRigidbody.velocity;
+        if (Vector2.Dot(body.velocity, perpendicularDirection) < 0)
+        {
+            // return -perpendicularDirection;
+        }
+
+        return perpendicularDirection;
     }
 
     public float GetThermalGradient(float _objectDistance)
     {
-      var distanceNormalized = _objectDistance / celestialBehaviour.MaxOrbitRadius;
+        var distanceNormalized = _objectDistance / celestialBehaviour.MaxOrbitRadius;
 
-      var trueDistance = 1 - distanceNormalized;
+        var trueDistance = 1 - distanceNormalized;
 
-      return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);
+        return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);
     }
   }
 }

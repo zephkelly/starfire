@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace Starfire
 {
@@ -22,6 +23,8 @@ namespace Starfire
     protected ShipConfiguration configuration;
     protected ShipInventory inventory;
     protected Rigidbody2D shipRigidBody;
+    protected ParticleSystem shipThrusterPS;
+    protected Light2D shipThrusterLight;
     
     protected CelestialBehaviour orbitingBody;
     protected Vector2 orbitalVelocity;
@@ -35,13 +38,18 @@ namespace Starfire
 
     protected virtual void Awake()
     {
-      configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-      shipRigidBody = GetComponent<Rigidbody2D>();
+        configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
+
+        shipRigidBody = GetComponent<Rigidbody2D>();
+        shipThrusterPS = GetComponentInChildren<ParticleSystem>();
+        shipThrusterLight = GetComponentInChildren<Light2D>();
+
+        shipThrusterLight.enabled = false;
     }
 
     protected virtual void Start()
     {
-      shipRigidBody.centerOfMass = Vector2.zero;
+        shipRigidBody.centerOfMass = Vector2.zero;
     }
 
     protected virtual void Update() {}
@@ -92,7 +100,10 @@ namespace Starfire
 
       //Set constant orbit velocity
       lastOrbitalVelocity = orbitalVelocity;
+
       orbitalVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
+
+    //   orbitalVelocity = Vector2.Lerp(orbitalVelocity, desiredOrbitalVelocity, Time.fixedDeltaTime * 1.0f);
 
       shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
       shipRigidBody.velocity += orbitalVelocity;
@@ -109,22 +120,32 @@ namespace Starfire
         shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
       } 
 
-      var relativePosition = (Vector2)transform.position - orbitingBody.WorldPosition;
-
-      // Make the player's position relative to the orbiting body
+      Vector2 relativePosition = (Vector2)transform.position - orbitingBody.WorldPosition;
       transform.position = orbitingBody.WorldPosition + relativePosition;
     }
 
     public virtual void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost
     {
-      if (boost)
-      {
-        shipRigidBody.AddForce(direction * speed, ForceMode2D.Force);
-      }
-      else 
-      {
-        shipRigidBody.AddForce(direction * manoeuvreSpeed, ForceMode2D.Force);
-      }
+        if (boost is true)
+        {
+
+            shipRigidBody.AddForce(direction * speed, ForceMode2D.Force);
+        }
+        else 
+        {
+            shipRigidBody.AddForce(direction * manoeuvreSpeed, ForceMode2D.Force);
+        }
+
+        if (direction.magnitude > 0.1f && boost is true)
+        {
+            shipThrusterPS.Play();
+            shipThrusterLight.enabled = true;
+        }
+        else if (shipThrusterPS.isPlaying)
+        {
+            shipThrusterPS.Stop();
+            shipThrusterLight.enabled = false;
+        }
     }
 
     protected void ApplyLinearDrag()
