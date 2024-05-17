@@ -67,6 +67,9 @@ namespace Starfire
     [SerializeField] public GameObject[] celestialComponents;
     protected Material[] celestialMaterials;
 
+    protected string _celestialName;
+    public string CelestialName => _celestialName;
+
     public float Mass => _celestialRigidBody.mass;
 
     public void SetCelestialBodyType(CelestialBodyType type) 

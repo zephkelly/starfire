@@ -40,6 +40,7 @@ namespace Starfire
       base.Awake();
 
       _celestialBodyType = CelestialBodyType.Star;
+      _celestialName = "Sirius";
       MaxOrbitRadius = 160;
 
       SetInitialColors();

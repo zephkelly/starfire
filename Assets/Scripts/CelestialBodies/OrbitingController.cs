@@ -74,7 +74,7 @@ namespace Starfire
           ShipController objectController = c.gameObject.GetComponent<ShipController>();
 
           if (objectController.OrbitingBody.Mass > celestialBehaviour.Mass && objectController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
-          objectController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody);
+          objectController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
           return;
         }
 

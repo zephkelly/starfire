@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Rendering.Universal;
 
 namespace Starfire
@@ -9,7 +10,7 @@ namespace Starfire
         ShipInventory Inventory { get; }
         CelestialBehaviour OrbitingBody { get; }
         bool IsOrbiting { get; }
-        void SetOrbitingBody(CelestialBehaviour orbitingBody);
+        void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false);
         void RemoveOrbitingBody();
         int Damage(int damage, DamageType damageType);
         void Repair(int repair, DamageType damageType);
@@ -58,14 +59,14 @@ namespace Starfire
         { 
             if (isOrbiting)
             {
-                StarOrbiting();
+                OrbitCelestialBody();
                 return;
             }
 
             ApplyLinearDrag();
         }
-
-        public void SetOrbitingBody(CelestialBehaviour _orbitingBody)
+        
+        public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool isParent = false)
         {
             if (_orbitingBody == null)
             {
@@ -83,13 +84,13 @@ namespace Starfire
             isOrbiting = true;
         }
 
-        public void RemoveOrbitingBody()
+        public virtual void RemoveOrbitingBody()
         {
             orbitingBody = null;
             isOrbiting = false;
         }
 
-        protected void StarOrbiting()
+        protected void OrbitCelestialBody()
         {
             if (orbitingBody == null)
             {

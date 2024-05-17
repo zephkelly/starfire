@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Starfire
 {
@@ -7,9 +8,15 @@ namespace Starfire
     [SerializeField] private float moveSpeed = 160f;
     private Vector2 keyboardInput = Vector2.zero;
 
+    public UnityEvent<string> OnPlayerOrbitEnter;
+    public UnityEvent<string> OnPlayerOrbitExit;
+
     protected override void Awake()
     {
-      base.Awake();
+        // OnPlayerOrbitEnter = new UnityEvent<string>();
+        // OnPlayerOrbitExit = new UnityEvent<string>();
+
+        base.Awake();
     }
 
     protected override void Start()
@@ -28,6 +35,22 @@ namespace Starfire
       Move(keyboardInput, moveSpeed, Input.GetKey(KeyCode.LeftShift));
 
       base.FixedUpdate();
+    }
+
+    public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
+    {
+        if (isParent is false)
+        {
+            OnPlayerOrbitEnter.Invoke("Now orbiting " + orbitingBody.CelestialName);
+        }
+
+        base.SetOrbitingBody(orbitingBody, isParent);
+    }
+
+    public override void RemoveOrbitingBody()
+    {
+      OnPlayerOrbitExit.Invoke("Leaving the " + orbitingBody.CelestialName + " system");
+      base.RemoveOrbitingBody();
     }
 
     private void LookAtMouse()
