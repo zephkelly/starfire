@@ -7,7 +7,6 @@ namespace Starfire.Cam
   public class CameraController : MonoBehaviour
   {
     public static CameraController Instance;
-    // private InputManager inputs;
     private Camera mainCamera;
     private Transform cameraTransform;
 
@@ -19,9 +18,9 @@ namespace Starfire.Cam
     private Vector3 currentOffsetAmount;
 
     [SerializeField] float mouseInterpolateDistance = 2f;
-    [SerializeField] float cameraPanSpeed = 0.125f;
+    [SerializeField] float cameraPanSpeed = 0.15f;
 
-    [SerializeField] private float maxZoom = 70f;
+    [SerializeField] private float maxZoom = 50f;
     [SerializeField] private float minZoom = 30f;
     private float currentZoom;
 
@@ -33,71 +32,67 @@ namespace Starfire.Cam
 
     private void Awake()
     {
-      mainCamera = Camera.main;
-      cameraTransform = mainCamera.transform;
+        mainCamera = Camera.main;
+        cameraTransform = mainCamera.transform;
 
-      if (Instance == null)
-      {
-        Instance = this;
-      } else {
-        Destroy(gameObject);
-      }
+        if (Instance == null)
+        {
+            Instance = this;
+        } 
+        else 
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Start()
     {
-      target = GameObject.Find("Player").transform;
-      targetRigidbody = target.GetComponent<Rigidbody2D>();
+        target = GameObject.Find("Player").transform;
+        targetRigidbody = target.GetComponent<Rigidbody2D>();
 
-      minZoom = mainCamera.orthographicSize;
-      currentZoom = minZoom;
+        minZoom = mainCamera.orthographicSize;
+        currentZoom = minZoom;
     }
 
     private void LateUpdate()
     {
-      if (target == null) return;
+        if (target == null) return;
 
-      mouseLerpPosition = (mainCamera.ScreenToWorldPoint(Input.mousePosition) - target.position).normalized;
-      mouseLerpPosition.y = mouseLerpPosition.y * 1.4f;   //beacuse the camera is wider than it is tall
+        mouseLerpPosition = (mainCamera.ScreenToWorldPoint(Input.mousePosition) - target.position).normalized;
+        mouseLerpPosition.y = mouseLerpPosition.y * 1.4f;   //beacuse the camera is wider than it is tall
 
-      targetVelocityMagnitude = targetRigidbody.velocity.magnitude;
+        targetVelocityMagnitude = targetRigidbody.velocity.magnitude;
 
-      //if the player scrolls out, zoom out
-      if (Input.mouseScrollDelta != Vector2.zero)
-      {
         currentZoom += -Input.mouseScrollDelta.y;
         currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
-        mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, currentZoom + (targetVelocityMagnitude * 0.2f), 0.1f);
-        return;
-      }
-
-      //If the player moves quicker, zoom out further
-      if (targetVelocityMagnitude > (targetVelocityMagnitude * 0.85f)) {
-        mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, currentZoom + (targetVelocityMagnitude * 0.2f), 0.1f);
-      }
+        mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, currentZoom + (targetVelocityMagnitude * 0.1f), 0.1f);
     }
 
     private void FixedUpdate()
     {
-      if (target == null) return;
+        if (target == null) return;
 
-      Vector3 targetVector = target.position + currentOffsetAmount + (mouseLerpPosition * mouseInterpolateDistance * (targetVelocityMagnitude * 0.06f));     
+        Vector3 targetVector = target.position + currentOffsetAmount + (mouseLerpPosition * mouseInterpolateDistance * (targetVelocityMagnitude * 0.03f));   
 
-      targetVector.z = cameraTransform.position.z;
+        //   Debug.DrawLine(target.position, targetVector, Color.red);  
 
-      Vector3 cameraLastPosition = cameraTransform.position;
-      cameraTransform.position = Vector3.Lerp(cameraTransform.position, targetVector, cameraPanSpeed * (Mathf.Clamp(targetVelocityMagnitude, 25, 50) * 0.03f));
-      
-      UpdateParllaxing(cameraLastPosition);
+        targetVector.z = cameraTransform.position.z;
+
+        Vector3 cameraLastPosition = cameraTransform.position;
+        cameraTransform.position = Vector3.Lerp(cameraTransform.position, targetVector, cameraPanSpeed * (Mathf.Clamp(targetVelocityMagnitude, 25, 50) * 0.09f));
+
+        //   Debug.DrawLine(target.position, Vector3.Lerp(cameraTransform.position, targetVector, cameraPanSpeed * (Mathf.Clamp(targetVelocityMagnitude, 25, 50) * 0.09f)), Color.green);
+        
+        UpdateParllaxing(cameraLastPosition);
     }
 
     private void UpdateParllaxing(Vector2 cameraLastPosition)
     {
-      //Starfields
-      for (int i = 0; i < starfieldLayers.Length; i++)
-      {
-        starfieldLayers[i].Parallax(cameraLastPosition);
-      }
+        //Starfields
+        for (int i = 0; i < starfieldLayers.Length; i++)
+        {
+            starfieldLayers[i].Parallax(cameraLastPosition);
+        }
     }
 
     public void ChangeFocus(Transform newFocus) => target = newFocus;

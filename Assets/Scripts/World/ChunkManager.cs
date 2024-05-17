@@ -12,7 +12,7 @@ namespace Starfire
     public static ChunkManager Instance { get; private set; }
     private StarGenerator starGenerator;
 
-    const int chunkDiameter = 300;
+    const int chunkDiameter = 600;
     // private int maxOriginDistance = 3000;
 
     private Transform cameraTransform;
@@ -109,7 +109,11 @@ namespace Starfire
           {
             _chunk = chunksDict[_chunkAbsKey];
             SetChunkState(_chunk, x, y);
-          }
+          } 
+        //   else if (DoesCellFileExist on SaveManager.cs)
+        //   {
+        //     //Load chunks from file into chunksDict
+        //   }
           else
           {
             _chunk = new Chunk(ChunkIndex, _chunkAbsKey, _chunkWorldKey);

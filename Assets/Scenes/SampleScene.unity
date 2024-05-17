@@ -413,9 +413,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b96a6c45b14fb7f49a6abdaebb51ac5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mouseInterpolateDistance: 2.5
+  mouseInterpolateDistance: 2.2
   cameraPanSpeed: 0.125
-  maxZoom: 65
+  maxZoom: 50
   minZoom: 30
   starfieldLayers:
   - {fileID: 1247123604}
@@ -644,7 +644,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1324174712}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d57e6daae2092744854b27a8699dad9, type: 3}
   m_Name: 
@@ -681,11 +681,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1684364744142639489, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3405946534158907249, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6405514460553800156, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -729,11 +729,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8132036035649744051, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8893661548593677750, guid: e1c15a3be3dac484e9c8c21b2ebac88a, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -832,7 +832,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 90
+      value: 140
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMax
@@ -994,7 +994,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 35
+      value: 170
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
@@ -1316,7 +1316,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
-      value: 0.2
+      value: 2.8
       objectReference: {fileID: 0}
     - target: {fileID: 4662355988510958583, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: m_LocalPosition.x

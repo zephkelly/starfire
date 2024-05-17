@@ -43,7 +43,7 @@ namespace Starfire
     private Vector2 chunkWorldPosition;
     private bool hasChunkObject = false;
     private GameObject chunkObject = null;
-    private const int chunkDiameter = 300;
+    private const int chunkDiameter = 600;
     private ChunkState chunkState = ChunkState.Inactive;
 
     // Star info

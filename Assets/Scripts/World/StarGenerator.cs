@@ -37,10 +37,7 @@ namespace Starfire
 
       chunkManager = GetComponent<ChunkManager>();
       starPrefab = Resources.Load<GameObject>("Prefabs/Stars/Star");
-    }
 
-    private void Start()
-    {
       starPool = new ObjectPool<GameObject>(() => 
       {
         return Instantiate(starPrefab);
@@ -62,7 +59,7 @@ namespace Starfire
 
       if (perlinValue > starSpawnThreshold)
       {
-        if (Random.Range(0, 100) > 6) return false;
+        if (Random.Range(0, 100) > 1) return false;
 
         var searchDistance = 5;
         for (int x = -searchDistance; x <= searchDistance; x++)

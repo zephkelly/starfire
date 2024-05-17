@@ -90,19 +90,19 @@ namespace Starfire
 
     private void Gravity()
     {
-      for (int i = 0; i < orbitingBodies.Count; i++)
-      {
-        Rigidbody2D body = orbitingBodies[i];
+        for (int i = 0; i < orbitingBodies.Count; i++)
+        {
+            Rigidbody2D body = orbitingBodies[i];
 
-        float bodyMass = body.mass;
-        float starMass = celestialRigidbody.mass;
-        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+            float bodyMass = body.mass;
+            float starMass = celestialRigidbody.mass;
+            float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-        //Newtons gravitational theory
-        float gravitationalForce = (G * bodyMass * starMass) / (distanceToStar * distanceToStar);
+            //Newtons gravitational theory
+            float gravitationalForce = (G * bodyMass * starMass) / (distanceToStar * distanceToStar);
 
-        body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
-      }
+            body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
+        }
     }
 
     public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool counterClockwise = false)

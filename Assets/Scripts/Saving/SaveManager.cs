@@ -63,7 +63,6 @@ namespace Starfire.IO
           continue;
         }
 
-      
         chunkCells[chunk.ChunkCellKey] = new ChunkListSerializable();
         chunkCells[chunk.ChunkCellKey].AddChunk(chunk);
 
