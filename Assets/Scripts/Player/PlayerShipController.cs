@@ -13,9 +13,6 @@ namespace Starfire
 
     protected override void Awake()
     {
-        // OnPlayerOrbitEnter = new UnityEvent<string>();
-        // OnPlayerOrbitExit = new UnityEvent<string>();
-
         base.Awake();
     }
 

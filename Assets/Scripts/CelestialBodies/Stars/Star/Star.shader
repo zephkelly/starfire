@@ -4,7 +4,7 @@ Shader "Unlit/Star"
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,2000)) = 300.0
+	    _Pixels("Pixels", range(10,2000)) = 500.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
 	        	

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Starfire.Cam
+namespace Starfire
 {
   public class CameraController : MonoBehaviour
   {
@@ -91,9 +91,13 @@ namespace Starfire.Cam
         //Starfields
         for (int i = 0; i < starfieldLayers.Length; i++)
         {
-            starfieldLayers[i].Parallax(cameraLastPosition);
+            starfieldLayers[i].Parallax(transform, cameraLastPosition);
         }
+
+        
     }
+
+
 
     public void ChangeFocus(Transform newFocus) => target = newFocus;
 

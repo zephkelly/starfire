@@ -2,32 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Starfire.Cam
+namespace Starfire
 {
-  public class StarfieldLayer : MonoBehaviour
+  public class StarfieldLayer : ParallaxLayer
   {
     private ParticleSystem startfieldParticleSystem;
     private ParticleSystem.Particle[] stars;
-    private Transform cameraTransform;
 
-    [SerializeField] Transform starfieldTransform;
     [SerializeField] int starsMax = 100;
     [SerializeField] float starSizeMin = 0.15f;
     [SerializeField] float starSizeMax = 0.4f;
     [SerializeField] float starSpawnRadius = 100;
-    [SerializeField] float parallaxFactor = 0.9f;
+    [SerializeField] float parallaxFactor;
 
     private float starDistanceSqr;
     [SerializeField] private static int particleZ = 2;
     
     //----------------------------------------------------------------------------------------------
 
-    private void Awake()
+    protected override void Awake()
     {
-      cameraTransform = Camera.main.transform;
-      starDistanceSqr = starSpawnRadius * starSpawnRadius;
-      startfieldParticleSystem = GetComponent<ParticleSystem>();
-      starfieldTransform = GetComponent<Transform>();
+        base.Awake();
+
+        starDistanceSqr = starSpawnRadius * starSpawnRadius;
+        startfieldParticleSystem = GetComponent<ParticleSystem>();
     }
 
     private void Start () 
@@ -68,11 +66,11 @@ namespace Starfire.Cam
     {
       Vector2 cameraTransformPosition = new Vector2(cameraTransform.position.x, cameraTransform.position.y);
 
-      Vector2 cameraParallaxDelta = cameraTransform.position - starfieldTransform.position;
+      Vector2 cameraParallaxDelta = cameraTransform.position - transform.position;
 
       for (int i = 0; i < starsMax; i++)
       {
-        Vector2 starPosition = stars[i].position + starfieldTransform.position;
+        Vector2 starPosition = stars[i].position + transform.position;
 
         if((starPosition - cameraTransformPosition).sqrMagnitude > starDistanceSqr) 
         {
@@ -83,17 +81,11 @@ namespace Starfire.Cam
       }
     }
 
-    public void Parallax(Vector3 cameraLastPosition)   //called on camera controller
+    public override void Parallax(Transform obj, Vector3 cameraLastPosition, float j = 1f)   //called on camera controller
     {
-      Vector3 cameraDelta = (Vector2)(cameraTransform.position - cameraLastPosition); 
+        base.Parallax(this.transform, cameraLastPosition, parallaxFactor);
 
-      starfieldTransform.position = Vector3.Lerp(
-        starfieldTransform.position, 
-        starfieldTransform.position - cameraDelta, 
-        parallaxFactor * Time.deltaTime
-      );
-
-      startfieldParticleSystem.SetParticles(stars, stars.Length);
+        startfieldParticleSystem.SetParticles(stars, stars.Length);
     }
   }
 }
