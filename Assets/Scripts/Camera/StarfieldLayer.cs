@@ -81,9 +81,15 @@ namespace Starfire
       }
     }
 
-    public override void Parallax(Transform obj, Vector3 cameraLastPosition, float j = 1f)   //called on camera controller
+    public override void Parallax(Vector3 cameraLastPosition, float pf = 1f, Transform obj = null)   //called on camera controller
     {
-        base.Parallax(this.transform, cameraLastPosition, parallaxFactor);
+        Vector3 cameraDelta = (Vector2)(cameraTransform.position - cameraLastPosition);
+
+        transform.position = Vector3.Lerp(
+            transform.position, 
+            transform.position - cameraDelta, 
+            parallaxFactor * Time.deltaTime
+        );
 
         startfieldParticleSystem.SetParticles(stars, stars.Length);
     }

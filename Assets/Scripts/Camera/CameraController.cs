@@ -26,7 +26,8 @@ namespace Starfire
 
     //Parallaxing-layers----------------------------------------------------------------------------
 
-    [SerializeField] StarfieldLayer[] starfieldLayers;
+    [SerializeField] StarfieldLayer[] parallaxingLayers;
+    [SerializeField] StarParallaxLayer[] starParallaxLayers;
 
     //----------------------------------------------------------------------------------------------
 
@@ -89,12 +90,15 @@ namespace Starfire
     private void UpdateParllaxing(Vector2 cameraLastPosition)
     {
         //Starfields
-        for (int i = 0; i < starfieldLayers.Length; i++)
+        for (int i = 0; i < parallaxingLayers.Length; i++)
         {
-            starfieldLayers[i].Parallax(transform, cameraLastPosition);
+            parallaxingLayers[i].Parallax(cameraLastPosition);
         }
 
-        
+        for (int i = 0; i < starParallaxLayers.Length; i++)
+        {
+            starParallaxLayers[i].Parallax(cameraLastPosition);
+        }
     }
 
 
