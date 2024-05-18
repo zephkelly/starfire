@@ -44,7 +44,18 @@ namespace Starfire.Cam
         stars[i].position = ((Vector3)Random.insideUnitCircle * starSpawnRadius) + cameraTransform.position;
         stars[i].position = new Vector3(stars[i].position.x, stars[i].position.y, particleZ);
         stars[i].startColor = new Color(1,1,1, 1);
-        stars[i].startSize = Random.Range(starSizeMin, starSizeMax);
+
+        float baseSize = Random.Range(starSizeMin, starSizeMax);
+        float chance = Random.Range(0f, 1f);
+
+        if (chance <= 0.05f)
+        {
+            baseSize = starSizeMax;
+            float increase = Random.Range(0.30f, 0.5f);
+            baseSize *= (1 + increase);
+        }
+
+        stars[i].startSize = baseSize;
       }
 
       startfieldParticleSystem.SetParticles(stars, stars.Length);

@@ -24,8 +24,6 @@ namespace Starfire
       if (c.CompareTag("Player"))
       {
         c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
-        Debug.Log("Setting orbiting body around: " + celestialBehaviour.CelestialBodyType);
-        return;
       }
       else if (c.CompareTag("Planet"))
       {
@@ -36,51 +34,28 @@ namespace Starfire
 
         orbitingBodies.Add(planetRigidbody);
         ApplyInstantOrbitalVelocity(planetRigidbody);
-        return;
       }
     }
 
-    // private void OnTriggerStay2D(Collider2D c) 
-    // {
-    //   // IEnumerator CheckBodiesCoroutine() 
-    //   // {
-    //     // if (c.CompareTag("Player"))
-    //     // {
-    //     //   if (celestialBehaviour.ParentOrbitingBody is not null)
-    //     //   {
-    //     //     ShipController objectController = c.gameObject.GetComponent<ShipController>();
-
-    //     //     if (objectController.OrbitingBody.Mass > celestialBehaviour.Mass && objectController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
-    //     //     objectController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody);
-    //     //     return;
-    //     //   }
-
-    //     //   c.gameObject.GetComponent<ShipController>().RemoveOrbitingBody();
-    //     //   return;
-    //     // }
-
-    //     // yield return new WaitForSeconds(5);
-    //   // }
-
-    //   // StartCoroutine(CheckBodiesCoroutine());
-    // }
-
     private void OnTriggerExit2D(Collider2D c) 
     {
-      if (c.CompareTag("Player"))
-      {
-        if (celestialBehaviour.ParentOrbitingBody is not null)
-        {
-          ShipController objectController = c.gameObject.GetComponent<ShipController>();
+        if (c.CompareTag("Player") != true) return;
+        ShipController playerController = c.gameObject.GetComponent<ShipController>();
 
-          if (objectController.OrbitingBody.Mass > celestialBehaviour.Mass && objectController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
-          objectController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
-          return;
+        if (celestialBehaviour.ParentOrbitingBody == null) 
+        {
+            playerController.RemoveOrbitingBody(); 
+            return;
         }
 
-          c.gameObject.GetComponent<ShipController>().RemoveOrbitingBody();
-        return;
-      }
+        if (playerController.OrbitingBody == null)
+        {
+            playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
+            return;
+        }
+
+        if (playerController.OrbitingBody.Mass > celestialBehaviour.Mass && playerController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
+        playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
     }
 
     private void FixedUpdate()

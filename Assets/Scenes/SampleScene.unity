@@ -239,11 +239,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMax
-      value: 0.2
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
-      value: 0.08
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
@@ -677,7 +677,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 240
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
+      propertyPath: starSizeMax
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
@@ -685,7 +689,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
-      value: 2
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 4662355988510958583, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1186,15 +1190,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 140
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMax
-      value: 0.15
+      value: 0.13
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
-      value: 0.08
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
@@ -1299,15 +1303,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 80
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMax
-      value: 0.2
+      value: 0.18
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
-      value: 0.08
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
@@ -1519,15 +1523,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 200
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMax
-      value: 0.15
+      value: 0.12
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
-      value: 0.04
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
@@ -1909,7 +1913,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starsMax
-      value: 600
+      value: 300
+      objectReference: {fileID: 0}
+    - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
+      propertyPath: starSizeMax
+      value: 0.18
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: starSizeMin
@@ -1917,7 +1925,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 445449541474534482, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: parallaxFactor
-      value: 0.5
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 4662355988510958583, guid: 42ce815d754a95f45bc732e0a83be659, type: 3}
       propertyPath: m_LocalPosition.x
