@@ -49,7 +49,15 @@ namespace Starfire
 
     public override void RemoveOrbitingBody()
     {
-      OnPlayerOrbitExit.Invoke("Leaving the " + orbitingBody.CelestialName + " system");
+      if (orbitingBody != null)
+      {
+        OnPlayerOrbitExit.Invoke("Leaving the " + orbitingBody.CelestialName + " system");
+      }
+      else
+      {
+        Debug.LogWarning("PlayerShipController.RemoveOrbitingBody: orbitingBody is null");
+      }
+
       base.RemoveOrbitingBody();
     }
 
