@@ -48,7 +48,7 @@ namespace Starfire
 
     private void Start()
     {
-        target = GameObject.Find("Player").transform;
+        target = GameObject.Find("PlayerShip").transform;
         targetRigidbody = target.GetComponent<Rigidbody2D>();
 
         minZoom = mainCamera.orthographicSize;
@@ -75,15 +75,11 @@ namespace Starfire
 
         Vector3 targetVector = target.position + currentOffsetAmount + (mouseLerpPosition * mouseInterpolateDistance * (targetVelocityMagnitude * 0.03f));   
 
-        //   Debug.DrawLine(target.position, targetVector, Color.red);  
-
         targetVector.z = cameraTransform.position.z;
 
         Vector3 cameraLastPosition = cameraTransform.position;
         cameraTransform.position = Vector3.Lerp(cameraTransform.position, targetVector, cameraPanSpeed * (Mathf.Clamp(targetVelocityMagnitude, 25, 50) * 0.09f));
 
-        //   Debug.DrawLine(target.position, Vector3.Lerp(cameraTransform.position, targetVector, cameraPanSpeed * (Mathf.Clamp(targetVelocityMagnitude, 25, 50) * 0.09f)), Color.green);
-        
         UpdateParllaxing(cameraLastPosition);
     }
 
