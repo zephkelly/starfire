@@ -59,7 +59,7 @@ namespace Starfire
 
       if (perlinValue > starSpawnThreshold)
       {
-        if (Random.Range(0, 100) > 1) return false;
+        if (Random.Range(0f, 100f) > 0.5) return false;
 
         var searchDistance = 5;
         for (int x = -searchDistance; x <= searchDistance; x++)

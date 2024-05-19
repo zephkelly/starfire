@@ -12,7 +12,7 @@ namespace Starfire
     public static ChunkManager Instance { get; private set; }
     private StarGenerator starGenerator;
 
-    const int chunkDiameter = 600;
+    const int chunkDiameter = 400;
     // private int maxOriginDistance = 3000;
 
     private Transform cameraTransform;
@@ -27,7 +27,8 @@ namespace Starfire
     private Vector2Int entityLastAbsoluteChunkPosition;
 
     private Dictionary<Vector2Int, Chunk> chunksDict = new Dictionary<Vector2Int, Chunk>();
-    private List<Vector2Int> lastActiveChunks = new List<Vector2Int>(); //Swap to dict and then do a contains check to mark inactive chunks
+    // private Dictionary<Vector2Int, Chunk> currentActiveChunks = new Dictionary<Vector2Int, Chunk>();
+    private Dictionary<Vector2Int, Chunk> lastCurrentChunks = new Dictionary<Vector2Int, Chunk>();
     private ObjectPool<GameObject> chunkPool;
     private long chunkIndex = 0;
 
@@ -75,14 +76,14 @@ namespace Starfire
 
     private void Update()
     {
-      GetEntityAbsolutePosition();
-      GetEntityChunkPositions();
+        GetEntityAbsolutePosition();
+        GetEntityChunkPositions();
 
-      if (entityAbsoluteChunkPosition != entityLastAbsoluteChunkPosition)
-      {
-        MarkChunksInactive();
-        GetCurrentChunks();
-      }
+        if (entityAbsoluteChunkPosition != entityLastAbsoluteChunkPosition)
+        {
+            GetCurrentChunks();
+            MarkChunksInactive();
+        }
     }
 
     private void LateUpdate()
@@ -92,59 +93,62 @@ namespace Starfire
 
     private void GetCurrentChunks()
     {
-      Vector2Int _chunkAbsKey;
-      Vector2Int _chunkWorldKey;
+        Vector2Int _chunkAbsKey;
+        Vector2Int _chunkWorldKey;
 
-      for (int x = -5; x <= 5; x++)
-      {
-        for (int y = -5; y <= 5; y++)
+        for (int x = -7; x <= 7; x++)
         {
-          _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
-          _chunkWorldKey = GetChunkWorldKey(x, y);    //For placing chunk in world
+            for (int y = -7; y <= 7; y++)
+            {
+                _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
+                _chunkWorldKey = GetChunkWorldKey(x, y);    //For placing chunk in world
 
-          Chunk _chunk = null;
+                Chunk _chunk = null;
 
-          //if chunksDict has chunk, set it active
-          if (chunksDict.ContainsKey(_chunkAbsKey))
-          {
-            _chunk = chunksDict[_chunkAbsKey];
-            SetChunkState(_chunk, x, y);
-          } 
-        //   else if (DoesCellFileExist on SaveManager.cs)
-        //   {
-        //     //Load chunks from file into chunksDict
-        //   }
-          else
-          {
-            _chunk = new Chunk(ChunkIndex, _chunkAbsKey, _chunkWorldKey);
-            chunksDict.Add(_chunkAbsKey, _chunk);
-            SetChunkState(_chunk, x, y);
-          }
+                if (chunksDict.ContainsKey(_chunkAbsKey))
+                {
+                    _chunk = chunksDict[_chunkAbsKey];
+                    SetChunkState(_chunk, x, y);
+                    // _currentActiveChunks.Add(_chunkAbsKey, _chunk);
+                }   
+                else if(lastCurrentChunks.ContainsKey(_chunkAbsKey))
+                {
+                    _chunk = lastCurrentChunks[_chunkAbsKey];
+                    SetChunkState(_chunk, x, y);
 
-          lastActiveChunks.Add(_chunkAbsKey);
+                    lastCurrentChunks.Remove(_chunkAbsKey);
+                }
+                else
+                {
+                    _chunk = new Chunk(ChunkIndex, _chunkAbsKey, _chunkWorldKey);
+                    chunksDict.Add(_chunkAbsKey, _chunk);
+                    SetChunkState(_chunk, x, y);
+                    // _currentActiveChunks.Add(_chunkAbsKey, _chunk);
+                }
+
+            }
         }
-      }
     }
 
     private void SetChunkState(Chunk _chunk, int _x, int _y)
     {
-      if (Math.Abs(_x) <= 3 && Math.Abs(_y) <= 3)
-      {
-        _chunk.SetActiveChunk();
-        return;
-      }
+        if (Math.Abs(_x) <= 5 && Math.Abs(_y) <= 5)
+        {
+            _chunk.SetActiveChunk();
+            return;
+        }
 
-      _chunk.SetLazyChunk();
+        _chunk.SetLazyChunk();
     }
 
     private void MarkChunksInactive()
     {
-      foreach (var chunkKey in lastActiveChunks)
-      {
-        chunksDict[chunkKey].SetInactiveChunk();
-      }
+        foreach (var chunk in lastCurrentChunks.Values)
+        {
+            chunk.SetInactiveChunk();
+        }
 
-      lastActiveChunks.Clear();
+        lastCurrentChunks.Clear();
     }
 
     private Vector2Int GetChunkAbsKey(int x, int y)

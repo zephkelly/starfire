@@ -27,7 +27,7 @@ namespace Starfire
     //Parallaxing-layers----------------------------------------------------------------------------
 
     [SerializeField] StarfieldParallaxLayer[] parallaxingLayers;
-    [SerializeField] StarParallaxLayer[] starParallaxLayers;
+    [SerializeField] public List<StarParallaxLayer> starParallaxLayers;
 
     //----------------------------------------------------------------------------------------------
 
@@ -91,7 +91,7 @@ namespace Starfire
             parallaxingLayers[i].Parallax(cameraLastPosition);
         }
 
-        for (int i = 0; i < starParallaxLayers.Length; i++)
+        for (int i = 0; i < starParallaxLayers.Count; i++)
         {
             starParallaxLayers[i].Parallax(cameraLastPosition);
         }

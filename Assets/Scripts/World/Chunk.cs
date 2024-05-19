@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Utils;
 using Starfire.IO;
+using Unity.VisualScripting;
 
 namespace Starfire
 {
@@ -43,7 +44,7 @@ namespace Starfire
     private Vector2 chunkWorldPosition;
     private bool hasChunkObject = false;
     private GameObject chunkObject = null;
-    private const int chunkDiameter = 600;
+    private const int chunkDiameter = 400;
     private ChunkState chunkState = ChunkState.Inactive;
 
     // Star info
@@ -85,26 +86,29 @@ namespace Starfire
 
     public void SetActiveChunk()
     {
-      chunkState = ChunkState.Active;
+        if (chunkState == ChunkState.Active) return;
+        chunkState = ChunkState.Active;
 
-      SetChunkObject();
-      SetStarObject();
+        SetChunkObject();
+        SetStarObject();
     }
 
     public void SetLazyChunk()
     {
-      chunkState = ChunkState.Lazy;
+        if (chunkState == ChunkState.Lazy) return;
+        chunkState = ChunkState.Lazy;
 
-      RemoveChunkObject();
-      RemoveStarObject();
+        RemoveChunkObject();
+        RemoveStarObject();
     }
 
     public void SetInactiveChunk()
     {
-      chunkState = ChunkState.Inactive;
+        if (chunkState == ChunkState.Inactive) return;
+        chunkState = ChunkState.Inactive;
 
-      RemoveChunkObject();
-      RemoveStarObject();
+        RemoveChunkObject();
+        RemoveStarObject();
     }
 
     private void SetChunkObject()
@@ -136,6 +140,8 @@ namespace Starfire
         starObject = StarGenerator.Instance.StarPool.Get();
         starObject.transform.position = starPosition;
         starObject.transform.SetParent(chunkObject.transform);
+
+        CameraController.Instance.starParallaxLayers.Add(starObject.GetComponent<StarParallaxLayer>());
 
         hasStarObject = true;
       }
