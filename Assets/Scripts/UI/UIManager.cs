@@ -11,6 +11,7 @@ public class UIManager : MonoBehaviour
     private bool isMinorAlertActive = false;
 
     private Queue minorAlertQueue = new Queue();
+    private string lastMinorAlert;
 
     void Awake()
     {
@@ -26,14 +27,31 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        ShouldDisplayMinorAlert();
+    }
+
+    private void ShouldDisplayMinorAlert()
+    {
         if (minorAlertQueue.Count > 0 && !isMinorAlertActive)
         {
+            if (lastMinorAlert == minorAlertQueue.Peek().ToString())
+            {
+                minorAlertQueue.Dequeue();
+                return;
+            }
+
+            lastMinorAlert = minorAlertQueue.Peek().ToString();
             StartCoroutine(FadeTextEffect(minorAlert, minorAlertQueue.Dequeue().ToString()));
         }
     }
 
     public void DisplayMinorAlert(string alertText)
     {
+        if (minorAlertQueue.Count > 0)
+        {
+            minorAlertQueue.Dequeue();
+        }
+
         minorAlertQueue.Enqueue(alertText);
     }
 
