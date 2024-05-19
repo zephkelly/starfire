@@ -2,18 +2,28 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class StarParallaxLayer : ParallaxLayer
+    public class StarParallaxLayer : MonoBehaviour, IParallaxLayer
     {
-        [SerializeField] private float parallaxFactor;
+        [SerializeField] private Transform sprite; 
+        [SerializeField] private float parallaxFactor = 1f;
 
-        protected override void Awake()
+        private Transform cameraTransform;
+
+        private void Awake()
         {
-            base.Awake();
+            cameraTransform = Camera.main.transform;
         }
 
-        public override void Parallax(Vector3 cameraLastPosition, float pf = 1f, Transform obj = null)
+        public void Parallax(Vector3 cameraLastPosition)
         {
-            base.Parallax(cameraLastPosition, parallaxFactor, transform);
+            Vector3 cameraDelta = (Vector2)(cameraTransform.position - cameraLastPosition);
+
+            sprite.position = Vector3.Lerp(
+                sprite.position, 
+                sprite.position + cameraDelta, 
+                parallaxFactor * Time.deltaTime
+            );
+
         }
     }
 }

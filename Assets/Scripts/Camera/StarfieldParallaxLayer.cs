@@ -4,10 +4,11 @@ using UnityEngine;
 
 namespace Starfire
 {
-  public class StarfieldLayer : ParallaxLayer
+  public class StarfieldParallaxLayer : MonoBehaviour, IParallaxLayer
   {
     private ParticleSystem startfieldParticleSystem;
     private ParticleSystem.Particle[] stars;
+    private Transform cameraTransform;
 
     [SerializeField] int starsMax = 100;
     [SerializeField] float starSizeMin = 0.15f;
@@ -20,9 +21,9 @@ namespace Starfire
     
     //----------------------------------------------------------------------------------------------
 
-    protected override void Awake()
+    public void Awake()
     {
-        base.Awake();
+        cameraTransform = Camera.main.transform;
 
         starDistanceSqr = starSpawnRadius * starSpawnRadius;
         startfieldParticleSystem = GetComponent<ParticleSystem>();
@@ -81,7 +82,7 @@ namespace Starfire
       }
     }
 
-    public override void Parallax(Vector3 cameraLastPosition, float pf = 1f, Transform obj = null)   //called on camera controller
+    public void Parallax(Vector3 cameraLastPosition)   //called on camera controller
     {
         Vector3 cameraDelta = (Vector2)(cameraTransform.position - cameraLastPosition);
 

@@ -69,12 +69,10 @@ namespace Starfire
         {
             Rigidbody2D body = orbitingBodies[i];
 
-            float bodyMass = body.mass;
-            float starMass = celestialRigidbody.mass;
+            float bodyMass = GetBodyMass(body);
+            float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
             float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
-
-            //Newtons gravitational theory
-            float gravitationalForce = (G * bodyMass * starMass) / (distanceToStar * distanceToStar);
+            float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
 
             body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
         }
@@ -82,11 +80,11 @@ namespace Starfire
 
     public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool orbitClockwise = true)
     {
-        float bodyMass = body.mass;
-        float starMass = celestialRigidbody.mass;
+        // float bodyMass = body.mass;
+        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-        Vector2 appliedOrbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * starMass) / distanceToStar);
+        Vector2 appliedOrbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * parentBodyMass) / distanceToStar);
 
         //Only apply enough force to orbit the star
         if (body.velocity.magnitude > appliedOrbitalVelocity.magnitude) return;
@@ -97,10 +95,10 @@ namespace Starfire
 
     public Vector2 GetOrbitalVelocity(Rigidbody2D body)
     {
-        float starMass = celestialRigidbody.mass;
+        float bodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-        Vector2 orbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * starMass) / distanceToStar);
+        Vector2 orbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * bodyMass) / distanceToStar);
         return orbitalVelocity + celestialRigidbody.velocity;
     }
 
@@ -124,6 +122,18 @@ namespace Starfire
         var trueDistance = 1 - distanceNormalized;
 
         return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);
+    }
+
+    private float GetBodyMass(Rigidbody2D body, CelestialBehaviour celestialBehaviour = null)
+    {
+        float bodyMass = body.mass;
+
+        if (celestialBehaviour != null && celestialBehaviour.CelestialBodyType == CelestialBodyType.Star)
+        {
+            bodyMass *= 10;
+        }
+
+        return bodyMass;
     }
   }
 }

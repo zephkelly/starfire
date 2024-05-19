@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
     public IEnumerator FadeTextEffect(TextMeshProUGUI text)
     {
         text.CrossFadeAlpha(0, 0, false);
-        text.CrossFadeAlpha(1, 2f, false);
+        text.CrossFadeAlpha(1, 2.5f, false);
         yield return new WaitForSeconds(3);
         text.CrossFadeAlpha(0, 2f, false);
     }

@@ -26,7 +26,7 @@ namespace Starfire
 
     //Parallaxing-layers----------------------------------------------------------------------------
 
-    [SerializeField] StarfieldLayer[] parallaxingLayers;
+    [SerializeField] StarfieldParallaxLayer[] parallaxingLayers;
     [SerializeField] StarParallaxLayer[] starParallaxLayers;
 
     //----------------------------------------------------------------------------------------------
@@ -100,8 +100,6 @@ namespace Starfire
             starParallaxLayers[i].Parallax(cameraLastPosition);
         }
     }
-
-
 
     public void ChangeFocus(Transform newFocus) => target = newFocus;
 
