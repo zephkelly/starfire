@@ -27,10 +27,12 @@ namespace Starfire
     private Vector2Int entityLastAbsoluteChunkPosition;
 
     private Dictionary<Vector2Int, Chunk> chunksDict = new Dictionary<Vector2Int, Chunk>();
-    // private Dictionary<Vector2Int, Chunk> currentActiveChunks = new Dictionary<Vector2Int, Chunk>();
     private Dictionary<Vector2Int, Chunk> lastCurrentChunks = new Dictionary<Vector2Int, Chunk>();
     private ObjectPool<GameObject> chunkPool;
     private long chunkIndex = 0;
+
+    private Dictionary<Vector2Int, Chunk> starPositions = new Dictionary<Vector2Int, Chunk>();
+    public Dictionary<Vector2Int, Chunk> StarPositions { get => starPositions; }
 
     public ChunkManager()
     {
@@ -71,6 +73,7 @@ namespace Starfire
       GetEntityAbsolutePosition();
       GetEntityChunkPositions();
 
+      CreateWorldMap();
       GetCurrentChunks();
     }
 
@@ -91,19 +94,30 @@ namespace Starfire
       SetLastPositions();
     }
 
+    private void CreateWorldMap()
+    {
+      for (int x = -15; x <= 15; x++)
+      {
+        for (int y = -15; y <= 15; y++)
+        {
+            var _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
+            var _chunkWorldKey = GetChunkWorldKey(x, y);    //For placing chunk in world
+
+            Chunk chunk = CreateChunk(_chunkAbsKey, _chunkWorldKey);
+        }
+      }
+    }
+
     private void GetCurrentChunks()
     {
-        Vector2Int _chunkAbsKey;
-        Vector2Int _chunkWorldKey;
-
         for (int x = -7; x <= 7; x++)
         {
             for (int y = -7; y <= 7; y++)
             {
-                _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
-                _chunkWorldKey = GetChunkWorldKey(x, y);    //For placing chunk in world
+                var _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
+                var _chunkWorldKey = GetChunkWorldKey(x, y);    //For placing chunk in world
 
-                Chunk _chunk = null;
+                Chunk _chunk;
 
                 if (chunksDict.ContainsKey(_chunkAbsKey))
                 {
@@ -120,8 +134,7 @@ namespace Starfire
                 }
                 else
                 {
-                    _chunk = new Chunk(ChunkIndex, _chunkAbsKey, _chunkWorldKey);
-                    chunksDict.Add(_chunkAbsKey, _chunk);
+                    _chunk = CreateChunk(_chunkAbsKey, _chunkWorldKey);
                     SetChunkState(_chunk, x, y);
                     // _currentActiveChunks.Add(_chunkAbsKey, _chunk);
                 }
@@ -129,6 +142,19 @@ namespace Starfire
             }
         }
     }
+
+    private Chunk CreateChunk(Vector2Int _chunkAbsKey, Vector2Int _chunkWorldKey)
+    {
+        Chunk _chunk = new Chunk(ChunkIndex, _chunkAbsKey, _chunkWorldKey);
+        chunksDict.Add(_chunkAbsKey, _chunk);
+
+        if (_chunk.HasStar)
+        {
+            starPositions.Add(_chunkAbsKey, _chunk);
+        }
+
+        return _chunk;
+    } 
 
     private void SetChunkState(Chunk _chunk, int _x, int _y)
     {
