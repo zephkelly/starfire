@@ -8,7 +8,7 @@ namespace Starfire
   public interface IStarGenerator
   {
     ObjectPool<GameObject> StarPool { get; }
-    bool ShouldSpawnStar(Vector2Int _position);
+    bool ShouldSpawnStar(Vector2Int _position, bool _makeStar = false, bool preventMakeStar = false);
     Vector2 GetStarPosition(int chunkDiameter, float divisionFactor = 3f);
   }
 
@@ -24,6 +24,8 @@ namespace Starfire
 
     [SerializeField] private float noiseScale = 0.1f; // Smaller values make smoother noise.
     [SerializeField] private float starSpawnThreshold = 0.7f; // Threshold for spawning a star.
+    [Range(0f, 1f)]
+    [SerializeField] private float spawnChance = 1f; // Chance of spawning a star.
 
     public ObjectPool<GameObject> StarPool { get => starPool; }
 
@@ -53,35 +55,38 @@ namespace Starfire
       }, false, 5, 10);
     }
 
-    public bool ShouldSpawnStar(Vector2Int chunkKey)
+    public bool ShouldSpawnStar(Vector2Int chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
-      float perlinValue = Mathf.PerlinNoise(chunkKey.x * noiseScale, chunkKey.y * noiseScale);
+        if (preventMakeStar == true) return false;
+        if(makeStar == true) return true;
 
-      if (perlinValue > starSpawnThreshold)
-      {
-        if (Random.Range(0f, 100f) > 0.5) return false;
+        float perlinValue = Mathf.PerlinNoise(chunkKey.x * noiseScale, chunkKey.y * noiseScale);
 
-        var searchDistance = 5;
-        for (int x = -searchDistance; x <= searchDistance; x++)
+        if (perlinValue > starSpawnThreshold)
         {
-          for (int y = -searchDistance; y <= searchDistance; y++)
-          {
-            Vector2Int searchChunkKey = new Vector2Int(
-              chunkKey.x + x,
-              chunkKey.y + y
-            );
+            if (Random.Range(0f, 100f) > spawnChance) return false;
 
-            if (chunkManager.ChunksDict.ContainsKey(searchChunkKey) && chunkManager.ChunksDict[searchChunkKey].HasStar)
+            var searchDistance = 5;
+            for (int x = -searchDistance; x <= searchDistance; x++)
             {
-              return false;
+            for (int y = -searchDistance; y <= searchDistance; y++)
+            {
+                Vector2Int searchChunkKey = new Vector2Int(
+                chunkKey.x + x,
+                chunkKey.y + y
+                );
+
+                if (chunkManager.ChunksDict.ContainsKey(searchChunkKey) && chunkManager.ChunksDict[searchChunkKey].HasStar)
+                {
+                    return false;
+                }
             }
-          }
+            }
+
+            return true;
         }
 
-        return true;
-      }
-
-      return false;
+        return false;
     }
 
     public Vector2 GetStarPosition(int chunkDiameter, float divisionFactor = 3f)

@@ -7,6 +7,7 @@ namespace Starfire
   {
     [SerializeField] private float moveSpeed = 160f;
     private Vector2 keyboardInput = Vector2.zero;
+    private Vector2 mouseDirection = Vector2.zero;
 
     public UnityEvent<string> OnPlayerOrbitEnter;
     public UnityEvent<string> OnPlayerOrbitExit;
@@ -29,7 +30,10 @@ namespace Starfire
 
     protected override void FixedUpdate()
     {
-      Move(keyboardInput, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+        if (keyboardInput.y > 0)
+        {
+            Move(mouseDirection.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+        }
 
       base.FixedUpdate();
     }
@@ -60,7 +64,7 @@ namespace Starfire
 
     private void LookAtMouse()
     {
-      Vector2 mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
+      mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
 
       float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
       transform.rotation = Quaternion.AngleAxis(angle - 90, Vector3.forward);

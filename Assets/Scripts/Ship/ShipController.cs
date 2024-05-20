@@ -59,11 +59,11 @@ namespace Starfire
         { 
             if (isOrbiting)
             {
-                OrbitCelestialBody();
+                // OrbitCelestialBody();
                 return;
             }
 
-            ApplyLinearDrag();
+            // ApplyLinearDrag();
         }
         
         public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool isParent = false)

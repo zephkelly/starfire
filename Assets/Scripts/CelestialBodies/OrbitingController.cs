@@ -24,6 +24,7 @@ namespace Starfire
       if (c.CompareTag("Player"))
       {
         c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
+        orbitingBodies.Add(c.gameObject.GetComponent<Rigidbody2D>());
       }
       else if (c.CompareTag("Planet"))
       {
@@ -44,6 +45,7 @@ namespace Starfire
 
         if (celestialBehaviour.ParentOrbitingBody == null) 
         {
+            orbitingBodies.Remove(c.gameObject.GetComponent<Rigidbody2D>());
             playerController.RemoveOrbitingBody(); 
             return;
         }
@@ -75,6 +77,8 @@ namespace Starfire
             float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
 
             body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
+
+            Debug.Log("Apply gravity to: " + body.name + " with force: " + gravitationalForce);
         }
     }
 

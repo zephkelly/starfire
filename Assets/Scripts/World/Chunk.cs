@@ -20,7 +20,7 @@ namespace Starfire
     bool HasStarObject { get; }
     GameObject StarObject { get; }
 
-    bool IsModified { get; }
+    // bool IsModified { get; }
 
     void SetActiveChunk();
     void SetLazyChunk();
@@ -44,31 +44,16 @@ namespace Starfire
     private Vector2 chunkWorldPosition;
     private bool hasChunkObject = false;
     private GameObject chunkObject = null;
-    private const int chunkDiameter = 400;
+    private const int chunkDiameter = 600;
     private ChunkState chunkState = ChunkState.Inactive;
 
     // Star info
-    [SerializeField] private bool hasStar = false;
+    private bool hasStar = false;
     [SerializeField] private Vector2 starPosition;
-    private bool hasStarObject = false;
     private GameObject starObject = null;
+    private bool hasStarObject = false;
 
-    private bool isModified = false;
-
-    public Chunk(long _chunkIndex, Vector2Int _chunkKey, Vector2 _worldPosition)
-    {
-      chunkIndex = _chunkIndex;
-      chunkKey = _chunkKey;
-      chunkWorldPosition = _worldPosition;
-      chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
-
-      hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey);
-
-      if (hasStar)
-      {
-        starPosition = StarGenerator.Instance.GetStarPosition(chunkDiameter) + (chunkWorldPosition * chunkDiameter);
-      }
-    }
+    // private bool isModified = false;
 
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -82,7 +67,22 @@ namespace Starfire
     public bool HasStarObject { get => hasStarObject; }
     public GameObject StarObject { get => starObject; }
 
-    public bool IsModified { get => isModified; }
+    public Chunk(long _chunkIndex, Vector2Int _chunkKey, Vector2 _worldPosition, bool makeStar = false, bool preventMakeStar = false)
+    {
+      chunkIndex = _chunkIndex;
+      chunkKey = _chunkKey;
+      chunkWorldPosition = _worldPosition;
+      chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
+
+      hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
+
+      if (hasStar)
+      {
+        starPosition = StarGenerator.Instance.GetStarPosition(chunkDiameter) + (chunkWorldPosition * chunkDiameter);
+      }
+    }
+
+    // public bool IsModified { get => isModified; }
 
     public void SetActiveChunk()
     {

@@ -5,8 +5,9 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    [Header("UI Messages")]
     public static UIManager Instance;
+    
+    [Header("UI Messages")]
     public TextMeshProUGUI minorAlert;
     private bool isMinorAlertActive = false;
 
