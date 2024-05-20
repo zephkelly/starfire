@@ -24,7 +24,7 @@ namespace Starfire
 
     [SerializeField] private float noiseScale = 0.1f; // Smaller values make smoother noise.
     [SerializeField] private float starSpawnThreshold = 0.7f; // Threshold for spawning a star.
-    [Range(0f, 1f)]
+    [Range(0f, 100f)]
     [SerializeField] private float spawnChance = 1f; // Chance of spawning a star.
 
     public ObjectPool<GameObject> StarPool { get => starPool; }

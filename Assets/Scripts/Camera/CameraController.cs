@@ -66,7 +66,7 @@ namespace Starfire
 
         currentZoom += -Input.mouseScrollDelta.y;
         currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
-        mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, currentZoom + (targetVelocityMagnitude * 0.1f), 0.1f);
+        mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, Mathf.Clamp(currentZoom + (targetVelocityMagnitude * 0.1f), minZoom, maxZoom), 0.1f);
     }
 
     private void FixedUpdate()

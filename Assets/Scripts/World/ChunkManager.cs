@@ -141,8 +141,6 @@ namespace Starfire
         var randomChunk = UnityEngine.Random.Range(0, starRimChunks.Count);
         Vector2Int selectedChunk = starRimChunks[randomChunk];
 
-        Debug.Log("Star rim chunks: " + starRimChunks.Count);
-
         Chunk _starChunk;
 
         foreach (var starChunkPosition in starRimChunks)
@@ -150,11 +148,10 @@ namespace Starfire
             if (starChunkPosition == selectedChunk)
             {
                 _starChunk = CreateChunk(starChunkPosition, starChunkPosition, makeStar: true);
-                Debug.Log("Star Chunk: " + _starChunk.StarPosition);
                 continue;
             }
 
-            _starChunk = CreateChunk(starChunkPosition, starChunkPosition);
+            _starChunk = CreateChunk(starChunkPosition, starChunkPosition, preventMakeStar: true);
         }
     }
 

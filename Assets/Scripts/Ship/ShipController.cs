@@ -148,7 +148,7 @@ namespace Starfire
                 shipThrusterPS.Play();
                 shipThrusterLight.enabled = true;
             }
-            else if (shipThrusterPS.isPlaying)
+            else
             {
                 shipThrusterPS.Stop();
                 shipThrusterLight.enabled = false;

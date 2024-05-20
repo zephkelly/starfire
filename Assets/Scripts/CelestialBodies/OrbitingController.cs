@@ -77,8 +77,6 @@ namespace Starfire
             float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
 
             body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
-
-            Debug.Log("Apply gravity to: " + body.name + " with force: " + gravitationalForce);
         }
     }
 

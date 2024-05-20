@@ -63,7 +63,6 @@ namespace Starfire
         {
             foreach (var starMarker in starMarkers)
             {
-                Debug.Log("Destroying star marker");
                 Destroy(starMarker.Value);
             }
 

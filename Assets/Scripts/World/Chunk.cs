@@ -118,6 +118,7 @@ namespace Starfire
         chunkObject = ChunkManager.Instance.ChunkPool.Get();
         chunkObject.name = $"Chunk{chunkIndex}";
         chunkObject.transform.position = chunkWorldPosition * chunkDiameter;
+        chunkObject.transform.SetParent(ChunkManager.Instance.transform);
 
         hasChunkObject = true;
       }

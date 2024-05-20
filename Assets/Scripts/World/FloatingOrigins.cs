@@ -9,7 +9,7 @@ namespace starfire
         private Transform playerTransform;
         private Vector3 lastPlayerPosition;
 
-        [SerializeField] private float floatingOriginLimit = 2000f;
+        [SerializeField] private float floatingOriginLimit;
 
         [SerializeField] private Transform worldObjects;
         [SerializeField] private Transform player;
