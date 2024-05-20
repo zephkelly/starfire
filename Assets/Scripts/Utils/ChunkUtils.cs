@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Starfire.Utils
+namespace Starfire
 {
   public static class ChunkUtils
   {

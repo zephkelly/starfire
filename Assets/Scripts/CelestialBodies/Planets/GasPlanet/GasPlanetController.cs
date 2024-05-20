@@ -16,7 +16,7 @@ namespace Starfire
     private string[] init_colors1 = new string[] {"#3b2027", "#3b2027", "#21181b","#21181b"};
     private string[] color_vars2 = new string[]{"_Base_color", "_Outline_color", "_Shadow_base_color","_Shadow_outline_color"};
     private string[] init_colors2 = new string[] {"#f0b541", "#cf752b","#ab5130","#7d3833"};
-
+    
     public void SetPlanetType(PlanetType type) => planetType = type;
 
     protected override void Awake()

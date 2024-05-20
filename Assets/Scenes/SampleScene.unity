@@ -958,8 +958,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   noiseScale: 0.1
-  starSpawnThreshold: 0.7
-  spawnChance: 7
+  starSpawnThreshold: 0.6
+  spawnChance: 6
 --- !u!4 &1411054397
 Transform:
   m_ObjectHideFlags: 0
@@ -1286,7 +1286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panelTransform: {fileID: 1647589013}
-  scaleFactor: 0.05
+  scaleFactor: 0.031
   starMarkerPrefab: {fileID: 1128323531876382557, guid: 971523c63445cec4981c22fc82cbec69, type: 3}
 --- !u!1 &1647589012
 GameObject:
@@ -1842,8 +1842,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: moveSpeed
+      value: 80
+      objectReference: {fileID: 0}
+    - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: maxMoveSpeed
-      value: 500
+      value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: OnPlayerOrbitExit.m_PersistentCalls.m_Calls.Array.size

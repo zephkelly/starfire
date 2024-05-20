@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Pool;
-using Starfire.Utils;
 
 namespace Starfire
 {
@@ -159,9 +158,9 @@ namespace Starfire
     {
         currentStarPositions.Clear();
         
-        for (int x = -9; x <= 9; x++)
+        for (int x = -8; x <= 8; x++)
         {
-            for (int y = -9; y <= 9; y++)
+            for (int y = -8; y <= 8; y++)
             {
                 var _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
                 var _chunkWorldKey = GetChunkWorldKey(x, y);    //For placing chunk in world

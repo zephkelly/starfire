@@ -63,7 +63,7 @@ namespace Starfire
     {
       if (orbitingBody != null)
       {
-        OnPlayerOrbitExit.Invoke("Leaving the " + orbitingBody.CelestialName + " system");
+        OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.CelestialName);
       }
       else
       {

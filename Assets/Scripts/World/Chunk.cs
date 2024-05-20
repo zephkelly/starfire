@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Starfire.Utils;
 using Starfire.IO;
 using Unity.VisualScripting;
 
@@ -52,6 +51,7 @@ namespace Starfire
     [SerializeField] private Vector2 starPosition;
     private GameObject starObject = null;
     private bool hasStarObject = false;
+    private string starName;
 
     // private bool isModified = false;
 
@@ -59,13 +59,13 @@ namespace Starfire
     public Vector2Int ChunkKey { get => chunkKey; }
     public Vector2Int ChunkCellKey { get => chunkCellKey; }
     public ChunkState ChunkState { get => chunkState; }
-    public bool HasChunkObject { get => hasChunkObject; }
     public GameObject ChunkObject { get => chunkObject; }
+    public bool HasChunkObject { get => hasChunkObject; }
 
     public bool HasStar { get => hasStar; }
     public Vector2 StarPosition { get => starPosition; }
-    public bool HasStarObject { get => hasStarObject; }
     public GameObject StarObject { get => starObject; }
+    public bool HasStarObject { get => hasStarObject; }
 
     public Chunk(long _chunkIndex, Vector2Int _chunkKey, Vector2 _worldPosition, bool makeStar = false, bool preventMakeStar = false)
     {
@@ -139,6 +139,12 @@ namespace Starfire
       if (hasStar && hasStarObject == false)
       {
         starObject = StarGenerator.Instance.StarPool.Get();
+
+        NameGenerator nameGenerator = new NameGenerator();
+        var starName = nameGenerator.GetStarName();
+
+        starObject.GetComponent<CelestialBehaviour>().SetupCelestialBehaviour(CelestialBodyType.Star, starName);
+        
         starObject.transform.position = starPosition;
         starObject.transform.SetParent(chunkObject.transform);
 

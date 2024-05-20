@@ -3,48 +3,31 @@ using UnityEngine;
 
 namespace Starfire
 {
-  public enum CelestialBodyType
-  {
-    Planet,
-    Star,
-    Moon,
-    Asteroid
-  }
+    public enum CelestialBodyType
+    {
+        Planet,
+        Star,
+        Moon,
+        Asteroid
+    }
 
-  public enum PlanetType
-  {
-    Rivers,
-    Land,
-    Gas,
-    GasLayers,
-    Ice,
-    Lava,
-    Desert,
-    Moon
-  }
-
-//Make this an abstract class at some point
-  public interface ICelestialBody
-  {
-    CelestialBodyType CelestialBodyType { get; }
-    void SetCelestialBodyType(CelestialBodyType type);
-    OrbitingController OrbitController { get; }
-    float MaxOrbitRadius { get; }
-    float Temperature { get; }
-    CelestialBehaviour ParentOrbitingBody { get; }
-    CelestialBehaviour ChildOrbitingBody { get; }
-    bool IsOrbiting { get; }
-    void SetOrbitingBody(CelestialBehaviour orbitingBody);
-    void RemoveOrbitingBody();
-    Vector2 WorldPosition { get; }
-    float Mass { get; }
-  }
-
-  public interface IPlanet 
-  {
-    PlanetType PlanetType { get; }
-    void SetPlanetType(PlanetType type);
-  }
+    //Make this an abstract class at some point
+    public interface ICelestialBody
+    {
+        CelestialBodyType CelestialBodyType { get; }
+        OrbitingController OrbitController { get; }
+        float MaxOrbitRadius { get; }
+        float Temperature { get; }
+        CelestialBehaviour ParentOrbitingBody { get; }
+        CelestialBehaviour ChildOrbitingBody { get; }
+        bool IsOrbiting { get; }
+        Vector2 WorldPosition { get; }
+        float Mass { get; }
+        string CelestialName { get; }
+        void SetupCelestialBehaviour(CelestialBodyType type, string name);
+        void SetOrbitingBody(CelestialBehaviour orbitingBody);
+        void RemoveOrbitingBody();
+    }
   
   [RequireComponent(typeof(OrbitingController))]
   public abstract class CelestialBehaviour : MonoBehaviour, ICelestialBody
@@ -67,16 +50,17 @@ namespace Starfire
     [SerializeField] public GameObject[] celestialComponents;
     protected Material[] celestialMaterials;
 
-    protected string _celestialName;
-    public string CelestialName => _celestialName;
-
     public float Mass => _celestialRigidBody.mass;
 
-    public void SetCelestialBodyType(CelestialBodyType type) 
+    protected string _celestialName;
+    public string CelestialName => _celestialName;
+    
+    public void SetupCelestialBehaviour(CelestialBodyType type, string name)
     {
       _celestialBodyType = type;
+      _celestialName = name;
     }
-    
+
     public void SetOrbitingBody(CelestialBehaviour _parentOrbitingBody)
     {
       parentOrbitingBody = _parentOrbitingBody;
