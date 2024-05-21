@@ -46,30 +46,40 @@ namespace Starfire
             var prefix = LoadJson("Data/star/starPrefixes");
             var stems = LoadJson("Data/star/starStems");
             var suffix = LoadJson("Data/star/starSuffixes");
-            var tags = LoadJson("Data/star/starTags");
+            var tagsFront = LoadJson("Data/star/starTagsFront");
+            var tagsBack = LoadJson("Data/star/starTagsBack");
 
             var randPrefix = prefix[Random.Range(0, prefix.Length)];
             var randStem = stems[Random.Range(0, stems.Length)];
             var randSuffix = suffix[Random.Range(0, suffix.Length)];
-            var randTag = tags[Random.Range(0, tags.Length)];
+            var randTagFront = tagsFront[Random.Range(0, tagsFront.Length)];
+            var randTagBack = tagsBack[Random.Range(0, tagsBack.Length)];
 
-            var nameType = Random.Range(0, 12);
+            var nameType = Random.Range(0, 16);
 
-            if (nameType >= 10)
+            if (nameType >= 16)
             {
-                return randPrefix + randStem + " " + randTag;
+                return randTagFront + " " + Capitalise(randStem);
+            }
+            else if (nameType >= 15)
+            {
+                return Capitalise(randStem) + "-" + Capitalise(randSuffix);
+            }
+            else if (nameType >= 10)
+            {
+                return randPrefix + randStem + " " + randTagBack;
             }
             else if (nameType >= 6)
             {
-                return randPrefix + randSuffix + " " + randTag;
+                return randTagFront + " " + randPrefix + "-" + Capitalise(randStem);
             }
             else if (nameType >= 3)
             {
-                return Capitalise(randStem) + "-" + Capitalise(randSuffix) + " " + randTag;
+                return Capitalise(randStem) + "-" + Capitalise(randSuffix) + " " + randTagBack;
             }
             else if (nameType == 2)
             { 
-                return randPrefix + randStem + " " + randTag;
+                return randPrefix + randSuffix + " " + randTagBack;
             }
             else
             {
