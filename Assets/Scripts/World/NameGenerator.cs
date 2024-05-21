@@ -4,87 +4,76 @@ using UnityEngine;
 
 namespace Starfire
 {
-    [SerializeField]
-    public class StarPrefixes
+    public interface JsonData
     {
-        public string[] items;
+        public string[] items { get; set; }
     }
 
     [SerializeField]
-    public class StarSufixes
+    public class StarDataWrapper
     {
         public string[] items;
     }
 
     public class NameGenerator
     {
-        private StarSufixes LoadStarSufix()
+        private string[] LoadJson(string path)
         {
-            TextAsset sufixJson = Resources.Load<TextAsset>("Data/starSufixes");
-            if (sufixJson == null)
+            TextAsset json = Resources.Load<TextAsset>(path);
+            if (json == null)
             {
-                Debug.LogError("Failed to load star sufixes JSON");
+                Debug.LogError("Failed to load JSON");
                 return null;
             }
 
-            StarSufixes data = JsonUtility.FromJson<StarSufixes>(sufixJson.text);
-            if (data == null || data.items == null|| data.items.Length == 0)
+            StarDataWrapper data = JsonUtility.FromJson<StarDataWrapper>(json.text);
+            if (data == null || data.items.Length == 0)
             {
-                Debug.LogError("No star sufixes found or JSON is malformed");
+                Debug.LogError("No data found or JSON is malformed");
                 return null;
             }
 
-            return data;
+            return data.items;
         }
 
-        private StarPrefixes LoadStarPrefix()
+        private string Capitalise(string input)
         {
-            TextAsset prefixJson = Resources.Load<TextAsset>("Data/starPrefixes");
-            if (prefixJson == null)
-            {
-                Debug.LogError("Failed to load star prefixes JSON");
-                return null;
-            }
-
-            StarPrefixes data = JsonUtility.FromJson<StarPrefixes>(prefixJson.text);
-            if (data == null || data.items == null || data.items.Length == 0)
-            {
-                Debug.LogError("No star prefixes found or JSON is malformed");
-                return null;
-            }
-
-            return data;
+            return input.Substring(0, 1).ToUpper() + input.Substring(1);
         }
-
 
         public string GetStarName()
         {
-            var prefix = LoadStarPrefix();
-            var sufix = LoadStarSufix();
+            var prefix = LoadJson("Data/star/starPrefixes");
+            var stems = LoadJson("Data/star/starStems");
+            var suffix = LoadJson("Data/star/starSuffixes");
+            var tags = LoadJson("Data/star/starTags");
 
-            var randName = prefix.items[Random.Range(0, prefix.items.Length)];
-            var randName2 = prefix.items[Random.Range(0, prefix.items.Length)];
-            var randName3 = prefix.items[Random.Range(0, prefix.items.Length)];
+            var randPrefix = prefix[Random.Range(0, prefix.Length)];
+            var randStem = stems[Random.Range(0, stems.Length)];
+            var randSuffix = suffix[Random.Range(0, suffix.Length)];
+            var randTag = tags[Random.Range(0, tags.Length)];
 
-            var randSufix = sufix.items[Random.Range(0, sufix.items.Length)];
+            var nameType = Random.Range(0, 12);
 
-            var nameType = Random.Range(0, 10);
-
-            if (nameType >= 6)
+            if (nameType >= 10)
             {
-                return randName;
+                return randPrefix + randStem + " " + randTag;
+            }
+            else if (nameType >= 6)
+            {
+                return randPrefix + randSuffix + " " + randTag;
             }
             else if (nameType >= 3)
             {
-                return randName + " " + randSufix;
+                return Capitalise(randStem) + "-" + Capitalise(randSuffix) + " " + randTag;
             }
-            else if (nameType == 1)
-            {
-                return randName + "-" + randName2;
+            else if (nameType == 2)
+            { 
+                return randPrefix + randStem + " " + randTag;
             }
             else
             {
-                return randName + "-" + randName3 + " " + randSufix;
+                return randPrefix + "-" + Capitalise(randStem);
             }
         }
     }

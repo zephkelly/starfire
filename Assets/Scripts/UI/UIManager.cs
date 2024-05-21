@@ -62,9 +62,9 @@ public class UIManager : MonoBehaviour
         isMinorAlertActive = true;
 
         text.CrossFadeAlpha(0, 0, false);
-        text.CrossFadeAlpha(1, 2f, false);
-        yield return new WaitForSeconds(3);
-        text.CrossFadeAlpha(0, 2f, false);
+        text.CrossFadeAlpha(1, 1.15f, false);
+        yield return new WaitForSeconds(2.25f);
+        text.CrossFadeAlpha(0, 1.15f, false);
         yield return new WaitForSeconds(2);
 
         isMinorAlertActive = false;
