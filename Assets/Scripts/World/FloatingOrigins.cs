@@ -1,44 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-namespace starfire
+namespace Starfire
 {
     public class FloatingOrigins : MonoBehaviour
     {
         private Transform playerTransform;
-        private Vector3 lastPlayerPosition;
+        private ShipController playerShipController;
 
-        [SerializeField] private float floatingOriginLimit;
+        [SerializeField] private float floatingOriginLimit = 2000f;
 
-        [SerializeField] private Transform worldObjects;
-        [SerializeField] private Transform player;
+        public UnityEvent<Vector2> OnFloatingOrigin;
 
-        private void Awake()
+        private void Start()
         {
-            playerTransform = GameObject.Find("PlayerShip").transform;
+            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+            playerShipController = playerTransform.GetComponent<ShipController>();
         }
 
-        private void LateUpdate()
+        private void Update()
         {
-            // if (playerTransform.position.magnitude > floatingOriginLimit)
-            // {
-            //     worldObjects.position = new Vector2(
-            //         worldObjects.position.x - playerTransform.position.x,
-            //         worldObjects.position.y - playerTransform.position.y
-            //     );
+            if (playerTransform.position.magnitude > floatingOriginLimit)
+            {
+                Vector2 offset = -(Vector2)playerTransform.position;
 
-            //     player.position = new Vector2(
-            //         player.position.x - playerTransform.position.x,
-            //         player.position.y - playerTransform.position.y
-            //     );
-
-            //     Camera.main.transform.position = new Vector3(
-            //         Camera.main.transform.position.x - playerTransform.position.x,
-            //         Camera.main.transform.position.y - playerTransform.position.y,
-            //         Camera.main.transform.position.z
-            //     );
-            // }
+                OnFloatingOrigin.Invoke(offset);
+            }
         }
     }
 }

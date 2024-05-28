@@ -15,6 +15,7 @@ namespace Starfire
         int Damage(int damage, DamageType damageType);
         void Repair(int repair, DamageType damageType);
         void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed);
+        void Transport(Vector2 position);
         void Rotate(Vector2 direction, float speed, float lerpSpeed);
     }
 
@@ -153,6 +154,21 @@ namespace Starfire
                 shipThrusterPS.Stop();
                 shipThrusterLight.enabled = false;
             }
+        }
+
+        public virtual void Transport(Vector2 offset)
+        {
+            transform.position += (Vector3)offset;
+
+            ParticleSystem.Particle[] particles = new ParticleSystem.Particle[shipThrusterPS.particleCount];
+            shipThrusterPS.GetParticles(particles);
+
+            for (int i = 0; i < particles.Length; i++)
+            {
+                particles[i].position += (Vector3)offset;
+            }
+
+            shipThrusterPS.SetParticles(particles);
         }
 
         protected void ApplyLinearDrag()

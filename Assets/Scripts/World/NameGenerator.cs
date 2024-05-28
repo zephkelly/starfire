@@ -65,19 +65,19 @@ namespace Starfire
             {
                 return Capitalise(randStem) + "-" + Capitalise(randSuffix);
             }
-            else if (nameType >= 10)
+            else if (nameType >= 12)
             {
                 return randPrefix + randStem + " " + randTagBack;
             }
             else if (nameType >= 6)
             {
-                return randTagFront + " " + randPrefix + "-" + Capitalise(randStem);
+                return randTagFront + " " + randPrefix + randStem;
             }
-            else if (nameType >= 3)
+            else if (nameType >= 5)
             {
                 return Capitalise(randStem) + "-" + Capitalise(randSuffix) + " " + randTagBack;
             }
-            else if (nameType == 2)
+            else if (nameType == 4)
             { 
                 return randPrefix + randSuffix + " " + randTagBack;
             }

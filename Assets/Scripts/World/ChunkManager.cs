@@ -262,8 +262,8 @@ namespace Starfire
 
     private void GetEntityChunkPositions()
     {
-      entityAbsoluteChunkPosition = ChunkUtils.GetEntityChunkPosition(entityAbsolutePosition, chunkDiameter);
-      entityWorldChunkPosition = ChunkUtils.GetEntityChunkPosition(entityTransform.position, chunkDiameter);
+      entityAbsoluteChunkPosition = ChunkUtils.GetChunkPosition(entityAbsolutePosition, chunkDiameter);
+      entityWorldChunkPosition = ChunkUtils.GetChunkPosition(entityTransform.position, chunkDiameter);
     }
 
     private void SetLastPositions()

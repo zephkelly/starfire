@@ -53,7 +53,6 @@ namespace Starfire
     private bool hasStarObject = false;
     private string starName;
 
-    // private bool isModified = false;
 
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -119,6 +118,12 @@ namespace Starfire
         chunkObject.name = $"Chunk{chunkIndex}";
         chunkObject.transform.position = chunkWorldPosition * chunkDiameter;
         chunkObject.transform.SetParent(ChunkManager.Instance.transform);
+
+        //create a new box colllider with is trigger true and size size of the diameter and place it in world position
+        BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
+        boxCollider.size = new Vector2(chunkDiameter, chunkDiameter);
+        boxCollider.offset = new Vector2(chunkDiameter / 2, chunkDiameter / 2);
+        boxCollider.isTrigger = true;
 
         hasChunkObject = true;
       }

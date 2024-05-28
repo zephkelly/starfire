@@ -15,7 +15,7 @@ namespace Starfire
     private float targetVelocityMagnitude;
 
     private Vector3 mouseLerpPosition;
-    private Vector3 currentOffsetAmount;
+    [SerializeField] private Vector3 currentOffsetAmount;
 
     [SerializeField] float mouseInterpolateDistance = 2f;
     [SerializeField] float cameraPanSpeed = 0.15f;
@@ -98,6 +98,18 @@ namespace Starfire
     }
 
     public void ChangeFocus(Transform newFocus) => target = newFocus;
+
+    public void Transport(Vector2 offset)
+    {
+        var currentOffset = cameraTransform.position - target.position;
+
+        // the camera needs to be offset by the same amount as the player
+
+        Vector2 newPosition = new Vector2(cameraTransform.position.x, cameraTransform.position.y) + offset;
+        cameraTransform.position = new Vector3(newPosition.x, newPosition.y, cameraTransform.position.z);
+
+
+    }
 
     public void SetOffset(Vector2 offsetVector) => currentOffsetAmount = offsetVector;
 

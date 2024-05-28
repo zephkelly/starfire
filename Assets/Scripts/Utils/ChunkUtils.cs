@@ -15,7 +15,7 @@ namespace Starfire
       return new Vector2Int(cellX, cellY);
     } 
 
-    public static Vector2Int GetEntityChunkPosition(Vector2D position, int chunkDiameter)
+    public static Vector2Int GetChunkPosition(Vector2D position, int chunkDiameter)
     {
       return new Vector2Int(
         Mathf.RoundToInt((float)position.x / chunkDiameter),
@@ -23,7 +23,7 @@ namespace Starfire
       );
     }
 
-    public static Vector2Int GetEntityChunkPosition(Vector3 position, int chunkDiameter)
+    public static Vector2Int GetChunkPosition(Vector3 position, int chunkDiameter)
     {
       return new Vector2Int(
         Mathf.RoundToInt(position.x / chunkDiameter),

@@ -230,53 +230,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2832251375056208312, guid: 971523c63445cec4981c22fc82cbec69, type: 3}
   m_PrefabInstance: {fileID: 8038010037454934972}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &172450144
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 172450146}
-  - component: {fileID: 172450145}
-  m_Layer: 0
-  m_Name: FloatingOriginsManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &172450145
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 172450144}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6b94e8e38cbfe54faa39b20a371b408, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  floatingOriginLimit: 2000
-  worldObjects: {fileID: 1251351259}
-  player: {fileID: 1320218812}
---- !u!4 &172450146
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 172450144}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &318828166
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -703,6 +656,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b96a6c45b14fb7f49a6abdaebb51ac5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentOffsetAmount: {x: 0, y: 0, z: 0}
   mouseInterpolateDistance: 2.2
   cameraPanSpeed: 0.125
   maxZoom: 70
@@ -895,11 +849,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &1320218812 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4447715483684185069, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
-  m_PrefabInstance: {fileID: 5325048254707597054}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1411054394
 GameObject:
   m_ObjectHideFlags: 0
@@ -911,6 +860,7 @@ GameObject:
   - component: {fileID: 1411054397}
   - component: {fileID: 1411054396}
   - component: {fileID: 1411054395}
+  - component: {fileID: 1411054398}
   m_Layer: 0
   m_Name: ChunkManager
   m_TagString: Untagged
@@ -975,6 +925,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1411054398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1411054394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6b94e8e38cbfe54faa39b20a371b408, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  floatingOriginLimit: 2000
+  OnFloatingOrigin:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1416636251}
+        m_TargetAssemblyTypeName: Starfire.ShipController, Assembly-CSharp
+        m_MethodName: Transport
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1034745480}
+        m_TargetAssemblyTypeName: Starfire.CameraController, Assembly-CSharp
+        m_MethodName: Transport
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1416636251 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+  m_PrefabInstance: {fileID: 5325048254707597054}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd9d227f8c6196a43a9c80d9423c640a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1589042619
 GameObject:
   m_ObjectHideFlags: 0
@@ -2085,7 +2086,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1919008406}
-  - {fileID: 172450146}
   - {fileID: 1137900433}
   - {fileID: 1735648769}
   - {fileID: 1251351259}
