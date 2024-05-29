@@ -37,7 +37,7 @@ namespace Starfire
 
                 OnFloatingOrigin.Invoke(offset);
 
-                chunkManager.PlayerPositionService.ClearLastPositions();
+                playerPositionService.ClearLastPositions();
             }
 
             playerPositionService.UpdateAbsolutePosition();

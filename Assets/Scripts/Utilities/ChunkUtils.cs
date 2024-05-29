@@ -17,18 +17,20 @@ namespace Starfire
 
     public static Vector2Int GetChunkPosition(Vector2D position, int chunkDiameter)
     {
-      return new Vector2Int(
-        Mathf.RoundToInt((float)position.x / chunkDiameter),
-        Mathf.RoundToInt((float)position.y / chunkDiameter)
-      );
+        return new Vector2Int(
+            Mathf.RoundToInt((float)position.x / chunkDiameter),
+            Mathf.RoundToInt((float)position.y / chunkDiameter)
+        );
     }
 
     public static Vector2Int GetChunkPosition(Vector3 position, int chunkDiameter)
     {
-      return new Vector2Int(
-        Mathf.RoundToInt(position.x / chunkDiameter),
-        Mathf.RoundToInt(position.y / chunkDiameter)
-      );
+        var newPosition = new Vector2Int(
+            Mathf.RoundToInt(position.x / chunkDiameter),
+            Mathf.RoundToInt(position.y / chunkDiameter)
+        );
+
+        return newPosition;
     }
   }
 }

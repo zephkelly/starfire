@@ -116,16 +116,25 @@ namespace Starfire
       {
         chunkObject = ChunkManager.Instance.ChunkPool.Get();
         chunkObject.name = $"Chunk{chunkIndex}";
-        chunkObject.transform.position = new Vector2(
-                chunkPos.x + (chunkKey.x * chunkDiameter),
-                chunkPos.y + (chunkKey.y * chunkDiameter)
-            );
+
+        var newPosition = new Vector2(
+            chunkPos.x + (chunkKey.x * chunkDiameter),
+            chunkPos.y + (chunkKey.y * chunkDiameter)
+        );
+
+        var moduloVector = new Vector2(
+            newPosition.x % chunkDiameter,
+            newPosition.y % chunkDiameter
+        );
+
+        Debug.Log(moduloVector);
+        
+        chunkObject.transform.position = newPosition - moduloVector;
         chunkObject.transform.SetParent(ChunkManager.Instance.transform);
 
         //create a new box colllider with is trigger true and size size of the diameter and place it in world position
         BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
         boxCollider.size = new Vector2(chunkDiameter, chunkDiameter);
-        boxCollider.offset = new Vector2(chunkDiameter / 2, chunkDiameter / 2);
         boxCollider.isTrigger = true;
 
         hasChunkObject = true;
