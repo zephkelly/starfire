@@ -21,7 +21,7 @@ namespace Starfire
 
     // bool IsModified { get; }
 
-    void SetActiveChunk();
+    void SetActiveChunk(Vector2 chunkPosition, Vector2 chunkKey);
     void SetLazyChunk();
     void SetInactiveChunk();
   }
@@ -40,7 +40,7 @@ namespace Starfire
     [SerializeField] private long chunkIndex;
     [SerializeField] private Vector2Int chunkKey;
     private Vector2Int chunkCellKey;
-    private Vector2 chunkWorldPosition;
+    // private Vector2 chunkWorldPosition;
     private bool hasChunkObject = false;
     private GameObject chunkObject = null;
     private const int chunkDiameter = 600;
@@ -66,29 +66,29 @@ namespace Starfire
     public GameObject StarObject { get => starObject; }
     public bool HasStarObject { get => hasStarObject; }
 
-    public Chunk(long _chunkIndex, Vector2Int _chunkKey, Vector2 _worldPosition, bool makeStar = false, bool preventMakeStar = false)
+    public Chunk(long _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
       chunkIndex = _chunkIndex;
       chunkKey = _chunkKey;
-      chunkWorldPosition = _worldPosition;
+    //   chunkWorldPosition = _worldPosition;
       chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
 
       hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
 
       if (hasStar)
       {
-        starPosition = StarGenerator.Instance.GetStarPosition(chunkDiameter) + (chunkWorldPosition * chunkDiameter);
+        // starPosition = StarGenerator.Instance.GetStarPosition(chunkDiameter) + (chunkWorldPosition * chunkDiameter);
       }
     }
 
     // public bool IsModified { get => isModified; }
 
-    public void SetActiveChunk()
+    public void SetActiveChunk(Vector2 playerCurrentChunkPosition, Vector2 chunkKey)
     {
         if (chunkState == ChunkState.Active) return;
         chunkState = ChunkState.Active;
 
-        SetChunkObject();
+        SetChunkObject(playerCurrentChunkPosition, chunkKey);
         SetStarObject();
     }
 
@@ -110,13 +110,16 @@ namespace Starfire
         RemoveStarObject();
     }
 
-    private void SetChunkObject()
+    private void SetChunkObject(Vector2 chunkPos, Vector2 chunkKey)
     {
       if (!hasChunkObject)
       {
         chunkObject = ChunkManager.Instance.ChunkPool.Get();
         chunkObject.name = $"Chunk{chunkIndex}";
-        chunkObject.transform.position = chunkWorldPosition * chunkDiameter;
+        chunkObject.transform.position = new Vector2(
+                chunkPos.x + (chunkKey.x * chunkDiameter),
+                chunkPos.y + (chunkKey.y * chunkDiameter)
+            );
         chunkObject.transform.SetParent(ChunkManager.Instance.transform);
 
         //create a new box colllider with is trigger true and size size of the diameter and place it in world position

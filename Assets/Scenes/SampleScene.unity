@@ -861,6 +861,7 @@ GameObject:
   - component: {fileID: 1411054396}
   - component: {fileID: 1411054395}
   - component: {fileID: 1411054398}
+  - component: {fileID: 1411054399}
   m_Layer: 0
   m_Name: ChunkManager
   m_TagString: Untagged
@@ -965,6 +966,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &1411054399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1411054394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9b66c6ea057ef94cb6dcaa8e60bf3c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1416636251 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
