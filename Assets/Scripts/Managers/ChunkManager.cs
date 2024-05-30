@@ -21,8 +21,6 @@ public class ChunkManager : MonoBehaviour
     private Transform playerTransform;
 
     private Dictionary<Vector2Int, Chunk> chunksDict = new Dictionary<Vector2Int, Chunk>();
-    // private Dictionary<Vector2Int, Chunk> currentChunks = new Dictionary<Vector2Int, Chunk>();
-    // private Dictionary<Vector2Int, Chunk> lastCurrentChunks = new Dictionary<Vector2Int, Chunk>();
     private ObjectPool<GameObject> chunkPool;
 
     private Dictionary<Vector2Int, Chunk> starChunks = new Dictionary<Vector2Int, Chunk>();
@@ -30,7 +28,7 @@ public class ChunkManager : MonoBehaviour
 
     public UnityEvent OnUpdateChunks = new UnityEvent();
 
-    private int chunkDiameter = 600;
+    private int chunkDiameter = 1000;
     private uint chunkIndex = 0;
 
     private uint ChunkIndex { get => chunkIndex++; }
@@ -78,6 +76,7 @@ public class ChunkManager : MonoBehaviour
         }, false, 150, 200);
 
         GetCurrentChunks();
+        MarkChunksInactive();
     }
 
     private void Update()
@@ -85,18 +84,32 @@ public class ChunkManager : MonoBehaviour
         if (playerPositionService.GetAbsoluteChunkPosition() != playerPositionService.GetLastAbsoluteChunkPosition())
         {
             GetCurrentChunks();
-            // MarkChunksInactive();
+            MarkChunksInactive();
         }
     }
 
+    public void Transport(Vector2 offset)
+    {
+        foreach (var chunk in currentChunks)
+        {
+            if (chunk.ChunkObject != null)
+            {
+                chunk.ChunkObject.transform.position += (Vector3)offset;
+            }
+        }
+    }
+
+    private List<Chunk> currentChunks = new List<Chunk>();
     private void GetCurrentChunks()
     {
-        for (int x = -1; x <= 1; x++)
+        currentChunks = new List<Chunk>();
+
+        for (int x = -5; x <= 5; x++)
         {
-            for (int y = -1; y <= 1; y++)
+            for (int y = -5; y <= 5; y++)
             {
-                var chunkKey = GetChunkAbsKey(x, y);
-                var chunkPosition = GetChunkPosition(x, y);
+                Vector2Int chunkKey = GetChunkAbsKey(x, y);
+                Vector2Int chunkPosition = GetChunkPosition(x, y);
 
                 Chunk currentChunk;
 
@@ -105,49 +118,48 @@ public class ChunkManager : MonoBehaviour
                     currentChunk = chunksDict[chunkKey];
                     SetChunkState(currentChunk, chunkPosition, x, y);
                 }
-                // else if (lastCurrentChunks.ContainsKey(chunkKey))
-                // {
-                //     currentChunk = lastCurrentChunks[chunkKey];
-                //     SetChunkState(currentChunk, chunkPosition, x, y);
-                // }
                 else
                 {
                     currentChunk = CreateChunk(chunkKey);
                     SetChunkState(currentChunk, chunkPosition, x, y);
                 }
 
-                // if (!currentChunks.ContainsKey(chunkKey))
-                // {
-                //     currentChunks.Add(chunkKey, currentChunk);
-                // }
+                currentChunks.Add(currentChunk);
             }
         }
 
         OnUpdateChunks.Invoke();
-        // return currentChunks;
     }
 
-    // private void MarkChunksInactive()
-    // {
-    //     foreach (var chunk in lastCurrentChunks.Values)
-    //     {
-    //         if (chunk.HasStar && currentStarPositions.Contains(chunk.StarPosition))
-    //         {
-    //             currentStarPositions.Remove(chunk.StarPosition);
-    //         }
+    private List<Chunk> lastCurrentChunks = new List<Chunk>();
+    private void MarkChunksInactive(bool flush = false)
+    {
+        var currentChunksSet = new HashSet<Chunk>(currentChunks);
 
-    //         chunk.SetInactiveChunk();
-    //     }
+        if (flush)
+        {
+            // foreach (var chunk in lastCurrentChunks)
+            // {
+            //     chunk.SetInactiveChunk();
+            // }
 
-    //     lastCurrentChunks.Clear();
+            // lastCurrentChunks.Clear();
 
-    //     foreach (var chunk in currentChunks)
-    //     {
-    //         lastCurrentChunks.Add(chunk.Key, chunk.Value);
-    //     }
+            // lastCurrentChunks = new List<Chunk>(currentChunks);
+            return;
+        }
 
-    //     currentChunks.Clear();
-    // }
+
+        foreach (var chunk in lastCurrentChunks)
+        {
+            if (!currentChunksSet.Contains(chunk))
+            {
+                chunk.SetInactiveChunk();
+            }
+        }
+
+        lastCurrentChunks = new List<Chunk>(currentChunks);
+    }
 
     private Chunk CreateChunk(Vector2Int _chunkAbsKey, bool makeStar = false, bool preventMakeStar = false)
     {
@@ -156,6 +168,10 @@ public class ChunkManager : MonoBehaviour
         if (!chunksDict.ContainsKey(_chunkAbsKey))
         {
             chunksDict.Add(_chunkAbsKey, _chunk);
+        }
+        else
+        {
+            Debug.LogWarning("Chunk already exists in dictionary.");
         }
 
         if (_chunk.HasStar && !starChunks.ContainsKey(_chunkAbsKey))
@@ -166,9 +182,9 @@ public class ChunkManager : MonoBehaviour
         return _chunk;
     } 
 
-    private void SetChunkState(Chunk _chunk, Vector2 _chunkCurrentKey, int _x, int _y)
+    private void SetChunkState(Chunk _chunk, Vector2Int _chunkCurrentKey, int _x, int _y)
     {
-        if (Math.Abs(_x) <= 3 && Math.Abs(_y) <= 3)
+        if (Math.Abs(_x) <= 1 && Math.Abs(_y) <= 1)
         {
             _chunk.SetActiveChunk(playerPositionService.GetWorldChunkPosition(), _chunkCurrentKey);
             return;

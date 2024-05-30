@@ -938,7 +938,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6b94e8e38cbfe54faa39b20a371b408, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floatingOriginLimit: 1500
+  floatingOriginLimit: 2000
   OnFloatingOrigin:
     m_PersistentCalls:
       m_Calls:
@@ -955,6 +955,18 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1034745480}
+        m_TargetAssemblyTypeName: Starfire.CameraController, Assembly-CSharp
+        m_MethodName: Transport
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1411054395}
         m_TargetAssemblyTypeName: Starfire.CameraController, Assembly-CSharp
         m_MethodName: Transport
         m_Mode: 0

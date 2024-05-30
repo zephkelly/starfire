@@ -9,6 +9,7 @@ namespace Starfire
   {
     long ChunkIndex { get; }
     Vector2Int ChunkKey { get; }
+    Vector2Int CurrentWorldKey { get; }
     Vector2Int ChunkCellKey { get; }
     ChunkState ChunkState { get; }
     bool HasChunkObject { get; }
@@ -21,7 +22,7 @@ namespace Starfire
 
     // bool IsModified { get; }
 
-    void SetActiveChunk(Vector2 chunkPosition, Vector2 chunkKey);
+    void SetActiveChunk(Vector2Int chunkPosition, Vector2Int chunkKey);
     void SetLazyChunk();
     void SetInactiveChunk();
   }
@@ -39,11 +40,10 @@ namespace Starfire
     // Chunk info
     [SerializeField] private long chunkIndex;
     [SerializeField] private Vector2Int chunkKey;
+    private Vector2Int currentWorldKey;
     private Vector2Int chunkCellKey;
-    // private Vector2 chunkWorldPosition;
     private bool hasChunkObject = false;
     private GameObject chunkObject = null;
-    private const int chunkDiameter = 600;
     private ChunkState chunkState = ChunkState.Inactive;
 
     // Star info
@@ -56,6 +56,7 @@ namespace Starfire
 
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
+    public Vector2Int CurrentWorldKey { get => currentWorldKey; }
     public Vector2Int ChunkCellKey { get => chunkCellKey; }
     public ChunkState ChunkState { get => chunkState; }
     public GameObject ChunkObject { get => chunkObject; }
@@ -83,12 +84,12 @@ namespace Starfire
 
     // public bool IsModified { get => isModified; }
 
-    public void SetActiveChunk(Vector2 playerCurrentChunkPosition, Vector2 chunkKey)
+    public void SetActiveChunk(Vector2Int _playerCurrentChunkPosition, Vector2Int _chunkKey)
     {
         if (chunkState == ChunkState.Active) return;
         chunkState = ChunkState.Active;
 
-        SetChunkObject(playerCurrentChunkPosition, chunkKey);
+        SetChunkObject(_playerCurrentChunkPosition, _chunkKey);
         SetStarObject();
     }
 
@@ -110,31 +111,30 @@ namespace Starfire
         RemoveStarObject();
     }
 
-    private void SetChunkObject(Vector2 chunkPos, Vector2 chunkKey)
+    private void SetChunkObject(Vector2 _chunkOrigin, Vector2Int _chunkKey)
     {
       if (!hasChunkObject)
       {
         chunkObject = ChunkManager.Instance.ChunkPool.Get();
         chunkObject.name = $"Chunk{chunkIndex}";
+        currentWorldKey = _chunkKey;
 
         var newPosition = new Vector2(
-            chunkPos.x + (chunkKey.x * chunkDiameter),
-            chunkPos.y + (chunkKey.y * chunkDiameter)
+            _chunkOrigin.x + (_chunkKey.x * ChunkManager.Instance.ChunkDiameter),
+            _chunkOrigin.y + (_chunkKey.y * ChunkManager.Instance.ChunkDiameter)
         );
 
         var moduloVector = new Vector2(
-            newPosition.x % chunkDiameter,
-            newPosition.y % chunkDiameter
+            newPosition.x % ChunkManager.Instance.ChunkDiameter,
+            newPosition.y % ChunkManager.Instance.ChunkDiameter
         );
 
-        Debug.Log(moduloVector);
-        
         chunkObject.transform.position = newPosition - moduloVector;
         chunkObject.transform.SetParent(ChunkManager.Instance.transform);
 
         //create a new box colllider with is trigger true and size size of the diameter and place it in world position
         BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
-        boxCollider.size = new Vector2(chunkDiameter, chunkDiameter);
+        boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
         boxCollider.isTrigger = true;
 
         hasChunkObject = true;

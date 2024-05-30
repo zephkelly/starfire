@@ -34,7 +34,12 @@ namespace Starfire
             if (playerTransform.position.magnitude > floatingOriginLimit)
             {
                 Vector2 offset = -(Vector2)playerTransform.position;
-
+                Vector2Int playerChunk = playerPositionService.GetAbsoluteChunkPosition();
+                Vector2 chunkCenter = chunkManager.ChunksDict[playerChunk].ChunkObject.transform.position;
+                Vector2 playerPosition = playerTransform.position;
+                Vector2 distanceFromCenter = playerPosition - chunkCenter;
+                offset += distanceFromCenter;
+                
                 OnFloatingOrigin.Invoke(offset);
 
                 playerPositionService.ClearLastPositions();
