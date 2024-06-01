@@ -14,7 +14,7 @@ namespace Starfire
         [SerializeField] private float scaleFactor = 0.5f;
         [SerializeField] private GameObject starMarkerPrefab;
 
-        private Dictionary<Vector2, GameObject> starMarkers = new Dictionary<Vector2, GameObject>();
+        private Dictionary<Vector2Int, GameObject> starMarkers = new Dictionary<Vector2Int, GameObject>();
 
         private void Awake()
         {
@@ -28,6 +28,7 @@ namespace Starfire
             }
 
             player = GameObject.Find("PlayerShip").transform;
+
         }
 
         private void Update()
@@ -48,14 +49,14 @@ namespace Starfire
         {      
             ClearCurrentMarkers();
 
-            foreach (var starPosition in ChunkManager.Instance.CurrentStarPositions)
+            foreach (var starChunkAbsKey in ChunkManager.Instance.CurrentStarChunks)
             {
-                Vector2 miniMapPos = GetMinimapPosition(starPosition);
+                Vector2 miniMapPos = GetMinimapPosition(starChunkAbsKey);
                 GameObject starMarker = Instantiate(starMarkerPrefab, panelTransform);
                 starMarker.transform.localPosition = miniMapPos;
 
-                if (starMarkers.ContainsKey(starPosition)) return;
-                starMarkers.Add(starPosition, starMarker);
+                if (starMarkers.ContainsKey(starChunkAbsKey)) return;
+                starMarkers.Add(starChunkAbsKey, starMarker);
             }
         }
 
@@ -69,10 +70,13 @@ namespace Starfire
             starMarkers.Clear();
         }
 
-        Vector2 GetMinimapPosition(Vector2 position)
+        Vector2 GetMinimapPosition(Vector2Int chunkKey)
         {
+            if (ChunkManager.Instance.ChunksDict[chunkKey].HasStarObject == false) return Vector2.zero;
+
+            Vector2 starPosition = ChunkManager.Instance.ChunksDict[chunkKey].StarObject.transform.position;
             Vector2 playerWorldPos = player.position;
-            Vector2 relativePos = position - playerWorldPos;
+            Vector2 relativePos = starPosition - playerWorldPos;
             
             relativePos *= scaleFactor;
             return relativePos;

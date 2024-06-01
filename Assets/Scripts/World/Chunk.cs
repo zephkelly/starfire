@@ -38,7 +38,7 @@ namespace Starfire
   public class Chunk : IChunk
   {
     // Chunk info
-    [SerializeField] private long chunkIndex;
+    [SerializeField] private uint chunkIndex;
     [SerializeField] private Vector2Int chunkKey;
     private Vector2Int currentWorldKey;
     private Vector2Int chunkCellKey;
@@ -63,26 +63,23 @@ namespace Starfire
     public bool HasChunkObject { get => hasChunkObject; }
 
     public bool HasStar { get => hasStar; }
-    public Vector2 StarPosition { get => starPosition; }
+    public Vector2 StarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + starPosition; }
     public GameObject StarObject { get => starObject; }
     public bool HasStarObject { get => hasStarObject; }
 
-    public Chunk(long _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
+    public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
       chunkIndex = _chunkIndex;
       chunkKey = _chunkKey;
-    //   chunkWorldPosition = _worldPosition;
       chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
 
       hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
 
       if (hasStar)
       {
-        // starPosition = StarGenerator.Instance.GetStarPosition(chunkDiameter) + (chunkWorldPosition * chunkDiameter);
+        starPosition = StarGenerator.Instance.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
       }
     }
-
-    // public bool IsModified { get => isModified; }
 
     public void SetActiveChunk(Vector2Int _playerCurrentChunkPosition, Vector2Int _chunkKey)
     {
@@ -162,7 +159,7 @@ namespace Starfire
 
         starObject.GetComponent<CelestialBehaviour>().SetupCelestialBehaviour(CelestialBodyType.Star, starName);
         
-        starObject.transform.position = starPosition;
+        starObject.transform.position = StarPosition;
         starObject.transform.SetParent(chunkObject.transform);
 
         CameraController.Instance.starParallaxLayers.Add(starObject.GetComponent<StarParallaxLayer>());

@@ -23,8 +23,8 @@ public class ChunkManager : MonoBehaviour
     private Dictionary<Vector2Int, Chunk> chunksDict = new Dictionary<Vector2Int, Chunk>();
     private ObjectPool<GameObject> chunkPool;
 
-    private Dictionary<Vector2Int, Chunk> starChunks = new Dictionary<Vector2Int, Chunk>();
-    private List<Vector2> currentStarPositions = new List<Vector2>();
+    private HashSet<Vector2Int> starChunks = new HashSet<Vector2Int>();
+    private List<Vector2Int> currentStarChunks = new List<Vector2Int>();
 
     public UnityEvent OnUpdateChunks = new UnityEvent();
 
@@ -36,9 +36,14 @@ public class ChunkManager : MonoBehaviour
 
     public Dictionary<Vector2Int, Chunk> ChunksDict { get => chunksDict; }
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
-    public List<Vector2> CurrentStarPositions { get => currentStarPositions; }
+    public List<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
 
-    public ChunkManager()
+    // public ChunkManager()
+    // {
+        
+    // }
+
+    private void Awake()
     {
         if (Instance == null)
         {
@@ -48,10 +53,7 @@ public class ChunkManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-    }
 
-    private void Awake()
-    {
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
 
         starGenerator = GetComponent<StarGenerator>();
@@ -75,6 +77,7 @@ public class ChunkManager : MonoBehaviour
             Destroy(_chunkObject);
         }, false, 150, 200);
 
+        CreateWorldMap();
         GetCurrentChunks();
         MarkChunksInactive();
     }
@@ -88,6 +91,64 @@ public class ChunkManager : MonoBehaviour
         }
     }
 
+    private void CreateWorldMap()
+    {
+        const int minStarRange = -3;
+        const int maxStarRange = 3;
+
+        const int minExcludeRange = -5;
+        const int maxExcludeRange = 5;
+
+        var starRimChunks = new List<Vector2Int>();
+
+        for (int x = -15; x <= 15; x++)
+        {
+            for (int y = -15; y <= 15; y++)
+            {
+                var _chunkAbsKey = GetChunkAbsKey(x, y);    //For searching dictionary
+                var _chunkWorldKey = GetChunkPosition(x, y);    //For placing chunk in world
+
+                Chunk _chunk;
+
+                //If within a box at min and max star range 
+                if ((x == minStarRange || x == maxStarRange) && (y >= minStarRange && y <= maxStarRange) ||
+                    (y == minStarRange || y == maxStarRange) && (x >= minStarRange && x <= maxStarRange))
+                {
+                    starRimChunks.Add(_chunkAbsKey);
+                }
+                else if ((x > minExcludeRange && x < maxExcludeRange && y > minExcludeRange && y < maxExcludeRange))
+                {
+                    _chunk = CreateChunk(_chunkAbsKey, preventMakeStar: true);
+                }
+                else
+                {
+                    _chunk = CreateChunk(_chunkAbsKey);
+                }
+            }
+        }
+
+        CreateInitialStarChunk(starRimChunks);
+    }   
+
+    private void CreateInitialStarChunk(List<Vector2Int> starRimChunks)
+    {
+        var randomChunk = UnityEngine.Random.Range(0, starRimChunks.Count);
+        Vector2Int selectedChunk = starRimChunks[randomChunk];
+
+        Chunk _starChunk;
+
+        foreach (var starChunkPosition in starRimChunks)
+        {
+            if (starChunkPosition == selectedChunk)
+            {
+                _starChunk = CreateChunk(starChunkPosition, makeStar: true);
+                continue;
+            }
+
+            _starChunk = CreateChunk(starChunkPosition, preventMakeStar: true);
+        }
+    }
+
     public void Transport(Vector2 offset)
     {
         foreach (var chunk in currentChunks)
@@ -97,6 +158,8 @@ public class ChunkManager : MonoBehaviour
                 chunk.ChunkObject.transform.position += (Vector3)offset;
             }
         }
+
+        Minimap.Instance.UpdateMinimapMarkers();
     }
 
     private List<Chunk> currentChunks = new List<Chunk>();
@@ -108,20 +171,25 @@ public class ChunkManager : MonoBehaviour
         {
             for (int y = -5; y <= 5; y++)
             {
-                Vector2Int chunkKey = GetChunkAbsKey(x, y);
+                Vector2Int chunkAbsKey = GetChunkAbsKey(x, y);
                 Vector2Int chunkPosition = GetChunkPosition(x, y);
 
                 Chunk currentChunk;
 
-                if (chunksDict.ContainsKey(chunkKey))
+                if (chunksDict.ContainsKey(chunkAbsKey))
                 {
-                    currentChunk = chunksDict[chunkKey];
+                    currentChunk = chunksDict[chunkAbsKey];
                     SetChunkState(currentChunk, chunkPosition, x, y);
                 }
                 else
                 {
-                    currentChunk = CreateChunk(chunkKey);
+                    currentChunk = CreateChunk(chunkAbsKey);
                     SetChunkState(currentChunk, chunkPosition, x, y);
+                }
+
+                if (currentChunk.HasStar && !currentStarChunks.Contains(chunkAbsKey))
+                {
+                    currentStarChunks.Add(chunkAbsKey);
                 }
 
                 currentChunks.Add(currentChunk);
@@ -132,28 +200,19 @@ public class ChunkManager : MonoBehaviour
     }
 
     private List<Chunk> lastCurrentChunks = new List<Chunk>();
-    private void MarkChunksInactive(bool flush = false)
+    private void MarkChunksInactive()
     {
         var currentChunksSet = new HashSet<Chunk>(currentChunks);
-
-        if (flush)
-        {
-            // foreach (var chunk in lastCurrentChunks)
-            // {
-            //     chunk.SetInactiveChunk();
-            // }
-
-            // lastCurrentChunks.Clear();
-
-            // lastCurrentChunks = new List<Chunk>(currentChunks);
-            return;
-        }
-
 
         foreach (var chunk in lastCurrentChunks)
         {
             if (!currentChunksSet.Contains(chunk))
             {
+                if (chunk.HasStar && currentStarChunks.Contains(chunk.ChunkKey))
+                {
+                    currentStarChunks.Remove(chunk.ChunkKey);
+                }
+
                 chunk.SetInactiveChunk();
             }
         }
@@ -174,9 +233,9 @@ public class ChunkManager : MonoBehaviour
             Debug.LogWarning("Chunk already exists in dictionary.");
         }
 
-        if (_chunk.HasStar && !starChunks.ContainsKey(_chunkAbsKey))
+        if (_chunk.HasStar && !starChunks.Contains(_chunkAbsKey))
         {
-            starChunks.Add(_chunkAbsKey, _chunk);
+            starChunks.Add(_chunkAbsKey);
         }
 
         return _chunk;
@@ -184,7 +243,7 @@ public class ChunkManager : MonoBehaviour
 
     private void SetChunkState(Chunk _chunk, Vector2Int _chunkCurrentKey, int _x, int _y)
     {
-        if (Math.Abs(_x) <= 1 && Math.Abs(_y) <= 1)
+        if (Math.Abs(_x) <= 5 && Math.Abs(_y) <= 5)
         {
             _chunk.SetActiveChunk(playerPositionService.GetWorldChunkPosition(), _chunkCurrentKey);
             return;

@@ -69,18 +69,18 @@ namespace Starfire
             var searchDistance = 5;
             for (int x = -searchDistance; x <= searchDistance; x++)
             {
-            for (int y = -searchDistance; y <= searchDistance; y++)
-            {
-                Vector2Int searchChunkKey = new Vector2Int(
-                chunkKey.x + x,
-                chunkKey.y + y
-                );
-
-                if (chunkManager.ChunksDict.ContainsKey(searchChunkKey) && chunkManager.ChunksDict[searchChunkKey].HasStar)
+                for (int y = -searchDistance; y <= searchDistance; y++)
                 {
-                    return false;
+                    Vector2Int searchChunkKey = new Vector2Int(
+                    chunkKey.x + x,
+                    chunkKey.y + y
+                    );
+
+                    if (chunkManager.ChunksDict.ContainsKey(searchChunkKey) && chunkManager.ChunksDict[searchChunkKey].HasStar)
+                    {
+                        return false;
+                    }
                 }
-            }
             }
 
             return true;
