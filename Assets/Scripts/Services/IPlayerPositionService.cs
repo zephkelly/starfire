@@ -13,9 +13,7 @@ namespace Starfire
         Vector2Int GetWorldChunkPosition();
         Vector2Int GetLastWorldChunkPosition();
 
-        void UpdateAbsolutePosition();
-        void UpdateAbsoluteChunkPosition();
-        void UpdateWorldChunkPosition();
+        void UpdatePositions();
         void ClearLastPositions();
     }
 }

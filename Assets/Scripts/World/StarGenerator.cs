@@ -76,7 +76,7 @@ namespace Starfire
                     chunkKey.y + y
                     );
 
-                    if (chunkManager.ChunksDict.ContainsKey(searchChunkKey) && chunkManager.ChunksDict[searchChunkKey].HasStar)
+                    if (chunkManager.Chunks.ContainsKey(searchChunkKey) && chunkManager.Chunks[searchChunkKey].HasStar)
                     {
                         return false;
                     }

@@ -22,6 +22,8 @@ namespace Starfire
 
         public void Parallax(Vector3 cameraLastPosition)
         {
+            if (starTransform == null) return;
+            
             Vector2 initialPosition = (Vector2)starTransform.position;
 
             Vector2 cameraDelta = (Vector2)cameraTransform.position - initialPosition;

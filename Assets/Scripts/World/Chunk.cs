@@ -5,8 +5,8 @@ using Unity.VisualScripting;
 
 namespace Starfire
 {
-  public interface IChunk
-  {
+public interface IChunk
+{
     long ChunkIndex { get; }
     Vector2Int ChunkKey { get; }
     Vector2Int CurrentWorldKey { get; }
@@ -22,21 +22,21 @@ namespace Starfire
 
     // bool IsModified { get; }
 
-    void SetActiveChunk(Vector2Int chunkPosition, Vector2Int chunkKey);
+    void SetActiveChunk(Vector2Int chunkKey);
     void SetLazyChunk();
     void SetInactiveChunk();
-  }
+}
 
-  public enum ChunkState
-  {
+public enum ChunkState
+{
     Active,
     Lazy,
     Inactive
-  }
+}
 
-  [System.Serializable]
-  public class Chunk : IChunk
-  {
+[System.Serializable]
+public class Chunk : IChunk
+{
     // Chunk info
     [SerializeField] private uint chunkIndex;
     [SerializeField] private Vector2Int chunkKey;
@@ -53,7 +53,6 @@ namespace Starfire
     private bool hasStarObject = false;
     private string starName;
 
-
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
     public Vector2Int CurrentWorldKey { get => currentWorldKey; }
@@ -69,30 +68,30 @@ namespace Starfire
 
     public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
-      chunkIndex = _chunkIndex;
-      chunkKey = _chunkKey;
-      chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
+    chunkIndex = _chunkIndex;
+    chunkKey = _chunkKey;
+    chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
 
-      hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
+    hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
 
-      if (hasStar)
-      {
+    if (hasStar)
+    {
         starPosition = StarGenerator.Instance.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
-      }
+    }
     }
 
-    public void SetActiveChunk(Vector2Int _playerCurrentChunkPosition, Vector2Int _chunkKey)
+    public void SetActiveChunk(Vector2Int _chunkKey)
     {
-        if (chunkState == ChunkState.Active) return;
+        // if (chunkState == ChunkState.Active) return;
         chunkState = ChunkState.Active;
 
-        SetChunkObject(_playerCurrentChunkPosition, _chunkKey);
+        SetChunkObject(_chunkKey);
         SetStarObject();
     }
 
     public void SetLazyChunk()
     {
-        if (chunkState == ChunkState.Lazy) return;
+        // if (chunkState == ChunkState.Lazy) return;
         chunkState = ChunkState.Lazy;
 
         RemoveChunkObject();
@@ -101,81 +100,84 @@ namespace Starfire
 
     public void SetInactiveChunk()
     {
-        if (chunkState == ChunkState.Inactive) return;
+        // if (chunkState == ChunkState.Inactive) return;
         chunkState = ChunkState.Inactive;
 
         RemoveChunkObject();
         RemoveStarObject();
     }
 
-    private void SetChunkObject(Vector2 _chunkOrigin, Vector2Int _chunkKey)
+    private void SetChunkObject(Vector2Int _chunkKey)
     {
-      if (!hasChunkObject)
-      {
-        chunkObject = ChunkManager.Instance.ChunkPool.Get();
-        chunkObject.name = $"Chunk{chunkIndex}";
-        currentWorldKey = _chunkKey;
+        if (!hasChunkObject)
+        {
+            chunkObject = ChunkManager.Instance.ChunkPool.Get();
+            chunkObject.name = $"Chunk{chunkIndex}";
+            currentWorldKey = _chunkKey;
+            chunkObject.transform.SetParent(ChunkManager.Instance.transform);
+            chunkObject.transform.position = GetChunkPosition(currentWorldKey);
 
-        var newPosition = new Vector2(
-            _chunkOrigin.x + (_chunkKey.x * ChunkManager.Instance.ChunkDiameter),
-            _chunkOrigin.y + (_chunkKey.y * ChunkManager.Instance.ChunkDiameter)
+            hasChunkObject = true;
+            //create a new box colllider with is trigger true and size size of the diameter and place it in world position
+            // BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
+            // boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
+            // boxCollider.isTrigger = true;
+        }
+        else
+        {
+            currentWorldKey = _chunkKey;
+            chunkObject.transform.position = GetChunkPosition(currentWorldKey);
+        }
+    }
+
+    private Vector2 GetChunkPosition(Vector2Int _chunkKey)
+    {
+        Vector2 newPosition = new Vector2(
+            _chunkKey.x * ChunkManager.Instance.ChunkDiameter,
+            _chunkKey.y * ChunkManager.Instance.ChunkDiameter
         );
 
-        var moduloVector = new Vector2(
-            newPosition.x % ChunkManager.Instance.ChunkDiameter,
-            newPosition.y % ChunkManager.Instance.ChunkDiameter
-        );
-
-        chunkObject.transform.position = newPosition - moduloVector;
-        chunkObject.transform.SetParent(ChunkManager.Instance.transform);
-
-        //create a new box colllider with is trigger true and size size of the diameter and place it in world position
-        BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
-        boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
-        boxCollider.isTrigger = true;
-
-        hasChunkObject = true;
-      }
+        return newPosition;
     }
 
     private void RemoveChunkObject()
     {
-      if (hasChunkObject)
-      {
+    if (hasChunkObject)
+    {
         ChunkManager.Instance.ChunkPool.Release(chunkObject);
         chunkObject = null;
         hasChunkObject = false;
-      }
+    }
     }
 
     private void SetStarObject()
     {
-      if (hasStar && hasStarObject == false)
-      {
-        starObject = StarGenerator.Instance.StarPool.Get();
+        if (hasStar && hasStarObject == false)
+        {
+            NameGenerator nameGenerator = new NameGenerator();
+            var starName = nameGenerator.GetStarName();
 
-        NameGenerator nameGenerator = new NameGenerator();
-        var starName = nameGenerator.GetStarName();
+            starObject = StarGenerator.Instance.StarPool.Get();
+            starObject.GetComponent<CelestialBehaviour>().SetupCelestialBehaviour(CelestialBodyType.Star, starName);
+            
+            starObject.transform.position = StarPosition;
+            starObject.transform.SetParent(chunkObject.transform);
 
-        starObject.GetComponent<CelestialBehaviour>().SetupCelestialBehaviour(CelestialBodyType.Star, starName);
-        
-        starObject.transform.position = StarPosition;
-        starObject.transform.SetParent(chunkObject.transform);
+            CameraController.Instance.starParallaxLayers.Add(starObject.GetComponent<StarParallaxLayer>());
 
-        CameraController.Instance.starParallaxLayers.Add(starObject.GetComponent<StarParallaxLayer>());
-
-        hasStarObject = true;
-      }
+            hasStarObject = true;
+        }
     }
 
     private void RemoveStarObject()
     {
-      if (hasStar && hasStarObject)
-      {
-        StarGenerator.Instance.StarPool.Release(starObject);
-        starObject = null;
-        hasStarObject = false;
-      }
+        if (hasStar && hasStarObject)
+        {
+            StarGenerator.Instance.StarPool.Release(starObject);
+            CameraController.Instance.starParallaxLayers.Remove(starObject.GetComponent<StarParallaxLayer>());
+            starObject = null;
+            hasStarObject = false;
+        }
     }
-  }
+}
 }

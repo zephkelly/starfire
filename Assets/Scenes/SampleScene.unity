@@ -860,8 +860,6 @@ GameObject:
   - component: {fileID: 1411054397}
   - component: {fileID: 1411054396}
   - component: {fileID: 1411054395}
-  - component: {fileID: 1411054398}
-  - component: {fileID: 1411054399}
   m_Layer: 0
   m_Name: ChunkManager
   m_TagString: Untagged
@@ -881,21 +879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6189bc684c2e494fb1c1078b252b72c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OnUpdateChunks:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1623924358}
-        m_TargetAssemblyTypeName: Starfire.Minimap, Assembly-CSharp
-        m_MethodName: UpdateMinimapMarkers
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  floatingOriginLimit: 2000
 --- !u!114 &1411054396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -926,93 +910,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1411054398
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1411054394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6b94e8e38cbfe54faa39b20a371b408, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  floatingOriginLimit: 2000
-  OnFloatingOrigin:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1416636251}
-        m_TargetAssemblyTypeName: Starfire.ShipController, Assembly-CSharp
-        m_MethodName: Transport
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1034745480}
-        m_TargetAssemblyTypeName: Starfire.CameraController, Assembly-CSharp
-        m_MethodName: Transport
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1411054395}
-        m_TargetAssemblyTypeName: Starfire.CameraController, Assembly-CSharp
-        m_MethodName: Transport
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1623924358}
-        m_TargetAssemblyTypeName: Starfire.Minimap, Assembly-CSharp
-        m_MethodName: Transport
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
---- !u!114 &1411054399
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1411054394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9b66c6ea057ef94cb6dcaa8e60bf3c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1416636251 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
-  m_PrefabInstance: {fileID: 5325048254707597054}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd9d227f8c6196a43a9c80d9423c640a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1589042619
 GameObject:
   m_ObjectHideFlags: 0
@@ -1323,9 +1220,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e1fdf220beef0e4aa079b3b69187cb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  panelTransform: {fileID: 1647589013}
-  scaleFactor: 0.031
-  starMarkerPrefab: {fileID: 1128323531876382557, guid: 971523c63445cec4981c22fc82cbec69, type: 3}
 --- !u!1 &1647589012
 GameObject:
   m_ObjectHideFlags: 0
