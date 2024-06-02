@@ -23,7 +23,7 @@ public interface IChunk
     // bool IsModified { get; }
 
     void SetActiveChunk(Vector2Int chunkKey);
-    void SetLazyChunk();
+    void SetLazyChunk(Vector2Int chunkKey);
     void SetInactiveChunk();
 }
 
@@ -68,31 +68,33 @@ public class Chunk : IChunk
 
     public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
-    chunkIndex = _chunkIndex;
-    chunkKey = _chunkKey;
-    chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
+        chunkIndex = _chunkIndex;
+        chunkKey = _chunkKey;
+        chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
 
-    hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
+        hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
 
-    if (hasStar)
-    {
-        starPosition = StarGenerator.Instance.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
-    }
+        if (hasStar)
+        {
+            starPosition = StarGenerator.Instance.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
+        }
     }
 
     public void SetActiveChunk(Vector2Int _chunkKey)
     {
         // if (chunkState == ChunkState.Active) return;
         chunkState = ChunkState.Active;
+        currentWorldKey = _chunkKey;
 
         SetChunkObject(_chunkKey);
         SetStarObject();
     }
 
-    public void SetLazyChunk()
+    public void SetLazyChunk(Vector2Int _chunkKey)
     {
         // if (chunkState == ChunkState.Lazy) return;
         chunkState = ChunkState.Lazy;
+        currentWorldKey = _chunkKey;
 
         RemoveChunkObject();
         RemoveStarObject();
@@ -118,14 +120,13 @@ public class Chunk : IChunk
             chunkObject.transform.position = GetChunkPosition(currentWorldKey);
 
             hasChunkObject = true;
-            //create a new box colllider with is trigger true and size size of the diameter and place it in world position
-            // BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
-            // boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
-            // boxCollider.isTrigger = true;
+            // create a new box colllider with is trigger true and size size of the diameter and place it in world position
+            BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
+            boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
+            boxCollider.isTrigger = true;
         }
         else
         {
-            currentWorldKey = _chunkKey;
             chunkObject.transform.position = GetChunkPosition(currentWorldKey);
         }
     }
@@ -142,12 +143,12 @@ public class Chunk : IChunk
 
     private void RemoveChunkObject()
     {
-    if (hasChunkObject)
-    {
-        ChunkManager.Instance.ChunkPool.Release(chunkObject);
-        chunkObject = null;
-        hasChunkObject = false;
-    }
+        if (hasChunkObject)
+        {
+            ChunkManager.Instance.ChunkPool.Release(chunkObject);
+            chunkObject = null;
+            hasChunkObject = false;
+        }
     }
 
     private void SetStarObject()

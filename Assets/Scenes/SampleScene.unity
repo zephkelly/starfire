@@ -1220,6 +1220,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e1fdf220beef0e4aa079b3b69187cb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  panelTransform: {fileID: 1647589013}
+  scaleFactor: 0.022
+  starMarkerPrefab: {fileID: 1128323531876382557, guid: 971523c63445cec4981c22fc82cbec69, type: 3}
 --- !u!1 &1647589012
 GameObject:
   m_ObjectHideFlags: 0
@@ -1775,11 +1778,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: moveSpeed
-      value: 180
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: maxMoveSpeed
-      value: 360
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: OnPlayerOrbitExit.m_PersistentCalls.m_Calls.Array.size

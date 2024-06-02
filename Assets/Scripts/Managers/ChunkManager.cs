@@ -34,6 +34,9 @@ public class ChunkManager : MonoBehaviour
     private List<Vector2Int> currentChunks = new List<Vector2Int>();
     private List<Vector2Int> lastCurrentChunks = new List<Vector2Int>();
 
+    private HashSet<Vector2Int> starChunks = new HashSet<Vector2Int>();
+    private List<Vector2Int> currentStarChunks = new List<Vector2Int>();
+
     private const int chunkDiameter = 1000;
     [SerializeField] private float floatingOriginLimit = 2500f;
     private uint chunkIndex = 0;
@@ -41,6 +44,7 @@ public class ChunkManager : MonoBehaviour
 
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
     public Dictionary<Vector2Int, Chunk> Chunks { get => chunks; }
+    public List<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
     public int ChunkDiameter { get => chunkDiameter; }
     public uint ChunkIndex { get => chunkIndex++; }
 
@@ -80,9 +84,10 @@ public class ChunkManager : MonoBehaviour
         cameraController = mainCamera.GetComponent<CameraController>();
 
         CreateWorldMap();
-
         currentChunks = GetCurrentChunks();
         MarkLastChunksInactive();
+
+        Minimap.Instance.UpdateMinimapMarkers();
     }
 
     private void Update()
@@ -98,6 +103,8 @@ public class ChunkManager : MonoBehaviour
         {
             MarkLastChunksInactive();
             currentChunks = GetCurrentChunks();
+
+            Minimap.Instance.UpdateMinimapMarkers();
         }
 
         UpdateLastPositions();
@@ -162,9 +169,9 @@ public class ChunkManager : MonoBehaviour
     {
         List<Vector2Int> currentChunks = new List<Vector2Int>();
 
-        for (int x = -5; x <= 5; x++)
+        for (int x = -9; x <= 9; x++)
         {
-            for (int y = -5; y <= 5; y++)
+            for (int y = -9; y <= 9; y++)
             {
                 Vector2Int chunkAbsKey = GetChunkAbsKey(x, y);
                 Vector2Int chunkPosition = GetChunkPosition(x, y);
@@ -180,6 +187,11 @@ public class ChunkManager : MonoBehaviour
                 {
                     currentChunk = CreateChunk(chunkAbsKey);
                     SetChunkState(currentChunk, chunkPosition, x, y);
+                }
+
+                if (currentChunk.HasStar && !currentStarChunks.Contains(chunkAbsKey))
+                {
+                    currentStarChunks.Add(chunkAbsKey);
                 }
 
                 currentChunks.Add(chunkAbsKey);
@@ -198,10 +210,41 @@ public class ChunkManager : MonoBehaviour
             if (hashChunkSet.Contains(chunkKey)) continue;
 
             chunks[chunkKey].SetInactiveChunk();
+
+            if (chunks[chunkKey].HasStar && currentStarChunks.Contains(chunkKey))
+            {
+                currentStarChunks.Remove(chunkKey);
+            }
         }
 
         lastCurrentChunks.Clear();
         lastCurrentChunks = new List<Vector2Int>(currentChunks);
+    }
+
+    
+    private void ResetFloatingOrigin()
+    {
+        // Get player distance from current chunk center
+        Vector2Int playerChunk = playerAbsoluteChunkPosition;
+        Vector2 chunkCenter = Chunks[playerChunk].ChunkObject.transform.position;
+        Vector2 playerPosition = playerTransform.position;
+        Vector2 distanceFromChunkCenter = playerPosition - chunkCenter;
+
+        // Calculate offset
+        Vector2 offset = -(Vector2)playerTransform.position;
+        offset += distanceFromChunkCenter;
+
+        // Transport player + camera
+        playerController.Transport(offset);
+        cameraController.Transport(offset);
+
+        ClearLastPositions();
+        UpdatePlayerPosition();
+
+        playerCurrentChunkKey = ChunkUtils.GetChunkPosition((Vector2)playerTransform.position, chunkDiameter);
+
+        // Update minimap markers
+        Minimap.Instance.UpdateMinimapMarkers();
     }
 
     private Chunk CreateChunk(Vector2Int _chunkAbsKey, bool makeStar = false, bool preventMakeStar = false)
@@ -217,10 +260,10 @@ public class ChunkManager : MonoBehaviour
             Debug.LogWarning("Chunk already exists in dictionary.");
         }
 
-        // if (_chunk.HasStar && !starChunks.Contains(_chunkAbsKey))
-        // {
-        //     starChunks.Add(_chunkAbsKey);
-        // }
+        if (_chunk.HasStar && !starChunks.Contains(_chunkAbsKey))
+        {
+            starChunks.Add(_chunkAbsKey);
+        }
 
         return _chunk;
     }
@@ -253,29 +296,7 @@ public class ChunkManager : MonoBehaviour
             return;
         }
 
-        _chunk.SetLazyChunk();
-    }
-
-    private void ResetFloatingOrigin()
-    {
-        // Get player distance from current chunk center
-        Vector2Int playerChunk = playerAbsoluteChunkPosition;
-        Vector2 chunkCenter = Chunks[playerChunk].ChunkObject.transform.position;
-        Vector2 playerPosition = playerTransform.position;
-        Vector2 distanceFromChunkCenter = playerPosition - chunkCenter;
-
-        // Calculate offset
-        Vector2 offset = -(Vector2)playerTransform.position;
-        offset += distanceFromChunkCenter;
-
-        // Transport player + camera
-        playerController.Transport(offset);
-        cameraController.Transport(offset);
-
-        ClearLastPositions();
-        UpdatePlayerPosition();
-
-        playerCurrentChunkKey = ChunkUtils.GetChunkPosition((Vector2)playerTransform.position, chunkDiameter);
+        _chunk.SetLazyChunk(_chunkCurrentKey);
     }
 
     private void UpdatePlayerPosition()
