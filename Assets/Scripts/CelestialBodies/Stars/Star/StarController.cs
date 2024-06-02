@@ -12,6 +12,9 @@ namespace Starfire
     [SerializeField] Light2D starLight;
     [SerializeField] CircleCollider2D starRadiusCollider;
     [SerializeField] SpriteRenderer starSpriteRenderer;
+    [SerializeField] StarParallaxLayer starParallaxLayer;
+    [SerializeField] Transform starVisualTransform;
+    private float rotateSpeedFactor = 0.1f;
 
     // Order of Celestial Components:
     // private GameObject star;
@@ -35,26 +38,38 @@ namespace Starfire
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
 
-    public CircleCollider2D StarRadiusCollider { get => starRadiusCollider; }
+    public Transform GetStarVisualTransform { get => starVisualTransform; }
+    public StarParallaxLayer GetStarParallaxLayer { get => starParallaxLayer; }
+    public CircleCollider2D GetStarRadiusCollider { get => starRadiusCollider; }
+    public Light2D GetStarLight { get => starLight; }
+
+    public void SetRotateSpeedFactor(float factor)
+    {
+        rotateSpeedFactor = factor;
+    }
 
     protected  override void Awake()
     {
       base.Awake();
 
+      starParallaxLayer = GetComponent<StarParallaxLayer>();
+
       _celestialBodyType = CelestialBodyType.Star;
-      MaxOrbitRadius = 160;
 
       SetInitialColors();
     }
 
     protected override void Update()
     {
-      base.Update();
+        time += Time.deltaTime;
+        UpdateTime(time * rotateSpeedFactor);
+
+        base.Update();
     }
 
     protected override void UpdateTime(float time)
     {
-      celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.1f);
+      celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.3f);
       celestialMaterials[1].SetFloat(ShaderProperties.Key_time, time);
       celestialMaterials[2].SetFloat(ShaderProperties.Key_time, time);
     }
@@ -75,7 +90,7 @@ namespace Starfire
         celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
       }
 
-      SetGradientColor();
+      SetGradientColor(_colors1, _colors2);
     }
 
     public void SetRotate(float r)
@@ -88,17 +103,26 @@ namespace Starfire
 
     public void SetInitialColors()
     {
-      SetGradientColor();
+      SetGradientColor(_colors1, _colors2);
 
       celestialMaterials[2].SetColor(color_vars1[0], ColorUtil.FromRGB(init_colors1[0]));
     }
 
-    private void SetGradientColor()
+    public void SetRandColours()
+    {
+        var colors = new[] { "#ffc59e", "#d69176", "#a6481c", "#5e2903" };
+        var colors2 = new[] { "#ffc59e", "#f7d9c5" };
+        
+
+        SetGradientColor(colors, colors2);
+    }
+
+    private void SetGradientColor(string[] colors1, string[] colors2)
     {
       for (int i = 0; i < colorKey1.Length; i++)
       {
         colorKey1[i].color = default(Color);
-        ColorUtility.TryParseHtmlString(_colors1[i], out colorKey1[i].color);
+        ColorUtility.TryParseHtmlString(colors1[i], out colorKey1[i].color);
 
         colorKey1[i].time = _color_times1[i];
         alphaKey1[i].alpha = 1.0f;
@@ -107,7 +131,7 @@ namespace Starfire
       for (int i = 0; i < colorKey2.Length; i++)
       {
         colorKey2[i].color = default(Color);
-        ColorUtility.TryParseHtmlString(_colors2[i], out colorKey2[i].color);
+        ColorUtility.TryParseHtmlString(colors2[i], out colorKey2[i].color);
 
         colorKey2[i].time = _color_times2[i];
         alphaKey2[i].alpha = 1.0f;

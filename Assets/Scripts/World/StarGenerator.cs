@@ -17,7 +17,7 @@ namespace Starfire
 
     public ObjectPool<GameObject> StarPool { get => starPool; }
 
-    public void Start()
+    public void Awake()
     {
         starPrefab = Resources.Load<GameObject>("Prefabs/Stars/Star");
 
@@ -80,7 +80,7 @@ namespace Starfire
 
     public int GetStarRadius()
     {
-        return Random.Range(2000, 4000);
+        return Random.Range(2000, 3500);
     }
   }
 }

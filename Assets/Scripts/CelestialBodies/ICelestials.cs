@@ -44,9 +44,10 @@ namespace Starfire
     protected Material[] celestialMaterials;
     [SerializeField] public GameObject[] celestialComponents;
 
-
     protected int _celestialRadius;
     protected string _celestialName;
+    protected float time;
+
     public CelestialBodyType CelestialBodyType => _celestialBodyType;
     public OrbitingController OrbitController => _orbitController;
     public CelestialBehaviour ParentOrbitingBody => parentOrbitingBody;
@@ -87,16 +88,12 @@ namespace Starfire
       }
     }
 
-    protected float time = 0f;
     protected virtual void Update()
     {
-      time += Time.deltaTime;
-      UpdateTime(Time.time);
-
-      if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
-      {
-        SetLight(ParentOrbitingBody.WorldPosition);
-      }
+        if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
+        {
+            SetLight(ParentOrbitingBody.WorldPosition);
+        }
     }
 
     protected virtual void UpdateTime(float time)

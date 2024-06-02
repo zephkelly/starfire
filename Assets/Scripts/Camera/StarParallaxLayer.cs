@@ -31,5 +31,10 @@ namespace Starfire
 
             sprite.position = parallaxPosition;  
         }
+
+        public void SetParallaxFactor(float _parallaxFactor)
+        {
+            parallaxFactor = _parallaxFactor;
+        }
     }
 }

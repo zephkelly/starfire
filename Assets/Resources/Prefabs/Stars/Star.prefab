@@ -58,6 +58,8 @@ MonoBehaviour:
   starLight: {fileID: 4616552629836269554}
   starRadiusCollider: {fileID: 2533020083423152186}
   starSpriteRenderer: {fileID: 0}
+  starParallaxLayer: {fileID: 7283710520449473424}
+  starVisualTransform: {fileID: 1899919835393750636}
   _gradientStar: {fileID: 544071947096438355}
   _gradientStarFlare: {fileID: 2442760740479620818}
 --- !u!114 &740131256037949361

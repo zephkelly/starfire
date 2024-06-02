@@ -66,10 +66,9 @@ public class ChunkManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-    }
 
-    private void Start()
-    {
+        starGenerator = GetComponent<StarGenerator>();
+
         chunkPool = new ObjectPool<GameObject>(() => 
         {
             return new GameObject("Chunk");
@@ -83,13 +82,15 @@ public class ChunkManager : MonoBehaviour
         {
             Destroy(_chunkObject);
         }, false, 200, 300);
+    }
 
+    private void Start()
+    {
         mainCamera = Camera.main;
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         playerLastPosition = playerTransform.position;
         playerController = playerTransform.GetComponent<ShipController>();
         cameraController = mainCamera.GetComponent<CameraController>();
-        starGenerator = GetComponent<StarGenerator>();
 
         CreateWorldMap();
         currentChunks = GetCurrentChunks();
