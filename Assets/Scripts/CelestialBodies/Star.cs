@@ -3,11 +3,21 @@ using UnityEngine;
 
 namespace Starfire
 {
+public enum StarType
+{
+    RedDwarf,
+    YellowDwarf,
+    BlueGiant,
+    RedGiant,
+    WhiteDwarf,
+    NeutronStar,
+}
+
 public class Star
 {
-    private StarController starController;
     private GameObject starObject = null;
 
+    private StarType starType;
     private Vector2Int chunkAbsKey;
     private Vector2Int currentWorldKey;
     [SerializeField] private Vector2 starChunkOffset;
@@ -17,21 +27,24 @@ public class Star
     const int maxRadius = 3500;
     const int minRadius = 2000;
 
+    public StarType GetStarType { get => starType; }
+    public int GetRadius { get => starRadius; }
     public GameObject GetStarObject { get => starObject; }
     public Vector2 GetStarOffset { get => starChunkOffset; }
     public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + starChunkOffset; }
 
-    public Star(Vector2 chunkOffset, Vector2Int key, int radius, string name)
+    public Star(Vector2 chunkOffset, Vector2Int key, StarType type)
     {
         chunkAbsKey = key;
         starChunkOffset = chunkOffset;
-        starRadius = radius;
-        starName = name;
 
+        starType = type;
+        starName = ChunkManager.Instance.NameGenerator.GetStarName();
+        starRadius = ChunkManager.Instance.StarGenerator.GetStarRadius();
         starRotation = Random.Range(0, 360);
     }
 
-    public void SetStarObject(Vector2Int worldKey)
+    public CelestialBehaviour SetStarObject(Vector2Int worldKey)
     {
         currentWorldKey = worldKey;
 
@@ -44,6 +57,8 @@ public class Star
         StarController starController = starObject.GetComponent<StarController>();
         SetStarProperties(starController, starRadius);
         SetStarVisuals(starController, starRadius);
+
+        return starController;
     }
 
     public void RemoveStarObject()

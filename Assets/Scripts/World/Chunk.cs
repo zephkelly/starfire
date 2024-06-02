@@ -43,7 +43,7 @@ public class Chunk : IChunk
     private Star star = null;
 
     // Planets info
-    private List<ICelestialBody> planets = new List<ICelestialBody>();
+    private List<Planet> planets = new List<Planet>();
     private List<GameObject> planetObjects = new List<GameObject>();
 
     public long ChunkIndex { get => chunkIndex; }
@@ -67,9 +67,9 @@ public class Chunk : IChunk
         if (shouldSpawnStar)
         {
             Vector2 starPosition = ChunkManager.Instance.StarGenerator.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
-            string starName = ChunkManager.Instance.NameGenerator.GetStarName();
-            int starRadius = ChunkManager.Instance.StarGenerator.GetStarRadius();
-            star = new Star(starPosition, chunkKey, starRadius, starName);
+            star = new Star(starPosition, chunkKey, StarType.NeutronStar);
+
+            planets = ChunkManager.Instance.PlanetGenerator.GetStarPlanets(star);
         }
     }
 
@@ -144,7 +144,14 @@ public class Chunk : IChunk
         if (!HasStar) return;
         if (star.GetStarObject != null) return;
 
-        star.SetStarObject(_chunkKey);
+        CelestialBehaviour starController = star.SetStarObject(_chunkKey);
+
+        foreach (Planet planet in planets)
+        {
+            GameObject planetObject = planet.SetPlanetObject(_chunkKey, star.GetStarPosition);
+            ICelestialBody planetController = planetObject.GetComponent<ICelestialBody>();
+            planetController.SetOrbitingBody(starController);
+        }
     }
 
     private void RemoveStarObject()

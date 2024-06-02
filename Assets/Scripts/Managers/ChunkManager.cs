@@ -8,6 +8,7 @@ using UnityEngine.Pool;
 namespace Starfire
 {
 [RequireComponent(typeof(StarGenerator))]
+[RequireComponent(typeof(PlanetGenerator))]
 public class ChunkManager : MonoBehaviour
 {
     public static ChunkManager Instance { get; private set; }
@@ -43,15 +44,21 @@ public class ChunkManager : MonoBehaviour
     private uint chunkIndex = 0;
     #endregion
 
+    private NameGenerator nameGenerator = new NameGenerator(); 
+
     #region Stars
     private StarGenerator starGenerator;
-    private NameGenerator nameGenerator = new NameGenerator();  
+    #endregion
+
+    #region Planets
+    private PlanetGenerator planetGenerator;
     #endregion
 
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
     public Dictionary<Vector2Int, Chunk> Chunks { get => chunks; }
     public List<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
     public StarGenerator StarGenerator { get => starGenerator; }
+    public PlanetGenerator PlanetGenerator { get => planetGenerator; }
     public NameGenerator NameGenerator { get => nameGenerator; }
     public int ChunkDiameter { get => chunkDiameter; }
     public uint ChunkIndex { get => chunkIndex++; }
@@ -68,6 +75,7 @@ public class ChunkManager : MonoBehaviour
         }
 
         starGenerator = GetComponent<StarGenerator>();
+        planetGenerator = GetComponent<PlanetGenerator>();
 
         chunkPool = new ObjectPool<GameObject>(() => 
         {

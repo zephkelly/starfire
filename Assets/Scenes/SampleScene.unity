@@ -610,7 +610,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 30
+  orthographic size: 33.75
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -860,6 +860,7 @@ GameObject:
   - component: {fileID: 1411054397}
   - component: {fileID: 1411054395}
   - component: {fileID: 1411054398}
+  - component: {fileID: 1411054399}
   m_Layer: 0
   m_Name: ChunkManager
   m_TagString: Untagged
@@ -910,6 +911,18 @@ MonoBehaviour:
   noiseScale: 0.1
   starSpawnThreshold: 0.6
   spawnChance: 43.9
+--- !u!114 &1411054399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1411054394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de66bf02855dd594e8223bd8177a363e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1589042619
 GameObject:
   m_ObjectHideFlags: 0
@@ -1778,11 +1791,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: moveSpeed
-      value: 500
+      value: 160
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: maxMoveSpeed
-      value: 500
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: OnPlayerOrbitExit.m_PersistentCalls.m_Calls.Array.size

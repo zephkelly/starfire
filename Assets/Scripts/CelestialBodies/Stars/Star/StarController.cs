@@ -48,7 +48,7 @@ namespace Starfire
         rotateSpeedFactor = factor;
     }
 
-    protected  override void Awake()
+    protected override void Awake()
     {
       base.Awake();
 

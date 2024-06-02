@@ -11,24 +11,6 @@ namespace Starfire
         Asteroid
     }
 
-    //Make this an abstract class at some point
-    public interface ICelestialBody
-    {
-        CelestialBodyType CelestialBodyType { get; }
-        OrbitingController OrbitController { get; }
-        float MaxOrbitRadius { get; }
-        float Temperature { get; }
-        CelestialBehaviour ParentOrbitingBody { get; }
-        CelestialBehaviour ChildOrbitingBody { get; }
-        bool IsOrbiting { get; }
-        Vector2 WorldPosition { get; }
-        float Mass { get; }
-        string CelestialName { get; }
-        void SetupCelestialBehaviour(CelestialBodyType type, int radius, string name);
-        void SetOrbitingBody(CelestialBehaviour orbitingBody);
-        void RemoveOrbitingBody();
-    }
-  
   [RequireComponent(typeof(OrbitingController))]
   public abstract class CelestialBehaviour : MonoBehaviour, ICelestialBody
   { 
@@ -77,15 +59,16 @@ namespace Starfire
 
     protected virtual void Awake()
     {
-      _orbitController = GetComponent<OrbitingController>();
-      _celestialRigidBody = GetComponent<Rigidbody2D>();
-      _celestialTransform = transform;
+        _orbitController = GetComponent<OrbitingController>();
+        _celestialRigidBody = GetComponent<Rigidbody2D>();
+        _celestialTransform = transform;
 
-      celestialMaterials = new Material[celestialComponents.Length];
-      for (int i = 0; i < celestialComponents.Length; i++)
-      {
-        celestialMaterials[i] = celestialComponents[i].GetComponent<SpriteRenderer>().material;
-      }
+        celestialMaterials = new Material[celestialComponents.Length];
+        
+        for (int i = 0; i < celestialComponents.Length; i++)
+        {
+            celestialMaterials[i] = celestialComponents[i].GetComponent<SpriteRenderer>().material;
+        }
     }
 
     protected virtual void Update()
@@ -106,15 +89,15 @@ namespace Starfire
 
     public void SetLight(Vector2 lightPosition, float lightModifier = 1f)
     {
-      Vector2 relativePos = lightPosition - (Vector2)transform.position;
-      relativePos = relativePos.normalized * lightModifier;
+        Vector2 relativePos = lightPosition - (Vector2)transform.position;
+        relativePos = relativePos.normalized * lightModifier;
 
-      Vector2 viewportPos = relativePos * 0.5f + new Vector2(0.5f, 0.5f);
+        Vector2 viewportPos = relativePos * 0.5f + new Vector2(0.5f, 0.5f);
 
-      for (int i = 0; i < celestialMaterials.Length; i++)
-      {
-        celestialMaterials[i].SetVector(ShaderProperties.Key_Light_origin, viewportPos);
-      }
+        for (int i = 0; i < celestialMaterials.Length; i++)
+        {
+            celestialMaterials[i].SetVector(ShaderProperties.Key_Light_origin, viewportPos);
+        }
     }
 
 
