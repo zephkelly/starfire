@@ -56,7 +56,7 @@ MonoBehaviour:
   - {fileID: 3405946534158907249}
   - {fileID: 8893661548593677750}
   starLight: {fileID: 4616552629836269554}
-  starRadiusCollider: {fileID: 0}
+  starRadiusCollider: {fileID: 2533020083423152186}
   starSpriteRenderer: {fileID: 0}
   _gradientStar: {fileID: 544071947096438355}
   _gradientStarFlare: {fileID: 2442760740479620818}

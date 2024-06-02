@@ -35,6 +35,8 @@ namespace Starfire
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
 
+    public CircleCollider2D StarRadiusCollider { get => starRadiusCollider; }
+
     protected  override void Awake()
     {
       base.Awake();

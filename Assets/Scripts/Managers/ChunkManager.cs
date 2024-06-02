@@ -7,6 +7,7 @@ using UnityEngine.Pool;
 
 namespace Starfire
 {
+[RequireComponent(typeof(StarGenerator))]
 public class ChunkManager : MonoBehaviour
 {
     public static ChunkManager Instance { get; private set; }
@@ -42,9 +43,16 @@ public class ChunkManager : MonoBehaviour
     private uint chunkIndex = 0;
     #endregion
 
+    #region Stars
+    private StarGenerator starGenerator;
+    private NameGenerator nameGenerator = new NameGenerator();  
+    #endregion
+
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
     public Dictionary<Vector2Int, Chunk> Chunks { get => chunks; }
     public List<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
+    public StarGenerator StarGenerator { get => starGenerator; }
+    public NameGenerator NameGenerator { get => nameGenerator; }
     public int ChunkDiameter { get => chunkDiameter; }
     public uint ChunkIndex { get => chunkIndex++; }
 
@@ -76,17 +84,16 @@ public class ChunkManager : MonoBehaviour
             Destroy(_chunkObject);
         }, false, 200, 300);
 
+        mainCamera = Camera.main;
         playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         playerLastPosition = playerTransform.position;
         playerController = playerTransform.GetComponent<ShipController>();
-
-        mainCamera = Camera.main;
         cameraController = mainCamera.GetComponent<CameraController>();
+        starGenerator = GetComponent<StarGenerator>();
 
         CreateWorldMap();
         currentChunks = GetCurrentChunks();
         MarkLastChunksInactive();
-
         Minimap.Instance.UpdateMinimapMarkers();
     }
 

@@ -25,28 +25,20 @@ namespace Starfire
 
     protected override void Update()
     {
-      GetKeyboardInput();
-      LookAtMouse();
+        GetKeyboardInput();
+        LookAtMouse();
     }
 
     protected override void FixedUpdate()
-    {
-        if (keyboardInput.y > 0)
-        {
-            Move(mouseDirection.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+    {   
+        Move(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
 
-            if (shipRigidBody.velocity.magnitude > maxMoveSpeed)
-            {
-                shipRigidBody.velocity = shipRigidBody.velocity.normalized * maxMoveSpeed;
-            }
-        }
-        else
+        if (shipRigidBody.velocity.magnitude > maxMoveSpeed)
         {
-            shipThrusterPS.Stop();
-            shipThrusterLight.enabled = false;
+            shipRigidBody.velocity = shipRigidBody.velocity.normalized * maxMoveSpeed;
         }
 
-      base.FixedUpdate();
+        base.FixedUpdate();
     }
 
     public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)

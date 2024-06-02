@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Starfire.IO;
-using Unity.VisualScripting;
 
 namespace Starfire
 {
@@ -12,15 +10,11 @@ public interface IChunk
     Vector2Int CurrentWorldKey { get; }
     Vector2Int ChunkCellKey { get; }
     ChunkState ChunkState { get; }
-    bool HasChunkObject { get; }
     GameObject ChunkObject { get; }
 
-    bool HasStar { get; }
-    Vector2 StarPosition { get; }
-    bool HasStarObject { get; }
-    GameObject StarObject { get; }
-
-    // bool IsModified { get; }
+    // bool HasStar { get; }
+    // Vector2 StarPosition { get; }
+    // GameObject StarObject { get; }
 
     void SetActiveChunk(Vector2Int chunkKey);
     void SetLazyChunk(Vector2Int chunkKey);
@@ -42,16 +36,15 @@ public class Chunk : IChunk
     [SerializeField] private Vector2Int chunkKey;
     private Vector2Int currentWorldKey;
     private Vector2Int chunkCellKey;
-    private bool hasChunkObject = false;
     private GameObject chunkObject = null;
     private ChunkState chunkState = ChunkState.Inactive;
 
     // Star info
-    private bool hasStar = false;
-    [SerializeField] private Vector2 starPosition;
-    private GameObject starObject = null;
-    private bool hasStarObject = false;
-    private string starName;
+    private Star star = null;
+
+    // Planets info
+    private List<ICelestialBody> planets = new List<ICelestialBody>();
+    private List<GameObject> planetObjects = new List<GameObject>();
 
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -59,12 +52,9 @@ public class Chunk : IChunk
     public Vector2Int ChunkCellKey { get => chunkCellKey; }
     public ChunkState ChunkState { get => chunkState; }
     public GameObject ChunkObject { get => chunkObject; }
-    public bool HasChunkObject { get => hasChunkObject; }
-
-    public bool HasStar { get => hasStar; }
-    public Vector2 StarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + starPosition; }
-    public GameObject StarObject { get => starObject; }
-    public bool HasStarObject { get => hasStarObject; }
+    public Star GetStar { get => star; }
+    public bool HasStar { get => star != null; }
+    public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + star.GetStarOffset; }
 
     public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
@@ -72,27 +62,28 @@ public class Chunk : IChunk
         chunkKey = _chunkKey;
         chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
 
-        hasStar = StarGenerator.Instance.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
+        bool shouldSpawnStar = ChunkManager.Instance.StarGenerator.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
 
-        if (hasStar)
+        if (shouldSpawnStar)
         {
-            starPosition = StarGenerator.Instance.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
+            Vector2 starPosition = ChunkManager.Instance.StarGenerator.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
+            string starName = ChunkManager.Instance.NameGenerator.GetStarName();
+            int starRadius = ChunkManager.Instance.StarGenerator.GetStarRadius();
+            star = new Star(starPosition, chunkKey, starRadius, starName);
         }
     }
 
     public void SetActiveChunk(Vector2Int _chunkKey)
     {
-        // if (chunkState == ChunkState.Active) return;
         chunkState = ChunkState.Active;
         currentWorldKey = _chunkKey;
 
         SetChunkObject(_chunkKey);
-        SetStarObject();
+        SetStarObject(_chunkKey);
     }
 
     public void SetLazyChunk(Vector2Int _chunkKey)
     {
-        // if (chunkState == ChunkState.Lazy) return;
         chunkState = ChunkState.Lazy;
         currentWorldKey = _chunkKey;
 
@@ -102,7 +93,6 @@ public class Chunk : IChunk
 
     public void SetInactiveChunk()
     {
-        // if (chunkState == ChunkState.Inactive) return;
         chunkState = ChunkState.Inactive;
 
         RemoveChunkObject();
@@ -111,7 +101,7 @@ public class Chunk : IChunk
 
     private void SetChunkObject(Vector2Int _chunkKey)
     {
-        if (!hasChunkObject)
+        if (chunkObject == null)
         {
             chunkObject = ChunkManager.Instance.ChunkPool.Get();
             chunkObject.name = $"Chunk{chunkIndex}";
@@ -119,11 +109,11 @@ public class Chunk : IChunk
             chunkObject.transform.SetParent(ChunkManager.Instance.transform);
             chunkObject.transform.position = GetChunkPosition(currentWorldKey);
 
-            hasChunkObject = true;
             // create a new box colllider with is trigger true and size size of the diameter and place it in world position
-            BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
-            boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
-            boxCollider.isTrigger = true;
+            // BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
+            // boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
+            // boxCollider.isTrigger = true;
+            return;
         }
         else
         {
@@ -143,42 +133,26 @@ public class Chunk : IChunk
 
     private void RemoveChunkObject()
     {
-        if (hasChunkObject)
-        {
-            ChunkManager.Instance.ChunkPool.Release(chunkObject);
-            chunkObject = null;
-            hasChunkObject = false;
-        }
+        if (chunkObject == null) return;
+        
+        ChunkManager.Instance.ChunkPool.Release(chunkObject);
+        chunkObject = null;
     }
 
-    private void SetStarObject()
+    private void SetStarObject(Vector2Int _chunkKey)
     {
-        if (hasStar && hasStarObject == false)
-        {
-            NameGenerator nameGenerator = new NameGenerator();
-            var starName = nameGenerator.GetStarName();
+        if (!HasStar) return;
+        if (star.GetStarObject != null) return;
 
-            starObject = StarGenerator.Instance.StarPool.Get();
-            starObject.GetComponent<CelestialBehaviour>().SetupCelestialBehaviour(CelestialBodyType.Star, starName);
-            
-            starObject.transform.position = StarPosition;
-            starObject.transform.SetParent(chunkObject.transform);
-
-            CameraController.Instance.starParallaxLayers.Add(starObject.GetComponent<StarParallaxLayer>());
-
-            hasStarObject = true;
-        }
+        star.SetStarObject(_chunkKey);
     }
 
     private void RemoveStarObject()
     {
-        if (hasStar && hasStarObject)
-        {
-            StarGenerator.Instance.StarPool.Release(starObject);
-            CameraController.Instance.starParallaxLayers.Remove(starObject.GetComponent<StarParallaxLayer>());
-            starObject = null;
-            hasStarObject = false;
-        }
+        if (star == null) return;
+        if (star.GetStarObject == null) return;
+
+        star.RemoveStarObject();
     }
 }
 }

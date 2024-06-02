@@ -24,7 +24,7 @@ namespace Starfire
         Vector2 WorldPosition { get; }
         float Mass { get; }
         string CelestialName { get; }
-        void SetupCelestialBehaviour(CelestialBodyType type, string name);
+        void SetupCelestialBehaviour(CelestialBodyType type, int radius, string name);
         void SetOrbitingBody(CelestialBehaviour orbitingBody);
         void RemoveOrbitingBody();
     }
@@ -33,32 +33,35 @@ namespace Starfire
   public abstract class CelestialBehaviour : MonoBehaviour, ICelestialBody
   { 
     protected CelestialBodyType _celestialBodyType;
-    public CelestialBodyType CelestialBodyType => _celestialBodyType;
-
     protected OrbitingController _orbitController;
-    public OrbitingController OrbitController => _orbitController;
-
-    protected Rigidbody2D _celestialRigidBody;
-    protected Transform _celestialTransform;
-    public Vector2 WorldPosition => _celestialTransform.position;
 
     protected CelestialBehaviour parentOrbitingBody;
     protected CelestialBehaviour childOrbitingBody;
+
+    protected Rigidbody2D _celestialRigidBody;
+    protected Transform _celestialTransform;
+
+    protected Material[] celestialMaterials;
+    [SerializeField] public GameObject[] celestialComponents;
+
+
+    protected int _celestialRadius;
+    protected string _celestialName;
+    public CelestialBodyType CelestialBodyType => _celestialBodyType;
+    public OrbitingController OrbitController => _orbitController;
     public CelestialBehaviour ParentOrbitingBody => parentOrbitingBody;
     public CelestialBehaviour ChildOrbitingBody => childOrbitingBody;
+    public Vector2 WorldPosition => _celestialTransform.position;
 
-    [SerializeField] public GameObject[] celestialComponents;
-    protected Material[] celestialMaterials;
-
+    public int GetRadius => _celestialRadius;
     public float Mass => _celestialRigidBody.mass;
-
-    protected string _celestialName;
     public string CelestialName => _celestialName;
     
-    public void SetupCelestialBehaviour(CelestialBodyType type, string name)
+    public void SetupCelestialBehaviour(CelestialBodyType type, int radius, string name)
     {
-      _celestialBodyType = type;
-      _celestialName = name;
+        _celestialBodyType = type;
+        _celestialRadius = radius;
+        _celestialName = name;
     }
 
     public void SetOrbitingBody(CelestialBehaviour _parentOrbitingBody)

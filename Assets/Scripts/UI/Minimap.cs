@@ -87,7 +87,7 @@ namespace Starfire
 
         Vector2 GetMinimapPosition(Vector2Int chunkKey)
         {
-            Vector2 starPosition = ChunkManager.Instance.Chunks[chunkKey].StarPosition;
+            Vector2 starPosition = ChunkManager.Instance.Chunks[chunkKey].GetStarPosition;
             Vector2 playerWorldPos = player.position;
             Vector2 relativePos = starPosition - playerWorldPos;
             

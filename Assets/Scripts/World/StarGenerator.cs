@@ -5,20 +5,8 @@ using UnityEngine.Pool;
 
 namespace Starfire
 {
-  public interface IStarGenerator
+  public class StarGenerator : MonoBehaviour
   {
-    ObjectPool<GameObject> StarPool { get; }
-    bool ShouldSpawnStar(Vector2Int _position, bool _makeStar = false, bool preventMakeStar = false);
-    Vector2 GetStarPosition(int chunkDiameter, float divisionFactor = 3f);
-  }
-
-  [RequireComponent(typeof(ChunkManager))]
-  public class StarGenerator : MonoBehaviour, IStarGenerator
-  {
-    public static StarGenerator Instance { get; private set; }
-
-    private ChunkManager chunkManager;
-
     private GameObject starPrefab;
     private ObjectPool<GameObject> starPool;
 
@@ -29,30 +17,23 @@ namespace Starfire
 
     public ObjectPool<GameObject> StarPool { get => starPool; }
 
-    private void Awake()
+    public void Start()
     {
-      if (Instance == null) {
-        Instance = this;
-      } else {
-        Destroy(gameObject);
-      }
+        starPrefab = Resources.Load<GameObject>("Prefabs/Stars/Star");
 
-      chunkManager = GetComponent<ChunkManager>();
-      starPrefab = Resources.Load<GameObject>("Prefabs/Stars/Star");
-
-      starPool = new ObjectPool<GameObject>(() => 
-      {
-        return Instantiate(starPrefab);
-      }, _starObject => 
-      {
-        _starObject.SetActive(true);
-      }, _starObject => 
-      {
-        _starObject.SetActive(false);
-      }, _starObject => 
-      {
-        Destroy(_starObject);
-      }, false, 5, 10);
+        starPool = new ObjectPool<GameObject>(() => 
+        {
+            return Instantiate(starPrefab);
+        }, _starObject => 
+        {
+            _starObject.SetActive(true);
+        }, _starObject => 
+        {
+            _starObject.SetActive(false);
+        }, _starObject => 
+        {
+            Destroy(_starObject);
+        }, false, 5, 10);
     }
 
     public bool ShouldSpawnStar(Vector2Int chunkKey, bool makeStar = false, bool preventMakeStar = false)
@@ -76,7 +57,7 @@ namespace Starfire
                     chunkKey.y + y
                     );
 
-                    if (chunkManager.Chunks.ContainsKey(searchChunkKey) && chunkManager.Chunks[searchChunkKey].HasStar)
+                    if (ChunkManager.Instance.Chunks.ContainsKey(searchChunkKey) && ChunkManager.Instance.Chunks[searchChunkKey].HasStar)
                     {
                         return false;
                     }
@@ -91,10 +72,15 @@ namespace Starfire
 
     public Vector2 GetStarPosition(int chunkDiameter, float divisionFactor = 3f)
     {
-      return new Vector2(
-        Random.Range(-chunkDiameter / divisionFactor, chunkDiameter / divisionFactor),
-        Random.Range(-chunkDiameter / divisionFactor, chunkDiameter / divisionFactor)
-      );
+        return new Vector2(
+            Random.Range(-chunkDiameter / divisionFactor, chunkDiameter / divisionFactor),
+            Random.Range(-chunkDiameter / divisionFactor, chunkDiameter / divisionFactor)
+        );
+    }
+
+    public int GetStarRadius()
+    {
+        return Random.Range(2000, 4000);
     }
   }
 }
