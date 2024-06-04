@@ -52,8 +52,6 @@ MonoBehaviour:
   celestialComponents:
   - {fileID: 5543393433452425213}
   - {fileID: 5173885480724554538}
-  Land: {fileID: 5543393433452425213}
-  Cloud: {fileID: 5173885480724554538}
 --- !u!50 &6696757323282880229
 Rigidbody2D:
   serializedVersion: 4

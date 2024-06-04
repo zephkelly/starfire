@@ -31,10 +31,9 @@ namespace Starfire
         if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
 
         Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
-        c.gameObject.GetComponent<CelestialBehaviour>().SetOrbitingBody(celestialBehaviour);
+        SetChildOrbitingObject(planetRigidbody);
 
-        orbitingBodies.Add(planetRigidbody);
-        ApplyInstantOrbitalVelocity(planetRigidbody);
+        Debug.Log("Planet enter");
       }
     }
 
@@ -49,6 +48,10 @@ namespace Starfire
             playerController.RemoveOrbitingBody(); 
             return;
         }
+        else if (c.CompareTag("Planet"))
+        {
+            Debug.Log("Planet exit");
+        }
 
         if (playerController.OrbitingBody == null)
         {
@@ -60,9 +63,35 @@ namespace Starfire
         playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
     }
 
+    public void SetParentOrbitingObject(CelestialBehaviour _parentCelestialBehaviour)
+    {
+        celestialBehaviour.SetOrbitingBody(_parentCelestialBehaviour);
+        Rigidbody2D _parentRigidbody = _parentCelestialBehaviour.GetComponent<Rigidbody2D>();
+
+        orbitingBodies.Add(_parentRigidbody);
+        ApplyInstantOrbitalVelocity(_parentRigidbody);
+    }
+
+    public void SetChildOrbitingObject(CelestialBehaviour _newOrbitingBody)
+    {
+        _newOrbitingBody.SetOrbitingBody(celestialBehaviour);
+        Rigidbody2D _newOrbitingRigidbody = _newOrbitingBody.GetComponent<Rigidbody2D>();
+
+        orbitingBodies.Add(_newOrbitingRigidbody);
+        ApplyInstantOrbitalVelocity(_newOrbitingRigidbody);
+    }
+
+    public void SetChildOrbitingObject(Rigidbody2D _newOrbitingBody)
+    {
+        _newOrbitingBody.GetComponent<CelestialBehaviour>().SetOrbitingBody(celestialBehaviour);
+
+        orbitingBodies.Add(_newOrbitingBody);
+        ApplyInstantOrbitalVelocity(_newOrbitingBody);
+    }
+
     private void FixedUpdate()
     {
-      Gravity();
+        Gravity();
     }
 
     private void Gravity()

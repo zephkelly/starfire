@@ -23,6 +23,7 @@ namespace Starfire
     public class Planet
     {
         private GameObject planetObject;
+        private OrbitingController orbitingController = null;
 
         private PlanetType planetType = PlanetType.None;
         private float orbitDistance;
@@ -41,7 +42,15 @@ namespace Starfire
         {
             if (!HasPlanetObject)
             {
-                planetObject = ChunkManager.Instance.PlanetGenerator.GetPlanetPool.Get();
+                planetObject = PlanetGenerator.Instance.GetPlanetObject(planetType);
+                orbitingController = planetObject.GetComponent<OrbitingController>();
+
+                if (planetObject == null)
+                {
+                    Debug.LogError("Planet object is null");
+                    return null;
+                }
+
                 planetObject.transform.SetParent(ChunkManager.Instance.Chunks[_worldChunkkey].ChunkObject.transform);
             }
 

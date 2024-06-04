@@ -54,11 +54,11 @@ public class Star
             starObject.transform.SetParent(ChunkManager.Instance.Chunks[chunkAbsKey].ChunkObject.transform);
         }
         
-        StarController starController = starObject.GetComponent<StarController>();
-        SetStarProperties(starController, starRadius);
-        SetStarVisuals(starController, starRadius);
+        StarController _starController = starObject.GetComponent<StarController>();
+        SetStarProperties(_starController, starRadius);
+        SetStarVisuals(_starController, starRadius);
 
-        return starController;
+        return _starController;
     }
 
     public void RemoveStarObject()

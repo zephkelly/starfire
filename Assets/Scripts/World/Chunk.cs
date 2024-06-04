@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
@@ -44,7 +45,7 @@ public class Chunk : IChunk
 
     // Planets info
     private List<Planet> planets = new List<Planet>();
-    private List<GameObject> planetObjects = new List<GameObject>();
+    // private List<GameObject> planetObjects = new List<GameObject>();
 
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -115,10 +116,9 @@ public class Chunk : IChunk
             // boxCollider.isTrigger = true;
             return;
         }
-        else
-        {
-            chunkObject.transform.position = GetChunkPosition(currentWorldKey);
-        }
+
+        // We are resetting the position of the chunk
+        chunkObject.transform.position = GetChunkPosition(currentWorldKey);
     }
 
     private Vector2 GetChunkPosition(Vector2Int _chunkKey)
@@ -145,12 +145,16 @@ public class Chunk : IChunk
         if (star.GetStarObject != null) return;
 
         CelestialBehaviour starController = star.SetStarObject(_chunkKey);
+        SetPlanetObjects(_chunkKey, star.GetStarPosition, starController);
+    }
 
+    private void SetPlanetObjects(Vector2Int _chunkKey, Vector2 _starPosition, CelestialBehaviour _starController)
+    {
         foreach (Planet planet in planets)
         {
-            GameObject planetObject = planet.SetPlanetObject(_chunkKey, star.GetStarPosition);
+            GameObject planetObject = planet.SetPlanetObject(_chunkKey, _starPosition);
             ICelestialBody planetController = planetObject.GetComponent<ICelestialBody>();
-            planetController.SetOrbitingBody(starController);
+            planetController.SetOrbitingBody(_starController);
         }
     }
 

@@ -110,7 +110,6 @@ namespace Starfire
 
             orbitalVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
-            //   orbitalVelocity = Vector2.Lerp(orbitalVelocity, desiredOrbitalVelocity, Time.fixedDeltaTime * 1.0f);
 
             shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
             shipRigidBody.velocity += orbitalVelocity;

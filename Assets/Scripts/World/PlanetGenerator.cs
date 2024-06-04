@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,19 +8,154 @@ namespace Starfire
 {
     public class PlanetGenerator : MonoBehaviour
     {
-        private GameObject planetPrefab_1;
+        public static PlanetGenerator Instance { get; private set; }
 
-        private ObjectPool<GameObject> planetPool;
+        private GameObject riversPlanetPrefab;
+        private GameObject desertPlanetPrefab;
+        private GameObject gasRingPlanetPrefab;
 
-        public ObjectPool<GameObject> GetPlanetPool { get => planetPool; }
+        private ObjectPool<GameObject> riversPlanetPool;
+        private ObjectPool<GameObject> desertPlanetPool;
+        private ObjectPool<GameObject> gasRingPlanetPool;
 
         private void Awake()
         {
-            planetPrefab_1 = Resources.Load<GameObject>("Prefabs/Planets/RiversPlanet");
-
-            planetPool = new ObjectPool<GameObject>(() => 
+            if (Instance == null)
             {
-                return Instantiate(planetPrefab_1);
+                Instance = this;
+            }
+            else
+            {
+                Destroy(this);
+            }
+
+            riversPlanetPrefab = Resources.Load<GameObject>("Prefabs/Planets/RiversPlanet");
+            desertPlanetPrefab = Resources.Load<GameObject>("Prefabs/Planets/DesertPlanet");
+            gasRingPlanetPrefab = Resources.Load<GameObject>("Prefabs/Planets/GasRingPlanet");
+
+            CreatePlanetObjectPools();
+        }
+
+        public GameObject GetPlanetObject(PlanetType type)
+        {
+            switch (type)
+            {
+                case PlanetType.Rivers:
+                    return riversPlanetPool.Get();
+                case PlanetType.Desert:
+                    return desertPlanetPool.Get();
+                case PlanetType.GasLayers:
+                    return gasRingPlanetPool.Get();
+                default:
+                    return riversPlanetPool.Get();
+            }
+        }
+
+        public List<Planet> GetStarPlanets(Star _star)
+        {
+            PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.GetStarType);
+            List<Planet> planets = new List<Planet>();
+            int planetCount = UnityEngine.Random.Range(0, 6);
+
+            List<float> orbitDistances = GetAllOrbitDistances(_star, planetCount);
+
+            // Create a planet for each orbit distance we made
+            for (int i = 0; i < planetCount; i++)
+            {
+                planets.Add(CreatePlanet(_star, allowablePlanetTypes, orbitDistances[i]));
+            }
+
+            return planets;
+        }
+
+        public Planet CreatePlanet(Star _star, PlanetType[] _allowableTypes, float _orbitDistance)
+        {
+            PlanetType planetType = GetPlanetType(_star, _allowableTypes, _orbitDistance);
+
+            Planet planet = new Planet(planetType, _orbitDistance);
+            return planet;
+        }
+
+        private PlanetType[] GetAllowablePlanetTypes(StarType _starType)
+        {
+            // Different stars, different planets available
+            switch (_starType)
+            {
+                case StarType.NeutronStar:
+                    return new PlanetType[] { PlanetType.Land, PlanetType.Rivers, PlanetType.Desert, PlanetType.Ice, PlanetType.GasLayers };
+                default:
+                    return new PlanetType[] { PlanetType.Land, PlanetType.Rivers, PlanetType.Desert, PlanetType.Ice, PlanetType.GasLayers };
+            }
+        }
+
+        private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
+        {
+            float maxStarRadius = _star.GetRadius * 0.90f;
+            float minStarRadius = _star.GetRadius * 0.15f;
+
+            float partialRadius = maxStarRadius / _planetCount;
+            float minDistanceBetweenPlanets = _star.GetRadius * 0.06f;
+
+            List<float> orbitDistances = new List<float>();
+
+            for (int i = 0; i < _planetCount; i++)
+            {
+                float minOrbitDistance = minStarRadius + (partialRadius * i);
+                float maxOrbitDistance = minStarRadius + (partialRadius * (i + 1));
+
+                if (i > 0)
+                {
+                    minOrbitDistance = Math.Max(minOrbitDistance, orbitDistances[i - 1] + minDistanceBetweenPlanets);
+                }
+
+                float orbitDistance = UnityEngine.Random.Range(minOrbitDistance, maxOrbitDistance);
+                orbitDistances.Add(orbitDistance);
+            }
+
+            return orbitDistances;
+        }
+
+        
+        private PlanetType GetPlanetType(Star _star, PlanetType[] _allowableTypes, float _planetOrbitDistance)
+        {
+            float starQuarterRadius = _star.GetRadius * 0.25f;
+            float starHalfRadius = _star.GetRadius * 0.5f;
+            float starThreeQuarterRadius = _star.GetRadius * 0.75f;
+
+            // Map each PlanetType to a range of allowable orbit distances
+            Dictionary<PlanetType, (float min, float max)> planetTypeRanges = new Dictionary<PlanetType, (float min, float max)>
+            {
+                { PlanetType.Land, (starHalfRadius, starThreeQuarterRadius) },
+                { PlanetType.Rivers, (starHalfRadius, starThreeQuarterRadius) },
+                { PlanetType.Desert, (starQuarterRadius, starHalfRadius) },
+                { PlanetType.Ice, (starThreeQuarterRadius, _star.GetRadius) },
+                { PlanetType.GasLayers, (starThreeQuarterRadius, _star.GetRadius) },
+            };
+
+            List<PlanetType> allowableTypes = new List<PlanetType>();
+            foreach (PlanetType type in _allowableTypes)
+            {
+                if (planetTypeRanges.ContainsKey(type) && _planetOrbitDistance >= planetTypeRanges[type].min && _planetOrbitDistance < planetTypeRanges[type].max)
+                {
+                    allowableTypes.Add(type);
+                }
+            }
+
+            if (allowableTypes.Count == 0)
+            {
+                Debug.LogWarning("No allowable planet types for this star");
+                return PlanetType.Rivers;
+            }
+
+            int randomIndex = UnityEngine.Random.Range(0, allowableTypes.Count);
+            return allowableTypes[randomIndex];
+        }
+
+        private void CreatePlanetObjectPools()
+        {
+            riversPlanetPool = new ObjectPool<GameObject>(() => 
+            {
+                return Instantiate(riversPlanetPrefab);
             }, _starObject => 
             {
                 _starObject.SetActive(true);
@@ -29,113 +165,35 @@ namespace Starfire
             }, _starObject => 
             {
                 Destroy(_starObject);
-            }, false, 5, 10);
-        }
+            }, false, 2, 5);
 
-        private void Start()
-        {
-        }
-
-        public List<Planet> GetStarPlanets(Star _star)
-        {
-            List<Planet> planets = new List<Planet>();
-            int planetCount = Random.Range(0, 6);
-
-            List<float> orbitDistances = GetOrbitDistances(_star, planetCount);
-
-            for (int i = 0; i < planetCount; i++)
+            desertPlanetPool = new ObjectPool<GameObject>(() => 
             {
-                planets.Add(GeneratePlanet(_star, orbitDistances[i]));
-            }
-
-            return planets;
-        }
-
-        public Planet GeneratePlanet(Star _star, float _orbitDistance)
-        {
-            PlanetType[] allowablePlanetTypes = GetPlanetTypes(_star.GetStarType);
-            PlanetType planetType = GetPlanetType(_star, allowablePlanetTypes, _orbitDistance);
-
-            // Generate a planet
-            Planet planet = new Planet(planetType, _orbitDistance);
-            return planet;
-        }
-
-        private PlanetType[] GetPlanetTypes(StarType _starType)
-        {
-            switch (_starType)
+                return Instantiate(desertPlanetPrefab);
+            }, _starObject => 
             {
-                case StarType.NeutronStar:
-                    return new PlanetType[] { PlanetType.Land, PlanetType.Rivers, PlanetType.Desert };
-                default:
-                    return new PlanetType[] { PlanetType.Land, PlanetType.Rivers, PlanetType.Desert };
-            }
-        }
-
-        private List<float> GetOrbitDistances(Star _star, int _planetCount)
-        {
-            float maxStarRadius = _star.GetRadius * 0.85f;
-            float minStarRadius = _star.GetRadius * 0.15f;
-
-            float partialRadius = maxStarRadius / _planetCount;
-
-            List<float> orbitDistances = new List<float>();
-
-            for (int i = 0; i < _planetCount; i++)
+                _starObject.SetActive(true);
+            }, _starObject => 
             {
-                float orbitDistance = Random.Range(minStarRadius + (partialRadius * i), minStarRadius + (partialRadius * (i + 1)));
-                orbitDistances.Add(orbitDistance);
-            }
-
-            return orbitDistances;
-        }
-
-        
-        private PlanetType GetPlanetType(Star _star, PlanetType[] _alloweableTypes, float _orbitDistance)
-        {
-            // get all of the allowable types as a list
-            List<PlanetType> allowableTypes = new List<PlanetType>(_alloweableTypes);
-
-            if (allowableTypes.Contains(PlanetType.Land))
+                _starObject.SetActive(false);
+            }, _starObject => 
             {
-                if (_orbitDistance < _star.GetRadius * 0.25f)
-                {
-                    return PlanetType.Land;
-                }
-                else if (_orbitDistance < _star.GetRadius * 0.5f)
-                {
-                    return PlanetType.Land;
-                }
-                else if (_orbitDistance < _star.GetRadius * 0.75f)
-                {
-                    return PlanetType.Land;
-                }
-                else
-                {
-                    return PlanetType.Land;
-                }
-            }
-            else if (allowableTypes.Contains(PlanetType.Rivers))
-            {
-                if (_orbitDistance < _star.GetRadius * 0.25f)
-                {
-                    return PlanetType.Rivers;
-                }
-                else if (_orbitDistance < _star.GetRadius * 0.5f)
-                {
-                    return PlanetType.Rivers;
-                }
-                else if (_orbitDistance < _star.GetRadius * 0.75f)
-                {
-                    return PlanetType.Rivers;
-                }
-                else
-                {
-                    return PlanetType.Rivers;
-                }
-            }
+                Destroy(_starObject);
+            }, false, 2, 5);
 
-            return PlanetType.None;
+            gasRingPlanetPool = new ObjectPool<GameObject>(() => 
+            {
+                return Instantiate(gasRingPlanetPrefab);
+            }, _starObject => 
+            {
+                _starObject.SetActive(true);
+            }, _starObject => 
+            {
+                _starObject.SetActive(false);
+            }, _starObject => 
+            {
+                Destroy(_starObject);
+            }, false, 2, 5);
         }
     }
 }

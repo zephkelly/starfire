@@ -40,14 +40,14 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Background
-    uniqueID: 2758523077
-    locked: 0
   - name: Planet
     uniqueID: 1529745907
     locked: 0
   - name: Star
     uniqueID: 761367231
+    locked: 0
+  - name: Background
+    uniqueID: 2758523077
     locked: 0
   - name: Default
     uniqueID: 0
