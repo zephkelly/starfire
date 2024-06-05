@@ -35,6 +35,30 @@ namespace Starfire
         base.FixedUpdate();
     }
 
+    public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
+    {
+        if (isParent is false)
+        {
+            OnPlayerOrbitEnter.Invoke("Now orbiting " + orbitingBody.CelestialName);
+        }
+
+        base.SetOrbitingBody(orbitingBody, isParent);
+    }
+
+    public override void RemoveOrbitingBody()
+    {
+      if (orbitingBody != null)
+      {
+        OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.CelestialName);
+      }
+      else
+      {
+        Debug.LogWarning("PlayerShipController.RemoveOrbitingBody: orbitingBody is null");
+      }
+
+      base.RemoveOrbitingBody();
+    }
+
     private void LookAtMouse()
     {
       mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;

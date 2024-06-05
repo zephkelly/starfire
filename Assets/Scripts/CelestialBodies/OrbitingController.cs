@@ -24,7 +24,6 @@ namespace Starfire
       if (c.CompareTag("Player"))
       {
         c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
-        orbitingBodies.Add(c.gameObject.GetComponent<Rigidbody2D>());
       }
       else if (c.CompareTag("Planet"))
       {
@@ -89,40 +88,36 @@ namespace Starfire
 
     private void FixedUpdate()
     {
+      Gravity();
+    }
+
+    private void Gravity()
+    {
         for (int i = 0; i < orbitingBodies.Count; i++)
         {
             Rigidbody2D body = orbitingBodies[i];
-            body.AddForce(GetGravity(body));
+
+            float bodyMass = body.mass;
+            float starMass = celestialRigidbody.mass;
+            float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+
+            //Newtons gravitational theory
+            float gravitationalForce = (G * bodyMass * starMass) / (distanceToStar * distanceToStar);
+
+            body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
         }
-    }
-
-    public Vector2 GetGravity(Rigidbody2D body)
-    {
-        float bodyMass = GetBodyMass(body);
-        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
-        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
-        float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
-
-        return (celestialRigidbody.position - body.position).normalized * gravitationalForce;
-    }
-
-    public Vector2 GetGravity(Rigidbody2D body, Vector2 _position)
-    {
-        float bodyMass = GetBodyMass(body);
-        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
-        float distanceToStar = Vector2.Distance(celestialRigidbody.position, _position);
-        float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
-
-        return (celestialRigidbody.position - _position).normalized * gravitationalForce;
     }
 
     public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool orbitClockwise = true)
     {
-        // float bodyMass = body.mass;
-        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float bodyMass = body.mass;
+        float starMass = celestialRigidbody.mass;
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-        Vector2 appliedOrbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * parentBodyMass) / distanceToStar);
+        Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
+        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+
+        Vector2 appliedOrbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
 
         //Only apply enough force to orbit the star
         if (body.velocity.magnitude > appliedOrbitalVelocity.magnitude) return;
@@ -133,24 +128,14 @@ namespace Starfire
 
     public Vector2 GetOrbitalVelocity(Rigidbody2D body)
     {
-        float bodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float starMass = celestialRigidbody.mass;
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-        Vector2 orbitalVelocity = GetOrbitDirection(body) * Mathf.Sqrt((G * bodyMass) / distanceToStar);
-        return orbitalVelocity + celestialRigidbody.velocity;
-    }
-
-    public Vector2 GetOrbitDirection(Rigidbody2D body)
-    {
         Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
         Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+        Vector2 orbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
 
-        if (Vector2.Dot(body.velocity, perpendicularDirection) < 0)
-        {
-            // return -perpendicularDirection;
-        }
-
-        return perpendicularDirection;
+        return orbitalVelocity + celestialRigidbody.velocity;
     }
 
     public float GetThermalGradient(float _objectDistance)

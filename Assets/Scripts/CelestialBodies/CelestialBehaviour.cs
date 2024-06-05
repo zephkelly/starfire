@@ -45,6 +45,7 @@ namespace Starfire
         _celestialBodyType = type;
         _celestialRadius = radius;
         _celestialName = name;
+        _celestialTransform = transform;
     }
 
     public void SetOrbitingBody(CelestialBehaviour _parentOrbitingBody)
@@ -62,7 +63,7 @@ namespace Starfire
         _orbitController = GetComponent<OrbitingController>();
         _celestialRigidBody = GetComponent<Rigidbody2D>();
         _celestialTransform = transform;
-
+        
         celestialMaterials = new Material[celestialComponents.Length];
         
         for (int i = 0; i < celestialComponents.Length; i++)

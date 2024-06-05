@@ -110,7 +110,6 @@ namespace Starfire
 
             orbitalVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
-
             shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
             shipRigidBody.velocity += orbitalVelocity;
 
@@ -118,12 +117,12 @@ namespace Starfire
             Vector2 orbitalDragY = new Vector2(0, orbitalVelocity.y - shipRigidBody.velocity.y);
 
             //Orbital drag
-            if (shipRigidBody.velocity.x != orbitalVelocity.x) 
+            if (shipRigidBody.velocity.x > orbitalVelocity.x || shipRigidBody.velocity.x < orbitalVelocity.x)
             {
                 shipRigidBody.AddForce(orbitalDragX * shipRigidBody.mass, ForceMode2D.Force);
             }
 
-            if (shipRigidBody.velocity.y != orbitalVelocity.y) 
+            if (shipRigidBody.velocity.y > orbitalVelocity.y || shipRigidBody.velocity.y < orbitalVelocity.y)
             {
                 shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
             } 
