@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 namespace Starfire
 {
   [RequireComponent(typeof(OrbitingController))]
-  public class GasPlanetController : CelestialBehaviour, IPlanet
+  public class GasPlanetController : CelestialBehaviour
   {
     private PlanetType planetType;
     public PlanetType PlanetType => planetType;

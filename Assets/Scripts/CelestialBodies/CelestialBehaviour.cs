@@ -49,7 +49,7 @@ namespace Starfire
 
     public void SetOrbitingBody(CelestialBehaviour _parentOrbitingBody)
     {
-      parentOrbitingBody = _parentOrbitingBody;
+        parentOrbitingBody = _parentOrbitingBody;
     }
 
     public void RemoveOrbitingBody()
@@ -70,6 +70,8 @@ namespace Starfire
             celestialMaterials[i] = celestialComponents[i].GetComponent<SpriteRenderer>().material;
         }
     }
+
+    protected virtual void Start() { }
 
     protected virtual void Update()
     {
@@ -109,7 +111,7 @@ namespace Starfire
     // // void SetColors(Color[] _colors);
     // public void SetInitialColors() {}
     public float MaxOrbitRadius { get; set; }
-    public float Temperature { get; set; }
-    public bool IsOrbiting { get; }
+    public float Temperature { get; private set; }
+    public bool IsOrbiting { get; private set; }
   }
 }

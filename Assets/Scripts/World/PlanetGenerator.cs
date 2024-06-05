@@ -50,12 +50,31 @@ namespace Starfire
                     return riversPlanetPool.Get();
             }
         }
+        
+        public void ReturnPlanetObject(PlanetType type, GameObject planetObject)
+        {
+            switch (type)
+            {
+                case PlanetType.Rivers:
+                    riversPlanetPool.Release(planetObject);
+                    break;
+                case PlanetType.Desert:
+                    desertPlanetPool.Release(planetObject);
+                    break;
+                case PlanetType.GasLayers:
+                    gasRingPlanetPool.Release(planetObject);
+                    break;
+                default:
+                    riversPlanetPool.Release(planetObject);
+                    break;
+            }
+        }
 
         public List<Planet> GetStarPlanets(Star _star)
         {
             PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.GetStarType);
             List<Planet> planets = new List<Planet>();
-            int planetCount = UnityEngine.Random.Range(0, 6);
+            int planetCount = UnityEngine.Random.Range(2, 6);
 
             List<float> orbitDistances = GetAllOrbitDistances(_star, planetCount);
 
@@ -90,7 +109,7 @@ namespace Starfire
 
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
-            float maxStarRadius = _star.GetRadius * 0.90f;
+            float maxStarRadius = _star.GetRadius * 0.85f;
             float minStarRadius = _star.GetRadius * 0.15f;
 
             float partialRadius = maxStarRadius / _planetCount;
@@ -118,9 +137,9 @@ namespace Starfire
         
         private PlanetType GetPlanetType(Star _star, PlanetType[] _allowableTypes, float _planetOrbitDistance)
         {
-            float starQuarterRadius = _star.GetRadius * 0.25f;
+            float starQuarterRadius = _star.GetRadius * 0.15f;
             float starHalfRadius = _star.GetRadius * 0.5f;
-            float starThreeQuarterRadius = _star.GetRadius * 0.75f;
+            float starThreeQuarterRadius = _star.GetRadius * 0.80f;
 
             // Map each PlanetType to a range of allowable orbit distances
             Dictionary<PlanetType, (float min, float max)> planetTypeRanges = new Dictionary<PlanetType, (float min, float max)>

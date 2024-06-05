@@ -40,7 +40,7 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Planet
+  - name: CelestialBodies
     uniqueID: 1529745907
     locked: 0
   - name: Star

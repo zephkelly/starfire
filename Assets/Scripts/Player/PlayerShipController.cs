@@ -6,7 +6,6 @@ namespace Starfire
   public class PlayerShipController : ShipController
   {
     [SerializeField] private float moveSpeed = 160f;
-    [SerializeField] private float maxMoveSpeed = 500f;
     private Vector2 keyboardInput = Vector2.zero;
     private Vector2 mouseDirection = Vector2.zero;
 
@@ -33,36 +32,7 @@ namespace Starfire
     {   
         Move(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
 
-        if (shipRigidBody.velocity.magnitude > maxMoveSpeed)
-        {
-            shipRigidBody.velocity = shipRigidBody.velocity.normalized * maxMoveSpeed;
-        }
-
         base.FixedUpdate();
-    }
-
-    public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
-    {
-        if (isParent is false)
-        {
-            OnPlayerOrbitEnter.Invoke("Now orbiting " + orbitingBody.CelestialName);
-        }
-
-        base.SetOrbitingBody(orbitingBody, isParent);
-    }
-
-    public override void RemoveOrbitingBody()
-    {
-      if (orbitingBody != null)
-      {
-        OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.CelestialName);
-      }
-      else
-      {
-        Debug.LogWarning("PlayerShipController.RemoveOrbitingBody: orbitingBody is null");
-      }
-
-      base.RemoveOrbitingBody();
     }
 
     private void LookAtMouse()

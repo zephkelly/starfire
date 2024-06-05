@@ -1,27 +1,8 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
 {
-public interface IChunk
-{
-    long ChunkIndex { get; }
-    Vector2Int ChunkKey { get; }
-    Vector2Int CurrentWorldKey { get; }
-    Vector2Int ChunkCellKey { get; }
-    ChunkState ChunkState { get; }
-    GameObject ChunkObject { get; }
-
-    // bool HasStar { get; }
-    // Vector2 StarPosition { get; }
-    // GameObject StarObject { get; }
-
-    void SetActiveChunk(Vector2Int chunkKey);
-    void SetLazyChunk(Vector2Int chunkKey);
-    void SetInactiveChunk();
-}
-
 public enum ChunkState
 {
     Active,
@@ -74,13 +55,13 @@ public class Chunk : IChunk
         }
     }
 
-    public void SetActiveChunk(Vector2Int _chunkKey)
+    public void SetActiveChunk(Vector2Int _chunkCurrentKey)
     {
         chunkState = ChunkState.Active;
-        currentWorldKey = _chunkKey;
+        currentWorldKey = _chunkCurrentKey;
 
-        SetChunkObject(_chunkKey);
-        SetStarObject(_chunkKey);
+        SetChunkObject(_chunkCurrentKey);
+        SetStarObject(_chunkCurrentKey);
     }
 
     public void SetLazyChunk(Vector2Int _chunkKey)
@@ -100,13 +81,13 @@ public class Chunk : IChunk
         RemoveStarObject();
     }
 
-    private void SetChunkObject(Vector2Int _chunkKey)
+    private void SetChunkObject(Vector2Int _chunkCurrentKey)
     {
         if (chunkObject == null)
         {
             chunkObject = ChunkManager.Instance.ChunkPool.Get();
             chunkObject.name = $"Chunk{chunkIndex}";
-            currentWorldKey = _chunkKey;
+            currentWorldKey = _chunkCurrentKey;
             chunkObject.transform.SetParent(ChunkManager.Instance.transform);
             chunkObject.transform.position = GetChunkPosition(currentWorldKey);
 
@@ -121,6 +102,14 @@ public class Chunk : IChunk
         chunkObject.transform.position = GetChunkPosition(currentWorldKey);
     }
 
+    // public void AlignPlanets()
+    // {
+    //     if (HasStar)
+    //     {
+    //         star.ApplyInstantOrbitalVelocity(planets);
+    //     }
+    // }
+
     private Vector2 GetChunkPosition(Vector2Int _chunkKey)
     {
         Vector2 newPosition = new Vector2(
@@ -134,25 +123,30 @@ public class Chunk : IChunk
     private void RemoveChunkObject()
     {
         if (chunkObject == null) return;
+
+        foreach (Planet planet in planets)
+        {
+            planet.RemovePlanetObject();
+        }
         
         ChunkManager.Instance.ChunkPool.Release(chunkObject);
         chunkObject = null;
     }
 
-    private void SetStarObject(Vector2Int _chunkKey)
+    private void SetStarObject(Vector2Int _chunkCurrentKey)
     {
         if (!HasStar) return;
         if (star.GetStarObject != null) return;
 
-        CelestialBehaviour starController = star.SetStarObject(_chunkKey);
-        SetPlanetObjects(_chunkKey, star.GetStarPosition, starController);
+        CelestialBehaviour starController = star.SetStarObject(_chunkCurrentKey);
+        SetPlanetObjects(star.GetStarPosition, starController);
     }
 
-    private void SetPlanetObjects(Vector2Int _chunkKey, Vector2 _starPosition, CelestialBehaviour _starController)
+    private void SetPlanetObjects(Vector2 _starPosition, CelestialBehaviour _starController)
     {
         foreach (Planet planet in planets)
         {
-            GameObject planetObject = planet.SetPlanetObject(_chunkKey, _starPosition);
+            GameObject planetObject = planet.SetPlanetObject(ChunkKey, _starPosition);
             ICelestialBody planetController = planetObject.GetComponent<ICelestialBody>();
             planetController.SetOrbitingBody(_starController);
         }
@@ -163,7 +157,17 @@ public class Chunk : IChunk
         if (star == null) return;
         if (star.GetStarObject == null) return;
 
+
+
         star.RemoveStarObject();
+    }
+
+    private void RemovePlanetObjects()
+    {
+        foreach (Planet planet in planets)
+        {
+            planet.RemovePlanetObject();
+        }
     }
 }
 }

@@ -32,8 +32,6 @@ namespace Starfire
 
         Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
         SetChildOrbitingObject(planetRigidbody);
-
-        Debug.Log("Planet enter");
       }
     }
 
@@ -47,10 +45,6 @@ namespace Starfire
             orbitingBodies.Remove(c.gameObject.GetComponent<Rigidbody2D>());
             playerController.RemoveOrbitingBody(); 
             return;
-        }
-        else if (c.CompareTag("Planet"))
-        {
-            Debug.Log("Planet exit");
         }
 
         if (playerController.OrbitingBody == null)
@@ -85,28 +79,41 @@ namespace Starfire
     {
         _newOrbitingBody.GetComponent<CelestialBehaviour>().SetOrbitingBody(celestialBehaviour);
 
-        orbitingBodies.Add(_newOrbitingBody);
+        if (!orbitingBodies.Contains(_newOrbitingBody))
+        {
+            orbitingBodies.Add(_newOrbitingBody);
+        }
+
         ApplyInstantOrbitalVelocity(_newOrbitingBody);
     }
 
     private void FixedUpdate()
     {
-        Gravity();
-    }
-
-    private void Gravity()
-    {
         for (int i = 0; i < orbitingBodies.Count; i++)
         {
             Rigidbody2D body = orbitingBodies[i];
-
-            float bodyMass = GetBodyMass(body);
-            float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
-            float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
-            float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
-
-            body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
+            body.AddForce(GetGravity(body));
         }
+    }
+
+    public Vector2 GetGravity(Rigidbody2D body)
+    {
+        float bodyMass = GetBodyMass(body);
+        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+        float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
+
+        return (celestialRigidbody.position - body.position).normalized * gravitationalForce;
+    }
+
+    public Vector2 GetGravity(Rigidbody2D body, Vector2 _position)
+    {
+        float bodyMass = GetBodyMass(body);
+        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float distanceToStar = Vector2.Distance(celestialRigidbody.position, _position);
+        float gravitationalForce = G * bodyMass * parentBodyMass / (distanceToStar * distanceToStar);
+
+        return (celestialRigidbody.position - _position).normalized * gravitationalForce;
     }
 
     public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool orbitClockwise = true)

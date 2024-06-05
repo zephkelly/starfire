@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Starfire
 {
-  public class LandPlanet : MonoBehaviour, IPlanet 
+  public class LandPlanet : MonoBehaviour
   {
     private string[] color_vars1 = new string[]{"_Color1", "_Color2", "_Color3"};
     private string[] init_colors1 = new string[] {"#92E8C0", "#4FA4B8", "#2C354D"};

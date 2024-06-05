@@ -16,6 +16,7 @@ public enum StarType
 public class Star
 {
     private GameObject starObject = null;
+    private CelestialBehaviour celestialBehaviour;
 
     private StarType starType;
     private Vector2Int chunkAbsKey;
@@ -44,9 +45,9 @@ public class Star
         starRotation = Random.Range(0, 360);
     }
 
-    public CelestialBehaviour SetStarObject(Vector2Int worldKey)
+    public CelestialBehaviour SetStarObject(Vector2Int _chunkCurrentKey)
     {
-        currentWorldKey = worldKey;
+        currentWorldKey = _chunkCurrentKey;
 
         if (starObject == null)
         {
@@ -54,11 +55,11 @@ public class Star
             starObject.transform.SetParent(ChunkManager.Instance.Chunks[chunkAbsKey].ChunkObject.transform);
         }
         
-        StarController _starController = starObject.GetComponent<StarController>();
-        SetStarProperties(_starController, starRadius);
-        SetStarVisuals(_starController, starRadius);
+        StarController celestialBehaviour = starObject.GetComponent<StarController>();
+        SetStarProperties(celestialBehaviour, starRadius);
+        SetStarVisuals(celestialBehaviour, starRadius);
 
-        return _starController;
+        return celestialBehaviour;
     }
 
     public void RemoveStarObject()

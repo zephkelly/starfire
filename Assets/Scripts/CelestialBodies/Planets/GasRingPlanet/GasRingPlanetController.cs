@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Starfire
 {
-  public class GasRingPlanetController : CelestialBehaviour, IPlanet
+  public class GasRingPlanetController : CelestialBehaviour
   {
     public PlanetType PlanetType { get; private set; }
     

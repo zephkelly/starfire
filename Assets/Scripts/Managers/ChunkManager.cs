@@ -110,9 +110,11 @@ public class ChunkManager : MonoBehaviour
     {
         UpdatePlayerPosition();
 
+        bool resetOrigin = false;
+
         if (playerTransform.position.magnitude > floatingOriginLimit)
         {
-            ResetFloatingOrigin();
+            resetOrigin = ResetFloatingOrigin();
         }
         
         if (playerCurrentChunkKey != playerLastCurrentChunkKey)
@@ -120,7 +122,10 @@ public class ChunkManager : MonoBehaviour
             MarkLastChunksInactive();
             currentChunks = GetCurrentChunks();
 
-            Minimap.Instance.UpdateMinimapMarkers();
+            if (resetOrigin)
+            {
+                Minimap.Instance.UpdateMinimapMarkers();
+            }
         }
 
         UpdateLastPositions();
@@ -197,13 +202,13 @@ public class ChunkManager : MonoBehaviour
                 if (chunks.ContainsKey(chunkAbsKey))
                 {
                     currentChunk = chunks[chunkAbsKey];
-                    SetChunkState(currentChunk, chunkPosition, x, y);
                 }
                 else
                 {
                     currentChunk = CreateChunk(chunkAbsKey);
-                    SetChunkState(currentChunk, chunkPosition, x, y);
                 }
+
+                SetChunkState(currentChunk, chunkPosition, x, y);
 
                 if (currentChunk.HasStar && !currentStarChunks.Contains(chunkAbsKey))
                 {
@@ -238,7 +243,7 @@ public class ChunkManager : MonoBehaviour
     }
 
     
-    private void ResetFloatingOrigin()
+    private bool ResetFloatingOrigin()
     {
         // Get player distance from current chunk center
         Vector2Int playerChunk = playerAbsoluteChunkPosition;
@@ -261,6 +266,8 @@ public class ChunkManager : MonoBehaviour
 
         // Update minimap markers
         Minimap.Instance.UpdateMinimapMarkers();
+
+        return true;
     }
 
     private Chunk CreateChunk(Vector2Int _chunkAbsKey, bool makeStar = false, bool preventMakeStar = false)

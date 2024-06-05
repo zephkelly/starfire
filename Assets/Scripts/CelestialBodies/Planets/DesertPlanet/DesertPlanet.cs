@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Starfire
 {
-  public class DesertPlanet : CelestialBehaviour, IPlanet
+  public class DesertPlanet : CelestialBehaviour
   {
     public PlanetType PlanetType { get; private set; }
 
@@ -25,10 +25,16 @@ namespace Starfire
       base.Awake();
 
       _celestialBodyType = CelestialBodyType.Planet;
-      SetInitialColors();
     }
 
-    protected override void Update()
+        protected override void Start()
+        {
+            base.Start();
+
+            SetInitialColors();
+        }
+
+        protected override void Update()
     {
       time += Time.deltaTime;
       UpdateTime(Time.time);
@@ -43,7 +49,6 @@ namespace Starfire
     {
       celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
     }
-
 
     public void SetSeed(float seed)
     {

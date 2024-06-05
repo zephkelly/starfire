@@ -15,19 +15,20 @@ namespace Starfire
         Moon
     }
 
-    public interface IPlanet
-    {
-
-    }
-
     public class Planet
     {
-        private GameObject planetObject;
-        private OrbitingController orbitingController = null;
-
+        private GameObject planetObject = null;
+        private CelestialBehaviour planetCelestialBehaviour = null;
+        private Rigidbody2D planetRigidbody = null;
         private PlanetType planetType = PlanetType.None;
         private float orbitDistance;
 
+        // Last position the planet was in while active
+        private Vector2 lastActivePosition = Vector2.zero;
+        private Vector2 lastActiveVelocity = Vector2.zero;
+        private float lastActiveTime = 0f;
+
+        public Rigidbody2D GetPlanetRigidbody { get => planetRigidbody; }
         public bool HasPlanetObject { get => planetObject != null; }
         public PlanetType GetPlanetType { get => planetType; }
         public float OrbitDistance { get => orbitDistance; }
@@ -38,31 +39,49 @@ namespace Starfire
             orbitDistance = distance;
         }
 
-        public GameObject SetPlanetObject(Vector2Int _worldChunkkey, Vector2 _starPosition)
+        public GameObject SetPlanetObject(Vector2Int _chunkAbsKey, Vector2 _starPosition)
         {
-            if (!HasPlanetObject)
+            if (HasPlanetObject) return null;
+
+            planetObject = PlanetGenerator.Instance.GetPlanetObject(planetType);
+            planetRigidbody = planetObject.GetComponent<Rigidbody2D>();
+            planetCelestialBehaviour = planetObject.GetComponent<CelestialBehaviour>();
+
+            GameObject chunkObject = GetChunk(_chunkAbsKey).ChunkObject;
+
+            if (chunkObject == null)
             {
-                planetObject = PlanetGenerator.Instance.GetPlanetObject(planetType);
-                orbitingController = planetObject.GetComponent<OrbitingController>();
-
-                if (planetObject == null)
-                {
-                    Debug.LogError("Planet object is null");
-                    return null;
-                }
-
-                planetObject.transform.SetParent(ChunkManager.Instance.Chunks[_worldChunkkey].ChunkObject.transform);
+                Debug.LogError("Chunk object is null");
+                return null;
             }
 
-            ICelestialBody planetController = planetObject.GetComponent<ICelestialBody>();
-            SetPlanetProperties(_starPosition);
+            planetObject.transform.SetParent(chunkObject.transform);
+            planetObject.transform.position = _starPosition + new Vector2(orbitDistance, 0);
 
             return planetObject;
         }
 
-        private void SetPlanetProperties(Vector2 _starPosition)
+        public void RemovePlanetObject()
         {
-            planetObject.transform.position = _starPosition + new Vector2(orbitDistance, 0);
+            if (planetObject == null) return;
+
+            // Set last active stats
+            lastActiveTime = Time.time;
+            lastActiveVelocity = planetRigidbody.velocity;
+
+            Vector2 planetDistance = (Vector2)planetObject.transform.position - planetCelestialBehaviour.ParentOrbitingBody.WorldPosition;
+            lastActivePosition = planetDistance;
+
+            // Release object
+            PlanetGenerator.Instance.ReturnPlanetObject(planetType, planetObject);
+            planetObject = null;
+            planetRigidbody = null;
+            planetCelestialBehaviour = null;
+        }
+
+        public Chunk GetChunk(Vector2Int _worldChunkKey)
+        {
+            return ChunkManager.Instance.Chunks[_worldChunkKey];
         }
     }
 }

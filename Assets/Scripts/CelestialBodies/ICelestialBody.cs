@@ -2,10 +2,10 @@ namespace Starfire
 {
     public interface ICelestialBody
     {
-        CelestialBodyType CelestialBodyType { get; }
-        OrbitingController OrbitController { get; }
-        float MaxOrbitRadius { get; }
-        float Temperature { get; }
+        public CelestialBodyType CelestialBodyType { get; }
+        public OrbitingController OrbitController { get; }
+        public float MaxOrbitRadius { get; }
+        public float Temperature { get; }
         CelestialBehaviour ParentOrbitingBody { get; }
         CelestialBehaviour ChildOrbitingBody { get; }
         bool IsOrbiting { get; }
