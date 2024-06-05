@@ -86,7 +86,7 @@ public class Star
     {
         // Parallax Factor
         float normalizedRadius = Mathf.InverseLerp(minRadius, maxRadius, _radius);
-        _controller.GetStarParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.87f, 0.95f, normalizedRadius));
+        _controller.GetStarParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.90f, 0.97f, normalizedRadius));
 
         // Visual size of star
         int visualSize = Mathf.RoundToInt(_radius / 5.5f);

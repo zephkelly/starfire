@@ -97,6 +97,12 @@ namespace Starfire
         {
             Rigidbody2D body = orbitingBodies[i];
 
+            if (body == null) 
+            {
+                orbitingBodies.RemoveAt(i);
+                continue;
+            }
+
             float bodyMass = body.mass;
             float starMass = celestialRigidbody.mass;
             float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);

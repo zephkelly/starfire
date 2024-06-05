@@ -42,7 +42,14 @@ namespace Starfire
       {
         stars[i].position = ((Vector3)Random.insideUnitCircle * starSpawnRadius) + cameraTransform.position;
         stars[i].position = new Vector3(stars[i].position.x, stars[i].position.y, particleZ);
-        stars[i].startColor = new Color(1,1,1, 1);
+        // stars[i].startColor = new Color(1,1,1, 1);
+
+        //random star color
+        float color = Random.Range(0f, 1f);
+        float color2 = Random.Range(0f, 1f);
+        float color3 = Random.Range(0f, 1f);
+        stars[i].startColor = new Color(color, color2, color3, 1);
+
 
         float baseSize = Random.Range(starSizeMin, starSizeMax);
         float chance = Random.Range(0f, 1f);
