@@ -51,7 +51,7 @@ public class Chunk : IChunk
             Vector2 starPosition = ChunkManager.Instance.StarGenerator.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
             star = new Star(starPosition, chunkKey, StarType.NeutronStar);
 
-            planets = ChunkManager.Instance.PlanetGenerator.GetStarPlanets(star);
+            planets = ChunkManager.Instance.PlanetGenerator.GetStarPlanets(this, star);
         }
     }
 
@@ -146,7 +146,7 @@ public class Chunk : IChunk
     {
         foreach (Planet planet in planets)
         {
-            GameObject planetObject = planet.SetPlanetObject(ChunkKey, _starPosition);
+            GameObject planetObject = planet.SetPlanetObject(_starPosition);
             ICelestialBody planetController = planetObject.GetComponent<ICelestialBody>();
             planetController.SetOrbitingBody(_starController);
         }

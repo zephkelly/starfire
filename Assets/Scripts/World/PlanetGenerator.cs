@@ -70,7 +70,7 @@ namespace Starfire
             }
         }
 
-        public List<Planet> GetStarPlanets(Star _star)
+        public List<Planet> GetStarPlanets(Chunk _parentChunk, Star _star)
         {
             PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.GetStarType);
             List<Planet> planets = new List<Planet>();
@@ -81,18 +81,16 @@ namespace Starfire
             // Create a planet for each orbit distance we made
             for (int i = 0; i < planetCount; i++)
             {
-                planets.Add(CreatePlanet(_star, allowablePlanetTypes, orbitDistances[i]));
+                planets.Add(CreatePlanet(_parentChunk, _star, allowablePlanetTypes, orbitDistances[i]));
             }
 
             return planets;
         }
 
-        public Planet CreatePlanet(Star _star, PlanetType[] _allowableTypes, float _orbitDistance)
+        public Planet CreatePlanet(Chunk _parentChunk, Star _star, PlanetType[] _allowableTypes, float _orbitDistance)
         {
             PlanetType planetType = GetPlanetType(_star, _allowableTypes, _orbitDistance);
-
-            Planet planet = new Planet(planetType, _orbitDistance);
-            return planet;
+            return new Planet(_parentChunk, planetType, _orbitDistance);
         }
 
         private PlanetType[] GetAllowablePlanetTypes(StarType _starType)
