@@ -53,15 +53,13 @@ namespace Starfire
             _planetRigid2D = _planetObject.GetComponent<Rigidbody2D>();
             _planetCelestialBehaviour = _planetObject.GetComponent<CelestialBehaviour>();
 
-            GameObject chunkObject = ParentChunk.ChunkObject;
-
-            if (chunkObject == null)
+            if (ParentChunk.ChunkObject == null)
             {
                 Debug.LogError("Chunk object is null");
                 return null;
             }
 
-            _planetObject.transform.SetParent(chunkObject.transform);
+            _planetObject.transform.SetParent(ParentChunk.ChunkObject.transform);
             _planetObject.transform.position = _starPosition + new Vector2(OrbitDistance, 0);
 
             return _planetObject;

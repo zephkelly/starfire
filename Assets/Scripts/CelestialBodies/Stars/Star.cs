@@ -15,49 +15,46 @@ public enum StarType
 
 public class Star
 {
-    private GameObject starObject = null;
-    private CelestialBehaviour celestialBehaviour;
+    public Chunk ParentChunk { get; private set; }
+    public CelestialBehaviour CelestialBehaviour { get; private set; }
+    public StarType StarType { get; private set; }
+    public Vector2 StarPosition { get; private set; }
+    public float Radius { get; private set; }
 
-    private StarType starType;
-    private Vector2Int chunkAbsKey;
-    private Vector2Int currentWorldKey;
-    [SerializeField] private Vector2 starChunkOffset;
+    private GameObject starObject = null;
+
+
     [SerializeField] private string starName;
-    [SerializeField] private int starRadius;
+ 
     private float starRotation;
     const int maxRadius = 3500;
     const int minRadius = 2000;
 
-    public StarType GetStarType { get => starType; }
-    public int GetRadius { get => starRadius; }
     public GameObject GetStarObject { get => starObject; }
-    public Vector2 GetStarOffset { get => starChunkOffset; }
-    public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + starChunkOffset; }
+    public Vector2 GetStarPosition { get => ParentChunk.CurrentWorldKey * ChunkManager.Instance.ChunkDiameter + StarPosition; }
 
-    public Star(Vector2 chunkOffset, Vector2Int key, StarType type)
+    public Star(Chunk _parentChunk, Vector2 _starPosition, StarType _type)
     {
-        chunkAbsKey = key;
-        starChunkOffset = chunkOffset;
+        ParentChunk = _parentChunk;
+        StarPosition = _starPosition;
+        StarType = _type;
 
-        starType = type;
         starName = ChunkManager.Instance.NameGenerator.GetStarName();
-        starRadius = ChunkManager.Instance.StarGenerator.GetStarRadius();
+        Radius = ChunkManager.Instance.StarGenerator.GetStarRadius();
         starRotation = Random.Range(0, 360);
     }
 
-    public CelestialBehaviour SetStarObject(Vector2Int _chunkCurrentKey)
+    public CelestialBehaviour SetStarObject()
     {
-        currentWorldKey = _chunkCurrentKey;
-
         if (starObject == null)
         {
             starObject = ChunkManager.Instance.StarGenerator.StarPool.Get();
-            starObject.transform.SetParent(ChunkManager.Instance.Chunks[chunkAbsKey].ChunkObject.transform);
+            starObject.transform.SetParent(ParentChunk.ChunkObject.transform);
         }
         
         StarController celestialBehaviour = starObject.GetComponent<StarController>();
-        SetStarProperties(celestialBehaviour, starRadius);
-        SetStarVisuals(celestialBehaviour, starRadius);
+        SetStarProperties(celestialBehaviour);
+        SetStarVisuals(celestialBehaviour);
 
         return celestialBehaviour;
     }
@@ -73,23 +70,23 @@ public class Star
         }
     }
 
-    private void SetStarProperties(StarController _controller, int _radius)
+    private void SetStarProperties(StarController _controller)
     {
-        _controller.SetupCelestialBehaviour(CelestialBodyType.Star, starRadius, starName);
+        _controller.SetupCelestialBehaviour(CelestialBodyType.Star, Radius, starName);
 
-        _controller.GetStarRadiusCollider.radius = starRadius;
-        _controller.GetStarLight.pointLightOuterRadius = starRadius;
+        _controller.GetStarRadiusCollider.radius = Radius;
+        _controller.GetStarLight.pointLightOuterRadius = Radius;
         starObject.transform.position = GetStarPosition;
     }
 
-    private void SetStarVisuals(StarController _controller, int _radius)
+    private void SetStarVisuals(StarController _controller)
     {
         // Parallax Factor
-        float normalizedRadius = Mathf.InverseLerp(minRadius, maxRadius, _radius);
+        float normalizedRadius = Mathf.InverseLerp(minRadius, maxRadius, Radius);
         _controller.GetStarParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.90f, 0.97f, normalizedRadius));
 
         // Visual size of star
-        int visualSize = Mathf.RoundToInt(_radius / 5.5f);
+        int visualSize = Mathf.RoundToInt(Radius / 5.5f);
         _controller.GetStarVisualTransform.localScale = new Vector3(visualSize, visualSize, 1);
 
         // Rotate speed

@@ -72,7 +72,7 @@ namespace Starfire
 
         public List<Planet> GetStarPlanets(Chunk _parentChunk, Star _star)
         {
-            PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.GetStarType);
+            PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.StarType);
             List<Planet> planets = new List<Planet>();
             int planetCount = UnityEngine.Random.Range(2, 6);
 
@@ -107,11 +107,11 @@ namespace Starfire
 
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
-            float maxStarRadius = _star.GetRadius * 0.85f;
-            float minStarRadius = _star.GetRadius * 0.15f;
+            float maxStarRadius = _star.Radius * 0.85f;
+            float minStarRadius = _star.Radius * 0.15f;
 
             float partialRadius = maxStarRadius / _planetCount;
-            float minDistanceBetweenPlanets = _star.GetRadius * 0.06f;
+            float minDistanceBetweenPlanets = _star.Radius * 0.06f;
 
             List<float> orbitDistances = new List<float>();
 
@@ -135,9 +135,9 @@ namespace Starfire
         
         private PlanetType GetPlanetType(Star _star, PlanetType[] _allowableTypes, float _planetOrbitDistance)
         {
-            float starQuarterRadius = _star.GetRadius * 0.15f;
-            float starHalfRadius = _star.GetRadius * 0.5f;
-            float starThreeQuarterRadius = _star.GetRadius * 0.80f;
+            float starQuarterRadius = _star.Radius * 0.15f;
+            float starHalfRadius = _star.Radius * 0.5f;
+            float starThreeQuarterRadius = _star.Radius * 0.80f;
 
             // Map each PlanetType to a range of allowable orbit distances
             Dictionary<PlanetType, (float min, float max)> planetTypeRanges = new Dictionary<PlanetType, (float min, float max)>
@@ -145,8 +145,8 @@ namespace Starfire
                 { PlanetType.Land, (starHalfRadius, starThreeQuarterRadius) },
                 { PlanetType.Rivers, (starHalfRadius, starThreeQuarterRadius) },
                 { PlanetType.Desert, (starQuarterRadius, starHalfRadius) },
-                { PlanetType.Ice, (starThreeQuarterRadius, _star.GetRadius) },
-                { PlanetType.GasLayers, (starThreeQuarterRadius, _star.GetRadius) },
+                { PlanetType.Ice, (starThreeQuarterRadius, _star.Radius) },
+                { PlanetType.GasLayers, (starThreeQuarterRadius, _star.Radius) },
             };
 
             List<PlanetType> allowableTypes = new List<PlanetType>();

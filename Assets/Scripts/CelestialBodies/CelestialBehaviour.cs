@@ -36,7 +36,7 @@ namespace Starfire
     public float Temperature { get; private set; }
     public bool IsOrbiting { get; private set; }
     
-    public void SetupCelestialBehaviour(CelestialBodyType type, int radius, string name)
+    public void SetupCelestialBehaviour(CelestialBodyType type, float radius, string name)
     {
         _celestialBodyType = type;
         Radius = radius;

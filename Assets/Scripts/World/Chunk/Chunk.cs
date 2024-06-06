@@ -36,7 +36,7 @@ public class Chunk : IChunk
     public GameObject ChunkObject { get => chunkObject; }
     public Star GetStar { get => star; }
     public bool HasStar { get => star != null; }
-    public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + star.GetStarOffset; }
+    public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + star.StarPosition; }
 
     public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
     {
@@ -49,7 +49,7 @@ public class Chunk : IChunk
         if (shouldSpawnStar)
         {
             Vector2 starPosition = ChunkManager.Instance.StarGenerator.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
-            star = new Star(starPosition, chunkKey, StarType.NeutronStar);
+            star = new Star(this, starPosition, StarType.NeutronStar);
 
             planets = ChunkManager.Instance.PlanetGenerator.GetStarPlanets(this, star);
         }
@@ -61,7 +61,7 @@ public class Chunk : IChunk
         currentWorldKey = _chunkCurrentKey;
 
         SetChunkObject(_chunkCurrentKey);
-        SetStarObject(_chunkCurrentKey);
+        SetStarObject();
     }
 
     public void SetLazyChunk(Vector2Int _chunkKey)
@@ -90,25 +90,12 @@ public class Chunk : IChunk
             currentWorldKey = _chunkCurrentKey;
             chunkObject.transform.SetParent(ChunkManager.Instance.transform);
             chunkObject.transform.position = GetChunkPosition(currentWorldKey);
-
-            // create a new box colllider with is trigger true and size size of the diameter and place it in world position
-            // BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
-            // boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
-            // boxCollider.isTrigger = true;
             return;
         }
 
         // We are resetting the position of the chunk
         chunkObject.transform.position = GetChunkPosition(currentWorldKey);
     }
-
-    // public void AlignPlanets()
-    // {
-    //     if (HasStar)
-    //     {
-    //         star.ApplyInstantOrbitalVelocity(planets);
-    //     }
-    // }
 
     private Vector2 GetChunkPosition(Vector2Int _chunkKey)
     {
@@ -133,12 +120,12 @@ public class Chunk : IChunk
         chunkObject = null;
     }
 
-    private void SetStarObject(Vector2Int _chunkCurrentKey)
+    private void SetStarObject()
     {
         if (!HasStar) return;
         if (star.GetStarObject != null) return;
 
-        CelestialBehaviour starController = star.SetStarObject(_chunkCurrentKey);
+        CelestialBehaviour starController = star.SetStarObject();
         SetPlanetObjects(star.GetStarPosition, starController);
     }
 
@@ -156,8 +143,6 @@ public class Chunk : IChunk
     {
         if (star == null) return;
         if (star.GetStarObject == null) return;
-
-
 
         star.RemoveStarObject();
     }
