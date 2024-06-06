@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,53 +6,20 @@ namespace Starfire
   public class OrbitingController : MonoBehaviour
   {
     private CelestialBehaviour celestialBehaviour;
-
     private Rigidbody2D celestialRigidbody;
-    private List<Rigidbody2D> orbitingBodies = new List<Rigidbody2D>();
 
-    private const float G = 0.2f;   //Newtons Gravity constant
+    private const float G = 0.2f;
+    private List<Rigidbody2D> orbitingBodies = new List<Rigidbody2D>();
 
     private void Awake()
     {
-      celestialBehaviour = gameObject.GetComponent<CelestialBehaviour>();
-      celestialRigidbody = gameObject.GetComponent<Rigidbody2D>();
+        celestialBehaviour = gameObject.GetComponent<CelestialBehaviour>();
+        celestialRigidbody = gameObject.GetComponent<Rigidbody2D>();
     }
 
-    private void OnTriggerEnter2D(Collider2D c) 
+    private void FixedUpdate()
     {
-      if (c.CompareTag("Player"))
-      {
-        c.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
-      }
-      else if (c.CompareTag("Planet"))
-      {
-        if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
-
-        Rigidbody2D planetRigidbody = c.gameObject.GetComponent<Rigidbody2D>();
-        SetChildOrbitingObject(planetRigidbody);
-      }
-    }
-
-    private void OnTriggerExit2D(Collider2D c) 
-    {
-        if (c.CompareTag("Player") != true) return;
-        ShipController playerController = c.gameObject.GetComponent<ShipController>();
-
-        if (celestialBehaviour.ParentOrbitingBody == null) 
-        {
-            orbitingBodies.Remove(c.gameObject.GetComponent<Rigidbody2D>());
-            playerController.RemoveOrbitingBody(); 
-            return;
-        }
-
-        if (playerController.OrbitingBody == null)
-        {
-            playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
-            return;
-        }
-
-        if (playerController.OrbitingBody.Mass > celestialBehaviour.Mass && playerController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
-        playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
+        Gravity();
     }
 
     public void SetParentOrbitingObject(CelestialBehaviour _parentCelestialBehaviour)
@@ -86,9 +52,37 @@ namespace Starfire
         ApplyInstantOrbitalVelocity(_newOrbitingBody);
     }
 
-    private void FixedUpdate()
+    public void ApplyInstantOrbitalVelocity(Rigidbody2D _body)
     {
-      Gravity();
+        float starMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float distanceToStar = Vector2.Distance(celestialRigidbody.position, _body.position);
+
+        Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
+        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+        Vector2 appliedOrbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
+        Vector2 deltaVelocity = appliedOrbitalVelocity - _body.velocity;
+
+        _body.velocity += deltaVelocity;
+    }
+
+    public Vector2 GetOrbitalVelocity(Rigidbody2D _body)
+    {
+        float parentBodyMass = celestialRigidbody.mass;
+        float distanceToStar = Vector2.Distance(celestialRigidbody.position, _body.position);
+
+        Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
+        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+        Vector2 orbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * parentBodyMass) / distanceToStar);
+
+        return orbitalVelocity + celestialRigidbody.velocity;
+    }
+
+    public float GetThermalGradient(float _objectDistance)
+    {
+        var distanceNormalized = _objectDistance / celestialBehaviour.Radius;
+        var trueDistance = 1 - distanceNormalized;
+
+        return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);
     }
 
     private void Gravity()
@@ -103,66 +97,69 @@ namespace Starfire
                 continue;
             }
 
-            float bodyMass = body.mass;
-            float starMass = celestialRigidbody.mass;
+            float bodyMass = GetBodyMass(body);
+            float starMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
             float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
-            //Newtons gravitational theory
             float gravitationalForce = (G * bodyMass * starMass) / (distanceToStar * distanceToStar);
+            Vector2 direction = (celestialRigidbody.position - body.position).normalized;
 
-            body.AddForce((celestialRigidbody.position - body.position).normalized * gravitationalForce);
+            body.AddForce(direction * gravitationalForce);
         }
     }
 
-    public void ApplyInstantOrbitalVelocity(Rigidbody2D body, bool orbitClockwise = true)
+    private float GetBodyMass(Rigidbody2D _body, CelestialBehaviour _celestialBehaviour = null)
     {
-        float bodyMass = body.mass;
-        float starMass = celestialRigidbody.mass;
-        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+        float bodyMass = _body.mass;
 
-        Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
-        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+        if (_celestialBehaviour == null) return bodyMass;
+        if (_celestialBehaviour.CelestialBodyType != CelestialBodyType.Star) return bodyMass;
 
-        Vector2 appliedOrbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
-
-        //Only apply enough force to orbit the star
-        if (body.velocity.magnitude > appliedOrbitalVelocity.magnitude) return;
-        
-        var deltaVelocity = appliedOrbitalVelocity - body.velocity;
-        body.velocity += deltaVelocity;
+        return bodyMass *= 10;
     }
 
-    public Vector2 GetOrbitalVelocity(Rigidbody2D body)
+    private void OnTriggerEnter2D(Collider2D _otherCollider) 
     {
-        float starMass = celestialRigidbody.mass;
-        float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
+      if (_otherCollider.CompareTag("Player"))
+      {
+        _otherCollider.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
+      }
+      else if (_otherCollider.CompareTag("Planet"))
+      {
+        if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
 
-        Vector2 directionToStar = (celestialRigidbody.position - body.position).normalized;
-        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
-        Vector2 orbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
-
-        return orbitalVelocity + celestialRigidbody.velocity;
+        Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
+        SetChildOrbitingObject(planetRigidbody);
+      }
     }
 
-    public float GetThermalGradient(float _objectDistance)
+    private void OnTriggerExit2D(Collider2D _otherCollider) 
     {
-        var distanceNormalized = _objectDistance / celestialBehaviour.MaxOrbitRadius;
-
-        var trueDistance = 1 - distanceNormalized;
-
-        return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);
-    }
-
-    private float GetBodyMass(Rigidbody2D body, CelestialBehaviour celestialBehaviour = null)
-    {
-        float bodyMass = body.mass;
-
-        if (celestialBehaviour != null && celestialBehaviour.CelestialBodyType == CelestialBodyType.Star)
+        if (_otherCollider.CompareTag("Player"))
         {
-            bodyMass *= 10;
-        }
+            ShipController playerController = _otherCollider.gameObject.GetComponent<ShipController>();
 
-        return bodyMass;
+            if (celestialBehaviour.ParentOrbitingBody == null) 
+            {
+                orbitingBodies.Remove(_otherCollider.gameObject.GetComponent<Rigidbody2D>());
+                playerController.RemoveOrbitingBody(); 
+                return;
+            }
+
+            if (playerController.OrbitingBody == null)
+            {
+                playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
+                return;
+            }
+
+            if (playerController.OrbitingBody.Mass > celestialBehaviour.Mass && playerController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
+            playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
+        }
+        else if (_otherCollider.CompareTag("Planet"))
+        {
+            Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
+            orbitingBodies.Remove(planetRigidbody);
+        }
     }
   }
 }

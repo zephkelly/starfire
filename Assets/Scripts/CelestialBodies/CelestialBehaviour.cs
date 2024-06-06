@@ -16,46 +16,50 @@ namespace Starfire
   { 
     protected CelestialBodyType _celestialBodyType;
     protected OrbitingController _orbitController;
-
-    protected CelestialBehaviour parentOrbitingBody;
-    protected CelestialBehaviour childOrbitingBody;
+    protected Material[] celestialMaterials;
+    [SerializeField] public GameObject[] celestialComponents;
 
     protected Rigidbody2D _celestialRigidBody;
     protected Transform _celestialTransform;
 
-    protected Material[] celestialMaterials;
-    [SerializeField] public GameObject[] celestialComponents;
-
-    protected int _celestialRadius;
-    protected string _celestialName;
+    // protected int _radius;
+    protected string _name;
     protected float time;
+
+    protected CelestialBehaviour _parentOrbitingBody;
+    protected CelestialBehaviour _childOrbitingBody;
+
 
     public CelestialBodyType CelestialBodyType => _celestialBodyType;
     public OrbitingController OrbitController => _orbitController;
-    public CelestialBehaviour ParentOrbitingBody => parentOrbitingBody;
-    public CelestialBehaviour ChildOrbitingBody => childOrbitingBody;
+    public CelestialBehaviour ParentOrbitingBody => _parentOrbitingBody;
+    public CelestialBehaviour ChildOrbitingBody => _childOrbitingBody;
     public Vector2 WorldPosition => _celestialTransform.position;
 
-    public int GetRadius => _celestialRadius;
+    public float Radius { get; protected set; }
     public float Mass => _celestialRigidBody.mass;
-    public string CelestialName => _celestialName;
+    public string Name => _name;
+
+    // public float MaxOrbitRadius { get; set; }
+    public float Temperature { get; private set; }
+    public bool IsOrbiting { get; private set; }
     
     public void SetupCelestialBehaviour(CelestialBodyType type, int radius, string name)
     {
         _celestialBodyType = type;
-        _celestialRadius = radius;
-        _celestialName = name;
+        Radius = radius;
+        _name = name;
         _celestialTransform = transform;
     }
 
-    public void SetOrbitingBody(CelestialBehaviour _parentOrbitingBody)
+    public void SetOrbitingBody(CelestialBehaviour newOrbitingBody)
     {
-        parentOrbitingBody = _parentOrbitingBody;
+        _parentOrbitingBody = newOrbitingBody;
     }
 
     public void RemoveOrbitingBody()
     {
-      parentOrbitingBody = null;
+        _parentOrbitingBody = null;
     }
 
     protected virtual void Awake()
@@ -84,10 +88,10 @@ namespace Starfire
 
     protected virtual void UpdateTime(float time)
     {
-      for (int i = 0; i < celestialMaterials.Length; i++)
-      {
-        celestialMaterials[i].SetFloat(ShaderProperties.Key_time, time);
-      }
+        for (int i = 0; i < celestialMaterials.Length; i++)
+        {
+            celestialMaterials[i].SetFloat(ShaderProperties.Key_time, time);
+        }
     }
 
     public void SetLight(Vector2 lightPosition, float lightModifier = 1f)
@@ -102,17 +106,5 @@ namespace Starfire
             celestialMaterials[i].SetVector(ShaderProperties.Key_Light_origin, viewportPos);
         }
     }
-
-
-    // public CelestialBodyType CelestialBodyType { get; }
-    // public void SetSeed(float seed) {}
-    // public void SetRotate(float r) {}
-    // public void SetCustomTime(float time) {}
-    // public Color[] GetColors() { return new Color[0]; }
-    // // void SetColors(Color[] _colors);
-    // public void SetInitialColors() {}
-    public float MaxOrbitRadius { get; set; }
-    public float Temperature { get; private set; }
-    public bool IsOrbiting { get; private set; }
   }
 }

@@ -39,7 +39,7 @@ namespace Starfire
     {
         if (isParent is false)
         {
-            OnPlayerOrbitEnter.Invoke("Now orbiting " + orbitingBody.CelestialName);
+            OnPlayerOrbitEnter.Invoke("Now orbiting " + orbitingBody.Name);
         }
 
         base.SetOrbitingBody(orbitingBody, isParent);
@@ -49,7 +49,7 @@ namespace Starfire
     {
       if (orbitingBody != null)
       {
-        OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.CelestialName);
+        OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.Name);
       }
       else
       {
