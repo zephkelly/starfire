@@ -161,5 +161,5 @@ namespace Starfire
             orbitingBodies.Remove(planetRigidbody);
         }
     }
-  }
+}
 }

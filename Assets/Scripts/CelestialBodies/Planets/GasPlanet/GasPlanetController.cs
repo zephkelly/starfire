@@ -27,8 +27,7 @@ namespace Starfire
 
         protected override void Update()
         {
-            time += Time.deltaTime;
-            UpdateTime(time);
+            UpdateTime(Time.time);
 
             if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
             {

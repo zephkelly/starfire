@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Starfire
 {
@@ -22,13 +21,8 @@ namespace Starfire
     protected Rigidbody2D _celestialRigidBody;
     protected Transform _celestialTransform;
 
-    // protected int _radius;
-    protected string _name;
-    protected float time;
-
     protected CelestialBehaviour _parentOrbitingBody;
     protected CelestialBehaviour _childOrbitingBody;
-
 
     public CelestialBodyType CelestialBodyType => _celestialBodyType;
     public OrbitingController OrbitController => _orbitController;
@@ -36,11 +30,9 @@ namespace Starfire
     public CelestialBehaviour ChildOrbitingBody => _childOrbitingBody;
     public Vector2 WorldPosition => _celestialTransform.position;
 
+    public string Name { get; protected set; }
     public float Radius { get; protected set; }
     public float Mass => _celestialRigidBody.mass;
-    public string Name => _name;
-
-    // public float MaxOrbitRadius { get; set; }
     public float Temperature { get; private set; }
     public bool IsOrbiting { get; private set; }
     
@@ -48,7 +40,7 @@ namespace Starfire
     {
         _celestialBodyType = type;
         Radius = radius;
-        _name = name;
+        Name = name;
         _celestialTransform = transform;
     }
 

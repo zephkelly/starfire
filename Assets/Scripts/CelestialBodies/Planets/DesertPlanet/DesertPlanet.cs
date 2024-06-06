@@ -27,22 +27,21 @@ namespace Starfire
       _celestialBodyType = CelestialBodyType.Planet;
     }
 
-        protected override void Start()
-        {
-            base.Start();
-
-            SetInitialColors();
-        }
-
-        protected override void Update()
+    protected override void Start()
     {
-      time += Time.deltaTime;
-      UpdateTime(Time.time);
+        base.Start();
 
-      if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
-      {
-        SetLight(ParentOrbitingBody.WorldPosition, 0.8f);
-      }
+        SetInitialColors();
+    }
+
+    protected override void Update()
+    {
+        UpdateTime(Time.time);
+
+        if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
+        {
+            SetLight(ParentOrbitingBody.WorldPosition, 0.8f);
+        }
     }
 
     public void SetPixel(float amount)

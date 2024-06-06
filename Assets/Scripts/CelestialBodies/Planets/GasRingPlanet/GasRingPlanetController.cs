@@ -35,13 +35,12 @@ namespace Starfire
 
     protected override void Update()
     {
-      time += Time.deltaTime;
-      UpdateTime(Time.time);
+        UpdateTime(Time.time);
 
-      if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
-      {
-        SetLight(ParentOrbitingBody.WorldPosition);
-      }
+        if (ParentOrbitingBody is not null && ParentOrbitingBody.CelestialBodyType is CelestialBodyType.Star)
+        {
+            SetLight(ParentOrbitingBody.WorldPosition);
+        }
     }
 
     public void SetPixel(float amount)
