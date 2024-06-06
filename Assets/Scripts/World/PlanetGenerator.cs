@@ -107,7 +107,7 @@ namespace Starfire
 
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
-            float maxStarRadius = _star.Radius * 0.85f;
+            float maxStarRadius = _star.Radius * 0.75f;
             float minStarRadius = _star.Radius * 0.15f;
 
             float partialRadius = maxStarRadius / _planetCount;
@@ -137,7 +137,7 @@ namespace Starfire
         {
             float starQuarterRadius = _star.Radius * 0.15f;
             float starHalfRadius = _star.Radius * 0.5f;
-            float starThreeQuarterRadius = _star.Radius * 0.80f;
+            float starThreeQuarterRadius = _star.Radius * 0.65f;
 
             // Map each PlanetType to a range of allowable orbit distances
             Dictionary<PlanetType, (float min, float max)> planetTypeRanges = new Dictionary<PlanetType, (float min, float max)>

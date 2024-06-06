@@ -60,7 +60,22 @@ namespace Starfire
             }
 
             _planetObject.transform.SetParent(ParentChunk.ChunkObject.transform);
-            _planetObject.transform.position = _starPosition + new Vector2(OrbitDistance, 0);
+
+            if (lastActivePosition != Vector2.zero)
+            {
+                _planetObject.transform.position = _starPosition + lastActivePosition;
+            }
+            else
+            {
+                float randomAngle = Random.Range(0, 360);
+
+                Vector2 angleToOrbitalPosition = new Vector2(
+                    Mathf.Cos(randomAngle) * OrbitDistance,
+                    Mathf.Sin(randomAngle) * OrbitDistance
+                );
+
+                _planetObject.transform.position = _starPosition + angleToOrbitalPosition;
+            }
 
             return _planetObject;
         }

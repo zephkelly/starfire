@@ -70,6 +70,7 @@ public class Chunk : IChunk
         currentWorldKey = _chunkKey;
 
         RemoveChunkObject();
+        RemovePlanetObjects();
         RemoveStarObject();
     }
 
@@ -77,8 +78,8 @@ public class Chunk : IChunk
     {
         chunkState = ChunkState.Inactive;
 
-        RemoveChunkObject();
         RemoveStarObject();
+        RemoveChunkObject();
     }
 
     private void SetChunkObject(Vector2Int _chunkCurrentKey)
@@ -96,6 +97,13 @@ public class Chunk : IChunk
         // We are resetting the position of the chunk
         chunkObject.transform.position = GetChunkPosition(currentWorldKey);
     }
+    private void RemoveChunkObject()
+    {
+        if (chunkObject == null) return;
+        
+        ChunkManager.Instance.ChunkPool.Release(chunkObject);
+        chunkObject = null;
+    }
 
     private Vector2 GetChunkPosition(Vector2Int _chunkKey)
     {
@@ -107,18 +115,6 @@ public class Chunk : IChunk
         return newPosition;
     }
 
-    private void RemoveChunkObject()
-    {
-        if (chunkObject == null) return;
-
-        foreach (Planet planet in planets)
-        {
-            planet.RemovePlanetObject();
-        }
-        
-        ChunkManager.Instance.ChunkPool.Release(chunkObject);
-        chunkObject = null;
-    }
 
     private void SetStarObject()
     {
@@ -129,6 +125,14 @@ public class Chunk : IChunk
         SetPlanetObjects(star.GetStarPosition, starController);
     }
 
+    private void RemoveStarObject()
+    {
+        if (star == null) return;
+        if (star.GetStarObject == null) return;
+
+        star.RemoveStarObject();
+    }
+
     private void SetPlanetObjects(Vector2 _starPosition, CelestialBehaviour _starController)
     {
         foreach (Planet planet in planets)
@@ -137,14 +141,6 @@ public class Chunk : IChunk
             ICelestialBody planetController = planetObject.GetComponent<ICelestialBody>();
             planetController.SetOrbitingBody(_starController);
         }
-    }
-
-    private void RemoveStarObject()
-    {
-        if (star == null) return;
-        if (star.GetStarObject == null) return;
-
-        star.RemoveStarObject();
     }
 
     private void RemovePlanetObjects()
