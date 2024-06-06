@@ -63,7 +63,7 @@ namespace Starfire
 
             if (lastActivePosition != Vector2.zero)
             {
-                _planetObject.transform.position = _starPosition + lastActivePosition;
+                _planetObject.transform.position = _starPosition + EstimatePlanetPosition();
             }
             else
             {
@@ -87,6 +87,8 @@ namespace Starfire
             // Set last active stats
             lastActiveTime = Time.time;
             lastActiveVelocity = _planetRigid2D.velocity;
+            Debug.Log(_planetRigid2D == null);
+            Debug.Log(_planetRigid2D.velocity);
             lastActivePosition = (Vector2)_planetObject.transform.position - _planetCelestialBehaviour.ParentOrbitingBody.WorldPosition;
 
             // Release object
@@ -94,6 +96,24 @@ namespace Starfire
             _planetObject = null;
             _planetRigid2D = null;
             _planetCelestialBehaviour = null;
+        }
+
+        private Vector2 EstimatePlanetPosition()
+        {
+            // use the last active position and velocity to estimate the current position
+            float timeSinceLastActive = Time.time - lastActiveTime;
+            Vector2 lastOrbitDirection = lastActivePosition.normalized;
+
+            // use the OrbitDistance and rotate the lastOrbitDirection around the star based on how much time has elapsed
+            float rotationPeriod = 2 * Mathf.PI * OrbitDistance / lastActiveVelocity.magnitude;
+            float angle = (timeSinceLastActive / rotationPeriod) * 2 * Mathf.PI;
+
+            Vector2 newOrbitDirection = new Vector2(
+                lastOrbitDirection.x * Mathf.Cos(angle) + lastOrbitDirection.y * Mathf.Sin(angle),
+                -lastOrbitDirection.x * Mathf.Sin(angle) + lastOrbitDirection.y * Mathf.Cos(angle)
+            );
+
+            return newOrbitDirection * OrbitDistance;
         }
     }
 }

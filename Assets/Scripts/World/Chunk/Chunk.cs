@@ -69,9 +69,8 @@ public class Chunk : IChunk
         chunkState = ChunkState.Lazy;
         currentWorldKey = _chunkKey;
 
-        RemoveChunkObject();
-        RemovePlanetObjects();
         RemoveStarObject();
+        RemoveChunkObject();
     }
 
     public void SetInactiveChunk()
@@ -90,13 +89,11 @@ public class Chunk : IChunk
             chunkObject.name = $"Chunk{chunkIndex}";
             currentWorldKey = _chunkCurrentKey;
             chunkObject.transform.SetParent(ChunkManager.Instance.transform);
-            chunkObject.transform.position = GetChunkPosition(currentWorldKey);
-            return;
         }
 
-        // We are resetting the position of the chunk
         chunkObject.transform.position = GetChunkPosition(currentWorldKey);
     }
+
     private void RemoveChunkObject()
     {
         if (chunkObject == null) return;
@@ -115,7 +112,6 @@ public class Chunk : IChunk
         return newPosition;
     }
 
-
     private void SetStarObject()
     {
         if (!HasStar) return;
@@ -130,6 +126,7 @@ public class Chunk : IChunk
         if (star == null) return;
         if (star.GetStarObject == null) return;
 
+        RemovePlanetObjects();
         star.RemoveStarObject();
     }
 
