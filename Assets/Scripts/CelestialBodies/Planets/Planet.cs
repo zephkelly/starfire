@@ -87,8 +87,6 @@ namespace Starfire
             // Set last active stats
             lastActiveTime = Time.time;
             lastActiveVelocity = _planetRigid2D.velocity;
-            Debug.Log(_planetRigid2D == null);
-            Debug.Log(_planetRigid2D.velocity);
             lastActivePosition = (Vector2)_planetObject.transform.position - _planetCelestialBehaviour.ParentOrbitingBody.WorldPosition;
 
             // Release object
@@ -100,11 +98,9 @@ namespace Starfire
 
         private Vector2 EstimatePlanetPosition()
         {
-            // use the last active position and velocity to estimate the current position
-            float timeSinceLastActive = Time.time - lastActiveTime;
+            // Use OrbitDistance to rotate lastOrbitDirection around the star by last active time
             Vector2 lastOrbitDirection = lastActivePosition.normalized;
-
-            // use the OrbitDistance and rotate the lastOrbitDirection around the star based on how much time has elapsed
+            float timeSinceLastActive = Time.time - lastActiveTime;
             float rotationPeriod = 2 * Mathf.PI * OrbitDistance / lastActiveVelocity.magnitude;
             float angle = (timeSinceLastActive / rotationPeriod) * 2 * Mathf.PI;
 
