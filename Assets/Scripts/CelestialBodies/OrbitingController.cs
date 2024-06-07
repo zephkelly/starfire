@@ -67,7 +67,7 @@ namespace Starfire
 
     public Vector2 GetOrbitalVelocity(Rigidbody2D _body)
     {
-        float parentBodyMass = celestialRigidbody.mass;
+        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, _body.position);
 
         Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;

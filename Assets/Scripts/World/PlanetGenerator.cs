@@ -107,11 +107,11 @@ namespace Starfire
 
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
-            float maxStarRadius = _star.Radius * 0.75f;
+            float maxStarRadius = _star.Radius * 0.80f;
             float minStarRadius = _star.Radius * 0.15f;
 
             float partialRadius = maxStarRadius / _planetCount;
-            float minDistanceBetweenPlanets = _star.Radius * 0.06f;
+            float minDistanceBetweenPlanets = _star.Radius * 0.12f;
 
             List<float> orbitDistances = new List<float>();
 
@@ -135,18 +135,18 @@ namespace Starfire
         
         private PlanetType GetPlanetType(Star _star, PlanetType[] _allowableTypes, float _planetOrbitDistance)
         {
-            float starQuarterRadius = _star.Radius * 0.15f;
-            float starHalfRadius = _star.Radius * 0.5f;
-            float starThreeQuarterRadius = _star.Radius * 0.65f;
+            float starHotZone = _star.Radius * 0.15f;
+            float starHabitableZone = _star.Radius * 0.5f;
+            float starColdZone = _star.Radius * 0.7f;
 
             // Map each PlanetType to a range of allowable orbit distances
             Dictionary<PlanetType, (float min, float max)> planetTypeRanges = new Dictionary<PlanetType, (float min, float max)>
             {
-                { PlanetType.Land, (starHalfRadius, starThreeQuarterRadius) },
-                { PlanetType.Rivers, (starHalfRadius, starThreeQuarterRadius) },
-                { PlanetType.Desert, (starQuarterRadius, starHalfRadius) },
-                { PlanetType.Ice, (starThreeQuarterRadius, _star.Radius) },
-                { PlanetType.GasLayers, (starThreeQuarterRadius, _star.Radius) },
+                { PlanetType.Land, (starHabitableZone, starColdZone) },
+                { PlanetType.Rivers, (starHabitableZone, starColdZone) },
+                { PlanetType.Desert, (starHotZone, starHabitableZone) },
+                { PlanetType.Ice, (starColdZone, _star.Radius) },
+                { PlanetType.GasLayers, (starColdZone, _star.Radius) },
             };
 
             List<PlanetType> allowableTypes = new List<PlanetType>();
