@@ -73,6 +73,8 @@ public class ChunkManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        UnityEngine.Random.InitState((int)DateTime.Now.Ticks);
+
         starGenerator = GetComponent<StarGenerator>();
         planetGenerator = GetComponent<PlanetGenerator>();
 
@@ -318,7 +320,7 @@ public class ChunkManager : MonoBehaviour
 
     private void SetChunkState(Chunk _chunk, Vector2Int _chunkCurrentKey, int _x, int _y)
     {
-        if (Math.Abs(_x) <= 3 && Math.Abs(_y) <= 3)
+        if (Math.Abs(_x) <= 4 && Math.Abs(_y) <= 4)
         {
             _chunk.SetActiveChunk(_chunkCurrentKey);
             return;

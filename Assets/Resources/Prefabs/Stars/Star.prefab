@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3328568627590352820}
   - component: {fileID: 2533020083423152186}
   - component: {fileID: 5536783946561554539}
-  - component: {fileID: 7283710520449473424}
+  - component: {fileID: 2560902597971078379}
   m_Layer: 0
   m_Name: Star
   m_TagString: Star
@@ -58,7 +58,6 @@ MonoBehaviour:
   starLight: {fileID: 4616552629836269554}
   starRadiusCollider: {fileID: 2533020083423152186}
   starSpriteRenderer: {fileID: 68039015483636742}
-  starParallaxLayer: {fileID: 7283710520449473424}
   starVisualTransform: {fileID: 1899919835393750636}
   _gradientStar: {fileID: 544071947096438355}
   _gradientStarFlare: {fileID: 2442760740479620818}
@@ -171,7 +170,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &7283710520449473424
+--- !u!114 &2560902597971078379
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -180,12 +179,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1365084053574823292}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b7a5e3a56287e54fa47e74ae843ea99, type: 3}
+  m_Script: {fileID: 11500000, guid: e212d251fd81418469d4c49094c1388c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   starTransform: {fileID: 6405514460553800156}
   sprite: {fileID: 1899919835393750636}
-  parallaxFactor: 0.86
+  parallaxFactor: 1
 --- !u!1 &1684364744142639489
 GameObject:
   m_ObjectHideFlags: 0
@@ -234,7 +233,7 @@ MonoBehaviour:
   m_LightType: 3
   m_BlendStyleIndex: 0
   m_FalloffIntensity: 0.25
-  m_Color: {r: 0.9009434, g: 1, b: 0.9956932, a: 1}
+  m_Color: {r: 1, g: 0.853844, b: 0.7018868, a: 1}
   m_Intensity: 3.5
   m_LightVolumeIntensity: 0.004
   m_LightVolumeIntensityEnabled: 1

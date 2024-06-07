@@ -108,11 +108,11 @@ namespace Starfire
 
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
-            float maxStarRadius = _star.Radius * 0.80f;
-            float minStarRadius = _star.Radius * 0.15f;
+            float maxStarRadius = _star.Radius * 0.70f;
+            float minStarRadius = _star.Radius * 0.22f;
 
             float partialRadius = maxStarRadius / _planetCount;
-            float minDistanceBetweenPlanets = _star.Radius * 0.12f;
+            float minDistanceBetweenPlanets = _star.Radius * 0.20f;
 
             List<float> orbitDistances = new List<float>();
 
@@ -136,7 +136,7 @@ namespace Starfire
         
         private PlanetType GetPlanetType(Star _star, PlanetType[] _allowableTypes, float _planetOrbitDistance)
         {
-            float starHotZone = _star.Radius * 0.15f;
+            float starHotZone = _star.Radius * 0.22f;
             float starHabitableZone = _star.Radius * 0.5f;
             float starColdZone = _star.Radius * 0.7f;
 

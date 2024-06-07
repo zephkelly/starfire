@@ -27,7 +27,7 @@ namespace Starfire
     //Parallaxing-layers----------------------------------------------------------------------------
 
     [SerializeField] StarfieldParallaxLayer[] parallaxingLayers;
-    [SerializeField] public List<StarParallaxLayer> starParallaxLayers;
+    [SerializeField] public List<CelestialParallaxLayer> starParallaxLayers;
 
     //----------------------------------------------------------------------------------------------
 

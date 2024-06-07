@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6738871234318269112}
   - component: {fileID: 3850054853232583433}
   - component: {fileID: 4055082658894285294}
+  - component: {fileID: 3061302464049712291}
   m_Layer: 3
   m_Name: DesertPlanet
   m_TagString: Planet
@@ -30,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 250, y: 250, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5690935476390582236}
@@ -86,7 +87,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.4
+  m_Radius: 300
 --- !u!50 &3850054853232583433
 Rigidbody2D:
   serializedVersion: 4
@@ -126,6 +127,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e850bd360222809469aa6ae559636ab5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3061302464049712291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2342837292394173088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e212d251fd81418469d4c49094c1388c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  starTransform: {fileID: 8281888313947051444}
+  sprite: {fileID: 5690935476390582236}
+  parallaxFactor: 0.7
 --- !u!1 &4028470901096881100
 GameObject:
   m_ObjectHideFlags: 0
@@ -154,7 +170,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 250, y: 250, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8281888313947051444}
@@ -198,7 +214,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1529745907
-  m_SortingLayer: -3
+  m_SortingLayer: -1
   m_SortingOrder: -1
   m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

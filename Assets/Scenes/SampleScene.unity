@@ -1234,7 +1234,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panelTransform: {fileID: 1647589013}
-  scaleFactor: 0.025
+  scaleFactor: 0.035
   starMarkerPrefab: {fileID: 1128323531876382557, guid: 971523c63445cec4981c22fc82cbec69, type: 3}
   planetMarkerPrefab: {fileID: 1128323531876382557, guid: 9f30e80c7af3b6548a5d0c36cd091edf, type: 3}
 --- !u!1 &1647589012
@@ -1800,7 +1800,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: moveSpeed
-      value: 180
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: maxMoveSpeed

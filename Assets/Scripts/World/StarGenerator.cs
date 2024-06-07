@@ -80,7 +80,7 @@ namespace Starfire
 
     public int GetStarRadius()
     {
-        return Random.Range(2500, 3500);
+        return Random.Range(3000, 4000);
     }
 
     public float GetStarMass(StarType starType, float radius)

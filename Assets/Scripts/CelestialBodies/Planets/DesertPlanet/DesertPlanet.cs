@@ -46,24 +46,24 @@ namespace Starfire
 
     public void SetPixel(float amount)
     {
-      celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
     }
 
     public void SetSeed(float seed)
     {
         var converted_seed = seed % 1000f / 100f;
-        celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
     }
 
     public void SetRotate(float r)
     {
-        celestialMaterials[0].SetFloat(ShaderProperties.Key_Rotation, r);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Rotation, r);
     }
 
     public void SetCustomTime(float time)
     {
         var dt = 10f + time * 60f;
-        celestialMaterials[0].SetFloat(ShaderProperties.Key_time, dt);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_time, dt);
     }
 
     public void SetInitialColors()

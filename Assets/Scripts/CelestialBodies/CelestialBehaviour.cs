@@ -15,7 +15,8 @@ namespace Starfire
   { 
     protected CelestialBodyType _celestialBodyType;
     protected OrbitingController _orbitController;
-    protected Material[] celestialMaterials;
+    protected CelestialParallaxLayer _celestialParallaxLayer;
+    protected Material[] _celestialMaterials;
     [SerializeField] public GameObject[] celestialComponents;
 
     protected Rigidbody2D _celestialRigidBody;
@@ -28,6 +29,7 @@ namespace Starfire
     public OrbitingController OrbitController => _orbitController;
     public CelestialBehaviour ParentOrbitingBody => _parentOrbitingBody;
     public CelestialBehaviour ChildOrbitingBody => _childOrbitingBody;
+    public CelestialParallaxLayer GetParallaxLayer { get => _celestialParallaxLayer; }
     public Vector2 WorldPosition => _celestialTransform.position;
 
     public string Name { get; protected set; }
@@ -57,16 +59,17 @@ namespace Starfire
 
     protected virtual void Awake()
     {
+        _celestialParallaxLayer = GetComponent<CelestialParallaxLayer>();
         _orbitController = GetComponent<OrbitingController>();
         _celestialRigidBody = GetComponent<Rigidbody2D>();
         _celestialRigidBody.mass = Mass;
         _celestialTransform = transform;
         
-        celestialMaterials = new Material[celestialComponents.Length];
+        _celestialMaterials = new Material[celestialComponents.Length];
         
         for (int i = 0; i < celestialComponents.Length; i++)
         {
-            celestialMaterials[i] = celestialComponents[i].GetComponent<SpriteRenderer>().material;
+            _celestialMaterials[i] = celestialComponents[i].GetComponent<SpriteRenderer>().material;
         }
     }
 
@@ -82,9 +85,9 @@ namespace Starfire
 
     protected virtual void UpdateTime(float time)
     {
-        for (int i = 0; i < celestialMaterials.Length; i++)
+        for (int i = 0; i < _celestialMaterials.Length; i++)
         {
-            celestialMaterials[i].SetFloat(ShaderProperties.Key_time, time);
+            _celestialMaterials[i].SetFloat(ShaderProperties.Key_time, time);
         }
     }
 
@@ -95,9 +98,9 @@ namespace Starfire
 
         Vector2 viewportPos = relativePos * 0.5f + new Vector2(0.5f, 0.5f);
 
-        for (int i = 0; i < celestialMaterials.Length; i++)
+        for (int i = 0; i < _celestialMaterials.Length; i++)
         {
-            celestialMaterials[i].SetVector(ShaderProperties.Key_Light_origin, viewportPos);
+            _celestialMaterials[i].SetVector(ShaderProperties.Key_Light_origin, viewportPos);
         }
     }
   }

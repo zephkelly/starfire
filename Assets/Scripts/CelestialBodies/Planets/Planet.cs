@@ -90,6 +90,8 @@ namespace Starfire
                 _planetObject.transform.position = _starPosition + _planetOrbitPosition;
             }
 
+            CameraController.Instance.starParallaxLayers.Add(_planetCelestialBehaviour.GetParallaxLayer);
+
             return _planetObject;
         }
 

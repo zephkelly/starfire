@@ -5,8 +5,8 @@ using UnityEngine.UI;
 
 namespace Starfire
 {
-  public class GasRingPlanetController : CelestialBehaviour
-  {
+public class GasRingPlanetController : CelestialBehaviour
+{
     public PlanetType PlanetType { get; private set; }
     
     [SerializeField] private GradientTextureGenerate _gradientGas1;
@@ -45,110 +45,110 @@ namespace Starfire
 
     public void SetPixel(float amount)
     {
-      celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
-      celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount * 3f);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
+        _celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount * 3f);
     }
 
     public void SetSeed(float seed)
     {
-      var converted_seed = seed % 1000f / 100f;
-      celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
-      celestialMaterials[1].SetFloat(ShaderProperties.Key_Seed, converted_seed);
+        var converted_seed = seed % 1000f / 100f;
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, converted_seed);
+        _celestialMaterials[1].SetFloat(ShaderProperties.Key_Seed, converted_seed);
     }
 
     public void SetRotate(float r)
     {
-        celestialMaterials[0].SetFloat(ShaderProperties.Key_Rotation, r);
-        celestialMaterials[1].SetFloat(ShaderProperties.Key_Rotation, r + 0.7f);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Rotation, r);
+        _celestialMaterials[1].SetFloat(ShaderProperties.Key_Rotation, r + 0.7f);
     }
 
     protected override void UpdateTime(float time)
     {
-      celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.5f);
-      celestialMaterials[1].SetFloat(ShaderProperties.Key_time, time  * 0.5f * -3f);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.5f);
+        _celestialMaterials[1].SetFloat(ShaderProperties.Key_time, time  * 0.5f * -3f);
     }
 
     public void SetInitialColors()
     {
-      SetGradientColor();
+        SetGradientColor();
     }
 
     private void SetGradientColor()
     {
-      for (int i = 0; i < colorKey1.Length; i++)
-      {
-        colorKey1[i].color = default(Color);
-        ColorUtility.TryParseHtmlString(_colors1[i], out colorKey1[i].color);
+        for (int i = 0; i < colorKey1.Length; i++)
+        {
+            colorKey1[i].color = default(Color);
+            ColorUtility.TryParseHtmlString(_colors1[i], out colorKey1[i].color);
 
-        colorKey1[i].time = _color_times[i];
-        alphaKey[i].alpha = 1.0f;
-        alphaKey[i].time = _color_times[i];
-      }
+            colorKey1[i].time = _color_times[i];
+            alphaKey[i].alpha = 1.0f;
+            alphaKey[i].time = _color_times[i];
+        }
         
         
-      for (int i = 0; i < colorKey2.Length; i++)
-      {
-        colorKey2[i].color = default(Color);
-        ColorUtility.TryParseHtmlString(_colors2[i], out colorKey2[i].color);
+        for (int i = 0; i < colorKey2.Length; i++)
+        {
+            colorKey2[i].color = default(Color);
+            ColorUtility.TryParseHtmlString(_colors2[i], out colorKey2[i].color);
 
-        colorKey2[i].time = _color_times[i];
-        alphaKey[i].alpha = 1.0f;
-        colorKey2[i].time = _color_times[i];
-      }
-      
-      var gasTexture = _gradientGas1.SetColors(colorKey1,alphaKey,gradient_vars);
-      var gasTextureDark = _gradientGas2.SetColors(colorKey2,alphaKey,gradient_dark_vars);
+            colorKey2[i].time = _color_times[i];
+            alphaKey[i].alpha = 1.0f;
+            colorKey2[i].time = _color_times[i];
+        }
+        
+        var gasTexture = _gradientGas1.SetColors(colorKey1,alphaKey,gradient_vars);
+        var gasTextureDark = _gradientGas2.SetColors(colorKey2,alphaKey,gradient_dark_vars);
 
-      var ringTexture = _gradientRing1.SetColors(colorKey1,alphaKey,gradient_vars);
-      var ringTextureDark = _gradientRing2.SetColors(colorKey2, alphaKey,gradient_dark_vars);
+        var ringTexture = _gradientRing1.SetColors(colorKey1,alphaKey,gradient_vars);
+        var ringTextureDark = _gradientRing2.SetColors(colorKey2, alphaKey,gradient_dark_vars);
 
-      celestialMaterials[0].SetTexture(gradient_vars, gasTexture);
-      celestialMaterials[0].SetTexture(gradient_dark_vars, gasTextureDark);
+        _celestialMaterials[0].SetTexture(gradient_vars, gasTexture);
+        _celestialMaterials[0].SetTexture(gradient_dark_vars, gasTextureDark);
 
-      celestialMaterials[1].SetTexture(gradient_vars, ringTexture);
-      celestialMaterials[1].SetTexture(gradient_dark_vars, ringTextureDark);
+        _celestialMaterials[1].SetTexture(gradient_vars, ringTexture);
+        _celestialMaterials[1].SetTexture(gradient_dark_vars, ringTextureDark);
     }
 
-    public void SetColors(Color[] _colors)
-    {
-      for (int i = 0; i < colorKey1.Length; i++)
-      {
-        colorKey1[i].color = _colors[i];
-        colorKey1[i].time = _color_times[i];
-        alphaKey[i].alpha = 1.0f;
-        alphaKey[i].time = _color_times[i];
-      }
-      _gradientGas1.SetColors(colorKey1,alphaKey,gradient_vars);
-      var size = colorKey1.Length;
-      
-      for (int i = 0; i < colorKey2.Length; i++)
-      {
-        colorKey2[i].color = _colors[ i +size ];
-        colorKey2[i].time = _color_times[i];
-        alphaKey[i].alpha = 1.0f;
-        alphaKey[i].time = _color_times[i];
-      }
-      _gradientGas1.SetColors(colorKey2,alphaKey,gradient_dark_vars);
-      size += colorKey2.Length;
-      
-      for (int i = 0; i < colorKey1.Length; i++)
-      {
-        colorKey1[i].color = _colors[ i +size ];
-        colorKey1[i].time = _color_times[i];
-        alphaKey[i].alpha = 1.0f;
-        alphaKey[i].time = _color_times[i];
-      }
-      _gradientRing1.SetColors(colorKey1,alphaKey,gradient_vars);
-      size += colorKey1.Length;
-      
-      for (int i = 0; i < colorKey2.Length; i++)
-      {
-        colorKey2[i].color = _colors[ i +size ];
-        colorKey2[i].time = _color_times[i];
-        alphaKey[i].alpha = 1.0f;
-        alphaKey[i].time = _color_times[i];
-      }
-      _gradientRing2.SetColors(colorKey2,alphaKey,gradient_dark_vars);  
+        public void SetColors(Color[] _colors)
+        {
+        for (int i = 0; i < colorKey1.Length; i++)
+        {
+            colorKey1[i].color = _colors[i];
+            colorKey1[i].time = _color_times[i];
+            alphaKey[i].alpha = 1.0f;
+            alphaKey[i].time = _color_times[i];
+        }
+        _gradientGas1.SetColors(colorKey1,alphaKey,gradient_vars);
+        var size = colorKey1.Length;
+        
+        for (int i = 0; i < colorKey2.Length; i++)
+        {
+            colorKey2[i].color = _colors[ i +size ];
+            colorKey2[i].time = _color_times[i];
+            alphaKey[i].alpha = 1.0f;
+            alphaKey[i].time = _color_times[i];
+        }
+        _gradientGas1.SetColors(colorKey2,alphaKey,gradient_dark_vars);
+        size += colorKey2.Length;
+        
+        for (int i = 0; i < colorKey1.Length; i++)
+        {
+            colorKey1[i].color = _colors[ i +size ];
+            colorKey1[i].time = _color_times[i];
+            alphaKey[i].alpha = 1.0f;
+            alphaKey[i].time = _color_times[i];
+        }
+        _gradientRing1.SetColors(colorKey1,alphaKey,gradient_vars);
+        size += colorKey1.Length;
+        
+        for (int i = 0; i < colorKey2.Length; i++)
+        {
+            colorKey2[i].color = _colors[ i +size ];
+            colorKey2[i].time = _color_times[i];
+            alphaKey[i].alpha = 1.0f;
+            alphaKey[i].time = _color_times[i];
+        }
+        _gradientRing2.SetColors(colorKey2,alphaKey,gradient_dark_vars);  
+        }
     }
-  }
 }

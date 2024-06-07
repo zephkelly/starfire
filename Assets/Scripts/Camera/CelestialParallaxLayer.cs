@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class StarParallaxLayer : MonoBehaviour, IParallaxLayer
+    public class CelestialParallaxLayer : MonoBehaviour, IParallaxLayer
     {
         [SerializeField] private Transform starTransform;
         [SerializeField] private Transform sprite; 

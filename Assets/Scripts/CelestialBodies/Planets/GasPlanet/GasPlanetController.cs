@@ -37,19 +37,19 @@ namespace Starfire
 
         public void SetPixel(float amount)
         {
-            celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
-            celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount);
+            _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
+            _celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount);
         }
 
         public void SetInitialColors()
         {
             for (int i = 0; i < color_vars1.Length; i++)
             {
-                celestialMaterials[0].SetColor(color_vars1[i], ColorUtil.FromRGB(init_colors1[i]));
+                _celestialMaterials[0].SetColor(color_vars1[i], ColorUtil.FromRGB(init_colors1[i]));
             }
             for (int i = 0; i < color_vars2.Length; i++)
             {
-                celestialMaterials[1].SetColor(color_vars2[i], ColorUtil.FromRGB(init_colors2[i]));
+                _celestialMaterials[1].SetColor(color_vars2[i], ColorUtil.FromRGB(init_colors2[i]));
             }
         }
 
@@ -57,11 +57,11 @@ namespace Starfire
         {
             for (int i = 0; i < color_vars1.Length; i++)
             {
-                celestialMaterials[0].SetColor(color_vars1[i], _colors[i]);
+                _celestialMaterials[0].SetColor(color_vars1[i], _colors[i]);
             }
             for (int i = 0; i < color_vars2.Length; i++)
             {
-                celestialMaterials[1].SetColor(color_vars2[i], _colors[i + color_vars1.Length]);
+                _celestialMaterials[1].SetColor(color_vars2[i], _colors[i + color_vars1.Length]);
             }
         }
     }

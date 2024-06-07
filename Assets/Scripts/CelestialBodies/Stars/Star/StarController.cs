@@ -12,7 +12,7 @@ namespace Starfire
     [SerializeField] Light2D starLight;
     [SerializeField] CircleCollider2D starRadiusCollider;
     [SerializeField] SpriteRenderer starSpriteRenderer;
-    [SerializeField] StarParallaxLayer starParallaxLayer;
+    
     [SerializeField] Transform starVisualTransform;
     private float rotateSpeedFactor = 0.1f;
 
@@ -35,7 +35,6 @@ namespace Starfire
 
     public Rigidbody2D GetStarRigidbody { get => _celestialRigidBody; }
     public Transform GetStarVisualTransform { get => starVisualTransform; }
-    public StarParallaxLayer GetStarParallaxLayer { get => starParallaxLayer; }
     public CircleCollider2D GetStarRadiusCollider { get => starRadiusCollider; }
     public Light2D GetStarLight { get => starLight; }
 
@@ -48,7 +47,6 @@ namespace Starfire
     {
         base.Awake();
 
-        starParallaxLayer = GetComponent<StarParallaxLayer>();
         _celestialBodyType = CelestialBodyType.Star;
 
         SetInitialColors();
@@ -63,25 +61,25 @@ namespace Starfire
 
     protected override void UpdateTime(float time)
     {
-        celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.3f);
-        celestialMaterials[1].SetFloat(ShaderProperties.Key_time, time);
-        celestialMaterials[2].SetFloat(ShaderProperties.Key_time, time);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_time, time * 0.3f);
+        _celestialMaterials[1].SetFloat(ShaderProperties.Key_time, time);
+        _celestialMaterials[2].SetFloat(ShaderProperties.Key_time, time);
     }
 
     public void SetPixel(float amount)
     {
-        celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
-        celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount * 2);
-        celestialMaterials[2].SetFloat(ShaderProperties.Key_Pixels, amount * 2);
+        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
+        _celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount * 2);
+        _celestialMaterials[2].SetFloat(ShaderProperties.Key_Pixels, amount * 2);
     }
 
     public void SetSeed(float seed)
     {
         float scaledSeed = seed % 1000f / 100f;
         
-        for (int i = 0; i < celestialMaterials.Length; i++)
+        for (int i = 0; i < _celestialMaterials.Length; i++)
         {
-            celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, scaledSeed);
+            _celestialMaterials[0].SetFloat(ShaderProperties.Key_Seed, scaledSeed);
         }
 
         SetGradientColor(_colors1, _colors2);
@@ -89,9 +87,9 @@ namespace Starfire
 
     public void SetRotate(float r)
     {
-        for (int i = 0; i < celestialMaterials.Length; i++)
+        for (int i = 0; i < _celestialMaterials.Length; i++)
         {
-            celestialMaterials[i].SetFloat(ShaderProperties.Key_Rotation, r);
+            _celestialMaterials[i].SetFloat(ShaderProperties.Key_Rotation, r);
         }
     }
 
@@ -99,7 +97,7 @@ namespace Starfire
     {
         SetGradientColor(_colors1, _colors2);
 
-        celestialMaterials[0].SetColor(colorVars1[0], ColorUtil.FromRGB(initColors1[0]));
+        _celestialMaterials[0].SetColor(colorVars1[0], ColorUtil.FromRGB(initColors1[0]));
     }
 
     public void SetRandColours()
@@ -133,9 +131,9 @@ namespace Starfire
         Texture2D starTexture = _gradientStar.SetColors(colorKey1, alphaKey1, gradient_vars);
         Texture2D flareTexture = _gradientStarFlare.SetColors(colorKey2, alphaKey2, gradient_vars);
 
-        celestialMaterials[0].SetTexture(gradient_vars, starTexture);
-        celestialMaterials[1].SetTexture(gradient_vars, flareTexture);
-        celestialMaterials[2].SetTexture(gradient_vars, starTexture);
+        _celestialMaterials[0].SetTexture(gradient_vars, starTexture);
+        _celestialMaterials[1].SetTexture(gradient_vars, flareTexture);
+        _celestialMaterials[2].SetTexture(gradient_vars, starTexture);
     }
 
     public Color[] GetColors()
@@ -147,7 +145,7 @@ namespace Starfire
 
         for (int i = 0; i < colorVars1.Length; i++)
         {
-            colors[i] = celestialMaterials[0].GetColor(colorVars1[i]);
+            colors[i] = _celestialMaterials[0].GetColor(colorVars1[i]);
         }
 
         for (int i = 0; i < gradColors.Length; i++)
@@ -171,7 +169,7 @@ namespace Starfire
         
         for (int i = 0; i < colorVars1.Length; i++)
         {
-            celestialMaterials[2].SetColor(colorVars1[i], _colors[i]);
+            _celestialMaterials[2].SetColor(colorVars1[i], _colors[i]);
         }
 
         for (int i = 0; i < colorKey1.Length; i++)

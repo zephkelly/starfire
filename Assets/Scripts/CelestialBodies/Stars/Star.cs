@@ -66,7 +66,10 @@ public class Star
     {
         if (starObject != null)
         {
-            CameraController.Instance.starParallaxLayers.Remove(starObject.GetComponent<StarParallaxLayer>());
+            if (CelestialBehaviour != null && CameraController.Instance.starParallaxLayers.Contains(CelestialBehaviour.GetParallaxLayer))
+            {
+                CameraController.Instance.starParallaxLayers.Remove(CelestialBehaviour.GetParallaxLayer);
+            }
 
             ChunkManager.Instance.StarGenerator.StarPool.Release(starObject);
             starObject = null;
@@ -87,7 +90,7 @@ public class Star
     {
         // Parallax Factor
         float normalizedRadius = Mathf.InverseLerp(minRadius, maxRadius, Radius);
-        _controller.GetStarParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.80f, 0.92f, normalizedRadius));
+        _controller.GetParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.80f, 0.92f, normalizedRadius));
 
         // Visual size of star
         int visualSize = Mathf.RoundToInt(Radius / 4.5f);
@@ -107,7 +110,7 @@ public class Star
         _controller.SetRandColours();
 
         //Make star parallax
-        CameraController.Instance.starParallaxLayers.Add(_controller.GetStarParallaxLayer);
+        CameraController.Instance.starParallaxLayers.Add(_controller.GetParallaxLayer);
     }
 }
 }
