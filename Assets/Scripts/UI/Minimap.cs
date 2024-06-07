@@ -75,12 +75,17 @@ namespace Starfire
 
                 foreach (var planet in ChunkManager.Instance.Chunks[planetChunkAbsKey].GetPlanets)
                 {
-                    // if (planet.HasPlanetObject)
-                    // {
+                    Vector2 miniMapPos;
+                    
+                    if (planet.HasPlanetObject)
+                    {
+                        miniMapPos = GetMinimapPosition(planet.GetRigidbody.position);
+                    }
+                    else
+                    {
+                        miniMapPos = GetMinimapPosition(planet.GetOrbitPosition());
+                    }
 
-                    // }
-
-                    Vector2 miniMapPos = GetMinimapPosition(planet.GetOrbitPosition());
 
                     if (planetMarkers.ContainsKey(planet))
                     {
