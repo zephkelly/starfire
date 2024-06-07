@@ -241,11 +241,12 @@ public class ChunkManager : MonoBehaviour
         lastCurrentChunks = new List<Vector2Int>(currentChunks);
     }
 
-    
     private bool ResetFloatingOrigin()
     {
         // Get player distance from current chunk center
         Vector2Int playerChunk = playerAbsoluteChunkPosition;
+
+        if (Chunks[playerChunk].ChunkObject == null) return false;
         Vector2 chunkCenter = Chunks[playerChunk].ChunkObject.transform.position;
         Vector2 playerPosition = playerTransform.position;
         Vector2 distanceFromChunkCenter = playerPosition - chunkCenter;

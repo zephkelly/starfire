@@ -99,7 +99,7 @@ namespace Starfire
     {
         SetGradientColor(_colors1, _colors2);
 
-        celestialMaterials[2].SetColor(colorVars1[0], ColorUtil.FromRGB(initColors1[0]));
+        celestialMaterials[0].SetColor(colorVars1[0], ColorUtil.FromRGB(initColors1[0]));
     }
 
     public void SetRandColours()

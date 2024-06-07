@@ -75,7 +75,7 @@ namespace Starfire
 
                 foreach (var planet in ChunkManager.Instance.Chunks[planetChunkAbsKey].GetPlanets)
                 {
-                    Vector2 miniMapPos;
+                    Vector2 miniMapPos = Vector2.zero;
                     
                     if (planet.HasPlanetObject)
                     {
@@ -112,7 +112,19 @@ namespace Starfire
 
             foreach (var planetMarker in planetMarkers)
             {
-                Vector2 miniMapPos = GetMinimapPosition(planetMarker.Key.GetOrbitPosition());
+                Vector2 miniMapPos = Vector2.zero;
+
+
+                if (planetMarker.Key.HasPlanetObject)
+                {
+                    miniMapPos = GetMinimapPosition(planetMarker.Key.GetRigidbody.position);
+                }
+                else
+                {
+                    miniMapPos = GetMinimapPosition(planetMarker.Key.GetOrbitPosition());
+                }
+
+                
                 planetMarker.Value.transform.localPosition = miniMapPos;
             }
         }
@@ -130,9 +142,25 @@ namespace Starfire
                 }
             }
 
+            List<Planet> keysToRemovePlanet = new List<Planet>();
+
+            foreach (var planetMarker in planetMarkers)
+            {
+                if (ChunkManager.Instance.CurrentStarChunks.Contains(planetMarker.Key.ParentChunk.CurrentWorldKey) == false)
+                {
+                    Destroy(planetMarker.Value);
+                    keysToRemovePlanet.Add(planetMarker.Key);
+                }
+            }
+
             foreach (var key in keysToRemove)
             {
                 starMarkers.Remove(key);
+            }
+
+            foreach (var key in keysToRemovePlanet)
+            {
+                planetMarkers.Remove(key);
             }
         }
 
