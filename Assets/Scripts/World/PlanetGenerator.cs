@@ -90,7 +90,8 @@ namespace Starfire
         public Planet CreatePlanet(Chunk _parentChunk, Star _star, PlanetType[] _allowableTypes, float _orbitDistance)
         {
             PlanetType planetType = GetPlanetType(_star, _allowableTypes, _orbitDistance);
-            return new Planet(_parentChunk, planetType, _orbitDistance);
+            float mass = GetPlanetMass(planetType);
+            return new Planet(_parentChunk, planetType, _orbitDistance, mass);
         }
 
         private PlanetType[] GetAllowablePlanetTypes(StarType _starType)
@@ -166,6 +167,11 @@ namespace Starfire
 
             int randomIndex = UnityEngine.Random.Range(0, allowableTypes.Count);
             return allowableTypes[randomIndex];
+        }
+
+        private float GetPlanetMass(PlanetType planetType)
+        {
+            return 90000;
         }
 
         private void CreatePlanetObjectPools()

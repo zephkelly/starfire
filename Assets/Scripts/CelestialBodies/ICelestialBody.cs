@@ -11,7 +11,7 @@ namespace Starfire
         bool IsOrbiting { get; }
         float Mass { get; }
         string Name { get; }
-        void SetupCelestialBehaviour(CelestialBodyType type, float radius, string name);
+        void SetupCelestialBehaviour(CelestialBodyType type, float mass, float radius, string name);
         void SetOrbitingBody(CelestialBehaviour orbitingBody);
         void RemoveOrbitingBody();
     }

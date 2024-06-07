@@ -1234,8 +1234,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panelTransform: {fileID: 1647589013}
-  scaleFactor: 0.016
+  scaleFactor: 0.025
   starMarkerPrefab: {fileID: 1128323531876382557, guid: 971523c63445cec4981c22fc82cbec69, type: 3}
+  planetMarkerPrefab: {fileID: 1128323531876382557, guid: 9f30e80c7af3b6548a5d0c36cd091edf, type: 3}
 --- !u!1 &1647589012
 GameObject:
   m_ObjectHideFlags: 0

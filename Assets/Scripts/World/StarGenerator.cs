@@ -82,5 +82,24 @@ namespace Starfire
     {
         return Random.Range(2500, 3500);
     }
+
+    public float GetStarMass(StarType starType, float radius)
+    {
+        switch (starType)
+        {
+            case StarType.NeutronStar:
+                return 900000;
+            case StarType.WhiteDwarf:
+                return 900000;
+            case StarType.RedGiant:
+                return 900000;
+            case StarType.YellowDwarf:
+                return 900000;
+            case StarType.BlueGiant:
+                return 900000;
+            default:
+                return 900000;
+        }
+    }
   }
 }

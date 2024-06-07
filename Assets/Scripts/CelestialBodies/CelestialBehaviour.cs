@@ -32,15 +32,16 @@ namespace Starfire
 
     public string Name { get; protected set; }
     public float Radius { get; protected set; }
-    public float Mass => _celestialRigidBody.mass;
+    public float Mass { get; protected set; }
     public float Temperature { get; private set; }
     public bool IsOrbiting { get; private set; }
     
-    public void SetupCelestialBehaviour(CelestialBodyType type, float radius, string name)
+    public void SetupCelestialBehaviour(CelestialBodyType type, float radius, float mass, string name)
     {
         _celestialBodyType = type;
         Radius = radius;
         Name = name;
+        Mass = mass;
         _celestialTransform = transform;
     }
 
@@ -58,6 +59,7 @@ namespace Starfire
     {
         _orbitController = GetComponent<OrbitingController>();
         _celestialRigidBody = GetComponent<Rigidbody2D>();
+        _celestialRigidBody.mass = Mass;
         _celestialTransform = transform;
         
         celestialMaterials = new Material[celestialComponents.Length];

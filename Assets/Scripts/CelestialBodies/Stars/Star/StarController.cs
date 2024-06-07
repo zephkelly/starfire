@@ -33,6 +33,7 @@ namespace Starfire
     private float[] _color_times1 = new float[4] { 0f, 0.33f, 0.66f, 1.0f };
     private float[] _color_times2 = new float[2] { 0f, 1.0f };
 
+    public Rigidbody2D GetStarRigidbody { get => _celestialRigidBody; }
     public Transform GetStarVisualTransform { get => starVisualTransform; }
     public StarParallaxLayer GetStarParallaxLayer { get => starParallaxLayer; }
     public CircleCollider2D GetStarRadiusCollider { get => starRadiusCollider; }

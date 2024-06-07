@@ -20,6 +20,7 @@ public class Star
     public StarType StarType { get; private set; }
     public Vector2 StarPosition { get; private set; }
     public float Radius { get; private set; }
+    public float Mass { get; private set; }
 
     private GameObject starObject = null;
 
@@ -28,7 +29,7 @@ public class Star
  
     private float starRotation;
     const int maxRadius = 3500;
-    const int minRadius = 2000;
+    const int minRadius = 2500;
 
     public GameObject GetStarObject { get => starObject; }
     public Vector2 GetStarPosition { get => ParentChunk.CurrentWorldKey * ChunkManager.Instance.ChunkDiameter + StarPosition; }
@@ -41,6 +42,8 @@ public class Star
 
         starName = ChunkManager.Instance.NameGenerator.GetStarName();
         Radius = ChunkManager.Instance.StarGenerator.GetStarRadius();
+        Mass = ChunkManager.Instance.StarGenerator.GetStarMass(StarType, Radius);
+
         starRotation = Random.Range(0, 360);
     }
 
@@ -72,8 +75,9 @@ public class Star
 
     private void SetStarProperties(StarController _controller)
     {
-        _controller.SetupCelestialBehaviour(CelestialBodyType.Star, Radius, starName);
+        _controller.SetupCelestialBehaviour(CelestialBodyType.Star, Radius, Mass, starName);
 
+        _controller.GetStarRigidbody.mass = Mass;
         _controller.GetStarRadiusCollider.radius = Radius;
         _controller.GetStarLight.pointLightOuterRadius = Radius;
         starObject.transform.position = GetStarPosition;

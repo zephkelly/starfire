@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
@@ -13,8 +14,10 @@ namespace Starfire
 
         [SerializeField] private float scaleFactor = 0.02f;
         [SerializeField] private GameObject starMarkerPrefab;
+        [SerializeField] private GameObject planetMarkerPrefab;
 
         private Dictionary<Vector2Int, GameObject> starMarkers = new Dictionary<Vector2Int, GameObject>();
+        private Dictionary<Planet, GameObject> planetMarkers = new Dictionary<Planet, GameObject>();
 
         private void Awake()
         {
@@ -36,22 +39,20 @@ namespace Starfire
             UpdateMarkerPositions();
         }
 
-        private void UpdateMarkerPositions()
-        {
-            foreach (var starMarker in starMarkers)
-            {
-                Vector2 miniMapPos = GetMinimapPosition(starMarker.Key);
-                starMarker.Value.transform.localPosition = miniMapPos;
-            }
-        }
-
         public void UpdateMinimapMarkers()
         {      
             ClearCurrentMarkers();
 
+            UpdateStarMarkers();
+            UpdatePlanetMarkers();
+        }
+
+        private void UpdateStarMarkers()
+        {
             foreach (var starChunkAbsKey in ChunkManager.Instance.CurrentStarChunks)
             {
-                Vector2 miniMapPos = GetMinimapPosition(starChunkAbsKey);
+                Vector2 starPosition = ChunkManager.Instance.Chunks[starChunkAbsKey].GetStarPosition;
+                Vector2 miniMapPos = GetMinimapPosition(starPosition);
 
                 if (starMarkers.ContainsKey(starChunkAbsKey))
                 {
@@ -63,6 +64,51 @@ namespace Starfire
                 starMarker.transform.localPosition = miniMapPos;
 
                 starMarkers.Add(starChunkAbsKey, starMarker);
+            }
+        }
+
+        private void UpdatePlanetMarkers()
+        {
+            foreach (var planetChunkAbsKey in ChunkManager.Instance.CurrentStarChunks)
+            {
+                if (ChunkManager.Instance.Chunks[planetChunkAbsKey].HasPlanets is false) continue;
+
+                foreach (var planet in ChunkManager.Instance.Chunks[planetChunkAbsKey].GetPlanets)
+                {
+                    // if (planet.HasPlanetObject)
+                    // {
+
+                    // }
+
+                    Vector2 miniMapPos = GetMinimapPosition(planet.GetOrbitPosition());
+
+                    if (planetMarkers.ContainsKey(planet))
+                    {
+                        planetMarkers[planet].transform.localPosition = miniMapPos;
+                        continue;
+                    }
+
+                    GameObject planetMarker = Instantiate(planetMarkerPrefab, panelTransform);
+                    planetMarker.transform.localPosition = miniMapPos;
+
+                    planetMarkers.Add(planet, planetMarker);
+                }
+            }
+        }
+
+        private void UpdateMarkerPositions()
+        {
+            foreach (var starMarker in starMarkers)
+            {
+                Vector2 starPosition = ChunkManager.Instance.Chunks[starMarker.Key].GetStarPosition;
+                Vector2 miniMapPos = GetMinimapPosition(starPosition);
+                starMarker.Value.transform.localPosition = miniMapPos;
+            }
+
+            foreach (var planetMarker in planetMarkers)
+            {
+                Vector2 miniMapPos = GetMinimapPosition(planetMarker.Key.GetOrbitPosition());
+                planetMarker.Value.transform.localPosition = miniMapPos;
             }
         }
 
@@ -85,9 +131,9 @@ namespace Starfire
             }
         }
 
-        Vector2 GetMinimapPosition(Vector2Int chunkKey)
+        private Vector2 GetMinimapPosition(Vector2 objectPosition)
         {
-            Vector2 starPosition = ChunkManager.Instance.Chunks[chunkKey].GetStarPosition;
+            Vector2 starPosition = objectPosition;
             Vector2 playerWorldPos = player.position;
             Vector2 relativePos = starPosition - playerWorldPos;
             

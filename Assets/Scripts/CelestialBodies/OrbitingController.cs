@@ -54,7 +54,7 @@ namespace Starfire
 
     public void ApplyInstantOrbitalVelocity(Rigidbody2D _body)
     {
-        float starMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float starMass = GetBodyMass(celestialRigidbody, celestialBehaviour.CelestialBodyType);
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, _body.position);
 
         Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
@@ -67,7 +67,7 @@ namespace Starfire
 
     public Vector2 GetOrbitalVelocity(Rigidbody2D _body)
     {
-        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+        float parentBodyMass = GetBodyMass(celestialRigidbody, celestialBehaviour.CelestialBodyType);
         float distanceToStar = Vector2.Distance(celestialRigidbody.position, _body.position);
 
         Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
@@ -76,6 +76,11 @@ namespace Starfire
 
         return orbitalVelocity + celestialRigidbody.velocity;
     }
+
+    // public Vector2 GetOrbitalVelocity(Star _parentStar, Planet _planet)
+    // {
+        
+    // }
 
     public float GetThermalGradient(float _objectDistance)
     {
@@ -98,7 +103,7 @@ namespace Starfire
             }
 
             float bodyMass = GetBodyMass(body);
-            float starMass = GetBodyMass(celestialRigidbody, celestialBehaviour);
+            float starMass = GetBodyMass(celestialRigidbody, celestialBehaviour.CelestialBodyType);
             float distanceToStar = Vector2.Distance(celestialRigidbody.position, body.position);
 
             float gravitationalForce = (G * bodyMass * starMass) / (distanceToStar * distanceToStar);
@@ -108,14 +113,17 @@ namespace Starfire
         }
     }
 
-    private float GetBodyMass(Rigidbody2D _body, CelestialBehaviour _celestialBehaviour = null)
+    public float GetBodyMass(Rigidbody2D _body, CelestialBodyType _bodyType)
     {
         float bodyMass = _body.mass;
 
-        if (_celestialBehaviour == null) return bodyMass;
-        if (_celestialBehaviour.CelestialBodyType != CelestialBodyType.Star) return bodyMass;
-
+        if (_bodyType is not CelestialBodyType.Star) return bodyMass;
         return bodyMass *= 10;
+    }
+
+    public float GetBodyMass(Rigidbody2D _body)
+    {
+        return _body.mass;
     }
 
     private void OnTriggerEnter2D(Collider2D _otherCollider) 

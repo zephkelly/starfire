@@ -20,7 +20,6 @@ public class ChunkManager : MonoBehaviour
 
     private Vector2D playerAbsolutePosition;
     private Vector2Int playerAbsoluteChunkPosition;
-    private Vector2Int playerLastAbsoluteChunkPosition;
     private Vector2Int playerCurrentChunkKey;
     private Vector2Int playerLastCurrentChunkKey;
     #endregion
@@ -36,9 +35,6 @@ public class ChunkManager : MonoBehaviour
     private List<Vector2Int> currentChunks = new List<Vector2Int>();
     private List<Vector2Int> lastCurrentChunks = new List<Vector2Int>();
 
-    private HashSet<Vector2Int> starChunks = new HashSet<Vector2Int>();
-    private List<Vector2Int> currentStarChunks = new List<Vector2Int>();
-
     private const int chunkDiameter = 1000;
     [SerializeField] private float floatingOriginLimit = 2500f;
     private uint chunkIndex = 0;
@@ -48,10 +44,13 @@ public class ChunkManager : MonoBehaviour
 
     #region Stars
     private StarGenerator starGenerator;
+    private HashSet<Vector2Int> starChunks = new HashSet<Vector2Int>();
+    private List<Vector2Int> currentStarChunks = new List<Vector2Int>();
     #endregion
 
     #region Planets
     private PlanetGenerator planetGenerator;
+    private HashSet<Vector2Int> planetChunks = new HashSet<Vector2Int>();
     #endregion
 
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
@@ -212,7 +211,7 @@ public class ChunkManager : MonoBehaviour
 
                 if (currentChunk.HasStar && !currentStarChunks.Contains(chunkAbsKey))
                 {
-                    currentStarChunks.Add(chunkAbsKey);
+                    currentStarChunks.Add(chunkAbsKey);  
                 }
 
                 currentChunks.Add(chunkAbsKey);
@@ -286,6 +285,11 @@ public class ChunkManager : MonoBehaviour
         if (_chunk.HasStar && !starChunks.Contains(_chunkAbsKey))
         {
             starChunks.Add(_chunkAbsKey);
+
+            if (_chunk.HasPlanets && !planetChunks.Contains(_chunkAbsKey))
+            {
+                planetChunks.Add(_chunkAbsKey);
+            }
         }
 
         return _chunk;
@@ -344,7 +348,6 @@ public class ChunkManager : MonoBehaviour
     private void UpdateLastPositions()
     {
         playerLastPosition = playerTransform.position;
-        playerLastAbsoluteChunkPosition = playerAbsoluteChunkPosition;
         playerLastCurrentChunkKey = playerCurrentChunkKey;
     }
 

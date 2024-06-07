@@ -26,7 +26,6 @@ public class Chunk : IChunk
 
     // Planets info
     private List<Planet> planets = new List<Planet>();
-    // private List<GameObject> planetObjects = new List<GameObject>();
 
     public long ChunkIndex { get => chunkIndex; }
     public Vector2Int ChunkKey { get => chunkKey; }
@@ -36,6 +35,8 @@ public class Chunk : IChunk
     public GameObject ChunkObject { get => chunkObject; }
     public Star GetStar { get => star; }
     public bool HasStar { get => star != null; }
+    public List<Planet> GetPlanets { get => planets; }
+    public bool HasPlanets { get => planets.Count > 0; }
     public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + star.StarPosition; }
 
     public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)

@@ -24,25 +24,45 @@ namespace Starfire
         private CelestialBehaviour _planetCelestialBehaviour;
         private GameObject _planetObject;
         private Rigidbody2D _planetRigid2D;
+        private Vector2 _planetOrbitPosition;
+        private float _mass;
 
         // Last position the planet was in while active
         [SerializeField] private Vector2 lastActivePosition = Vector2.zero;
         [SerializeField] private Vector2 lastActiveVelocity = Vector2.zero;
         [SerializeField] private float lastActiveTime = 0f;
 
-        // Getters
         public Rigidbody2D GetRigidbody { get => _planetRigid2D; }
         public bool HasPlanetObject { get => _planetObject != null; }
 
-        public Planet(Chunk parentChunk, PlanetType type, float orbitDistance)
+        public Planet(Chunk parentChunk, PlanetType type, float orbitDistance, float mass)
         {
             ParentChunk = parentChunk;
             PlanetType = type;
             OrbitDistance = orbitDistance;
+            _mass = mass;
 
             _planetCelestialBehaviour = null;
             _planetObject = null;
             _planetRigid2D = null;
+
+            // Set random start orbit position
+            float randomAngle = Random.Range(0, 360);
+
+            _planetOrbitPosition = new Vector2(
+                Mathf.Cos(randomAngle) * OrbitDistance,
+                Mathf.Sin(randomAngle) * OrbitDistance
+            );
+
+            lastActivePosition = _planetOrbitPosition;
+            lastActiveVelocity = EstimateOrbitalVelocity();
+            lastActiveTime = Time.time;
+        }
+
+        public Vector2 GetOrbitPosition()
+        {
+            _planetOrbitPosition = EstimatePlanetPosition();
+            return ParentChunk.GetStar.GetStarPosition + _planetOrbitPosition;
         }
 
         public GameObject SetPlanetObject(Vector2 _starPosition)
@@ -50,8 +70,10 @@ namespace Starfire
             if (HasPlanetObject) return null;
 
             _planetObject = PlanetGenerator.Instance.GetPlanetObject(PlanetType);
-            _planetRigid2D = _planetObject.GetComponent<Rigidbody2D>();
             _planetCelestialBehaviour = _planetObject.GetComponent<CelestialBehaviour>();
+            _planetObject.transform.SetParent(ParentChunk.ChunkObject.transform);
+            _planetRigid2D = _planetObject.GetComponent<Rigidbody2D>();
+            _planetRigid2D.mass = _mass;
 
             if (ParentChunk.ChunkObject == null)
             {
@@ -59,22 +81,13 @@ namespace Starfire
                 return null;
             }
 
-            _planetObject.transform.SetParent(ParentChunk.ChunkObject.transform);
-
             if (lastActivePosition != Vector2.zero)
             {
-                _planetObject.transform.position = _starPosition + EstimatePlanetPosition();
+                _planetObject.transform.position = GetOrbitPosition();
             }
             else
             {
-                float randomAngle = Random.Range(0, 360);
-
-                Vector2 angleToOrbitalPosition = new Vector2(
-                    Mathf.Cos(randomAngle) * OrbitDistance,
-                    Mathf.Sin(randomAngle) * OrbitDistance
-                );
-
-                _planetObject.transform.position = _starPosition + angleToOrbitalPosition;
+                _planetObject.transform.position = _starPosition + _planetOrbitPosition;
             }
 
             return _planetObject;
@@ -96,7 +109,7 @@ namespace Starfire
             _planetCelestialBehaviour = null;
         }
 
-        private Vector2 EstimatePlanetPosition()
+        public Vector2 EstimatePlanetPosition()
         {
             // Use OrbitDistance to rotate lastOrbitDirection around the star by last active time
             Vector2 lastOrbitDirection = lastActivePosition.normalized;
@@ -109,7 +122,37 @@ namespace Starfire
                 -lastOrbitDirection.x * Mathf.Sin(angle) + lastOrbitDirection.y * Mathf.Cos(angle)
             );
 
-            return newOrbitDirection * OrbitDistance;
+            lastActivePosition = newOrbitDirection * OrbitDistance;
+            lastActiveTime = Time.time;
+
+            return lastActivePosition;
+        }
+
+        public Vector2 EstimateOrbitalVelocity()
+        {
+            //Parent orbiting controller
+            Star parentStar = ParentChunk.GetStar;
+
+            float parentStarMass = parentStar.Mass * 10;
+
+            // Calculate the distance from the planet to the central body
+            float distanceToStar = Vector2.Distance(Vector2.zero, GetOrbitPosition());
+            
+            // Calculate the direction from the planet to the star
+            Vector2 directionToStar = (Vector2.zero - GetOrbitPosition()).normalized;
+            
+            // Calculate the perpendicular direction to the direction to the star
+            Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+            
+            // Calculate the orbital velocity magnitude using the formula
+            float orbitalVelocityMagnitude = Mathf.Sqrt(0.2f * (parentStarMass) / distanceToStar);
+            
+            // Calculate the orbital velocity vector
+            Vector2 orbitalVelocity = perpendicularDirection * orbitalVelocityMagnitude;
+
+            // Add the velocity of the central body (if it's moving)
+
+            return orbitalVelocity;
         }
     }
 }
