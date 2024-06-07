@@ -13,6 +13,7 @@ namespace Starfire
         [SerializeField] private Transform panelTransform;
 
         [SerializeField] private float scaleFactor = 0.02f;
+        [SerializeField] private float mapBounds = 10000f;
         [SerializeField] private GameObject starMarkerPrefab;
         [SerializeField] private GameObject planetMarkerPrefab;
 
@@ -34,13 +35,9 @@ namespace Starfire
             
         }
 
-        private void Update()
+        public void UpdateMinimapMarkers(bool resetOrigin = false)
         {
-            UpdateMarkerPositions();
-        }
-
-        public void UpdateMinimapMarkers()
-        {      
+            if (resetOrigin) return;
             ClearCurrentMarkers();
 
             UpdateStarMarkers();
@@ -86,7 +83,6 @@ namespace Starfire
                         miniMapPos = GetMinimapPosition(planet.GetOrbitPosition());
                     }
 
-
                     if (planetMarkers.ContainsKey(planet))
                     {
                         planetMarkers[planet].transform.localPosition = miniMapPos;
@@ -101,8 +97,10 @@ namespace Starfire
             }
         }
 
-        private void UpdateMarkerPositions()
+        public void UpdateMarkerPositions(bool resetOrigin = false)
         {
+            if (resetOrigin) return;
+
             foreach (var starMarker in starMarkers)
             {
                 Vector2 starPosition = ChunkManager.Instance.Chunks[starMarker.Key].GetStarPosition;
@@ -114,7 +112,6 @@ namespace Starfire
             {
                 Vector2 miniMapPos = Vector2.zero;
 
-
                 if (planetMarker.Key.HasPlanetObject)
                 {
                     miniMapPos = GetMinimapPosition(planetMarker.Key.GetRigidbody.position);
@@ -123,7 +120,6 @@ namespace Starfire
                 {
                     miniMapPos = GetMinimapPosition(planetMarker.Key.GetOrbitPosition());
                 }
-
                 
                 planetMarker.Value.transform.localPosition = miniMapPos;
             }
@@ -164,13 +160,30 @@ namespace Starfire
             }
         }
 
+        private bool IsWithinMapBounds(Vector2 objectPosition)
+        {
+            Vector2 relativePosition = GetRelativePosition(objectPosition);
+
+            if (Mathf.Abs(relativePosition.x) > mapBounds || Mathf.Abs(relativePosition.y) > mapBounds)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private Vector2 GetMinimapPosition(Vector2 objectPosition)
         {
-            Vector2 starPosition = objectPosition;
-            Vector2 playerWorldPos = player.position;
-            Vector2 relativePos = starPosition - playerWorldPos;
+            Vector2 relativePosition = GetRelativePosition(objectPosition);
             
-            relativePos *= scaleFactor;
+            relativePosition *= scaleFactor;
+            return relativePosition;
+        }
+
+        private Vector2 GetRelativePosition(Vector2 objectPosition)
+        {
+            Vector2 playerWorldPos = player.position;
+            Vector2 relativePos = objectPosition - playerWorldPos;
             return relativePos;
         }
     }

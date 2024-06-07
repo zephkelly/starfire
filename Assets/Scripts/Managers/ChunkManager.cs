@@ -45,7 +45,7 @@ public class ChunkManager : MonoBehaviour
     #region Stars
     private StarGenerator starGenerator;
     private HashSet<Vector2Int> starChunks = new HashSet<Vector2Int>();
-    private List<Vector2Int> currentStarChunks = new List<Vector2Int>();
+    private HashSet<Vector2Int> currentStarChunks = new HashSet<Vector2Int>();
     #endregion
 
     #region Planets
@@ -55,7 +55,7 @@ public class ChunkManager : MonoBehaviour
 
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
     public Dictionary<Vector2Int, Chunk> Chunks { get => chunks; }
-    public List<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
+    public HashSet<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
     public StarGenerator StarGenerator { get => starGenerator; }
     public PlanetGenerator PlanetGenerator { get => planetGenerator; }
     public NameGenerator NameGenerator { get => nameGenerator; }
@@ -123,11 +123,10 @@ public class ChunkManager : MonoBehaviour
             MarkLastChunksInactive();
             currentChunks = GetCurrentChunks();
 
-            if (resetOrigin)
-            {
-                Minimap.Instance.UpdateMinimapMarkers();
-            }
+            Minimap.Instance.UpdateMinimapMarkers(resetOrigin);
         }
+
+        Minimap.Instance.UpdateMarkerPositions(resetOrigin);
 
         UpdateLastPositions();
     }
@@ -267,7 +266,7 @@ public class ChunkManager : MonoBehaviour
         playerCurrentChunkKey = ChunkUtils.GetChunkPosition((Vector2)playerTransform.position, chunkDiameter);
 
         // Update minimap markers
-        Minimap.Instance.UpdateMinimapMarkers();
+        // Minimap.Instance.UpdateMinimapMarkers();
 
         return true;
     }
