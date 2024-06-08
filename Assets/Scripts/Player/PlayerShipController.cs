@@ -32,7 +32,16 @@ namespace Starfire
     {   
         Move(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
 
-        base.FixedUpdate();
+        if (isOrbiting)
+        {
+            if (Input.GetKey(KeyCode.Space))
+            {
+                OrbitCelestialBody();
+            }
+            return;
+        }
+
+        // ApplyLinearDrag();
     }
 
     public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)

@@ -58,13 +58,7 @@ namespace Starfire
 
         protected virtual void FixedUpdate()
         { 
-            if (isOrbiting)
-            {
-                OrbitCelestialBody();
-                return;
-            }
 
-            ApplyLinearDrag();
         }
         
         public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool isParent = false)
@@ -108,7 +102,10 @@ namespace Starfire
             //Set constant orbit velocity
             lastOrbitalVelocity = orbitalVelocity;
 
-            orbitalVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
+            Vector2 desiredVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
+
+            //add a smooth lerp, with the current velocity being the start and orbitalVecloty being the end
+            orbitalVelocity = Vector2.Lerp(shipRigidBody.velocity, desiredVelocity, Time.deltaTime * 2000f);
 
             shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
             shipRigidBody.velocity += orbitalVelocity;
