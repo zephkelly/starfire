@@ -93,6 +93,12 @@ namespace Starfire
 
         for (int i = 0; i < starParallaxLayers.Count; i++)
         {
+            if (starParallaxLayers[i] == null)
+            {
+                starParallaxLayers.RemoveAt(i);
+                continue;
+            }
+
             starParallaxLayers[i].Parallax(cameraLastPosition);
         }
     }
@@ -101,14 +107,8 @@ namespace Starfire
 
     public void Transport(Vector2 offset)
     {
-        var currentOffset = cameraTransform.position - target.position;
-
-        // the camera needs to be offset by the same amount as the player
-
         Vector2 newPosition = new Vector2(cameraTransform.position.x, cameraTransform.position.y) + offset;
         cameraTransform.position = new Vector3(newPosition.x, newPosition.y, cameraTransform.position.z);
-
-
     }
 
     public void SetOffset(Vector2 offsetVector) => currentOffsetAmount = offsetVector;

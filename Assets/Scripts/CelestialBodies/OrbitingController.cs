@@ -128,7 +128,7 @@ namespace Starfire
 
     private void OnTriggerEnter2D(Collider2D _otherCollider) 
     {
-      if (_otherCollider.CompareTag("Player"))
+      if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Enemy"))
       {
         _otherCollider.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
       }
@@ -143,7 +143,7 @@ namespace Starfire
 
     private void OnTriggerExit2D(Collider2D _otherCollider) 
     {
-        if (_otherCollider.CompareTag("Player"))
+        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Enemy"))
         {
             ShipController playerController = _otherCollider.gameObject.GetComponent<ShipController>();
 

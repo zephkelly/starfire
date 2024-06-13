@@ -31,7 +31,7 @@ namespace Starfire
                 Destroy(gameObject);
             }
 
-            player = GameObject.Find("PlayerShip").transform;
+            player = GameObject.FindGameObjectsWithTag("Player")[0].transform;
             
         }
 

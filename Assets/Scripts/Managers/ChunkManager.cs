@@ -265,9 +265,6 @@ public class ChunkManager : MonoBehaviour
 
         playerCurrentChunkKey = ChunkUtils.GetChunkPosition((Vector2)playerTransform.position, chunkDiameter);
 
-        // Update minimap markers
-        // Minimap.Instance.UpdateMinimapMarkers();
-
         return true;
     }
 

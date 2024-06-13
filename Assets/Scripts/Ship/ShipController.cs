@@ -58,7 +58,14 @@ namespace Starfire
 
         protected virtual void FixedUpdate()
         { 
+            if (isOrbiting)
+            {
 
+                OrbitCelestialBody();
+                return;
+            }
+
+            ApplyLinearDrag();
         }
         
         public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool isParent = false)
