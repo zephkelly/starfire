@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.VisualScripting;
 
 public class UIManager : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class UIManager : MonoBehaviour
 
     private Queue minorAlertQueue = new Queue();
     private string lastMinorAlert;
-
+    
     void Awake()
     {
         if (Instance == null)
