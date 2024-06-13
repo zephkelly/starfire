@@ -11,6 +11,7 @@ namespace Starfire
         private Transform scavengerTransform;
 
         private Transform playerTransform;
+        private Rigidbody2D playerRigid2D;
 
         private LayerMask whichRaycastableLayers;
         private Vector2 lastKnownPlayerPosition;
@@ -21,8 +22,8 @@ namespace Starfire
         private bool setBiasDirection = false;
         private int numberOfRays = 40;
         private float chaseRadius = 300f;
-        private float collisionCheckRadius = 8f;
-        private float returnToIdleTimer = 0f;
+        private float collisionCheckRadius = 12f;
+        private float timeSpentCircling = 0f;
 
         public ScavengerChaseState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
         {
@@ -30,6 +31,7 @@ namespace Starfire
             scavengerTransform = _scavenger.transform;
             scavengerRigid2D = _scavengerRigid;
             playerTransform = _playerTransfrom;
+            playerRigid2D = _playerTransfrom.GetComponent<Rigidbody2D>();
         }
 
         public void Enter()
@@ -49,14 +51,19 @@ namespace Starfire
 
             RaycastToPlayer();
             RaycastRadially();
+            CirclePlayer();
 
             lerpVector = Vector2.Lerp(scavengerTransform.up, weightedDirection, 0.7f);
-            visualLerpVector = Vector2.Lerp(scavengerTransform.up, weightedDirection, 0.15f);  
+            visualLerpVector = Vector2.Lerp(scavengerTransform.up, weightedDirection, 0.15f);
+
+            if (timeSpentCircling > 5f)
+            {
+                Debug.Log("Here we could change to a more complex firing state");
+            }
         }
 
         public void FixedUpdate()
         {
-            //get distance between player and scavenger
             float distance = Vector2.Distance(scavengerTransform.position, playerTransform.position);
             float speed = shipController.MoveSpeed;
 
@@ -86,20 +93,26 @@ namespace Starfire
             {
                 Debug.DrawRay(scavengerTransform.position, playerTransform.position - scavengerTransform.position, Color.red);
 
+                // TODO: Choose a bias direction based on the future position of the scavenger, to get more accurate predicting based on velocity
                 if (!setBiasDirection)
                 {
-                Vector2 obstacleDirection = hit.centroid - (Vector2)scavengerTransform.position;
-                float lateralVelocity = Vector2.Dot(scavengerRigid2D.velocity, Vector2.Perpendicular(obstacleDirection).normalized);
+                    Vector2 obstacleDirection = hit.centroid - (Vector2)scavengerTransform.position;
+                    float lateralVelocity = Vector2.Dot(scavengerRigid2D.velocity, Vector2.Perpendicular(obstacleDirection).normalized);
 
-                Vector2 biasDirection;
-                if (lateralVelocity > 0) {
-                    biasDirection = Vector2.Perpendicular(obstacleDirection).normalized;
-                } else {
-                    biasDirection = -Vector2.Perpendicular(obstacleDirection).normalized;
-                }
-                lastKnownPlayerPosition = hit.point + (biasDirection * 8f);
+                    Vector2 biasDirection;
 
-                setBiasDirection = true;
+                    if (lateralVelocity > 0)
+                    {
+                        biasDirection = Vector2.Perpendicular(obstacleDirection).normalized;
+                    } 
+                    else 
+                    {
+                        biasDirection = -Vector2.Perpendicular(obstacleDirection).normalized;
+                    }
+
+                    lastKnownPlayerPosition = hit.point + (biasDirection * 8f);
+
+                    setBiasDirection = true;
                 }
 
                 Debug.DrawRay(lastKnownPlayerPosition, Vector2.one * 0.5f, Color.blue);
@@ -117,7 +130,6 @@ namespace Starfire
                 float angle = i * 2 * Mathf.PI / numberOfRays;
                 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
                 direction.Normalize();
-
 
                 float angleBetween = Vector2.Angle(direction, lastKnownPlayerPosition - (Vector2)scavengerTransform.position);
                 float weight = Mathf.Pow(1f - (angleBetween / 180f), 2f);
@@ -141,7 +153,7 @@ namespace Starfire
             {
                 if (positiveAngles[i].z <= 0)
                 {
-                    //on each index next to current index, disinhibit
+                    //If the current ray should be disinhibited, disinhibit the rays next to it
                     positiveAngles[(i + 1 + numberOfRays) % numberOfRays].z = (positiveAngles[(i + 1 + numberOfRays) % numberOfRays].z - 0.8f) / 2;
                     positiveAngles[(i - 1 + numberOfRays) % numberOfRays].z = (positiveAngles[(i - 1 + numberOfRays) % numberOfRays].z - 0.8f) / 2;
                 }
@@ -149,41 +161,53 @@ namespace Starfire
 
             for (int i = 0; i < numberOfRays; i++)
             {
-                if (positiveAngles[i].z > 0.6)
-                {
-                    Debug.DrawRay((Vector2)scavengerTransform.position, (Vector2)positiveAngles[i] * collisionCheckRadius * (1 + Mathf.InverseLerp(0, 10, scavengerRigid2D.velocity.magnitude)) * positiveAngles[i].z, Color.green);
-                }
-                else 
-                {
-                    Debug.DrawRay((Vector2)scavengerTransform.position, (Vector2)positiveAngles[i] * collisionCheckRadius * (1 + Mathf.InverseLerp(0, 10, scavengerRigid2D.velocity.magnitude)) * positiveAngles[i].z, Color.red);
-                }
+                // if (positiveAngles[i].z > 0.6)
+                // {
+                //     Debug.DrawRay((Vector2)scavengerTransform.position, (Vector2)positiveAngles[i] * collisionCheckRadius * (1 + Mathf.InverseLerp(0, 10, scavengerRigid2D.velocity.magnitude)) * positiveAngles[i].z, Color.green);
+                // }
+                // else 
+                // {
+                //     Debug.DrawRay((Vector2)scavengerTransform.position, (Vector2)positiveAngles[i] * collisionCheckRadius * (1 + Mathf.InverseLerp(0, 10, scavengerRigid2D.velocity.magnitude)) * positiveAngles[i].z, Color.red);
+                // }
 
                 weightedDirection += (Vector2)positiveAngles[i] * positiveAngles[i].z;
             }
 
             weightedDirection.Normalize();
-            Debug.DrawLine(scavengerTransform.position, scavengerTransform.position + (Vector3)weightedDirection * 10f, Color.yellow);
         }
 
-        // private void CheckWeightedDirection()
-        // {
-        //     RaycastHit2D hit = Physics2D.Raycast(scavengerTransform.position, weightedDirection, 5f, whichRaycastableLayers);
+        private void CirclePlayer()
+        {
+            if (Vector2.Distance(scavengerTransform.position, playerTransform.position) < 80f)
+            {
+                timeSpentCircling += Time.deltaTime;
 
-        //     Vector2 obstacleDirection = hit.centroid - (Vector2)scavengerTransform.position;
-        //     float lateralVelocity = Vector2.Dot(scavengerRigid2D.velocity, Vector2.Perpendicular(obstacleDirection).normalized);
+                // Choose a bias direction based on the future position of the player to get more accurate circling
+                float predictionTime = 1f;
+                Vector2 predictedPlayerPosition = (Vector2)playerTransform.position + (playerRigid2D.velocity * predictionTime);
+                Vector2 newPlayerDirection = predictedPlayerPosition - (Vector2)scavengerTransform.position;
+                Vector2 newBiasDirection = Vector2.Perpendicular(newPlayerDirection).normalized;
 
-        //     Vector2 biasDirection;
-        //     float biasMagnitude = 0.9f; // You might want to adjust this based on testing
+                float distance = Vector2.Distance(scavengerTransform.position, playerTransform.position);
+                float biasMagnitude = Mathf.InverseLerp(80, 0, distance);
+                float playerVelocity = playerRigid2D.velocity.magnitude;
+                float biasMultiplier = 6f;
+                
+                if (playerVelocity > 50f)
+                {
+                    biasMultiplier = 2f;
+                }
 
-        //     if (lateralVelocity > 0) {
-        //         biasDirection = Vector2.Perpendicular(obstacleDirection).normalized;
-        //     } else {
-        //         biasDirection = -Vector2.Perpendicular(obstacleDirection).normalized;
-        //     }
+                weightedDirection += newBiasDirection * (biasMagnitude * biasMultiplier);
+                weightedDirection.Normalize();
+            }
+            else
+            {
+                timeSpentCircling = 0f;
+            }
 
-        //     weightedDirection += biasDirection * biasMagnitude;
-        //     weightedDirection.Normalize();
-        // }
+            Debug.DrawLine(scavengerTransform.position, scavengerTransform.position + (Vector3)weightedDirection * 10f, Color.yellow);
+        }
 
         public void Exit()
         {
