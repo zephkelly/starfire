@@ -53,6 +53,10 @@ public class ChunkManager : MonoBehaviour
     private HashSet<Vector2Int> planetChunks = new HashSet<Vector2Int>();
     #endregion
 
+    #region Ships
+    private HashSet<ShipController> ships = new HashSet<ShipController>();
+    #endregion
+
     public ObjectPool<GameObject> ChunkPool { get => chunkPool; }
     public Dictionary<Vector2Int, Chunk> Chunks { get => chunks; }
     public HashSet<Vector2Int> CurrentStarChunks { get => currentStarChunks; }
@@ -91,6 +95,16 @@ public class ChunkManager : MonoBehaviour
         {
             Destroy(_chunkObject);
         }, false, 200, 300);
+    }
+
+    public void AddShip(ShipController _ship)
+    {
+        ships.Add(_ship);
+    }
+
+    public void RemoveShip(ShipController _ship)
+    {
+        ships.Remove(_ship);
     }
 
     private void Start()
@@ -256,8 +270,13 @@ public class ChunkManager : MonoBehaviour
         Vector2 offset = -(Vector2)playerTransform.position;
         offset += distanceFromChunkCenter;
 
-        // Transport player + camera
-        playerController.Transport(offset);
+        // Transport ships + camera
+        // playerController.Transport(offset);
+        foreach (var ship in ships)
+        {
+            ship.Transport(offset);
+        }
+        
         cameraController.Transport(offset);
 
         ClearLastPositions();

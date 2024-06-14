@@ -16,7 +16,7 @@ namespace Starfire
         private void Awake()
         {
             cameraTransform = Camera.main.transform;
-            playerTransform = GameObject.Find("PlayerShip").transform;
+            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
         }
 
 

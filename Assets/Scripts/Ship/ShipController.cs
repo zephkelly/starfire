@@ -52,6 +52,8 @@ namespace Starfire
         protected virtual void Start()
         {
             shipRigidBody.centerOfMass = Vector2.zero;
+
+            ChunkManager.Instance.AddShip(this);
         }
 
         protected virtual void Update() {}
@@ -188,5 +190,10 @@ namespace Starfire
         public int Damage(int damage, DamageType damageType) => configuration.Damage(damage, damageType);
 
         public void Repair(int repair, DamageType damageType) => configuration.Repair(repair, damageType);
+
+        private void OnDestroy()
+        {
+            ChunkManager.Instance.RemoveShip(this);
+        }
     }
 }

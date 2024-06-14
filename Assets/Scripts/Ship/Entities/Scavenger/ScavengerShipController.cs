@@ -5,7 +5,10 @@ namespace Starfire
     public class ScavengerShipController : ShipController
     {
         private StateMachine stateMachine;
+        private Rigidbody2D scavengerRigid2D;
         [SerializeField] private float moveSpeed = 160f;
+
+        private Transform playerTransform;
 
         public StateMachine StateMachine { get => stateMachine; }
         public float MoveSpeed { get => moveSpeed; }
@@ -20,8 +23,10 @@ namespace Starfire
             base.Start();
 
             stateMachine = new StateMachine();
-            // stateMachine.ChangeState(new ScavengerIdleState(this));
-            stateMachine.ChangeState(new ScavengerChaseState(this, transform.GetComponent<Rigidbody2D>(), GameObject.Find("PlayerShip").transform));
+            scavengerRigid2D = transform.GetComponent<Rigidbody2D>();
+            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+
+            stateMachine.ChangeState(new ScavengerChaseState(this, scavengerRigid2D, playerTransform));
         }
 
         protected override void Update()
@@ -45,7 +50,5 @@ namespace Starfire
         {
             base.RemoveOrbitingBody();
         }
-
-
     }
 }

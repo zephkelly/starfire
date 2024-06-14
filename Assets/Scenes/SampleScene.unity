@@ -2095,7 +2095,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6469693482504899954, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: m_Name
-      value: PlayerShip
+      value: Ship
       objectReference: {fileID: 0}
     - target: {fileID: 6469693482504899954, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: m_Layer

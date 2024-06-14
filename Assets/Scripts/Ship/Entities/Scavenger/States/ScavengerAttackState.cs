@@ -1,31 +1,46 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerChaseState : IState
+    public class ScavengerAttackState : IState
     {
         private ScavengerShipController shipController;
         private Rigidbody2D scavengerRigid2D;
         private Transform scavengerTransform;
-
         private Transform playerTransform;
         private Rigidbody2D playerRigid2D;
 
+        private Vector3[] positiveAngles = new Vector3[16];
         private LayerMask whichRaycastableLayers;
         private Vector2 lastKnownPlayerPosition;
+
         private Vector2 weightedDirection;
         private Vector2 lerpVector;
         private Vector2 visualLerpVector;
-        private Vector3[] positiveAngles = new Vector3[16];
-        private bool setBiasDirection = false;
         private int numberOfRays = 40;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 12f;
-        private float timeSpentCircling = 0f;
 
-        public ScavengerChaseState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
+        private MovementPattern currentMovementPattern = MovementPattern.Normal;
+        private CirclePattern currentCirclePattern = CirclePattern.Clockwise;
+        private float timeTillCirclePatternChange = 2f;
+        private float timeTillMovePatternChange = 3f;
+        private float timeSpentNotCircling = 0f;
+
+        private enum CirclePattern
+        {
+            Clockwise,
+            CounterClockwise,
+        }
+
+        private enum MovementPattern
+        {
+            Normal,
+            ZigZag,
+            Fixed
+        }
+
+        public ScavengerAttackState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
         {
             shipController = _scavenger;
             scavengerTransform = _scavenger.transform;
@@ -36,8 +51,10 @@ namespace Starfire
 
         public void Enter()
         {
-            Debug.Log("Scavenger is chasing the player!");
-            
+            Debug.Log("Scavenger is attacking the player!");
+
+            timeTillCirclePatternChange = Random.Range(4f, 8f);
+            timeTillMovePatternChange = Random.Range(4f, 8f);
             whichRaycastableLayers = LayerMask.GetMask("Player");
         }
 
@@ -49,28 +66,110 @@ namespace Starfire
                 return;
             }
 
+            if (timeSpentNotCircling > 4f)
+            {
+                shipController.StateMachine.ChangeState(new ScavengerChaseState(shipController, scavengerRigid2D, playerTransform));
+            }
+
             RaycastToPlayer();
             RaycastRadially();
             CirclePlayer();
 
-            lerpVector = Vector2.Lerp(scavengerTransform.up, weightedDirection, 0.7f);
-            visualLerpVector = Vector2.Lerp(scavengerTransform.up, weightedDirection, 0.15f);
+            lerpVector = Vector2.Lerp(scavengerTransform.up, AdjustLerpPattern(weightedDirection), 0.7f);
+            visualLerpVector = Vector2.Lerp(scavengerTransform.up, AdjustVisualLerpPattern(weightedDirection), 0.15f);
 
-            if (timeSpentCircling > 5f)
-            {
-                shipController.StateMachine.ChangeState(new ScavengerAttackState(shipController, scavengerRigid2D, playerTransform));
-            }
+            currentCirclePattern = GetRandomCirclePattern();
+            currentMovementPattern = GetRandomMovementPattern();
         }
 
         public void FixedUpdate()
         {
-            float distance = Vector2.Distance(scavengerTransform.position, playerTransform.position);
-            float speed = Mathf.Lerp(shipController.MoveSpeed, shipController.MoveSpeed * 1.1f, Mathf.InverseLerp(40, 220, distance));
-
-            shipController.Move(lerpVector, speed, true);
+            shipController.Move(lerpVector, GetShipSpeed(), true);
             scavengerTransform.up = visualLerpVector;
         }
 
+        private Vector2 AdjustLerpPattern(Vector2 _weightedDirection)
+        {
+            Vector2 newLerpVector = _weightedDirection;
+
+            if (currentMovementPattern == MovementPattern.Normal)
+            {
+                newLerpVector = _weightedDirection;
+            }
+            else if (currentMovementPattern == MovementPattern.ZigZag)
+            {
+                newLerpVector = _weightedDirection + (Vector2.Perpendicular(_weightedDirection).normalized * Mathf.Sin(Time.time * 3f) * 0.8f);
+            }
+
+            return newLerpVector;
+        }
+
+        private Vector2 AdjustVisualLerpPattern(Vector2 _weightedDirection)
+        {
+            Vector2 newVisualLerpVector = AdjustLerpPattern(_weightedDirection);
+
+            if (currentMovementPattern == MovementPattern.Fixed)
+            {
+                newVisualLerpVector = (lastKnownPlayerPosition - (Vector2)scavengerTransform.position).normalized;
+            }
+
+            return newVisualLerpVector;
+        }
+
+        private float GetShipSpeed()
+        {
+            float shipSpeed = shipController.MoveSpeed;
+
+            if (currentMovementPattern == MovementPattern.Fixed)
+            {
+                shipSpeed = shipSpeed * 0.5f;
+            }
+
+            return shipSpeed;
+        }
+
+        private CirclePattern GetRandomCirclePattern()
+        {
+            CirclePattern newCirclePattern = currentCirclePattern;
+            timeTillCirclePatternChange -= Time.deltaTime;
+
+            if (timeTillCirclePatternChange <= 0)
+            {
+                newCirclePattern = (CirclePattern)Random.Range(0, 2);
+                timeTillCirclePatternChange = Random.Range(4f, 8f);
+            }
+
+            return newCirclePattern;
+        }
+
+        private MovementPattern GetRandomMovementPattern()
+        {
+            MovementPattern newMovementPattern = currentMovementPattern;
+            timeTillMovePatternChange -= Time.deltaTime;
+
+            if (timeTillMovePatternChange <= 0)
+            {
+                timeTillMovePatternChange = Random.Range(4f, 8f);
+                int randomMovementPattern = Random.Range(0, 10);
+
+                if (randomMovementPattern <= 3)
+                {
+                    newMovementPattern = MovementPattern.Fixed;
+                }
+                else if (randomMovementPattern <= 6)
+                {
+                    newMovementPattern = MovementPattern.ZigZag;
+                }
+                else
+                {
+                    newMovementPattern = MovementPattern.Normal;
+                }
+            }
+
+            return newMovementPattern;
+        }
+
+        private bool setBiasDirection = false;
         private void RaycastToPlayer() 
         {
             RaycastHit2D hit = Physics2D.Raycast(scavengerTransform.position, playerTransform.position - scavengerTransform.position, chaseRadius, whichRaycastableLayers);
@@ -86,6 +185,7 @@ namespace Starfire
             }
             else
             {
+                // TODO: Choose a bias direction based on the future position of the scavenger, to get more accurate predicting based on velocity
                 if (!setBiasDirection)
                 {
                     Vector2 obstacleDirection = hit.centroid - (Vector2)scavengerTransform.position;
@@ -157,16 +257,27 @@ namespace Starfire
             weightedDirection.Normalize();
         }
 
+
+
         private void CirclePlayer()
         {
             if (Vector2.Distance(scavengerTransform.position, playerTransform.position) < 80f)
             {
-                timeSpentCircling += Time.deltaTime;
+                timeSpentNotCircling = 0f;
 
                 float predictionTime = 1f;
                 Vector2 predictedPlayerPosition = (Vector2)playerTransform.position + (playerRigid2D.velocity * predictionTime);
                 Vector2 newPlayerDirection = predictedPlayerPosition - (Vector2)scavengerTransform.position;
-                Vector2 newBiasDirection = Vector2.Perpendicular(newPlayerDirection).normalized;
+                Vector2 newBiasDirection = Vector2.zero;
+
+                if (currentCirclePattern == CirclePattern.Clockwise)
+                {
+                    newBiasDirection = Vector2.Perpendicular(newPlayerDirection).normalized;
+                }
+                else
+                {
+                    newBiasDirection = -Vector2.Perpendicular(newPlayerDirection).normalized;
+                }
 
                 float distance = Vector2.Distance(scavengerTransform.position, playerTransform.position);
                 float biasMagnitude = Mathf.InverseLerp(80, 0, distance);
@@ -183,7 +294,7 @@ namespace Starfire
             }
             else
             {
-                timeSpentCircling = 0f;
+                timeSpentNotCircling += Time.deltaTime;
             }
         }
 

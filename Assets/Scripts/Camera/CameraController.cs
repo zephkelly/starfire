@@ -48,7 +48,7 @@ namespace Starfire
 
     private void Start()
     {
-        target = GameObject.Find("PlayerShip").transform;
+        target = GameObject.FindGameObjectWithTag("Player").transform;
         targetRigidbody = target.GetComponent<Rigidbody2D>();
 
         minZoom = mainCamera.orthographicSize;
