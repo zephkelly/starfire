@@ -35,8 +35,8 @@ public class ChunkManager : MonoBehaviour
     private List<Vector2Int> currentChunks = new List<Vector2Int>();
     private List<Vector2Int> lastCurrentChunks = new List<Vector2Int>();
 
-    private const int chunkDiameter = 1000;
-    [SerializeField] private float floatingOriginLimit = 2500f;
+    private const int chunkDiameter = 512;
+    private float floatingOriginLimit;
     private uint chunkIndex = 0;
     #endregion
 
@@ -77,6 +77,7 @@ public class ChunkManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        floatingOriginLimit = chunkDiameter * 2.5f;
         UnityEngine.Random.InitState((int)DateTime.Now.Ticks);
 
         starGenerator = GetComponent<StarGenerator>();
@@ -335,7 +336,7 @@ public class ChunkManager : MonoBehaviour
 
     private void SetChunkState(Chunk _chunk, Vector2Int _chunkCurrentKey, int _x, int _y)
     {
-        if (Math.Abs(_x) <= 4 && Math.Abs(_y) <= 4)
+        if (Math.Abs(_x) <= 6 && Math.Abs(_y) <= 6)
         {
             _chunk.SetActiveChunk(_chunkCurrentKey);
             return;

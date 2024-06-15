@@ -15,6 +15,9 @@ namespace Starfire
     [Range(0f, 100f)]
     [SerializeField] private float spawnChance = 1f; // Chance of spawning a star.
 
+    private const int maximumStarRadius = 3200;
+    private const int minimumStarRadius = 2600;
+
     public ObjectPool<GameObject> StarPool { get => starPool; }
 
     public void Awake()
@@ -47,7 +50,7 @@ namespace Starfire
         {
             if (Random.Range(0f, 100f) > spawnChance) return false;
 
-            var searchDistance = 5;
+            int searchDistance = (int)(maximumStarRadius * 2f / ChunkManager.Instance.ChunkDiameter);
             for (int x = -searchDistance; x <= searchDistance; x++)
             {
                 for (int y = -searchDistance; y <= searchDistance; y++)
@@ -80,7 +83,7 @@ namespace Starfire
 
     public int GetStarRadius()
     {
-        return Random.Range(3000, 4000);
+        return Random.Range(minimumStarRadius, maximumStarRadius);
     }
 
     public float GetStarMass(StarType starType, float radius)

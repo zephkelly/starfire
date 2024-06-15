@@ -95,9 +95,9 @@ GameObject:
   - component: {fileID: 2274862760583280884}
   - component: {fileID: 3337673184301437493}
   - component: {fileID: 8777421711200661380}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Scavenger
-  m_TagString: Player
+  m_TagString: Entities
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 216d2df6cede07b4a9fbe1ba85f73047, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 160
+  moveSpeed: 155
 --- !u!1 &8687220832301523372
 GameObject:
   m_ObjectHideFlags: 0

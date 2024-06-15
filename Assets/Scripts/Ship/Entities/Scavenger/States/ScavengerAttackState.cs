@@ -37,7 +37,8 @@ namespace Starfire
         {
             Normal,
             ZigZag,
-            Fixed
+            Fixed,
+            FigureEight
         }
 
         public ScavengerAttackState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
@@ -62,13 +63,13 @@ namespace Starfire
         {
             if (playerTransform == null)
             {
-                shipController.StateMachine.ChangeState(new ScavengerIdleState(shipController));
+                shipController.ScavengerStateMachine.ChangeState(new ScavengerIdleState(shipController));
                 return;
             }
 
             if (timeSpentNotCircling > 4f)
             {
-                shipController.StateMachine.ChangeState(new ScavengerChaseState(shipController, scavengerRigid2D, playerTransform));
+                shipController.ScavengerStateMachine.ChangeState(new ScavengerChaseState(shipController));
             }
 
             RaycastToPlayer();
@@ -152,11 +153,11 @@ namespace Starfire
                 timeTillMovePatternChange = Random.Range(4f, 8f);
                 int randomMovementPattern = Random.Range(0, 10);
 
-                if (randomMovementPattern <= 3)
+                if (randomMovementPattern <= 1)
                 {
                     newMovementPattern = MovementPattern.Fixed;
                 }
-                else if (randomMovementPattern <= 6)
+                else if (randomMovementPattern <= 3)
                 {
                     newMovementPattern = MovementPattern.ZigZag;
                 }

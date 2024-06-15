@@ -30,7 +30,14 @@ namespace Starfire
 
     protected override void FixedUpdate()
     {   
-        Move(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+        if (Input.GetKey(KeyCode.Space))
+        {
+            Move(keyboardInput.normalized, 1500, Input.GetKey(KeyCode.LeftShift));
+        }
+        else
+        {
+            Move(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+        }
 
         base.FixedUpdate();
     }

@@ -2,15 +2,22 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerShipController : ShipController
+    public class ScavengerShipController : ShipController, IScavengerData
     {
         private StateMachine stateMachine;
+        private Transform scavengerTransform;
+        private GameObject scavengerObject;
         private Rigidbody2D scavengerRigid2D;
+        private Transform playerTransform;
+        private Rigidbody2D playerRigid2D;
         [SerializeField] private float moveSpeed = 160f;
 
-        private Transform playerTransform;
-
-        public StateMachine StateMachine { get => stateMachine; }
+        public StateMachine ScavengerStateMachine { get => stateMachine; }
+        public Transform ScavengerTransform { get => scavengerTransform; }
+        public Rigidbody2D ScavengerRigidbody { get => scavengerRigid2D; }
+        public GameObject ScavengerObject { get => scavengerObject; }
+        public Transform PlayerTransform { get => playerTransform; }
+        public Rigidbody2D PlayerRigidbody { get => playerRigid2D; }
         public float MoveSpeed { get => moveSpeed; }
 
         protected override void Awake()
@@ -23,10 +30,14 @@ namespace Starfire
             base.Start();
 
             stateMachine = new StateMachine();
+            scavengerTransform = transform;
+            scavengerObject = gameObject;
             scavengerRigid2D = transform.GetComponent<Rigidbody2D>();
-            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
 
-            stateMachine.ChangeState(new ScavengerChaseState(this, scavengerRigid2D, playerTransform));
+            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+            playerRigid2D = playerTransform.GetComponent<Rigidbody2D>();
+
+            stateMachine.ChangeState(new ScavengerChaseState(this));
         }
 
         protected override void Update()

@@ -128,22 +128,22 @@ namespace Starfire
 
     private void OnTriggerEnter2D(Collider2D _otherCollider) 
     {
-      if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Enemy"))
-      {
-        _otherCollider.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
-      }
-      else if (_otherCollider.CompareTag("Planet"))
-      {
-        if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
+        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
+        {
+            _otherCollider.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
+        }
+        else if (_otherCollider.CompareTag("Planet"))
+        {
+            if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
 
-        Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
-        SetChildOrbitingObject(planetRigidbody);
-      }
+            Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
+            SetChildOrbitingObject(planetRigidbody);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D _otherCollider) 
     {
-        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Enemy"))
+        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
         {
             ShipController playerController = _otherCollider.gameObject.GetComponent<ShipController>();
 
