@@ -42,8 +42,8 @@ namespace Starfire
 
         protected override void Update()
         {
-            stateMachine.Update();
             base.Update();
+            stateMachine.Update();
         }
 
         protected override void FixedUpdate()

@@ -24,8 +24,15 @@ namespace Starfire
 
     protected override void Update()
     {
+        base.Update();
+
         GetKeyboardInput();
         LookAtMouse();
+
+        if (Input.GetMouseButton(0))
+        {
+            FireProjectile();
+        }
     }
 
     protected override void FixedUpdate()
@@ -54,16 +61,16 @@ namespace Starfire
 
     public override void RemoveOrbitingBody()
     {
-      if (orbitingBody != null)
-      {
-        OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.Name);
-      }
-      else
-      {
-        Debug.LogWarning("PlayerShipController.RemoveOrbitingBody: orbitingBody is null");
-      }
+        if (orbitingBody != null)
+        {
+            OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.Name);
+        }
+        else
+        {
+            Debug.LogWarning("PlayerShipController.RemoveOrbitingBody: orbitingBody is null");
+        }
 
-      base.RemoveOrbitingBody();
+        base.RemoveOrbitingBody();
     }
 
     private void LookAtMouse()

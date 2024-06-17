@@ -52,8 +52,6 @@ namespace Starfire
 
         public void Enter()
         {
-            Debug.Log("Scavenger is attacking the player!");
-
             timeTillCirclePatternChange = Random.Range(4f, 8f);
             timeTillMovePatternChange = Random.Range(4f, 8f);
             whichRaycastableLayers = LayerMask.GetMask("Player");

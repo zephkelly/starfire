@@ -46,8 +46,6 @@ namespace Starfire
 
         public void Enter()
         {
-            Debug.Log("Scavenger is chasing the player!");
-            
             whichRaycastableLayers = LayerMask.GetMask("Player", "Entities");
         }
 

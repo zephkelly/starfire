@@ -11,20 +11,35 @@ namespace Starfire
 
     public class ShipConfiguration : ScriptableObject
     {
+        private ShipController shipController;
+
         public int Health { get; private set; }
         public int Fuel { get; private set; }
         public int Cargo { get; private set; }
         public int EngineTopSpeed { get; private set; }
+        public int ProjectileDamage { get; private set; }
         public int MaxHealth { get; private set; }
         public int MaxFuel { get; private set; }
         public int MaxCargo { get; private set; }
 
-        public int Damage(int damage, DamageType damageType)
+        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int engineTopSpeed)
         {
-            if (damageType == DamageType.Hull) return DamageHull(damage);
-            else if (damageType == DamageType.Shield) return DamageShield(damage);
+            shipController = shipConfig;
+            Health = health;
+            Fuel = fuel;
+            Cargo = cargo;
+            EngineTopSpeed = engineTopSpeed;
+            MaxHealth = health;
+            MaxFuel = fuel;
+            MaxCargo = cargo;
 
-            return -1;
+            ProjectileDamage = 2;
+        }
+
+        public void Damage(int damage, DamageType damageType)
+        {
+            if (damageType == DamageType.Hull) DamageHull(damage);
+            else if (damageType == DamageType.Shield) DamageShield(damage);
         }
 
         public void Repair(int repair, DamageType damageType)
@@ -43,10 +58,16 @@ namespace Starfire
             //To be implemented
         }
 
-        private int DamageHull(int damage)
+        private void DamageHull(int damage)
         {
-            //To be implemented
-            return -1;
+            Health -= damage;
+
+            if (Health <= 0)
+            {
+                Destroy(shipController.gameObject);
+                Destroy(shipController);
+                Destroy(this);
+            }
         }
 
         private int DamageShield(int damage)

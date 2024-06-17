@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering.Universal;
@@ -12,9 +13,10 @@ namespace Starfire
         bool IsOrbiting { get; }
         void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false);
         void RemoveOrbitingBody();
-        int Damage(int damage, DamageType damageType);
+        void Damage(int damage, DamageType damageType);
         void Repair(int repair, DamageType damageType);
         void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed);
+        void FireProjectile();
         void Transport(Vector2 position);
         void Rotate(Vector2 direction, float speed, float lerpSpeed);
     }
@@ -27,11 +29,18 @@ namespace Starfire
         protected Rigidbody2D shipRigidBody;
         protected ParticleSystem shipThrusterPS;
         protected Light2D shipThrusterLight;
-        
+
         protected CelestialBehaviour orbitingBody;
         protected Vector2 orbitalVelocity;
         protected Vector2 lastOrbitalVelocity;
         protected bool isOrbiting = false;
+
+        [Header("Weapons")]
+        [SerializeField] protected List<ParticleSystem> weaponProjectilePS = new List<ParticleSystem>();
+        protected Queue<ParticleSystem> weaponProjectileQueue = new Queue<ParticleSystem>();
+        [SerializeField] protected float fireRate = 0.20f;
+        // protected bool isStandardFire = true;
+        protected float currentFireTimer = 0;
 
         public ShipConfiguration Configuration => configuration;
         public ShipInventory Inventory => inventory;
@@ -41,6 +50,7 @@ namespace Starfire
         protected virtual void Awake()
         {
             configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
+            configuration.SetConfiguration(this, 100, 100, 100, 100);
 
             shipRigidBody = GetComponent<Rigidbody2D>();
             shipThrusterPS = GetComponentInChildren<ParticleSystem>();
@@ -56,13 +66,15 @@ namespace Starfire
             ChunkManager.Instance.AddShip(this);
         }
 
-        protected virtual void Update() {}
+        protected virtual void Update() 
+        {
+            UpdateFireRate();
+        }
 
         protected virtual void FixedUpdate()
         { 
             if (isOrbiting)
             {
-
                 OrbitCelestialBody();
                 return;
             }
@@ -114,6 +126,7 @@ namespace Starfire
             Vector2 desiredVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
             //add a smooth lerp, with the current velocity being the start and orbitalVecloty being the end
+            // FIX THIS !!! Time.deltaTime * 2000f???
             orbitalVelocity = Vector2.Lerp(shipRigidBody.velocity, desiredVelocity, Time.deltaTime * 2000f);
 
             shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
@@ -160,6 +173,34 @@ namespace Starfire
             }
         }
 
+        private int currentWeaponIndex = 0;
+        public virtual void FireProjectile()
+        {
+            if (currentFireTimer > 0) return;
+            currentFireTimer = fireRate;
+
+            weaponProjectileQueue.Enqueue(weaponProjectilePS[currentWeaponIndex]);
+            ParticleSystem weaponPS = weaponProjectileQueue.Dequeue();
+
+            weaponPS.Play();
+
+            currentWeaponIndex = (currentWeaponIndex + 1) % weaponProjectilePS.Count;
+        }
+
+        private void UpdateFireRate()
+        {
+            if (currentFireTimer <= 0) return;
+            currentFireTimer -= Time.deltaTime;
+        }
+
+        protected virtual void AimWeapons(Vector2 direction)
+        {
+            foreach (var weapon in weaponProjectilePS)
+            {
+                weapon.transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
+            }
+        }
+
         public virtual void Transport(Vector2 offset)
         {
             transform.position += (Vector3)offset;
@@ -187,13 +228,20 @@ namespace Starfire
             throw new System.NotImplementedException();
         }
 
-        public int Damage(int damage, DamageType damageType) => configuration.Damage(damage, damageType);
+        public void Damage(int damage, DamageType damageType) => configuration.Damage(damage, damageType);
 
         public void Repair(int repair, DamageType damageType) => configuration.Repair(repair, damageType);
 
         private void OnDestroy()
         {
             ChunkManager.Instance.RemoveShip(this);
+        }
+
+        protected virtual void OnParticleCollision(GameObject other)
+        {
+            int damage = other.GetComponentInParent<ShipController>().Configuration.ProjectileDamage;
+
+            Damage(damage, DamageType.Hull);
         }
     }
 }
