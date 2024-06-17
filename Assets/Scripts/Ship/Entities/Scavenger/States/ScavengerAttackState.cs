@@ -17,7 +17,7 @@ namespace Starfire
         private Vector2 weightedDirection;
         private Vector2 lerpVector;
         private Vector2 visualLerpVector;
-        private int numberOfRays = 40;
+        private int numberOfRays = 16;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 12f;
 

@@ -26,7 +26,7 @@ namespace Starfire
 
         private LayerMask whichRaycastableLayers;
         // private bool setBiasDirection = false;
-        private int numberOfRays = 40;
+        private int numberOfRays = 16;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 20f;
         private float minimumDistanceToPlayer = 70f;

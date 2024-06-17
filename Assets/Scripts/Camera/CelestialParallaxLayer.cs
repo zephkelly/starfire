@@ -23,10 +23,10 @@ namespace Starfire
         public void Parallax(Vector3 cameraLastPosition)
         {
             if (starTransform == null) return;
-            
-            Vector2 initialPosition = (Vector2)starTransform.position;
 
-            Vector2 cameraDelta = (Vector2)cameraTransform.position - initialPosition;
+            Vector2 initialPosition = new Vector2(starTransform.position.x, starTransform.position.y);
+            Vector2 cameraPosition = new Vector2(cameraTransform.position.x, cameraTransform.position.y);
+            Vector2 cameraDelta = cameraPosition - initialPosition;
             Vector2 parallaxPosition = initialPosition + cameraDelta * parallaxFactor;
 
             sprite.position = parallaxPosition;  
