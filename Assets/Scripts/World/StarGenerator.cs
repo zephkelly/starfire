@@ -15,8 +15,8 @@ namespace Starfire
     [Range(0f, 100f)]
     [SerializeField] private float spawnChance = 1f; // Chance of spawning a star.
 
-    private const int maximumStarRadius = 3200;
-    private const int minimumStarRadius = 2600;
+    private const int maximumStarRadius = 4000;
+    private const int minimumStarRadius = 3500;
 
     public ObjectPool<GameObject> StarPool { get => starPool; }
 

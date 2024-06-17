@@ -35,7 +35,7 @@ public class ChunkManager : MonoBehaviour
     private List<Vector2Int> currentChunks = new List<Vector2Int>();
     private List<Vector2Int> lastCurrentChunks = new List<Vector2Int>();
 
-    private const int chunkDiameter = 512;
+    private const int chunkDiameter = 1024;
     private float floatingOriginLimit;
     private uint chunkIndex = 0;
     #endregion
