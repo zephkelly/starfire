@@ -27,7 +27,8 @@ namespace Starfire
         base.Update();
 
         GetKeyboardInput();
-        LookAtMouse();
+        Quaternion mouseRotation = GetMouseQuaternion();
+        transform.rotation = mouseRotation;
 
         if (Input.GetMouseButton(0))
         {
@@ -73,12 +74,12 @@ namespace Starfire
         base.RemoveOrbitingBody();
     }
 
-    private void LookAtMouse()
+    private Quaternion GetMouseQuaternion()
     {
       mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
 
       float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
-      transform.rotation = Quaternion.AngleAxis(angle - 90, Vector3.forward);
+      return Quaternion.AngleAxis(angle - 90, Vector3.forward);
     }
 
     private void GetKeyboardInput()

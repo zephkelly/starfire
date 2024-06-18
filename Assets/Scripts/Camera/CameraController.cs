@@ -20,8 +20,8 @@ namespace Starfire
     [SerializeField] float mouseInterpolateDistance = 2f;
     [SerializeField] float cameraPanSpeed = 0.15f;
 
-    [SerializeField] private float maxZoom = 50f;
-    [SerializeField] private float minZoom = 30f;
+    [SerializeField] private float maxZoom;
+    [SerializeField] private float minZoom;
     private float currentZoom;
 
     //Parallaxing-layers----------------------------------------------------------------------------
@@ -64,8 +64,14 @@ namespace Starfire
 
         targetVelocityMagnitude = targetRigidbody.velocity.magnitude;
 
-        currentZoom += -Input.mouseScrollDelta.y;
+        UpdateZoom();
+    }
+
+    private void UpdateZoom()
+    {
+        currentZoom += (-Input.mouseScrollDelta.y * 2);
         currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
+
         mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, Mathf.Clamp(currentZoom + (targetVelocityMagnitude * 0.1f), minZoom, maxZoom), 0.1f);
     }
 

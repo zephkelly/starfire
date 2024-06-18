@@ -28,7 +28,7 @@ namespace Starfire
         // private bool setBiasDirection = false;
         private int numberOfRays = 16;
         private float chaseRadius = 300f;
-        private float collisionCheckRadius = 20f;
+        private float collisionCheckRadius = 30f;
         private float minimumDistanceToPlayer = 70f;
 
         private float timeSpentCircling = 0f;

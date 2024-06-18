@@ -33,7 +33,7 @@ namespace Starfire
             MaxFuel = fuel;
             MaxCargo = cargo;
 
-            ProjectileDamage = 2;
+            ProjectileDamage = 4;
         }
 
         public void Damage(int damage, DamageType damageType)

@@ -50,7 +50,7 @@ namespace Starfire
         {
             if (Random.Range(0f, 100f) > spawnChance) return false;
 
-            int searchDistance = (int)(maximumStarRadius * 2f / ChunkManager.Instance.ChunkDiameter);
+            int searchDistance = (int)(maximumStarRadius * 2.6f / ChunkManager.Instance.ChunkDiameter);
             for (int x = -searchDistance; x <= searchDistance; x++)
             {
                 for (int y = -searchDistance; y <= searchDistance; y++)

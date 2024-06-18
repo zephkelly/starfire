@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -27,6 +28,7 @@ namespace Starfire
         protected ShipConfiguration configuration;
         protected ShipInventory inventory;
         protected Rigidbody2D shipRigidBody;
+        protected SpriteRenderer shipSprite;
         protected ParticleSystem shipThrusterPS;
         protected Light2D shipThrusterLight;
 
@@ -34,6 +36,7 @@ namespace Starfire
         protected Vector2 orbitalVelocity;
         protected Vector2 lastOrbitalVelocity;
         protected bool isOrbiting = false;
+        protected const float invulnerabilityTime = 0.5f;
 
         [Header("Weapons")]
         [SerializeField] protected List<ParticleSystem> weaponProjectilePS = new List<ParticleSystem>();
@@ -41,6 +44,7 @@ namespace Starfire
         [SerializeField] protected float fireRate = 0.20f;
         // protected bool isStandardFire = true;
         protected float currentFireTimer = 0;
+
 
         public ShipConfiguration Configuration => configuration;
         public ShipInventory Inventory => inventory;
@@ -53,6 +57,7 @@ namespace Starfire
             configuration.SetConfiguration(this, 100, 100, 100, 100);
 
             shipRigidBody = GetComponent<Rigidbody2D>();
+            shipSprite = GetComponent<SpriteRenderer>();
             shipThrusterPS = GetComponentInChildren<ParticleSystem>();
             shipThrusterLight = GetComponentInChildren<Light2D>();
 
@@ -69,6 +74,8 @@ namespace Starfire
         protected virtual void Update() 
         {
             UpdateFireRate();
+
+            if (invulnerabilityTimer > 0) invulnerabilityTimer -= Time.deltaTime;
         }
 
         protected virtual void FixedUpdate()
@@ -173,6 +180,17 @@ namespace Starfire
             }
         }
 
+        // private Quaternion GetWeaponRotation(Transform weaponTransform)
+        // {
+        //     Vector2 direction = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)weaponTransform.position;
+        //     float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        //     float x = -90;
+        //     float y = 0;
+        //     float z = angle - 90;
+        //     return Quaternion.Euler(x, y, z);
+        // }
+
         private int currentWeaponIndex = 0;
         public virtual void FireProjectile()
         {
@@ -182,6 +200,7 @@ namespace Starfire
             weaponProjectileQueue.Enqueue(weaponProjectilePS[currentWeaponIndex]);
             ParticleSystem weaponPS = weaponProjectileQueue.Dequeue();
 
+            // weaponPS.transform.localRotation = GetWeaponRotation(weaponPS.transform);
             weaponPS.Play();
 
             currentWeaponIndex = (currentWeaponIndex + 1) % weaponProjectilePS.Count;
@@ -193,11 +212,11 @@ namespace Starfire
             currentFireTimer -= Time.deltaTime;
         }
 
-        protected virtual void AimWeapons(Vector2 direction)
+        protected virtual void AimWeapons(Quaternion aimDirection)
         {
             foreach (var weapon in weaponProjectilePS)
             {
-                weapon.transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
+                weapon.transform.rotation = aimDirection;
             }
         }
 
@@ -242,6 +261,19 @@ namespace Starfire
             int damage = other.GetComponentInParent<ShipController>().Configuration.ProjectileDamage;
 
             Damage(damage, DamageType.Hull);
+
+            if (invulnerabilityTimer > 0) return;
+            invulnerabilityTimer = invulnerabilityTime;
+
+            StartCoroutine(InvulnerabilityFlash());
+        }
+
+        private float invulnerabilityTimer = 0f;
+        private IEnumerator InvulnerabilityFlash()
+        {
+            shipSprite.color = Color.red;
+            yield return new WaitForSeconds(0.4f);
+            shipSprite.color = Color.white;
         }
     }
 }
