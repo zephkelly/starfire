@@ -29,8 +29,8 @@ namespace Starfire
         protected ShipInventory inventory;
         protected Rigidbody2D shipRigidBody;
         protected SpriteRenderer shipSprite;
-        protected ParticleSystem shipThrusterPS;
-        protected Light2D shipThrusterLight;
+        [SerializeField] protected List<ParticleSystem> shipThrusterPS;
+        [SerializeField] protected List<Light2D> shipThrusterLight;
 
         protected CelestialBehaviour orbitingBody;
         protected Vector2 orbitalVelocity;
@@ -42,7 +42,6 @@ namespace Starfire
         [SerializeField] protected List<ParticleSystem> weaponProjectilePS = new List<ParticleSystem>();
         protected Queue<ParticleSystem> weaponProjectileQueue = new Queue<ParticleSystem>();
         [SerializeField] protected float fireRate = 0.20f;
-        // protected bool isStandardFire = true;
         protected float currentFireTimer = 0;
 
 
@@ -58,10 +57,11 @@ namespace Starfire
 
             shipRigidBody = GetComponent<Rigidbody2D>();
             shipSprite = GetComponent<SpriteRenderer>();
-            shipThrusterPS = GetComponentInChildren<ParticleSystem>();
-            shipThrusterLight = GetComponentInChildren<Light2D>();
 
-            shipThrusterLight.enabled = false;
+            foreach (var thrusterLight in shipThrusterLight)
+            {
+                thrusterLight.enabled = false;
+            }
         }
 
         protected virtual void Start()
@@ -170,13 +170,19 @@ namespace Starfire
 
             if (direction.magnitude > 0.1f && boost is true)
             {
-                shipThrusterPS.Play();
-                shipThrusterLight.enabled = true;
+                for (int i = 0; i < shipThrusterPS.Count; i++)
+                {
+                    shipThrusterPS[i].Play();
+                    shipThrusterLight[i].enabled = true;
+                }
             }
             else
             {
-                shipThrusterPS.Stop();
-                shipThrusterLight.enabled = false;
+                for (int i = 0; i < shipThrusterPS.Count; i++)
+                {
+                    shipThrusterPS[i].Stop();
+                    shipThrusterLight[i].enabled = false;
+                }
             }
         }
 
@@ -224,15 +230,47 @@ namespace Starfire
         {
             transform.position += (Vector3)offset;
 
-            ParticleSystem.Particle[] particles = new ParticleSystem.Particle[shipThrusterPS.particleCount];
-            shipThrusterPS.GetParticles(particles);
+            //Transport all particle effects
 
-            for (int i = 0; i < particles.Length; i++)
+            //Thrusters
+            List<ParticleSystem.Particle[]> particles = new List<ParticleSystem.Particle[]>();
+
+            for (int i = 0; i < shipThrusterPS.Count; i++)
             {
-                particles[i].position += (Vector3)offset;
+                var particleArray = new ParticleSystem.Particle[shipThrusterPS[i].particleCount];
+                shipThrusterPS[i].GetParticles(particleArray);
+
+                particles.Add(particleArray);
             }
 
-            shipThrusterPS.SetParticles(particles);
+            // Lasers
+            for (int i = 0; i < weaponProjectilePS.Count; i++)
+            {
+                var particleArray = new ParticleSystem.Particle[weaponProjectilePS[i].particleCount];
+                weaponProjectilePS[i].GetParticles(particleArray);
+
+                particles.Add(particleArray);
+            }
+
+            // Update Positions
+            for (int i = 0; i < particles.Count; i++)
+            {
+                for (int j = 0; j < particles[i].Length; j++)
+                {
+                    particles[i][j].position += (Vector3)offset;
+                }
+            }
+
+            // Set Particles
+            for (int i = 0; i < shipThrusterPS.Count; i++)
+            {
+                shipThrusterPS[i].SetParticles(particles[i]);
+            }
+
+            for (int i = 0; i < weaponProjectilePS.Count; i++)
+            {
+                weaponProjectilePS[i].SetParticles(particles[i + shipThrusterPS.Count]);
+            }
         }
 
         protected void ApplyLinearDrag()

@@ -93,8 +93,8 @@ GameObject:
   - component: {fileID: 4447715483684185069}
   - component: {fileID: 5001581654531359489}
   - component: {fileID: 2274862760583280884}
-  - component: {fileID: 3337673184301437493}
   - component: {fileID: 8777421711200661380}
+  - component: {fileID: 2756918316670815881}
   m_Layer: 7
   m_Name: Scavenger
   m_TagString: Entities
@@ -160,8 +160,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 01a0f63016396424595a2c27eabf754f, type: 3}
-  m_Color: {r: 0.43867922, g: 1, b: 0.57050186, a: 1}
+  m_Sprite: {fileID: 726516315, guid: 81a7a005a5343494eb5c445318354c22, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -185,7 +185,7 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 2
   m_LinearDrag: 0
-  m_AngularDrag: 0
+  m_AngularDrag: 1
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -198,7 +198,26 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!60 &3337673184301437493
+--- !u!114 &8777421711200661380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6469693482504899954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 216d2df6cede07b4a9fbe1ba85f73047, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shipThrusterPS:
+  - {fileID: 1416800823937537743}
+  shipThrusterLight:
+  - {fileID: 7682278367717131017}
+  weaponProjectilePS: []
+  fireRate: 0.2
+  moveSpeed: 155
+--- !u!60 &2756918316670815881
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -234,7 +253,7 @@ PolygonCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.5, y: 1.5}
+    oldSize: {x: 2.6875, y: 2.6875}
     newSize: {x: 1.5, y: 1.5}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -242,32 +261,16 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -0.09712601, y: 0.7125473}
-      - {x: -0.3360901, y: 0.20735931}
-      - {x: -0.33661652, y: -0.13787842}
-      - {x: -0.66104126, y: -0.49956512}
-      - {x: -0.55335236, y: -0.66550446}
-      - {x: -0.24575043, y: -0.57675934}
-      - {x: 0.26143265, y: -0.57676697}
-      - {x: 0.5674019, y: -0.6547241}
-      - {x: 0.66103745, y: -0.4841156}
-      - {x: 0.35223007, y: -0.13858795}
-      - {x: 0.34914398, y: 0.20907593}
-      - {x: 0.095710754, y: 0.7172165}
+    - - {x: 0.66127205, y: 0.23871613}
+      - {x: 0.19502068, y: 1.0799904}
+      - {x: 0.011260986, y: 1.2312546}
+      - {x: 0.011260986, y: 1.2312546}
+      - {x: -0.18500137, y: 1.0512619}
+      - {x: -0.6462555, y: 0.22003174}
+      - {x: -1.1112518, y: -1.3012123}
+      - {x: -0.008800507, y: -0.84877014}
+      - {x: 1.0887547, y: -1.2987518}
   m_UseDelaunayMesh: 0
---- !u!114 &8777421711200661380
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6469693482504899954}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 216d2df6cede07b4a9fbe1ba85f73047, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 155
 --- !u!1 &8687220832301523372
 GameObject:
   m_ObjectHideFlags: 0
