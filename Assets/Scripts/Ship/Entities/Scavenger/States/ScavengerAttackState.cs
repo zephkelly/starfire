@@ -85,7 +85,7 @@ namespace Starfire
 
         public void FixedUpdate()
         {
-            shipController.Move(lerpVector, GetShipSpeed(), true);
+            shipController.MoveInDirection(lerpVector, GetShipSpeed(), true);
             scavengerTransform.up = visualLerpVector;
         }
 

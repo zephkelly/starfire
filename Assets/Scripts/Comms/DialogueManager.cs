@@ -28,17 +28,17 @@ namespace Starfire
 
         private void Start()
         {
-            var newSender = new Transponder("Scavenger", FactionType.Scavenger, "90000Hz");
-            var newReceiver = new Transponder("Player", FactionType.Player, "90000Hz");
+            // var newSender = new Transponder("Scavenger", FactionType.Scavenger, "90000Hz");
+            // var newReceiver = new Transponder("Player", FactionType.Player, "90000Hz");
 
-            var newMessage = new Message(newSender, newReceiver, "Hello young new traveller! First time in this sector? I'm here to help you out!");
-            DisplayMessage(newMessage);
+            // var newMessage = new Message(newSender, newReceiver, "Hello young new traveller! First time in this sector? I'm here to help you out!");
+            // DisplayMessage(newMessage);
 
-            var newMessage2 = new Message(newSender, newReceiver, "Just give me all your loot and turn off your ship, that would be great!");
-            DisplayMessage(newMessage2);
+            // var newMessage2 = new Message(newSender, newReceiver, "Just give me all your loot and turn off your ship, that would be great!");
+            // DisplayMessage(newMessage2);
 
-            var newMessage3 = new Message(newReceiver, newReceiver, "Ignore him, these scavengers are nothing more that little pests running around the system.");
-            DisplayMessage(newMessage3);
+            // var newMessage3 = new Message(newReceiver, newReceiver, "Ignore him, these scavengers are nothing more that little pests running around the system.");
+            // DisplayMessage(newMessage3);
         }
 
         private void Update()

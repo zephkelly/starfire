@@ -16,10 +16,10 @@ namespace Starfire
         void RemoveOrbitingBody();
         void Damage(int damage, DamageType damageType);
         void Repair(int repair, DamageType damageType);
-        void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed);
+        void MoveInDirection(Vector2 direction, float speed, bool boost, float manoeuvreSpeed);
         void FireProjectile();
         void Transport(Vector2 position);
-        void Rotate(Vector2 direction, float speed, float lerpSpeed);
+        void RotateToVector(Vector2 direction, float speed);
     }
 
     [RequireComponent(typeof(Rigidbody2D))]
@@ -47,11 +47,13 @@ namespace Starfire
         [Header("Configuration")]
         [SerializeField] protected Color shipDamageColor;
 
-
         public ShipConfiguration Configuration => configuration;
         public ShipInventory Inventory => inventory;
         public CelestialBehaviour OrbitingBody => orbitingBody;
         public bool IsOrbiting => isOrbiting;
+
+        public void Damage(int damage, DamageType damageType) => configuration.Damage(damage, damageType);
+        public void Repair(int repair, DamageType damageType) => configuration.Repair(repair, damageType);
 
         protected virtual void Awake()
         {
@@ -160,7 +162,7 @@ namespace Starfire
             transform.position = orbitingBody.WorldPosition + relativePosition;
         }
 
-        public virtual void Move(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost
+        public virtual void MoveInDirection(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost
         {
             if (boost is true)
             {
@@ -171,7 +173,12 @@ namespace Starfire
                 shipRigidBody.AddForce(direction * manoeuvreSpeed, ForceMode2D.Force);
             }
 
-            if (direction.magnitude > 0.1f && boost is true)
+            SetThrusters(boost, direction);
+        }
+        
+        private void SetThrusters(bool isActive, Vector2 movementDirection)
+        {
+            if (movementDirection.magnitude > 0.1f && isActive is true)
             {
                 for (int i = 0; i < shipThrusterPS.Count; i++)
                 {
@@ -188,17 +195,17 @@ namespace Starfire
                 }
             }
         }
+        
+        public virtual void RotateToVector(Vector2 targetPosition, float degreesPerSecond)
+        {
+            Vector2 newDirection = new Vector2(targetPosition.x - transform.position.x, targetPosition.y - transform.position.y);
+            float targetAngle = Mathf.Atan2(newDirection.y, newDirection.x) * Mathf.Rad2Deg - 90;
+            float currentAngle = transform.eulerAngles.z;
+            float angleDifference = Mathf.DeltaAngle(currentAngle, targetAngle);
+            float rotation = Mathf.Sign(angleDifference) * Mathf.Min(Mathf.Abs(angleDifference), degreesPerSecond * Time.deltaTime);
 
-        // private Quaternion GetWeaponRotation(Transform weaponTransform)
-        // {
-        //     Vector2 direction = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)weaponTransform.position;
-        //     float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-
-        //     float x = -90;
-        //     float y = 0;
-        //     float z = angle - 90;
-        //     return Quaternion.Euler(x, y, z);
-        // }
+            transform.Rotate(Vector3.forward, rotation);
+        }
 
         private int currentWeaponIndex = 0;
         public virtual void FireProjectile()
@@ -220,13 +227,13 @@ namespace Starfire
             currentProjectileFireTimer -= Time.deltaTime;
         }
 
-        protected virtual void AimWeapons(Quaternion aimDirection)
-        {
-            foreach (var weapon in weaponProjectilePS)
-            {
-                weapon.transform.rotation = aimDirection;
-            }
-        }
+        // protected virtual void AimWeapons(Quaternion aimDirection)
+        // {
+        //     foreach (var weapon in weaponProjectilePS)
+        //     {
+        //         weapon.transform.rotation = aimDirection;
+        //     }
+        // }
 
         protected virtual void AimWeapons(Vector2 targetPosition)
         {
@@ -243,13 +250,13 @@ namespace Starfire
 
         public virtual void Transport(Vector2 offset)
         {
+            // Player
             transform.position += (Vector3)offset;
 
-            //Thrusters
-            // List<ParticleSystem.Particle[]> particles = new List<ParticleSystem.Particle[]>();
+            // Particles
             Dictionary<ParticleSystem, ParticleSystem.Particle[]> particles = new Dictionary<ParticleSystem, ParticleSystem.Particle[]>();
-            Dictionary<ParticleSystem, ParticleSystem.Particle[]> trailParticles = new Dictionary<ParticleSystem, ParticleSystem.Particle[]>();
 
+            // Get Thrusters
             for (int i = 0; i < shipThrusterPS.Count; i++)
             {
                 var particleArray = new ParticleSystem.Particle[shipThrusterPS[i].particleCount];
@@ -258,7 +265,7 @@ namespace Starfire
                 particles.Add(shipThrusterPS[i], particleArray);
             }
 
-            // Lasers
+            // Get Lasers
             for (int i = 0; i < weaponProjectilePS.Count; i++)
             {
                 var particleArray = new ParticleSystem.Particle[weaponProjectilePS[i].particleCount];
@@ -267,7 +274,7 @@ namespace Starfire
                 particles.Add(weaponProjectilePS[i], particleArray);
             }
 
-            // Update Positions
+            // Update Particle Positions
             foreach (var particle in particles)
             {
                 for (int i = 0; i < particle.Value.Length; i++)
@@ -288,15 +295,6 @@ namespace Starfire
             if (shipRigidBody.velocity.magnitude < 0.1f) shipRigidBody.velocity = Vector2.zero;
         }
 
-        public void Rotate(Vector2 direction, float speed, float lerpSpeed = 0f)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Damage(int damage, DamageType damageType) => configuration.Damage(damage, damageType);
-
-        public void Repair(int repair, DamageType damageType) => configuration.Repair(repair, damageType);
-
         private void OnDestroy()
         {
             ChunkManager.Instance.RemoveShip(this);
@@ -304,7 +302,7 @@ namespace Starfire
 
         protected virtual void OnParticleCollision(GameObject other)
         {
-            if (other == this.gameObject) return;
+            if (other == gameObject) return;
             int damage = other.GetComponentInParent<ShipController>().Configuration.ProjectileDamage;
 
             Damage(damage, DamageType.Hull);

@@ -84,7 +84,7 @@ namespace Starfire
             float speedMultiplier = GetSpeedMultiplier(distance);
             float speed = _shipController.MoveSpeed * speedMultiplier;
 
-            _shipController.Move(lerpVector, speed, true);
+            _shipController.MoveInDirection(lerpVector, speed, true);
             _scavengerTransform.up = visualLerpVector;
         }
 

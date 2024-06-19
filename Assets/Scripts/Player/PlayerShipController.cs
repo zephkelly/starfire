@@ -7,7 +7,6 @@ namespace Starfire
   {
     [SerializeField] private float moveSpeed = 160f;
     private Vector2 keyboardInput = Vector2.zero;
-    private Vector2 mouseDirection = Vector2.zero;
 
     public UnityEvent<string> OnPlayerOrbitEnter;
     public UnityEvent<string> OnPlayerOrbitExit;
@@ -29,14 +28,10 @@ namespace Starfire
         base.Update();
 
         GetKeyboardInput();
-        Quaternion mouseRotation = GetMouseQuaternion();
-        float maxDegreesPerSecond = 145.0f; // Change this value to your desired rotation speed
-        float maxStep = maxDegreesPerSecond * Time.deltaTime;
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, mouseRotation, maxStep);
 
-        //turn mouse
+        Vector2 mouseDirection = GetMouseWorldPosition();
+        RotateToVector(mouseDirection, 200);
 
-        Debug.DrawLine(transform.position, (Vector2)transform.position + mouseDirection, Color.red);
 
         if (Input.GetMouseButton(0))
         {
@@ -49,11 +44,11 @@ namespace Starfire
     {   
         if (Input.GetKey(KeyCode.Space))
         {
-            Move(keyboardInput.normalized, 1500, Input.GetKey(KeyCode.LeftShift));
+            MoveInDirection(keyboardInput.normalized, 1500, Input.GetKey(KeyCode.LeftShift));
         }
         else
         {
-            Move(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+            MoveInDirection(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
         }
 
         base.FixedUpdate();
@@ -83,25 +78,19 @@ namespace Starfire
         base.RemoveOrbitingBody();
     }
 
-    private Quaternion GetMouseQuaternion()
-    {
-        mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
-
-        float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
-        return Quaternion.AngleAxis(angle - 90, Vector3.forward);
-    }
-
     private Vector2 GetMouseWorldPosition()
     {
-        return Camera.main.ScreenToWorldPoint(Input.mousePosition);
-    
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        return mousePosition;
     }
 
-    private void GetKeyboardInput()
+    private Vector2 GetKeyboardInput()
     {
-      keyboardInput.x = Input.GetAxis("Horizontal");
-      keyboardInput.y = Input.GetAxis("Vertical");
-      keyboardInput.Normalize();
+        keyboardInput.x = Input.GetAxis("Horizontal");
+        keyboardInput.y = Input.GetAxis("Vertical");
+        keyboardInput.Normalize();
+
+        return keyboardInput;
     }
   }
 }
