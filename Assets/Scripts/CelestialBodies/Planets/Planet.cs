@@ -20,12 +20,15 @@ namespace Starfire
         public Chunk ParentChunk { get; private set; }
         public PlanetType PlanetType { get; private set; }
         public float OrbitDistance { get; private set; }
+        public float Radius { get; private set; }
+        public float Mass { get; private set; }
 
         private CelestialBehaviour _planetCelestialBehaviour;
         private GameObject _planetObject;
         private Rigidbody2D _planetRigid2D;
         private Vector2 _planetOrbitPosition;
-        private float _mass;
+
+        [SerializeField] private string planetName;
 
         // Last position the planet was in while active
         [SerializeField] private Vector2 lastActivePosition = Vector2.zero;
@@ -40,7 +43,10 @@ namespace Starfire
             ParentChunk = parentChunk;
             PlanetType = type;
             OrbitDistance = orbitDistance;
-            _mass = mass;
+            Mass = mass;
+
+            planetName = "Boba";
+            
 
             _planetCelestialBehaviour = null;
             _planetObject = null;
@@ -70,10 +76,17 @@ namespace Starfire
             if (HasPlanetObject) return null;
 
             _planetObject = PlanetGenerator.Instance.GetPlanetObject(PlanetType);
-            _planetCelestialBehaviour = _planetObject.GetComponent<CelestialBehaviour>();
             _planetObject.transform.SetParent(ParentChunk.ChunkObject.transform);
+            Radius = _planetObject.GetComponent<Collider2D>().bounds.size.x / 2f;
+
             _planetRigid2D = _planetObject.GetComponent<Rigidbody2D>();
-            _planetRigid2D.mass = _mass;
+            _planetRigid2D.mass = Mass;
+
+            _planetCelestialBehaviour = _planetObject.GetComponent<CelestialBehaviour>();
+            _planetCelestialBehaviour.SetupCelestialBehaviour(CelestialBodyType.Star, Radius, Mass, planetName);
+
+            int visualSize = Mathf.RoundToInt(Radius);
+            _planetCelestialBehaviour.NewPixelAmount(visualSize);
 
             if (ParentChunk.ChunkObject == null)
             {

@@ -124,6 +124,8 @@ public class ChunkManager : MonoBehaviour
 
     private void Update()
     {
+        if (playerTransform == null) return;
+
         UpdatePlayerPosition();
 
         bool resetOrigin = false;
@@ -355,6 +357,8 @@ public class ChunkManager : MonoBehaviour
 
     private Vector2D UpdatePlayerAbsolutePosition()
     {
+
+
         Vector2D offsetAmount = new Vector2D(
             playerTransform.position.x - playerLastPosition.x,
             playerTransform.position.y - playerLastPosition.y

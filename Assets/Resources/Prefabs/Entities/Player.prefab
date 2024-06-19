@@ -328,7 +328,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shipThrusterPS:
   - {fileID: 1416800823937537743}
-  - {fileID: 1416800823937537743}
+  - {fileID: 1358188656163797991}
   shipThrusterLight:
   - {fileID: 7682278367717131017}
   - {fileID: 7682278367717131017}
@@ -337,6 +337,7 @@ MonoBehaviour:
   - {fileID: 228162301552525811}
   - {fileID: 4465410827706967548}
   fireRate: 0.1
+  shipDamageColor: {r: 0.28432587, g: 0.754717, b: 0, a: 1}
   moveSpeed: 160
   OnPlayerOrbitEnter:
     m_PersistentCalls:

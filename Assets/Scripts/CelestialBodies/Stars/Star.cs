@@ -101,7 +101,7 @@ public class Star
         _controller.SetRotateSpeedFactor(rotateSpeed);
 
         // Set pixel count
-        _controller.SetPixel(visualSize);
+        _controller.NewPixelAmount(visualSize);
 
         // Set rotation
         _controller.SetRotate(starRotation);

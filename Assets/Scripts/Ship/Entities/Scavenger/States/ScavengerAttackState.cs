@@ -79,6 +79,8 @@ namespace Starfire
 
             currentCirclePattern = GetRandomCirclePattern();
             currentMovementPattern = GetRandomMovementPattern();
+
+            shipController.FireProjectile();
         }
 
         public void FixedUpdate()

@@ -15,6 +15,8 @@ namespace Starfire
     protected override void Awake()
     {
         base.Awake();
+
+        configuration.SetConfiguration(this, 1000, 100, 100, 100);
     }
 
     protected override void Start()

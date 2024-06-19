@@ -74,14 +74,25 @@ namespace Starfire
 
         public void FixedUpdate()
         {
-            float distance = Vector2.Distance(_scavengerTransform.position, _playerTransform.position);
-            float minSpeedMultiplier = 0.5f;
-            float maxSpeedMultiplier = 1.1f;
-            float speedMultiplier = Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, Mathf.InverseLerp(0, 220, distance));
+            float distance = 0f;
+
+            if (_playerTransform != null)
+            {
+                distance = Vector2.Distance(_scavengerTransform.position, _playerTransform.position);
+            }
+
+            float speedMultiplier = GetSpeedMultiplier(distance);
             float speed = _shipController.MoveSpeed * speedMultiplier;
 
             _shipController.Move(lerpVector, speed, true);
             _scavengerTransform.up = visualLerpVector;
+        }
+
+        private float GetSpeedMultiplier(float distance)
+        {
+            float minSpeedMultiplier = 0.5f;
+            float maxSpeedMultiplier = 1.1f;
+            return Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, Mathf.InverseLerp(0, 220, distance));
         }
 
         private Vector2 GetPlayerPosition()

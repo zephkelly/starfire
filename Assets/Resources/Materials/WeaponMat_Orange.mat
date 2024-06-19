@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: WeaponEmissiveMat
+  m_Name: WeaponMat_Orange
   m_Shader: {fileID: 4800000, guid: b7839dad95683814aa64166edc107ae2, type: 3}
   m_Parent: {fileID: 2100000, guid: 1d85c41e0efc087499c3d43b883dce7d, type: 2}
   m_ModifiedSerializedProperties: 0
@@ -33,11 +33,11 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Metallic: 0
+    - _Metallic: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
-    - _Color: {r: 1, g: 0, b: 0, a: 1}
-    - _EmissionColor: {r: 1, g: 0, b: 0, a: 1}
+    - _BaseColor: {r: 0.9811321, g: 0.40915355, b: 0.087931626, a: 1}
+    - _Color: {r: 0.9811321, g: 0.40915352, b: 0.087931596, a: 1}
+    - _EmissionColor: {r: 2, g: 0.39341462, b: 0, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &878569374417921124
 MonoBehaviour:

@@ -43,7 +43,7 @@ public class GasRingPlanetController : CelestialBehaviour
         }
     }
 
-    public void SetPixel(float amount)
+    protected override void SetPixel(float amount)
     {
         _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
         _celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount * 3f);

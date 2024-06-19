@@ -536,11 +536,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 547241227}
   m_CullTransparentMesh: 1
---- !u!198 &573934224 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 1358188656163797991, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
-  m_PrefabInstance: {fileID: 5325048254707597054}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &746875142
 GameObject:
   m_ObjectHideFlags: 0
@@ -2204,10 +2199,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
-      propertyPath: shipThrusterPS.Array.data[1]
-      value: 
-      objectReference: {fileID: 573934224}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: OnPlayerOrbitExit.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 

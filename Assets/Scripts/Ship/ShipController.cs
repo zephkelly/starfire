@@ -42,7 +42,10 @@ namespace Starfire
         [SerializeField] protected List<ParticleSystem> weaponProjectilePS = new List<ParticleSystem>();
         protected Queue<ParticleSystem> weaponProjectileQueue = new Queue<ParticleSystem>();
         [SerializeField] protected float fireRate = 0.20f;
-        protected float currentFireTimer = 0;
+        protected float currentProjectileFireTimer = 0;
+
+        [Header("Configuration")]
+        [SerializeField] protected Color shipDamageColor;
 
 
         public ShipConfiguration Configuration => configuration;
@@ -200,8 +203,8 @@ namespace Starfire
         private int currentWeaponIndex = 0;
         public virtual void FireProjectile()
         {
-            if (currentFireTimer > 0) return;
-            currentFireTimer = fireRate;
+            if (currentProjectileFireTimer > 0) return;
+            currentProjectileFireTimer = fireRate;
 
             weaponProjectileQueue.Enqueue(weaponProjectilePS[currentWeaponIndex]);
             ParticleSystem weaponPS = weaponProjectileQueue.Dequeue();
@@ -214,8 +217,8 @@ namespace Starfire
 
         private void UpdateFireRate()
         {
-            if (currentFireTimer <= 0) return;
-            currentFireTimer -= Time.deltaTime;
+            if (currentProjectileFireTimer <= 0) return;
+            currentProjectileFireTimer -= Time.deltaTime;
         }
 
         protected virtual void AimWeapons(Quaternion aimDirection)
@@ -296,6 +299,7 @@ namespace Starfire
 
         protected virtual void OnParticleCollision(GameObject other)
         {
+            if (other == this.gameObject) return;
             int damage = other.GetComponentInParent<ShipController>().Configuration.ProjectileDamage;
 
             Damage(damage, DamageType.Hull);
@@ -309,7 +313,7 @@ namespace Starfire
         private float invulnerabilityTimer = 0f;
         private IEnumerator InvulnerabilityFlash()
         {
-            shipSprite.color = Color.red;
+            shipSprite.color = shipDamageColor;
             yield return new WaitForSeconds(0.4f);
             shipSprite.color = Color.white;
         }
