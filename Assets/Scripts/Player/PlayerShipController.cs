@@ -30,10 +30,17 @@ namespace Starfire
 
         GetKeyboardInput();
         Quaternion mouseRotation = GetMouseQuaternion();
-        transform.rotation = mouseRotation;
+        float maxDegreesPerSecond = 145.0f; // Change this value to your desired rotation speed
+        float maxStep = maxDegreesPerSecond * Time.deltaTime;
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, mouseRotation, maxStep);
+
+        //turn mouse
+
+        Debug.DrawLine(transform.position, (Vector2)transform.position + mouseDirection, Color.red);
 
         if (Input.GetMouseButton(0))
         {
+            AimWeapons(GetMouseWorldPosition());
             FireProjectile();
         }
     }
@@ -78,10 +85,16 @@ namespace Starfire
 
     private Quaternion GetMouseQuaternion()
     {
-      mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
+        mouseDirection = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition) - (Vector2)transform.position;
 
-      float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
-      return Quaternion.AngleAxis(angle - 90, Vector3.forward);
+        float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
+        return Quaternion.AngleAxis(angle - 90, Vector3.forward);
+    }
+
+    private Vector2 GetMouseWorldPosition()
+    {
+        return Camera.main.ScreenToWorldPoint(Input.mousePosition);
+    
     }
 
     private void GetKeyboardInput()

@@ -2159,6 +2159,54 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 228162301552525811, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: TrailModule.worldSpace
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 228162301552525811, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: TrailModule.textureMode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 228162301552525811, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: ShapeModule.m_Rotation.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1712672186836134565, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1712672186836134565, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1712672186836134565, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2904799438604262830, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2904799438604262830, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2904799438604262830, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3996617509132246397, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3996617509132246397, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3996617509132246397, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4447715483684185069, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2199,6 +2247,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4465410827706967548, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: TrailModule.worldSpace
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465410827706967548, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: TrailModule.textureMode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4465410827706967548, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: ShapeModule.m_Rotation.x
+      value: -90
+      objectReference: {fileID: 0}
     - target: {fileID: 5274103794809817241, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: OnPlayerOrbitExit.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -2207,6 +2267,22 @@ PrefabInstance:
       propertyPath: OnPlayerOrbitEnter.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1735648770}
+    - target: {fileID: 5937820426171543135, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: moveWithTransform
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5937820426171543135, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: TrailModule.worldSpace
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5937820426171543135, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: TrailModule.textureMode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5937820426171543135, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
+      propertyPath: ShapeModule.m_Rotation.x
+      value: -90
+      objectReference: {fileID: 0}
     - target: {fileID: 6469693482504899954, guid: ad2ec4d6998974a4d8428fbf2a3558c4, type: 3}
       propertyPath: m_Name
       value: Ship

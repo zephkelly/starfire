@@ -209,7 +209,6 @@ namespace Starfire
             weaponProjectileQueue.Enqueue(weaponProjectilePS[currentWeaponIndex]);
             ParticleSystem weaponPS = weaponProjectileQueue.Dequeue();
 
-            // weaponPS.transform.localRotation = GetWeaponRotation(weaponPS.transform);
             weaponPS.Play();
 
             currentWeaponIndex = (currentWeaponIndex + 1) % weaponProjectilePS.Count;
@@ -229,21 +228,34 @@ namespace Starfire
             }
         }
 
+        protected virtual void AimWeapons(Vector2 targetPosition)
+        {
+            foreach (var weapon in weaponProjectilePS)
+            {
+                Vector2 direction = targetPosition - (Vector2)weapon.transform.position;
+                
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                Quaternion rotation = Quaternion.Euler(0, 0, angle - 90);
+
+                weapon.transform.rotation = rotation;
+            }
+        }
+
         public virtual void Transport(Vector2 offset)
         {
             transform.position += (Vector3)offset;
 
-            //Transport all particle effects
-
             //Thrusters
-            List<ParticleSystem.Particle[]> particles = new List<ParticleSystem.Particle[]>();
+            // List<ParticleSystem.Particle[]> particles = new List<ParticleSystem.Particle[]>();
+            Dictionary<ParticleSystem, ParticleSystem.Particle[]> particles = new Dictionary<ParticleSystem, ParticleSystem.Particle[]>();
+            Dictionary<ParticleSystem, ParticleSystem.Particle[]> trailParticles = new Dictionary<ParticleSystem, ParticleSystem.Particle[]>();
 
             for (int i = 0; i < shipThrusterPS.Count; i++)
             {
                 var particleArray = new ParticleSystem.Particle[shipThrusterPS[i].particleCount];
                 shipThrusterPS[i].GetParticles(particleArray);
 
-                particles.Add(particleArray);
+                particles.Add(shipThrusterPS[i], particleArray);
             }
 
             // Lasers
@@ -252,27 +264,20 @@ namespace Starfire
                 var particleArray = new ParticleSystem.Particle[weaponProjectilePS[i].particleCount];
                 weaponProjectilePS[i].GetParticles(particleArray);
 
-                particles.Add(particleArray);
+                particles.Add(weaponProjectilePS[i], particleArray);
             }
 
             // Update Positions
-            for (int i = 0; i < particles.Count; i++)
+            foreach (var particle in particles)
             {
-                for (int j = 0; j < particles[i].Length; j++)
+                for (int i = 0; i < particle.Value.Length; i++)
                 {
-                    particles[i][j].position += (Vector3)offset;
+                    Vector3 newPosition = particle.Value[i].position + (Vector3)offset;
+                    particle.Value[i].position = newPosition;
+                    particle.Value[i].startLifetime -= 0.008f;
                 }
-            }
 
-            // Set Particles
-            for (int i = 0; i < shipThrusterPS.Count; i++)
-            {
-                shipThrusterPS[i].SetParticles(particles[i]);
-            }
-
-            for (int i = 0; i < weaponProjectilePS.Count; i++)
-            {
-                weaponProjectilePS[i].SetParticles(particles[i + shipThrusterPS.Count]);
+                particle.Key.SetParticles(particle.Value);
             }
         }
 
