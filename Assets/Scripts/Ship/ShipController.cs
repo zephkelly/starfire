@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
+using UnityEngine.UI;
 using UnityEngine.Rendering.Universal;
 
 namespace Starfire
@@ -46,7 +46,10 @@ namespace Starfire
         protected float currentProjectileFireTimer = 0;
 
         [Header("Configuration")]
+        [SerializeField] protected Canvas healthbarCanvas;
+        [SerializeField] protected Image healthBarFill;
         [SerializeField] protected Color shipDamageColor;
+        [Space(10)]
         [SerializeField] protected Gradient thrusterNormalGradient;
         [SerializeField] protected Gradient thrusterWarpGradient;
 
@@ -61,7 +64,7 @@ namespace Starfire
         protected virtual void Awake()
         {
             configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            configuration.SetConfiguration(this, 100, 100, 100, 100);
+            configuration.SetConfiguration(this, 160, 100, 100, 100);
 
             shipRigidBody = GetComponent<Rigidbody2D>();
             shipSprite = GetComponent<SpriteRenderer>();
@@ -74,16 +77,30 @@ namespace Starfire
 
         protected virtual void Start()
         {
+            healthbarCanvas.enabled = false;
             shipRigidBody.centerOfMass = Vector2.zero;
-
             ChunkManager.Instance.AddShip(this);
         }
 
         protected virtual void Update() 
         {
-            UpdateFireRate();
+            UpdateTimers(); 
+        }
+
+        protected virtual void UpdateTimers()
+        {
+            if (currentProjectileFireTimer > 0) currentProjectileFireTimer -= Time.deltaTime;
 
             if (invulnerabilityTimer > 0) invulnerabilityTimer -= Time.deltaTime;
+
+            if (timeTillDisableHealthbar > 0) 
+            {
+                timeTillDisableHealthbar -= Time.deltaTime;
+            }
+            else
+            {
+                DisableHealthbar();
+            }
         }
 
         protected virtual void FixedUpdate()
@@ -277,12 +294,6 @@ namespace Starfire
             currentWeaponIndex = (currentWeaponIndex + 1) % weaponProjectilePS.Count;
         }
 
-        private void UpdateFireRate()
-        {
-            if (currentProjectileFireTimer <= 0) return;
-            currentProjectileFireTimer -= Time.deltaTime;
-        }
-
         protected virtual void AimWeapons(Vector2 targetPosition)
         {
             foreach (var weapon in weaponProjectilePS)
@@ -361,7 +372,23 @@ namespace Starfire
             StartCoroutine(InvulnerabilityFlash());
         }
 
-        private float invulnerabilityTimer = 0f;
+        protected const float healthbarDisableTime = 5f;
+        private float timeTillDisableHealthbar = 0f;
+        protected virtual void EnableHealthbar(float currentHealth, float maxHealth)
+        {
+            if (healthbarCanvas.enabled is false) healthbarCanvas.enabled = true;
+            healthBarFill.fillAmount = currentHealth / maxHealth;
+
+            timeTillDisableHealthbar = healthbarDisableTime;
+        }
+
+        protected virtual void DisableHealthbar()
+        {
+            if (healthbarCanvas.enabled is false) return;
+            healthbarCanvas.enabled = false;
+        }
+
+        protected float invulnerabilityTimer = 0f;
         private IEnumerator InvulnerabilityFlash()
         {
             shipSprite.color = shipDamageColor;

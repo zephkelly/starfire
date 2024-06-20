@@ -15,12 +15,14 @@ namespace Starfire
     {
         base.Awake();
 
-        configuration.SetConfiguration(this, 1000, 100, 100, 100);
+        configuration.SetConfiguration(this, 360, 100, 100, 100);
     }
 
     protected override void Start()
     {
         base.Start();
+
+        healthbarCanvas.enabled = true;
     }
 
     protected override void Update()
@@ -81,6 +83,25 @@ namespace Starfire
         }
 
         base.RemoveOrbitingBody();
+    }
+
+    protected override void UpdateTimers()
+    {
+        if (currentProjectileFireTimer > 0) currentProjectileFireTimer -= Time.deltaTime;
+
+        if (invulnerabilityTimer > 0) invulnerabilityTimer -= Time.deltaTime;
+    }
+
+    protected override void OnParticleCollision(GameObject other)
+    {
+        base.OnParticleCollision(other);
+
+        EnableHealthbar(configuration.Health, configuration.MaxHealth);
+    }
+
+    protected override void EnableHealthbar(float currentHealth, float maxHealth)
+    {
+        healthBarFill.fillAmount = currentHealth / maxHealth;
     }
 
     private Vector2 GetMouseWorldPosition()

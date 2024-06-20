@@ -61,5 +61,12 @@ namespace Starfire
         {
             base.RemoveOrbitingBody();
         }
+
+        protected override void OnParticleCollision(GameObject other)
+        {
+            base.OnParticleCollision(other);
+
+            EnableHealthbar(configuration.Health, configuration.MaxHealth);
+        }
     }
 }

@@ -26,10 +26,10 @@ namespace Starfire
         {
             shipController = shipConfig;
             Health = health;
+            MaxHealth = health;
             Fuel = fuel;
             Cargo = cargo;
             EngineTopSpeed = engineTopSpeed;
-            MaxHealth = health;
             MaxFuel = fuel;
             MaxCargo = cargo;
 
@@ -60,6 +60,7 @@ namespace Starfire
 
         private void DamageHull(int damage)
         {
+            //Activate healthbar
             Health -= damage;
 
             if (Health <= 0)

@@ -57,6 +57,12 @@ namespace Starfire
                 return;
             }
 
+            if (timeSpentCircling > 4f)
+            {
+                _stateMachine.ChangeState(new ScavengerCircleState(_shipController, _scavengerRigid2D, _playerTransform));
+                return;
+            }
+
             NearbyEntityTimeTick();
 
             Vector2 lastKnownPlayerPosition = GetPlayerPosition();
@@ -66,9 +72,9 @@ namespace Starfire
             lerpVector = Vector2.Lerp(_scavengerTransform.up, weightedDirection, 0.7f);
             visualLerpVector = Vector2.Lerp(_scavengerTransform.up, weightedDirection, 0.15f);
 
-            if (timeSpentCircling > 5f)
+            if (CanFireProjectile() && IsPlayerWithinSight())
             {
-                _stateMachine.ChangeState(new ScavengerCircleState(_shipController, _scavengerRigid2D, _playerTransform));
+                _shipController.FireProjectileToPosition(GetProjectileFiringPosition(lastKnownPlayerPosition));
             }
         }
 
@@ -93,6 +99,59 @@ namespace Starfire
             float minSpeedMultiplier = 0.5f;
             float maxSpeedMultiplier = 1.1f;
             return Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, Mathf.InverseLerp(0, 220, distance));
+        }
+
+        private bool IsPlayerWithinSight()
+        {
+            float distanceToPlayer = Vector2.Distance(_scavengerTransform.position, _playerTransform.position);
+            float angleToPlayer = Vector2.Angle(_scavengerTransform.up, _playerTransform.position - _scavengerTransform.position);
+
+            if (distanceToPlayer < 125f && angleToPlayer < 45f)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private Vector2 GetProjectileFiringPosition(Vector2 playerPosition)
+        {
+            Vector2 perpendicularVector = Vector2.Perpendicular(playerPosition - (Vector2)_scavengerTransform.position).normalized;
+
+            if (UnityEngine.Random.value > 0.5f)
+            {
+                perpendicularVector *= -1;
+            }
+
+            float amplitude = UnityEngine.Random.Range(6f, 14f); // Adjust the range as needed
+            float frequency = UnityEngine.Random.Range(1f, 5.5f); // Adjust the range as needed
+            Vector2 targetPosition = playerPosition + (perpendicularVector * Mathf.Sin(Time.time * frequency) * amplitude);
+
+            return targetPosition;
+        } 
+
+        private float timeToSpendNotShootingProjectile = 0f;
+        private float timeToSpendShootingProjectile = 0f;
+        private bool CanFireProjectile()
+        {
+            timeToSpendNotShootingProjectile -= Time.deltaTime;
+
+            if (timeToSpendNotShootingProjectile <= 0)
+            {
+                timeToSpendShootingProjectile -= Time.deltaTime;
+
+                if (timeToSpendShootingProjectile <= 0)
+                {
+                    timeToSpendNotShootingProjectile = UnityEngine.Random.Range(1f, 2f);
+                    timeToSpendShootingProjectile = UnityEngine.Random.Range(6f, 8f);
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private Vector2 GetPlayerPosition()
