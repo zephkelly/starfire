@@ -3847,7 +3847,7 @@ ParticleSystem:
         m_RotationOrder: 4
     minKillSpeed: 0
     maxKillSpeed: 10000
-    radiusScale: 2.2
+    radiusScale: 1
     collidesWith:
       serializedVersion: 2
       m_Bits: 127
@@ -8816,7 +8816,7 @@ ParticleSystem:
         m_RotationOrder: 4
     minKillSpeed: 0
     maxKillSpeed: 10000
-    radiusScale: 2.2
+    radiusScale: 1
     collidesWith:
       serializedVersion: 2
       m_Bits: 127
@@ -9993,7 +9993,7 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 2
   m_LinearDrag: 0
-  m_AngularDrag: 0.2
+  m_AngularDrag: 0.4
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -10025,7 +10025,7 @@ MonoBehaviour:
   weaponProjectilePS:
   - {fileID: 8018265943451217944}
   - {fileID: 6402020936452252906}
-  fireRate: 0.2
+  fireRate: 0.3
   shipDamageColor: {r: 1, g: 0.43825188, b: 0.1462264, a: 1}
   thrusterNormalGradient:
     serializedVersion: 2

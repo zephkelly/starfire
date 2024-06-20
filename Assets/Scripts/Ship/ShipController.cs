@@ -18,7 +18,7 @@ namespace Starfire
         void Repair(int repair, DamageType damageType);
         void MoveInDirection(Vector2 direction, float speed, float maxSpeed, bool boost, float manoeuvreSpeed);
         void WarpInDirection(Vector2 direction, float moveSpeed, float maxSpeed, bool boost);
-        void FireProjectile();
+        void FireProjectileToPosition(Vector2 targetPosition);
         void Transport(Vector2 position);
         void RotateToVector(Vector2 direction, float speed);
     }
@@ -262,10 +262,12 @@ namespace Starfire
         }
 
         private int currentWeaponIndex = 0;
-        public virtual void FireProjectile()
+        public virtual void FireProjectileToPosition(Vector2 targetPosition)
         {
             if (currentProjectileFireTimer > 0) return;
             currentProjectileFireTimer = fireRate;
+
+            AimWeapons(targetPosition);
 
             weaponProjectileQueue.Enqueue(weaponProjectilePS[currentWeaponIndex]);
             ParticleSystem weaponPS = weaponProjectileQueue.Dequeue();
@@ -280,14 +282,6 @@ namespace Starfire
             if (currentProjectileFireTimer <= 0) return;
             currentProjectileFireTimer -= Time.deltaTime;
         }
-
-        // protected virtual void AimWeapons(Quaternion aimDirection)
-        // {
-        //     foreach (var weapon in weaponProjectilePS)
-        //     {
-        //         weapon.transform.rotation = aimDirection;
-        //     }
-        // }
 
         protected virtual void AimWeapons(Vector2 targetPosition)
         {

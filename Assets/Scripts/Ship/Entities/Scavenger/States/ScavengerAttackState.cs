@@ -80,7 +80,7 @@ namespace Starfire
             currentCirclePattern = GetRandomCirclePattern();
             currentMovementPattern = GetRandomMovementPattern();
 
-            shipController.FireProjectile();
+            if (ShouldFireProjectile()) shipController.FireProjectileToPosition(GetProjectileFiringPosition(playerRigid2D.position));
         }
 
         public void FixedUpdate()
@@ -88,6 +88,45 @@ namespace Starfire
             shipController.MoveInDirection(lerpVector, GetShipSpeed(), 1500f, true);
             scavengerTransform.up = visualLerpVector;
         }
+
+        private bool ShouldFireProjectile()
+        {
+            if (IsPlayerWithinSight())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsPlayerWithinSight()
+        {
+            float distanceToPlayer = Vector2.Distance(scavengerTransform.position, playerTransform.position);
+            float angleToPlayer = Vector2.Angle(scavengerTransform.up, playerTransform.position - scavengerTransform.position);
+
+            if (distanceToPlayer < 125f && angleToPlayer < 65f)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private Vector2 GetProjectileFiringPosition(Vector2 playerPosition)
+        {
+            Vector2 perpendicularVector = Vector2.Perpendicular(playerPosition - (Vector2)scavengerTransform.position).normalized;
+
+            if (Random.value > 0.5f)
+            {
+                perpendicularVector *= -1;
+            }
+
+            float amplitude = Random.Range(6f, 14f); // Adjust the range as needed
+            float frequency = Random.Range(1f, 5.5f); // Adjust the range as needed
+            Vector2 targetPosition = playerPosition + (perpendicularVector * Mathf.Sin(Time.time * frequency) * amplitude);
+
+            return targetPosition;
+        }   
 
         private Vector2 AdjustLerpPattern(Vector2 _weightedDirection)
         {

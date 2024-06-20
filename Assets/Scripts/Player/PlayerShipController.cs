@@ -29,14 +29,12 @@ namespace Starfire
 
         GetKeyboardInput();
 
-        Vector2 mouseDirection = GetMouseWorldPosition();
-        RotateToVector(mouseDirection, 200);
-
+        Vector2 mousePosition = GetMouseWorldPosition();
+        RotateToVector(mousePosition, 200);
 
         if (Input.GetMouseButton(0))
         {
-            AimWeapons(GetMouseWorldPosition());
-            FireProjectile();
+            FireProjectileToPosition(mousePosition);
         }
     }
 
@@ -87,8 +85,7 @@ namespace Starfire
 
     private Vector2 GetMouseWorldPosition()
     {
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        return mousePosition;
+        return Camera.main.ScreenToWorldPoint(Input.mousePosition);
     }
 
     private Vector2 GetKeyboardInput()
