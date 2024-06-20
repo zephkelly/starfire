@@ -9993,7 +9993,7 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 2
   m_LinearDrag: 0
-  m_AngularDrag: 1
+  m_AngularDrag: 0.2
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -10027,6 +10027,66 @@ MonoBehaviour:
   - {fileID: 6402020936452252906}
   fireRate: 0.2
   shipDamageColor: {r: 1, g: 0.43825188, b: 0.1462264, a: 1}
+  thrusterNormalGradient:
+    serializedVersion: 2
+    key0: {r: 1, g: 0.94741553, b: 0.711813, a: 1}
+    key1: {r: 1, g: 0.5184356, b: 0.34974283, a: 1}
+    key2: {r: 0.8867924, g: 0.30294865, b: 0.16313636, a: 0}
+    key3: {r: 0.09433961, g: 0.09433961, b: 0.09433961, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 22758
+    ctime2: 59982
+    ctime3: 65535
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 4
+    m_NumAlphaKeys: 2
+  thrusterWarpGradient:
+    serializedVersion: 2
+    key0: {r: 1, g: 0.94741553, b: 0.711813, a: 1}
+    key1: {r: 0.34901965, g: 0.6465315, b: 1, a: 1}
+    key2: {r: 0.062745094, g: 0.4135708, b: 1, a: 0}
+    key3: {r: 0.09433961, g: 0.09433961, b: 0.09433961, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 20239
+    ctime2: 59982
+    ctime3: 65535
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: -1
+    m_NumColorKeys: 4
+    m_NumAlphaKeys: 2
   moveSpeed: 155
 --- !u!60 &2756918316670815881
 PolygonCollider2D:

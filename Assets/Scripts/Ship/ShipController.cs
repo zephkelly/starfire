@@ -16,7 +16,8 @@ namespace Starfire
         void RemoveOrbitingBody();
         void Damage(int damage, DamageType damageType);
         void Repair(int repair, DamageType damageType);
-        void MoveInDirection(Vector2 direction, float speed, bool boost, float manoeuvreSpeed);
+        void MoveInDirection(Vector2 direction, float speed, float maxSpeed, bool boost, float manoeuvreSpeed);
+        void WarpInDirection(Vector2 direction, float moveSpeed, float maxSpeed, bool boost);
         void FireProjectile();
         void Transport(Vector2 position);
         void RotateToVector(Vector2 direction, float speed);
@@ -46,6 +47,8 @@ namespace Starfire
 
         [Header("Configuration")]
         [SerializeField] protected Color shipDamageColor;
+        [SerializeField] protected Gradient thrusterNormalGradient;
+        [SerializeField] protected Gradient thrusterWarpGradient;
 
         public ShipConfiguration Configuration => configuration;
         public ShipInventory Inventory => inventory;
@@ -162,7 +165,7 @@ namespace Starfire
             transform.position = orbitingBody.WorldPosition + relativePosition;
         }
 
-        public virtual void MoveInDirection(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost
+        public virtual void MoveInDirection(Vector2 direction, float speed, float maxSpeed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost
         {
             if (boost is true)
             {
@@ -173,15 +176,38 @@ namespace Starfire
                 shipRigidBody.AddForce(direction * manoeuvreSpeed, ForceMode2D.Force);
             }
 
-            SetThrusters(boost, direction);
+            SetThrusters(boost, direction, false);
+        }
+
+        public virtual void WarpInDirection(Vector2 direction, float moveSpeed, float maxSpeed, bool boost)
+        {
+            if (boost is true)
+            {
+                shipRigidBody.AddForce(direction * moveSpeed, ForceMode2D.Force);
+            }
+            else
+            {
+                shipRigidBody.AddForce(direction * moveSpeed, ForceMode2D.Force);
+            }
+
+            SetThrusters(boost, direction, true);
+
+            //if the ship is moving faster than the max speed, clamp it
+            if (shipRigidBody.velocity.magnitude > maxSpeed)
+            {
+                shipRigidBody.velocity = shipRigidBody.velocity.normalized * maxSpeed;
+            }
         }
         
-        private void SetThrusters(bool isActive, Vector2 movementDirection)
+        private void SetThrusters(bool isActive, Vector2 movementDirection, bool isWarping)
         {
             if (movementDirection.magnitude > 0.1f && isActive is true)
             {
                 for (int i = 0; i < shipThrusterPS.Count; i++)
                 {
+                    UpdateThrusterGradientByVelocity(shipThrusterPS[i], isWarping);
+
+                    if (shipThrusterPS[i].isPlaying is true) continue;
                     shipThrusterPS[i].Play();
                     shipThrusterLight[i].enabled = true;
                 }
@@ -190,11 +216,49 @@ namespace Starfire
             {
                 for (int i = 0; i < shipThrusterPS.Count; i++)
                 {
+                    if (shipThrusterPS[i].isPlaying is false) continue;
                     shipThrusterPS[i].Stop();
                     shipThrusterLight[i].enabled = false;
                 }
             }
         }
+
+        private void UpdateThrusterGradientByVelocity(ParticleSystem thruster, bool isWarping)
+        {
+            if (isWarping is true)
+            {
+                var main = thruster.main;
+                var colorOverLifetime = thruster.colorOverLifetime;
+                var sizeOverLifetime = thruster.sizeOverLifetime;
+
+                colorOverLifetime.color = thrusterWarpGradient;
+
+                // AnimationCurve ourCurve;
+                // ourCurve = new AnimationCurve();
+
+                // Keyframe key = new Keyframe(0, 0.4f);
+                // ourCurve.AddKey(key);
+
+                // key = new Keyframe(1, 1f);
+                // ourCurve.AddKey(key);
+
+                // key = new Keyframe(2, 1.6f);
+                // ourCurve.AddKey(key);
+
+                // key = new Keyframe(3, 0.1f);
+                // ourCurve.AddKey(key);
+
+                // sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1, ourCurve);
+            }
+            else
+            {
+                var main = thruster.main;
+                var colorOverLifetime = thruster.colorOverLifetime;
+                var sizeOverLifetime = thruster.sizeOverLifetime;
+
+                colorOverLifetime.color = thrusterNormalGradient;
+            }
+        }   
         
         public virtual void RotateToVector(Vector2 targetPosition, float degreesPerSecond)
         {

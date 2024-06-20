@@ -42,16 +42,23 @@ namespace Starfire
 
     protected override void FixedUpdate()
     {   
+        bool isBoosting = Input.GetKey(KeyCode.LeftShift);
+
         if (Input.GetKey(KeyCode.Space))
         {
-            MoveInDirection(keyboardInput.normalized, 1500, Input.GetKey(KeyCode.LeftShift));
+            WarpInDirection(keyboardInput.normalized, moveSpeed, 1500f, isBoosting);
         }
         else
         {
-            MoveInDirection(keyboardInput.normalized, moveSpeed, Input.GetKey(KeyCode.LeftShift));
+            MoveInDirection(keyboardInput.normalized, moveSpeed, 1500f, isBoosting);
+            if (isOrbiting is false) ApplyLinearDrag();
         }
 
-        base.FixedUpdate();
+        if (isOrbiting)
+        {
+            OrbitCelestialBody();
+            return;
+        }
     }
 
     public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
