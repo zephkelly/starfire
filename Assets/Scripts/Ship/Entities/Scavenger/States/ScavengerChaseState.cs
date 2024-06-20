@@ -68,7 +68,7 @@ namespace Starfire
 
             if (timeSpentCircling > 5f)
             {
-                _stateMachine.ChangeState(new ScavengerAttackState(_shipController, _scavengerRigid2D, _playerTransform));
+                _stateMachine.ChangeState(new ScavengerCircleState(_shipController, _scavengerRigid2D, _playerTransform));
             }
         }
 

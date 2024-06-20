@@ -1993,9 +1993,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6402020936452252906, guid: 441e1ce7cdbe417479a816c206b7902e, type: 3}
+      propertyPath: CollisionModule.radiusScale
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 6469693482504899954, guid: 441e1ce7cdbe417479a816c206b7902e, type: 3}
       propertyPath: m_Name
       value: Scavenger
+      objectReference: {fileID: 0}
+    - target: {fileID: 8018265943451217944, guid: 441e1ce7cdbe417479a816c206b7902e, type: 3}
+      propertyPath: CollisionModule.radiusScale
+      value: 0.6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

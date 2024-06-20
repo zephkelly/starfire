@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerAttackState : IState
+    public class ScavengerCircleState : IState
     {
         private ScavengerShipController shipController;
         private Rigidbody2D scavengerRigid2D;
@@ -41,7 +41,7 @@ namespace Starfire
             FigureEight
         }
 
-        public ScavengerAttackState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
+        public ScavengerCircleState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
         {
             shipController = _scavenger;
             scavengerTransform = _scavenger.transform;
