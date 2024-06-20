@@ -190,7 +190,14 @@ namespace Starfire
                 shipRigidBody.AddForce(direction * moveSpeed, ForceMode2D.Force);
             }
 
-            SetThrusters(boost, direction, true);
+            if (isOrbiting is false)
+            {
+                SetThrusters(boost, direction, true);
+            }
+            else
+            {
+                SetThrusters(boost, direction, false);
+            }
 
             //if the ship is moving faster than the max speed, clamp it
             if (shipRigidBody.velocity.magnitude > maxSpeed)
@@ -232,23 +239,6 @@ namespace Starfire
                 var sizeOverLifetime = thruster.sizeOverLifetime;
 
                 colorOverLifetime.color = thrusterWarpGradient;
-
-                // AnimationCurve ourCurve;
-                // ourCurve = new AnimationCurve();
-
-                // Keyframe key = new Keyframe(0, 0.4f);
-                // ourCurve.AddKey(key);
-
-                // key = new Keyframe(1, 1f);
-                // ourCurve.AddKey(key);
-
-                // key = new Keyframe(2, 1.6f);
-                // ourCurve.AddKey(key);
-
-                // key = new Keyframe(3, 0.1f);
-                // ourCurve.AddKey(key);
-
-                // sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1, ourCurve);
             }
             else
             {

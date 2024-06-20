@@ -169,5 +169,23 @@ namespace Starfire
             orbitingBodies.Remove(planetRigidbody);
         }
     }
+
+    private void OnDestroy() 
+    {
+        foreach (Rigidbody2D body in orbitingBodies)
+        {
+            if (body == null) continue;
+            body.GetComponent<CelestialBehaviour>().RemoveOrbitingBody();
+        }
+    }
+
+    private void OnDisable() 
+    {
+        foreach (Rigidbody2D body in orbitingBodies)
+        {
+            if (body == null) continue;
+            body.GetComponent<CelestialBehaviour>().RemoveOrbitingBody();
+        }
+    }
 }
 }
