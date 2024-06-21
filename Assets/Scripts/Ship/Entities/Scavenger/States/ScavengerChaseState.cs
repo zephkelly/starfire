@@ -25,7 +25,6 @@ namespace Starfire
         private Vector2 visualLerpVector;
 
         private LayerMask whichRaycastableLayers;
-        // private bool setBiasDirection = false;
         private int numberOfRays = 16;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 30f;
@@ -88,9 +87,9 @@ namespace Starfire
             }
 
             float speedMultiplier = GetSpeedMultiplier(distance);
-            float speed = _shipController.MoveSpeed * speedMultiplier;
+            float speed = _shipController.Configuration.ThrusterMaxSpeed * speedMultiplier;
 
-            _shipController.MoveInDirection(lerpVector, speed, 1500f, true);
+            _shipController.MoveInDirection(lerpVector, speed, true);
             _scavengerTransform.up = visualLerpVector;
         }
 

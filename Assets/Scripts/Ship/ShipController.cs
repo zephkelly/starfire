@@ -16,8 +16,8 @@ namespace Starfire
         void RemoveOrbitingBody();
         void Damage(int damage, DamageType damageType);
         void Repair(int repair, DamageType damageType);
-        void MoveInDirection(Vector2 direction, float speed, float maxSpeed, bool boost, float manoeuvreSpeed);
-        void WarpInDirection(Vector2 direction, float moveSpeed, float maxSpeed, bool boost);
+        void MoveInDirection(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f);
+        void WarpInDirection(Vector2 direction, float moveSpeed, bool boost);
         void FireProjectileToPosition(Vector2 targetPosition);
         void Transport(Vector2 position);
         void RotateToVector(Vector2 direction, float speed);
@@ -64,7 +64,7 @@ namespace Starfire
         protected virtual void Awake()
         {
             configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            configuration.SetConfiguration(this, 160, 100, 100, 100);
+            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400);
 
             shipRigidBody = GetComponent<Rigidbody2D>();
             shipSprite = GetComponent<SpriteRenderer>();
@@ -182,7 +182,7 @@ namespace Starfire
             transform.position = orbitingBody.WorldPosition + relativePosition;
         }
 
-        public virtual void MoveInDirection(Vector2 direction, float speed, float maxSpeed, bool boost, float manoeuvreSpeed = 60f) //TODO: Add double tap to boost
+        public virtual void MoveInDirection(Vector2 direction, float speed, bool boost, float manoeuvreSpeed = 60f) //  float maxSpeed
         {
             if (boost is true)
             {
@@ -196,15 +196,18 @@ namespace Starfire
             SetThrusters(boost, direction, false);
         }
 
-        public virtual void WarpInDirection(Vector2 direction, float moveSpeed, float maxSpeed, bool boost)
+        public virtual void WarpInDirection(Vector2 direction, float moveSpeed, bool boost) //, float maxSpeed
         {
+            float velocityPercentage = shipRigidBody.velocity.magnitude / configuration.WarpMaxSpeed;
+            float newMoveSpeed = Mathf.Lerp(moveSpeed, configuration.WarpMaxSpeed, velocityPercentage);
+
             if (boost is true)
             {
-                shipRigidBody.AddForce(direction * moveSpeed, ForceMode2D.Force);
+                shipRigidBody.AddForce(direction * newMoveSpeed, ForceMode2D.Force);
             }
             else
             {
-                shipRigidBody.AddForce(direction * moveSpeed, ForceMode2D.Force);
+                shipRigidBody.AddForce(direction * newMoveSpeed, ForceMode2D.Force);
             }
 
             if (isOrbiting is false)
@@ -217,9 +220,9 @@ namespace Starfire
             }
 
             //if the ship is moving faster than the max speed, clamp it
-            if (shipRigidBody.velocity.magnitude > maxSpeed)
+            if (shipRigidBody.velocity.magnitude > configuration.WarpMaxSpeed)
             {
-                shipRigidBody.velocity = shipRigidBody.velocity.normalized * maxSpeed;
+                shipRigidBody.velocity = shipRigidBody.velocity.normalized * configuration.WarpMaxSpeed;
             }
         }
         
@@ -349,8 +352,18 @@ namespace Starfire
 
         protected void ApplyLinearDrag()
         {
-            shipRigidBody.AddForce(-shipRigidBody.velocity * shipRigidBody.mass, ForceMode2D.Force);
-            
+            float currentSpeed = shipRigidBody.velocity.magnitude;
+            float thrusterSpeed = 160f;
+
+            if (currentSpeed > thrusterSpeed)
+            {
+                shipRigidBody.AddForce((-shipRigidBody.velocity * 0.8f) * shipRigidBody.mass, ForceMode2D.Force);
+            }
+            else
+            {
+                shipRigidBody.AddForce(-shipRigidBody.velocity * shipRigidBody.mass, ForceMode2D.Force);
+            }
+
             if (shipRigidBody.velocity.magnitude < 0.1f) shipRigidBody.velocity = Vector2.zero;
         }
 

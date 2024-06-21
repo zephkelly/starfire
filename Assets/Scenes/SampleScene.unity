@@ -1904,6 +1904,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   alertManager: {fileID: 1735648773}
   hudManager: {fileID: 1735648772}
+  dialogueManager: {fileID: 1735648771}
 --- !u!114 &1735648771
 MonoBehaviour:
   m_ObjectHideFlags: 0

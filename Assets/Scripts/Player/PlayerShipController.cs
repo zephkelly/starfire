@@ -5,17 +5,16 @@ namespace Starfire
 {
   public class PlayerShipController : ShipController
   {
-    [SerializeField] private float moveSpeed = 160f;
     private Vector2 keyboardInput = Vector2.zero;
 
-    public UnityEvent<string> OnPlayerOrbitEnter;
-    public UnityEvent<string> OnPlayerOrbitExit;
+    // public UnityEvent<string> OnPlayerOrbitEnter;
+    // public UnityEvent<string> OnPlayerOrbitExit;
 
     protected override void Awake()
     {
         base.Awake();
 
-        configuration.SetConfiguration(this, 360, 100, 100, 100);
+        configuration.SetConfiguration(this, 360, 100, 100, 160, 1500);
     }
 
     protected override void Start()
@@ -45,11 +44,11 @@ namespace Starfire
 
         if (Input.GetKey(KeyCode.Space))
         {
-            WarpInDirection(keyboardInput.normalized, moveSpeed, 1500f, isBoosting);
+            WarpInDirection(keyboardInput.normalized, configuration.ThrusterMaxSpeed, isBoosting);
         }
         else
         {
-            MoveInDirection(keyboardInput.normalized, moveSpeed, 1500f, isBoosting);
+            MoveInDirection(keyboardInput.normalized, configuration.ThrusterMaxSpeed, isBoosting);
             if (isOrbiting is false) ApplyLinearDrag();
         }
 
@@ -64,7 +63,7 @@ namespace Starfire
     {
         if (isParent is false)
         {
-            OnPlayerOrbitEnter.Invoke("Now orbiting " + orbitingBody.Name);
+            UIManager.Instance.DisplayMinorAlert("Now orbiting " + orbitingBody.Name);
         }
 
         base.SetOrbitingBody(orbitingBody, isParent);
@@ -74,7 +73,7 @@ namespace Starfire
     {
         if (orbitingBody != null)
         {
-            OnPlayerOrbitExit.Invoke("Leaving " + orbitingBody.Name);
+            UIManager.Instance.DisplayMinorAlert("Leaving " + orbitingBody.Name);
         }
         else
         {

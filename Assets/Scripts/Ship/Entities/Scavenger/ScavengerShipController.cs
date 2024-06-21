@@ -18,7 +18,6 @@ namespace Starfire
         public GameObject ScavengerObject { get => scavengerObject; }
         public Transform PlayerTransform { get => playerTransform; }
         public Rigidbody2D PlayerRigidbody { get => playerRigid2D; }
-        public float MoveSpeed { get => moveSpeed; }
 
         protected override void Awake()
         {

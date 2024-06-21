@@ -85,7 +85,7 @@ namespace Starfire
 
         public void FixedUpdate()
         {
-            shipController.MoveInDirection(lerpVector, GetShipSpeed(), 1500f, true);
+            shipController.MoveInDirection(lerpVector, GetShipSpeed(), true);
             scavengerTransform.up = visualLerpVector;
         }
 
@@ -158,7 +158,7 @@ namespace Starfire
 
         private float GetShipSpeed()
         {
-            float shipSpeed = shipController.MoveSpeed;
+            float shipSpeed = shipController.Configuration.ThrusterMaxSpeed;
 
             if (currentMovementPattern == MovementPattern.Fixed)
             {
