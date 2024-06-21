@@ -13,7 +13,7 @@ namespace Starfire
 
         public void Enter()
         {
-            Debug.Log("Scavenger is idle!");
+            
         }
 
         public void Execute()

@@ -10,7 +10,6 @@ namespace Starfire
         private Rigidbody2D scavengerRigid2D;
         private Transform playerTransform;
         private Rigidbody2D playerRigid2D;
-        [SerializeField] private float moveSpeed = 160f;
 
         public StateMachine ScavengerStateMachine { get => stateMachine; }
         public Transform ScavengerTransform { get => scavengerTransform; }

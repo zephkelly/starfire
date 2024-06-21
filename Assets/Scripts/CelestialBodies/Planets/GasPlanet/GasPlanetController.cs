@@ -35,12 +35,6 @@ namespace Starfire
             }
         }
 
-        public void SetPixel(float amount)
-        {
-            _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
-            _celestialMaterials[1].SetFloat(ShaderProperties.Key_Pixels, amount);
-        }
-
         public void SetInitialColors()
         {
             for (int i = 0; i < color_vars1.Length; i++)

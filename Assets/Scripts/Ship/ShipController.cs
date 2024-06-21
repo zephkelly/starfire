@@ -65,8 +65,6 @@ namespace Starfire
         protected virtual void Awake()
         {
             configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360);
-
             shipRigidBody = GetComponent<Rigidbody2D>();
             shipSprite = GetComponent<SpriteRenderer>();
 
@@ -78,9 +76,16 @@ namespace Starfire
 
         protected virtual void Start()
         {
+            ConfigureShip();
+
             healthbarCanvas.enabled = false;
             shipRigidBody.centerOfMass = Vector2.zero;
             ChunkManager.Instance.AddShip(this);
+        }
+
+        protected virtual void ConfigureShip()
+        {
+            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360);
         }
 
         protected virtual void Update() 

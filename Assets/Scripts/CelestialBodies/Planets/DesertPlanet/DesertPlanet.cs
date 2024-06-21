@@ -44,11 +44,6 @@ namespace Starfire
         }
     }
 
-    public void SetPixel(float amount)
-    {
-        _celestialMaterials[0].SetFloat(ShaderProperties.Key_Pixels, amount);
-    }
-
     public void SetSeed(float seed)
     {
         var converted_seed = seed % 1000f / 100f;

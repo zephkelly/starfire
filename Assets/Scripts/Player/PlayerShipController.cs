@@ -13,14 +13,19 @@ namespace Starfire
     protected override void Awake()
     {
         base.Awake();
-
-        configuration.SetConfiguration(this, 360, 100, 100, 160, 1500, 200);
     }
 
     protected override void Start()
     {
+        ConfigureShip();
+
         shipRigidBody.centerOfMass = Vector2.zero;
         ChunkManager.Instance.AddShip(this);
+    }
+
+    protected override void ConfigureShip()
+    {
+        configuration.SetConfiguration(this, 360, 100, 100, 160, 1500, 200);
     }
 
     protected override void Update()
