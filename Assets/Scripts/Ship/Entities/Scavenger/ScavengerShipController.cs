@@ -34,8 +34,8 @@ namespace Starfire
             scavengerObject = gameObject;
             scavengerRigid2D = transform.GetComponent<Rigidbody2D>();
 
-            playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
-            playerRigid2D = playerTransform.GetComponent<Rigidbody2D>();
+            // playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+            // playerRigid2D = playerTransform.GetComponent<Rigidbody2D>();
 
             stateMachine.ChangeState(new ScavengerChaseState(this));
         }
@@ -65,6 +65,17 @@ namespace Starfire
         protected override void OnParticleCollision(GameObject other)
         {
             base.OnParticleCollision(other);
+
+            if (other.CompareTag("Player"))
+            {
+                playerTransform = other.GetComponentInParent<ShipController>().transform;
+                playerRigid2D = playerTransform.GetComponent<Rigidbody2D>();
+                
+                if (stateMachine.CurrentState is not ScavengerChaseState)
+                {
+                    stateMachine.ChangeState(new ScavengerChaseState(this));
+                }
+            }
 
             EnableHealthbar(configuration.Health, configuration.MaxHealth);
         }

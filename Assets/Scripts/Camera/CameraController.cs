@@ -48,9 +48,6 @@ namespace Starfire
 
     private void Start()
     {
-        target = GameObject.FindGameObjectWithTag("Player").transform;
-        targetRigidbody = target.GetComponent<Rigidbody2D>();
-
         minZoom = mainCamera.orthographicSize;
         currentZoom = minZoom;
     }
@@ -109,7 +106,11 @@ namespace Starfire
         }
     }
 
-    public void ChangeFocus(Transform newFocus) => target = newFocus;
+    public void ChangeFocus(Transform newFocus) 
+    {
+        target = newFocus;
+        targetRigidbody = target.GetComponent<Rigidbody2D>();
+    }
 
     public void Transport(Vector2 offset)
     {

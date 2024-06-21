@@ -8,32 +8,32 @@ public interface IState
 
 public class StateMachine
 {
-    public IState currentState { get; private set; }
+    public IState CurrentState { get; private set; }
 
     public void ChangeState(IState newState)
     {
-        if(currentState != null)
+        if(CurrentState != null)
         {
-            currentState.Exit();
+            CurrentState.Exit();
         }
         
-        currentState = newState;
-        currentState.Enter();
+        CurrentState = newState;
+        CurrentState.Enter();
     }
 
     public void Update()
     {
-        if(currentState != null)
+        if(CurrentState != null)
         {
-            currentState.Execute();
+            CurrentState.Execute();
         }
     }
 
     public void FixedUpdate()
     {
-        if(currentState != null)
+        if(CurrentState != null)
         {
-            currentState.FixedUpdate();
+            CurrentState.FixedUpdate();
         }
     }
 }

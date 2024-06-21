@@ -123,8 +123,8 @@ namespace Starfire
                 perpendicularVector *= -1;
             }
 
-            float amplitude = UnityEngine.Random.Range(6f, 14f); // Adjust the range as needed
-            float frequency = UnityEngine.Random.Range(1f, 5.5f); // Adjust the range as needed
+            float amplitude = UnityEngine.Random.Range(8f, 14f); // Adjust the range as needed
+            float frequency = UnityEngine.Random.Range(1f, 3f); // Adjust the range as needed
             Vector2 targetPosition = playerPosition + (perpendicularVector * Mathf.Sin(Time.time * frequency) * amplitude);
 
             return targetPosition;

@@ -30,13 +30,16 @@ namespace Starfire
             {
                 Destroy(gameObject);
             }
+        }
 
-            player = GameObject.FindGameObjectsWithTag("Player")[0].transform;
-            
+        public void SetNewPlayer(Transform newPlayer)
+        {
+            player = newPlayer;
         }
 
         public void UpdateMinimapMarkers(bool resetOrigin = false)
         {
+            if (player == null) return;
             if (resetOrigin) return;
             ClearCurrentMarkers();
 
