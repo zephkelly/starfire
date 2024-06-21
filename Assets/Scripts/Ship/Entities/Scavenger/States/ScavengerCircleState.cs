@@ -4,7 +4,7 @@ namespace Starfire
 {
     public class ScavengerCircleState : IState
     {
-        private ScavengerShipController shipController;
+        private ScavengerShipController _shipController;
         private Rigidbody2D scavengerRigid2D;
         private Transform scavengerTransform;
         private Transform playerTransform;
@@ -43,7 +43,7 @@ namespace Starfire
 
         public ScavengerCircleState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _playerTransfrom)
         {
-            shipController = _scavenger;
+            _shipController = _scavenger;
             scavengerTransform = _scavenger.transform;
             scavengerRigid2D = _scavengerRigid;
             playerTransform = _playerTransfrom;
@@ -61,13 +61,13 @@ namespace Starfire
         {
             if (playerTransform == null)
             {
-                shipController.ScavengerStateMachine.ChangeState(new ScavengerIdleState(shipController));
+                _shipController.ScavengerStateMachine.ChangeState(new ScavengerIdleState(_shipController));
                 return;
             }
 
             if (timeSpentNotCircling > 4f)
             {
-                shipController.ScavengerStateMachine.ChangeState(new ScavengerChaseState(shipController));
+                _shipController.ScavengerStateMachine.ChangeState(new ScavengerChaseState(_shipController));
             }
 
             RaycastToPlayer();
@@ -80,13 +80,13 @@ namespace Starfire
             currentCirclePattern = GetRandomCirclePattern();
             currentMovementPattern = GetRandomMovementPattern();
 
-            if (ShouldFireProjectile()) shipController.FireProjectileToPosition(GetProjectileFiringPosition(playerRigid2D.position));
+            if (ShouldFireProjectile()) _shipController.FireProjectileToPosition(GetProjectileFiringPosition(playerRigid2D.position));
         }
 
         public void FixedUpdate()
         {
-            shipController.MoveInDirection(lerpVector, GetShipSpeed(), true);
-            scavengerTransform.up = visualLerpVector;
+            _shipController.MoveInDirection(lerpVector, GetShipSpeed(), true);
+            _shipController.RotateToDirection(visualLerpVector, _shipController.Configuration.TurnDegreesPerSecond);
         }
 
         private bool ShouldFireProjectile()
@@ -158,7 +158,7 @@ namespace Starfire
 
         private float GetShipSpeed()
         {
-            float shipSpeed = shipController.Configuration.ThrusterMaxSpeed;
+            float shipSpeed = _shipController.Configuration.ThrusterMaxSpeed;
 
             if (currentMovementPattern == MovementPattern.Fixed)
             {

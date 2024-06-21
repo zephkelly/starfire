@@ -18,12 +18,13 @@ namespace Starfire
         public int Cargo { get; private set; }
         public int ThrusterMaxSpeed { get; private set; }
         public int WarpMaxSpeed { get; private set; }
+        public int TurnDegreesPerSecond { get; private set; }
         public int ProjectileDamage { get; private set; }
         public int MaxHealth { get; private set; }
         public int MaxFuel { get; private set; }
         public int MaxCargo { get; private set; }
 
-        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int _thrusterMaxSpeed, int _warpMaxSpeed)
+        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int _thrusterMaxSpeed, int _warpMaxSpeed, int _turnSpeed)
         {
             shipController = shipConfig;
             Health = health;
@@ -32,6 +33,7 @@ namespace Starfire
             Cargo = cargo;
             ThrusterMaxSpeed = _thrusterMaxSpeed;
             WarpMaxSpeed = _warpMaxSpeed;
+            TurnDegreesPerSecond = _turnSpeed;
             MaxFuel = fuel;
             MaxCargo = cargo;
 

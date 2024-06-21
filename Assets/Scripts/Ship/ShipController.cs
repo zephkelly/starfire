@@ -20,7 +20,8 @@ namespace Starfire
         void WarpInDirection(Vector2 direction, float moveSpeed, bool boost);
         void FireProjectileToPosition(Vector2 targetPosition);
         void Transport(Vector2 position);
-        void RotateToVector(Vector2 direction, float speed);
+        void RotateToPosition(Vector2 direction, float speed);
+        void RotateToDirection(Vector2 direction, float speed);
     }
 
     [RequireComponent(typeof(Rigidbody2D))]
@@ -64,7 +65,7 @@ namespace Starfire
         protected virtual void Awake()
         {
             configuration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400);
+            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360);
 
             shipRigidBody = GetComponent<Rigidbody2D>();
             shipSprite = GetComponent<SpriteRenderer>();
@@ -270,10 +271,20 @@ namespace Starfire
             }
         }   
         
-        public virtual void RotateToVector(Vector2 targetPosition, float degreesPerSecond)
+        public virtual void RotateToPosition(Vector2 targetPosition, float degreesPerSecond)
         {
             Vector2 newDirection = new Vector2(targetPosition.x - transform.position.x, targetPosition.y - transform.position.y);
             float targetAngle = Mathf.Atan2(newDirection.y, newDirection.x) * Mathf.Rad2Deg - 90;
+            float currentAngle = transform.eulerAngles.z;
+            float angleDifference = Mathf.DeltaAngle(currentAngle, targetAngle);
+            float rotation = Mathf.Sign(angleDifference) * Mathf.Min(Mathf.Abs(angleDifference), degreesPerSecond * Time.deltaTime);
+
+            transform.Rotate(Vector3.forward, rotation);
+        }
+
+        public virtual void RotateToDirection(Vector2 targetDirection, float degreesPerSecond)
+        {
+            float targetAngle = Mathf.Atan2(targetDirection.y, targetDirection.x) * Mathf.Rad2Deg - 90;
             float currentAngle = transform.eulerAngles.z;
             float angleDifference = Mathf.DeltaAngle(currentAngle, targetAngle);
             float rotation = Mathf.Sign(angleDifference) * Mathf.Min(Mathf.Abs(angleDifference), degreesPerSecond * Time.deltaTime);

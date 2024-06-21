@@ -14,7 +14,7 @@ namespace Starfire
     {
         base.Awake();
 
-        configuration.SetConfiguration(this, 360, 100, 100, 160, 1500);
+        configuration.SetConfiguration(this, 360, 100, 100, 160, 1500, 200);
     }
 
     protected override void Start()
@@ -30,7 +30,7 @@ namespace Starfire
         GetKeyboardInput();
 
         Vector2 mousePosition = GetMouseWorldPosition();
-        RotateToVector(mousePosition, 200);
+        RotateToPosition(mousePosition, 200);
 
         if (Input.GetMouseButton(0))
         {

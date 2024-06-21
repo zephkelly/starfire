@@ -90,7 +90,7 @@ namespace Starfire
             float speed = _shipController.Configuration.ThrusterMaxSpeed * speedMultiplier;
 
             _shipController.MoveInDirection(lerpVector, speed, true);
-            _scavengerTransform.up = visualLerpVector;
+            _shipController.RotateToDirection(visualLerpVector, _shipController.Configuration.TurnDegreesPerSecond);
         }
 
         private float GetSpeedMultiplier(float distance)
