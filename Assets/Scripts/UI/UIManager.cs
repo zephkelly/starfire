@@ -1,73 +1,64 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
-using Unity.VisualScripting;
 
-public class UIManager : MonoBehaviour
+namespace Starfire
 {
-    public static UIManager Instance;
-    
-    [Header("UI Messages")]
-    public TextMeshProUGUI minorAlert;
-    private bool isMinorAlertActive = false;
-
-    private Queue minorAlertQueue = new Queue();
-    private string lastMinorAlert;
-    
-    void Awake()
+    [RequireComponent(typeof(AlertManager))]
+    [RequireComponent(typeof(HUDManager))]
+    public class UIManager : MonoBehaviour
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
+        public static UIManager Instance;
+        
+        [SerializeField] private AlertManager alertManager;
+        [SerializeField] private HUDManager hudManager;
+        [SerializeField] private DialogueManager dialogueManager;
 
-    private void Update()
-    {
-        ShouldDisplayMinorAlert();
-    }
-
-    private void ShouldDisplayMinorAlert()
-    {
-        if (minorAlertQueue.Count > 0 && !isMinorAlertActive)
+        public AlertManager AlertManager => alertManager;
+        public HUDManager HUDManager => hudManager;
+        public DialogueManager DialogueManager => dialogueManager;
+        
+        void Awake()
         {
-            if (lastMinorAlert == minorAlertQueue.Peek().ToString())
+            if (Instance == null)
             {
-                minorAlertQueue.Dequeue();
-                return;
+                Instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
             }
 
-            lastMinorAlert = minorAlertQueue.Peek().ToString();
-            StartCoroutine(FadeTextEffect(minorAlert, minorAlertQueue.Dequeue().ToString()));
+            alertManager = GetComponent<AlertManager>();
+            hudManager = GetComponent<HUDManager>();
+            dialogueManager = GetComponent<DialogueManager>();
         }
-    }
 
-    public void DisplayMinorAlert(string alertText)
-    {
-        if (minorAlertQueue.Count > 0)
+        public void DisplayMinorAlert(string alertText)
         {
-            minorAlertQueue.Dequeue();
+            alertManager.DisplayMinorAlert(alertText);
         }
 
-        minorAlertQueue.Enqueue(alertText);
-    }
+        public void UpdatehealthBar(float health, float maxHealth)
+        {
+            HUDManager.UpdateHealthBar(health, maxHealth);
+        }
 
-    public IEnumerator FadeTextEffect(TextMeshProUGUI text, string message)
-    {
-        text.text = message;
-        isMinorAlertActive = true;
+        public void DisplayDialogue(Message dialogueText)
+        {
+            DialogueManager.DisplayMessage(dialogueText);
+        }
 
-        text.CrossFadeAlpha(0, 0, false);
-        text.CrossFadeAlpha(1, 1.15f, false);
-        yield return new WaitForSeconds(2.25f);
-        text.CrossFadeAlpha(0, 1.15f, false);
-        yield return new WaitForSeconds(2);
+        public void HideUI()
+        {
+            AlertManager.Hide();
+            HUDManager.Hide();
+            DialogueManager.Hide();
+        }
 
-        isMinorAlertActive = false;
+        public void ShowUI()
+        {
+            AlertManager.Show();
+            HUDManager.Show();
+            DialogueManager.Show();
+        }
     }
 }

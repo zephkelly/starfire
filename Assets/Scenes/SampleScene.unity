@@ -989,9 +989,25 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 18aa58c39c37925479591aef250b1d69, type: 3}
+--- !u!114 &1043689308 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1853230057749294537, guid: 18aa58c39c37925479591aef250b1d69, type: 3}
+  m_PrefabInstance: {fileID: 1043689307}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1043689309 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2377332154678827695, guid: 18aa58c39c37925479591aef250b1d69, type: 3}
+  m_PrefabInstance: {fileID: 1043689307}
+  m_PrefabAsset: {fileID: 0}
+--- !u!223 &1043689310 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 5128715439307123461, guid: 18aa58c39c37925479591aef250b1d69, type: 3}
   m_PrefabInstance: {fileID: 1043689307}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1107882139
@@ -1847,6 +1863,8 @@ GameObject:
   - component: {fileID: 1735648769}
   - component: {fileID: 1735648770}
   - component: {fileID: 1735648771}
+  - component: {fileID: 1735648773}
+  - component: {fileID: 1735648772}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -1884,7 +1902,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2406a9b290a15684fa1de088d6c26841, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minorAlert: {fileID: 547241229}
+  alertManager: {fileID: 1735648773}
+  hudManager: {fileID: 1735648772}
 --- !u!114 &1735648771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1898,6 +1917,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialogueText: {fileID: 746875144}
+--- !u!114 &1735648772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735648768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09efa0e3838553d46b4c5446455252dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthbarCanvas: {fileID: 1043689310}
+  healthbarFill: {fileID: 1043689308}
+--- !u!114 &1735648773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735648768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5d6d2e0ba692374596bc430ba302803, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minorAlert: {fileID: 547241229}
 --- !u!1 &1827530292
 GameObject:
   m_ObjectHideFlags: 0

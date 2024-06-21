@@ -5,40 +5,42 @@ using TMPro;
 
 namespace Starfire
 {
-    public class DialogueManager : MonoBehaviour
+    public class DialogueManager : MonoBehaviour, IUIComponent
     {
-        public static DialogueManager Instance;
-
         [SerializeField] private TextMeshProUGUI dialogueText;
-
         Queue<Message> dialogueQueue = new Queue<Message>();
         private bool isDisplayingDialogue = false;
 
         private void Awake()
         {
-            if (Instance == null)
+            if (dialogueText == null)
             {
-                Instance = this;
+                Debug.LogError("Dialogue text not set in DialogueManager");
             }
-            else
-            {
-                Destroy(gameObject);
-            }
+        }
+
+        public void Show()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Hide()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void DisplayMessage(Message message)
+        {
+            dialogueQueue.Enqueue(message);
         }
 
         private void Start()
         {
-            // var newSender = new Transponder("Scavenger", FactionType.Scavenger, "90000Hz");
-            // var newReceiver = new Transponder("Player", FactionType.Player, "90000Hz");
+            var newSender = new Transponder("Scavenger", FactionType.Scavenger, "90000Hz");
+            var newReceiver = new Transponder("Player", FactionType.Player, "90000Hz");
 
-            // var newMessage = new Message(newSender, newReceiver, "Hello young new traveller! First time in this sector? I'm here to help you out!");
-            // DisplayMessage(newMessage);
-
-            // var newMessage2 = new Message(newSender, newReceiver, "Just give me all your loot and turn off your ship, that would be great!");
-            // DisplayMessage(newMessage2);
-
-            // var newMessage3 = new Message(newReceiver, newReceiver, "Ignore him, these scavengers are nothing more that little pests running around the system.");
-            // DisplayMessage(newMessage3);
+            var newMessage = new Message(newSender, newReceiver, "Hello young new traveller! First time in this sector? I'm here to help you out!");
+            DisplayMessage(newMessage);
         }
 
         private void Update()
@@ -64,13 +66,7 @@ namespace Starfire
             }
         }
 
-        private void DisplayMessage(Message message)
-        {
-            dialogueQueue.Enqueue(message);
-        }
-
-
-        public IEnumerator FadeTextEffect(string message, float displayLength, Color color = default)
+        private IEnumerator FadeTextEffect(string message, float displayLength, Color color = default)
         {
             dialogueText.text = message;
             isDisplayingDialogue = true;

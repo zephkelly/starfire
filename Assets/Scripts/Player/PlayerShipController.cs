@@ -20,9 +20,8 @@ namespace Starfire
 
     protected override void Start()
     {
-        base.Start();
-
-        healthbarCanvas.enabled = true;
+        shipRigidBody.centerOfMass = Vector2.zero;
+        ChunkManager.Instance.AddShip(this);
     }
 
     protected override void Update()
@@ -101,7 +100,7 @@ namespace Starfire
 
     protected override void EnableHealthbar(float currentHealth, float maxHealth)
     {
-        healthBarFill.fillAmount = currentHealth / maxHealth;
+        UIManager.Instance.UpdatehealthBar(currentHealth, maxHealth);
     }
 
     private Vector2 GetMouseWorldPosition()
