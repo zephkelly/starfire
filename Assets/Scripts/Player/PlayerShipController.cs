@@ -7,9 +7,6 @@ namespace Starfire
   {
     private Vector2 keyboardInput = Vector2.zero;
 
-    // public UnityEvent<string> OnPlayerOrbitEnter;
-    // public UnityEvent<string> OnPlayerOrbitExit;
-
     protected override void Awake()
     {
         base.Awake();
@@ -23,7 +20,7 @@ namespace Starfire
         ChunkManager.Instance.AddShip(this);
     }
 
-    protected override void ConfigureShip()
+    public override void ConfigureShip()
     {
         configuration.SetConfiguration(this, 360, 100, 100, 160, 1500, 200);
     }

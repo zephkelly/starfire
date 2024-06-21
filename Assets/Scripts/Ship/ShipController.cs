@@ -22,6 +22,7 @@ namespace Starfire
         void Transport(Vector2 position);
         void RotateToPosition(Vector2 direction, float speed);
         void RotateToDirection(Vector2 direction, float speed);
+        void ConfigureShip();
     }
 
     [RequireComponent(typeof(Rigidbody2D))]
@@ -83,7 +84,7 @@ namespace Starfire
             ChunkManager.Instance.AddShip(this);
         }
 
-        protected virtual void ConfigureShip()
+        public virtual void ConfigureShip()
         {
             configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360);
         }
