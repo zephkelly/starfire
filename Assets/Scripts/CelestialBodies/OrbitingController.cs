@@ -11,6 +11,8 @@ namespace Starfire
     private const float G = 0.2f;
     private List<Rigidbody2D> orbitingBodies = new List<Rigidbody2D>();
 
+    public Vector2 GetVelocity() => celestialRigidbody.velocity;
+
     private void Awake()
     {
         celestialBehaviour = gameObject.GetComponent<CelestialBehaviour>();
@@ -74,7 +76,7 @@ namespace Starfire
         Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
         Vector2 orbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * parentBodyMass) / distanceToStar);
 
-        return orbitalVelocity + celestialRigidbody.velocity;
+        return orbitalVelocity;
     }
 
     public int GetOrbitDirection(Rigidbody2D _body)

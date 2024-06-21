@@ -22,7 +22,7 @@ namespace Starfire
 
     public override void ConfigureShip()
     {
-        configuration.SetConfiguration(this, 360, 100, 100, 160, 1500, 200);
+        configuration.SetConfiguration(this, 260, 100, 100, 160, 1500, 200, 4);
     }
 
     protected override void Update()
@@ -56,7 +56,7 @@ namespace Starfire
         {
             if (isOrbiting)
             {
-                MoveInDirection(inputDirection, configuration.ThrusterMaxSpeed * 1.2f, isBoosting);
+                MoveInDirection(inputDirection, configuration.ThrusterMaxSpeed * 1.3f, isBoosting);
             }
             else
             {

@@ -105,7 +105,7 @@ namespace Starfire
             float distanceToPlayer = Vector2.Distance(_scavengerTransform.position, _playerTransform.position);
             float angleToPlayer = Vector2.Angle(_scavengerTransform.up, _playerTransform.position - _scavengerTransform.position);
 
-            if (distanceToPlayer < 125f && angleToPlayer < 45f)
+            if (distanceToPlayer < 125f && angleToPlayer < 55f)
             {
                 return true;
             }
@@ -122,7 +122,7 @@ namespace Starfire
                 perpendicularVector *= -1;
             }
 
-            float amplitude = UnityEngine.Random.Range(8f, 14f); // Adjust the range as needed
+            float amplitude = UnityEngine.Random.Range(8f, 10f); // Adjust the range as needed
             float frequency = UnityEngine.Random.Range(1f, 3f); // Adjust the range as needed
             Vector2 targetPosition = playerPosition + (perpendicularVector * Mathf.Sin(Time.time * frequency) * amplitude);
 

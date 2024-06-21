@@ -31,10 +31,7 @@ namespace Starfire
             scavengerTransform = transform;
             scavengerObject = gameObject;
             scavengerRigid2D = transform.GetComponent<Rigidbody2D>();
-
-            // playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
-            // playerRigid2D = playerTransform.GetComponent<Rigidbody2D>();
-
+            
             stateMachine.ChangeState(new ScavengerChaseState(this));
         }
 

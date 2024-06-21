@@ -24,7 +24,7 @@ namespace Starfire
         public int MaxFuel { get; private set; }
         public int MaxCargo { get; private set; }
 
-        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int _thrusterMaxSpeed, int _warpMaxSpeed, int _turnSpeed)
+        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int _thrusterMaxSpeed, int _warpMaxSpeed, int _turnSpeed, int _projectioleDamage = 4)
         {
             shipController = shipConfig;
             Health = health;
@@ -37,7 +37,7 @@ namespace Starfire
             MaxFuel = fuel;
             MaxCargo = cargo;
 
-            ProjectileDamage = 4;
+            ProjectileDamage = _projectioleDamage;
         }
 
         public void Damage(int damage, DamageType damageType)

@@ -104,7 +104,7 @@ namespace Starfire
             float distanceToPlayer = Vector2.Distance(scavengerTransform.position, playerTransform.position);
             float angleToPlayer = Vector2.Angle(scavengerTransform.up, playerTransform.position - scavengerTransform.position);
 
-            if (distanceToPlayer < 125f && angleToPlayer < 65f)
+            if (distanceToPlayer < 135f && angleToPlayer < 75f)
             {
                 return true;
             }
@@ -121,8 +121,8 @@ namespace Starfire
                 perpendicularVector *= -1;
             }
 
-            float amplitude = Random.Range(6f, 14f); // Adjust the range as needed
-            float frequency = Random.Range(1f, 5.5f); // Adjust the range as needed
+            float amplitude = Random.Range(6f, 12f); // Adjust the range as needed
+            float frequency = Random.Range(1f, 4.5f); // Adjust the range as needed
             Vector2 targetPosition = playerPosition + (perpendicularVector * Mathf.Sin(Time.time * frequency) * amplitude);
 
             return targetPosition;
@@ -192,11 +192,11 @@ namespace Starfire
                 timeTillMovePatternChange = Random.Range(4f, 8f);
                 int randomMovementPattern = Random.Range(0, 10);
 
-                if (randomMovementPattern <= 1)
+                if (randomMovementPattern <= 2)
                 {
                     newMovementPattern = MovementPattern.Fixed;
                 }
-                else if (randomMovementPattern <= 3)
+                else if (randomMovementPattern <= 4)
                 {
                     newMovementPattern = MovementPattern.ZigZag;
                 }

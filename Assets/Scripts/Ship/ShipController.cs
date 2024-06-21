@@ -38,7 +38,6 @@ namespace Starfire
         protected CelestialBehaviour orbitingBody;
         protected Vector2 orbitalVelocity;
         protected Vector2 lastOrbitalVelocity;
-        protected int desiredOrbitDirection = 1;
         protected bool isOrbiting = false;
         protected const float invulnerabilityTime = 0.5f;
 
@@ -87,7 +86,7 @@ namespace Starfire
 
         public virtual void ConfigureShip()
         {
-            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360);
+            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360, 6);
         }
 
         protected virtual void Update() 
@@ -160,21 +159,10 @@ namespace Starfire
                 return;
             }
 
-            // lastOrbitalVelocity = orbitalVelocity;
-
-
-            //Set constant orbit velocity
-            desiredOrbitDirection = orbitingBody.OrbitController.GetOrbitDirection(shipRigidBody);
+            int desiredOrbitDirection = orbitingBody.OrbitController.GetOrbitDirection(shipRigidBody);
             Vector2 desiredVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
-            float smoothTime = 0.2f; // Adjust this value for smoother or more responsive transitions
-            Vector2 velocityChange = Vector2.zero;
-            orbitalVelocity = Vector2.SmoothDamp(shipRigidBody.velocity, desiredVelocity * desiredOrbitDirection, ref velocityChange, smoothTime);
-
-            shipRigidBody.velocity = orbitalVelocity;
-
-            // shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
-            // shipRigidBody.velocity += orbitalVelocity;
+            orbitalVelocity = (desiredVelocity * desiredOrbitDirection) + orbitingBody.OrbitController.GetVelocity();
 
             ApplyOrbitalDrag();
 
@@ -189,12 +177,12 @@ namespace Starfire
             //Orbital drag
             if (shipRigidBody.velocity.x > orbitalVelocity.x || shipRigidBody.velocity.x < orbitalVelocity.x)
             {
-                shipRigidBody.AddForce(orbitalDragX * shipRigidBody.mass * 3, ForceMode2D.Force);
+                shipRigidBody.AddForce(orbitalDragX * shipRigidBody.mass, ForceMode2D.Force);
             }
 
             if (shipRigidBody.velocity.y > orbitalVelocity.y || shipRigidBody.velocity.y < orbitalVelocity.y)
             {
-                shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass * 3, ForceMode2D.Force);
+                shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
             } 
         }
 
