@@ -38,6 +38,7 @@ namespace Starfire
         protected CelestialBehaviour orbitingBody;
         protected Vector2 orbitalVelocity;
         protected Vector2 lastOrbitalVelocity;
+        protected int desiredOrbitDirection = 1;
         protected bool isOrbiting = false;
         protected const float invulnerabilityTime = 0.5f;
 
@@ -159,33 +160,51 @@ namespace Starfire
                 return;
             }
 
-            //Set constant orbit velocity
-            lastOrbitalVelocity = orbitalVelocity;
+            // lastOrbitalVelocity = orbitalVelocity;
 
+
+            //Set constant orbit velocity
+            desiredOrbitDirection = orbitingBody.OrbitController.GetOrbitDirection(shipRigidBody);
             Vector2 desiredVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
-            //add a smooth lerp, with the current velocity being the start and orbitalVecloty being the end
-            // FIX THIS !!! Time.deltaTime * 2000f???
-            orbitalVelocity = Vector2.Lerp(shipRigidBody.velocity, desiredVelocity, Time.deltaTime * 2000f);
+            float smoothTime = 0.2f; // Adjust this value for smoother or more responsive transitions
+            Vector2 velocityChange = Vector2.zero;
+            orbitalVelocity = Vector2.SmoothDamp(shipRigidBody.velocity, desiredVelocity * desiredOrbitDirection, ref velocityChange, smoothTime);
 
-            shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
-            shipRigidBody.velocity += orbitalVelocity;
+            shipRigidBody.velocity = orbitalVelocity;
 
+            // shipRigidBody.velocity -= lastOrbitalVelocity;   //Working around unity physics
+            // shipRigidBody.velocity += orbitalVelocity;
+
+            ApplyOrbitalDrag();
+
+            MaintainRelativeOrbitPosition();
+        }
+
+        private void ApplyOrbitalDrag()
+        {
             Vector2 orbitalDragX = new Vector2(orbitalVelocity.x - shipRigidBody.velocity.x, 0);
             Vector2 orbitalDragY = new Vector2(0, orbitalVelocity.y - shipRigidBody.velocity.y);
 
             //Orbital drag
             if (shipRigidBody.velocity.x > orbitalVelocity.x || shipRigidBody.velocity.x < orbitalVelocity.x)
             {
-                shipRigidBody.AddForce(orbitalDragX * shipRigidBody.mass, ForceMode2D.Force);
+                shipRigidBody.AddForce(orbitalDragX * shipRigidBody.mass * 3, ForceMode2D.Force);
             }
 
             if (shipRigidBody.velocity.y > orbitalVelocity.y || shipRigidBody.velocity.y < orbitalVelocity.y)
             {
-                shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
+                shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass * 3, ForceMode2D.Force);
             } 
+        }
 
-            Vector2 relativePosition = (Vector2)transform.position - orbitingBody.WorldPosition;
+        private void MaintainRelativeOrbitPosition()
+        {
+            Vector2 relativePosition = new Vector2(
+                transform.position.x - orbitingBody.WorldPosition.x,
+                transform.position.y - orbitingBody.WorldPosition.y
+            );
+
             transform.position = orbitingBody.WorldPosition + relativePosition;
         }
 

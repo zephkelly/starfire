@@ -41,24 +41,46 @@ namespace Starfire
     }
 
     protected override void FixedUpdate()
-    {   
+    {
+        UpdateMovement();
+        if (HandleOrbiting()) return;
+        HandleNonOrbitingBehavior();
+    }
+
+    private void UpdateMovement()
+    {
         bool isBoosting = Input.GetKey(KeyCode.LeftShift);
+        Vector2 inputDirection = keyboardInput.normalized;
 
         if (Input.GetKey(KeyCode.Space))
         {
-            WarpInDirection(keyboardInput.normalized, configuration.ThrusterMaxSpeed, isBoosting);
+            if (isOrbiting)
+            {
+                MoveInDirection(inputDirection, configuration.ThrusterMaxSpeed * 1.2f, isBoosting);
+            }
+            else
+            {
+                WarpInDirection(inputDirection, configuration.ThrusterMaxSpeed, isBoosting);
+            }
         }
         else
         {
-            MoveInDirection(keyboardInput.normalized, configuration.ThrusterMaxSpeed, isBoosting);
-            if (isOrbiting is false) ApplyLinearDrag();
+            MoveInDirection(inputDirection, configuration.ThrusterMaxSpeed, isBoosting);
         }
+    }
 
-        if (isOrbiting)
-        {
-            OrbitCelestialBody();
-            return;
-        }
+    private bool HandleOrbiting()
+    {
+        if (!isOrbiting) return false;
+        
+        OrbitCelestialBody();
+        return true;
+    }
+
+    private void HandleNonOrbitingBehavior()
+    {
+        if (Input.GetKey(KeyCode.Space)) return;
+        ApplyLinearDrag();
     }
 
     public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)

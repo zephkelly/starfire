@@ -77,10 +77,13 @@ namespace Starfire
         return orbitalVelocity + celestialRigidbody.velocity;
     }
 
-    // public Vector2 GetOrbitalVelocity(Star _parentStar, Planet _planet)
-    // {
-        
-    // }
+    public int GetOrbitDirection(Rigidbody2D _body)
+    {
+        Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
+        Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
+
+        return Vector2.Dot(perpendicularDirection, _body.velocity) > 0 ? 1 : -1;
+    }
 
     public float GetThermalGradient(float _objectDistance)
     {
