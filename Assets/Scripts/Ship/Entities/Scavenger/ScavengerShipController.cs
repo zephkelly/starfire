@@ -72,7 +72,21 @@ namespace Starfire
                 }
             }
 
-            EnableHealthbar(configuration.Health, configuration.MaxHealth);
+            UpdateHealthBar(configuration.Health, configuration.MaxHealth);
+        }
+
+        public override void DestroyShip()
+        {
+            int random = Random.Range(2, 4);
+            var healthPickupPrefab = Resources.Load<GameObject>("Prefabs/Pickups/PickupHealth");
+
+            for (int i = 0; i < random; i++)
+            {
+                var healthPickup = Instantiate(healthPickupPrefab, transform.position, Quaternion.identity);
+                healthPickup.GetComponent<Rigidbody2D>().AddForce(Random.insideUnitCircle * 50, ForceMode2D.Impulse);
+            }
+
+            base.DestroyShip();
         }
     }
 }

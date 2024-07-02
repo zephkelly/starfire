@@ -143,6 +143,12 @@ namespace Starfire
             Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
             SetChildOrbitingObject(planetRigidbody);
         }
+        else if (_otherCollider.CompareTag("Pickup"))
+        {
+            _otherCollider.TryGetComponent(out Rigidbody2D pickupRigidbody);
+            ApplyInstantOrbitalVelocity(pickupRigidbody);
+            orbitingBodies.Add(pickupRigidbody);
+        }
     }
 
     private void OnTriggerExit2D(Collider2D _otherCollider) 
@@ -172,6 +178,11 @@ namespace Starfire
             if (celestialBehaviour.CelestialBodyType is CelestialBodyType.Planet) return;
             Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
             orbitingBodies.Remove(planetRigidbody);
+        }
+        else if (_otherCollider.CompareTag("Pickup"))
+        {
+            Rigidbody2D pickupRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
+            orbitingBodies.Remove(pickupRigidbody);
         }
     }
 

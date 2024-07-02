@@ -22,7 +22,7 @@ namespace Starfire
 
     public override void ConfigureShip()
     {
-        configuration.SetConfiguration(this, 260, 100, 100, 160, 1500, 200, 4);
+        configuration.SetConfiguration(this, 260, 100, 100, 160, 1500, 200, 6);
     }
 
     protected override void Update()
@@ -111,12 +111,12 @@ namespace Starfire
     {
         base.OnParticleCollision(other);
 
-        EnableHealthbar(configuration.Health, configuration.MaxHealth);
+        UpdateHealthBar(configuration.Health, configuration.MaxHealth);
     }
 
-    protected override void EnableHealthbar(float currentHealth, float maxHealth)
+    public override void UpdateHealthBar(float currentHealth, float maxHealth)
     {
-        UIManager.Instance.UpdatehealthBar(currentHealth, maxHealth);
+        UIManager.Instance.UpdateHealthBar(currentHealth, maxHealth);
     }
 
     private Vector2 GetMouseWorldPosition()

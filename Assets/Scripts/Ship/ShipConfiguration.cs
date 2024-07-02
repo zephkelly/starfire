@@ -1,5 +1,4 @@
 using UnityEngine;
-using Starfire.Items;
 
 namespace Starfire
 {
@@ -24,7 +23,7 @@ namespace Starfire
         public int MaxFuel { get; private set; }
         public int MaxCargo { get; private set; }
 
-        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int _thrusterMaxSpeed, int _warpMaxSpeed, int _turnSpeed, int _projectioleDamage = 4)
+        public void SetConfiguration(ShipController shipConfig, int health, int fuel, int cargo, int _thrusterMaxSpeed, int _warpMaxSpeed, int _turnSpeed, int _projectileDamage = 4)
         {
             shipController = shipConfig;
             Health = health;
@@ -37,7 +36,7 @@ namespace Starfire
             MaxFuel = fuel;
             MaxCargo = cargo;
 
-            ProjectileDamage = _projectioleDamage;
+            ProjectileDamage = _projectileDamage;
         }
 
         public void Damage(int damage, DamageType damageType)
@@ -69,9 +68,7 @@ namespace Starfire
 
             if (Health <= 0)
             {
-                Destroy(shipController.gameObject);
-                Destroy(shipController);
-                Destroy(this);
+                shipController.DestroyShip();
             }
         }
 
@@ -83,7 +80,9 @@ namespace Starfire
 
         private void RepairHull(int repair)
         {
-            //To be implemented
+            Health += repair;
+            
+            if (Health > MaxHealth) Health = MaxHealth;
         }
 
         private void RepairShield(int repair)

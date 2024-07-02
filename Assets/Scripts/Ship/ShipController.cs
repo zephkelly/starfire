@@ -60,8 +60,15 @@ namespace Starfire
         public CelestialBehaviour OrbitingBody => orbitingBody;
         public bool IsOrbiting => isOrbiting;
 
-        public void Damage(int damage, DamageType damageType) => configuration.Damage(damage, damageType);
-        public void Repair(int repair, DamageType damageType) => configuration.Repair(repair, damageType);
+        public void Damage(int damage, DamageType damageType)
+        {
+            configuration.Damage(damage, damageType);
+        }
+
+        public void Repair(int repair, DamageType damageType) 
+        {
+            configuration.Repair(repair, damageType);
+        }
 
         protected virtual void Awake()
         {
@@ -86,7 +93,7 @@ namespace Starfire
 
         public virtual void ConfigureShip()
         {
-            configuration.SetConfiguration(this, 160, 100, 100, 155, 1400, 360, 6);
+            configuration.SetConfiguration(this, 480, 100, 100, 155, 1400, 360, 6);
         }
 
         protected virtual void Update() 
@@ -424,7 +431,7 @@ namespace Starfire
 
         protected const float healthbarDisableTime = 5f;
         private float timeTillDisableHealthbar = 0f;
-        protected virtual void EnableHealthbar(float currentHealth, float maxHealth)
+        public virtual void UpdateHealthBar(float currentHealth, float maxHealth)
         {
             if (healthbarCanvas.enabled is false) healthbarCanvas.enabled = true;
             healthBarFill.fillAmount = currentHealth / maxHealth;
@@ -444,6 +451,11 @@ namespace Starfire
             shipSprite.color = shipDamageColor;
             yield return new WaitForSeconds(0.4f);
             shipSprite.color = Color.white;
+        }
+
+        public virtual void DestroyShip()
+        {
+            Destroy(gameObject);
         }
     }
 }

@@ -8,6 +8,7 @@ TagManager:
   - Star
   - Enemy
   - Entities
+  - Pickup
   layers:
   - Default
   - TransparentFX

@@ -10090,7 +10090,6 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
-  moveSpeed: 155
 --- !u!60 &2756918316670815881
 PolygonCollider2D:
   m_ObjectHideFlags: 0

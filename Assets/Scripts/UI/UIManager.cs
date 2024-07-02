@@ -37,7 +37,7 @@ namespace Starfire
             alertManager.DisplayMinorAlert(alertText);
         }
 
-        public void UpdatehealthBar(float health, float maxHealth)
+        public void UpdateHealthBar(float health, float maxHealth)
         {
             HUDManager.UpdateHealthBar(health, maxHealth);
         }
