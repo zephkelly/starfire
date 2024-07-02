@@ -525,4 +525,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   starTransform: {fileID: 40351135446644594}
   sprite: {fileID: 5209894743572007362}
-  parallaxFactor: 0.8
+  parallaxFactor: 0.7

@@ -38,16 +38,15 @@ namespace Starfire
         public Rigidbody2D GetRigidbody { get => _planetRigid2D; }
         public bool HasPlanetObject { get => _planetObject != null; }
 
-        public Planet(Chunk parentChunk, PlanetType type, float orbitDistance, float mass)
+        public Planet(Chunk parentChunk, PlanetType type, string name, float orbitDistance, float mass)
         {
             ParentChunk = parentChunk;
             PlanetType = type;
             OrbitDistance = orbitDistance;
             Mass = mass;
 
-            planetName = "Boba";
+            planetName = name;
             
-
             _planetCelestialBehaviour = null;
             _planetObject = null;
             _planetRigid2D = null;
@@ -83,7 +82,7 @@ namespace Starfire
             _planetRigid2D.mass = Mass;
 
             _planetCelestialBehaviour = _planetObject.GetComponent<CelestialBehaviour>();
-            _planetCelestialBehaviour.SetupCelestialBehaviour(CelestialBodyType.Star, Radius, Mass, planetName);
+            _planetCelestialBehaviour.SetupCelestialBehaviour(CelestialBodyType.Planet, Radius, Mass, planetName);
 
             int visualSize = Mathf.RoundToInt(Radius);
             _planetCelestialBehaviour.NewPixelAmount(visualSize);

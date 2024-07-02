@@ -22,8 +22,8 @@ public class Star
     public float InfluenceRadius { get; private set; }
     public float Mass { get; private set; }
 
-    const int maxRadius = 2000;
-    const int minRadius = 1500;
+    const int maxRadius = 2500;
+    const int minRadius = 2000;
     private GameObject starObject = null;
 
     [SerializeField] private string starName;

@@ -173,7 +173,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   starTransform: {fileID: 8549498028706491150}
   sprite: {fileID: 4868881696149427859}
-  parallaxFactor: 0.7
+  parallaxFactor: 0.6
 --- !u!1 &5173885480724554538
 GameObject:
   m_ObjectHideFlags: 0

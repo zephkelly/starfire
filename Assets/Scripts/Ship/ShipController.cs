@@ -129,6 +129,12 @@ namespace Starfire
                 return;
             }
 
+            if (_orbitingBody.CelestialBodyType == CelestialBodyType.Planet)
+            {
+                // Debug.LogError("Error: Parent cannot be a planet");
+                return;
+            }
+
             if (orbitingBody is not null && orbitingBody.CelestialBodyType != CelestialBodyType.Star && _orbitingBody.Mass <= orbitingBody.Mass)
             {
                 Debug.LogError("Error: Current Orbiting body is larger than new orbiting body");
@@ -162,7 +168,14 @@ namespace Starfire
             int desiredOrbitDirection = orbitingBody.OrbitController.GetOrbitDirection(shipRigidBody);
             Vector2 desiredVelocity = orbitingBody.OrbitController.GetOrbitalVelocity(shipRigidBody);
 
-            orbitalVelocity = (desiredVelocity * desiredOrbitDirection) + orbitingBody.OrbitController.GetVelocity();
+            if (orbitingBody.CelestialBodyType == CelestialBodyType.Star)
+            {
+                orbitalVelocity = (desiredVelocity * desiredOrbitDirection) + orbitingBody.OrbitController.GetVelocity();
+            }
+            else if (orbitingBody.CelestialBodyType == CelestialBodyType.Planet)
+            {
+                orbitalVelocity = (desiredVelocity) + orbitingBody.OrbitController.GetVelocity();
+            }
 
             ApplyOrbitalDrag();
 
@@ -230,7 +243,7 @@ namespace Starfire
             }
             else
             {
-                SetThrusters(boost, direction, false);
+                SetThrusters(boost, direction, true);
             }
 
             //if the ship is moving faster than the max speed, clamp it

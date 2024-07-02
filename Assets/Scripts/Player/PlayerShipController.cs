@@ -54,14 +54,7 @@ namespace Starfire
 
         if (Input.GetKey(KeyCode.Space))
         {
-            if (isOrbiting)
-            {
-                MoveInDirection(inputDirection, configuration.ThrusterMaxSpeed * 1.3f, isBoosting);
-            }
-            else
-            {
-                WarpInDirection(inputDirection, configuration.ThrusterMaxSpeed, isBoosting);
-            }
+            WarpInDirection(inputDirection, configuration.ThrusterMaxSpeed, isBoosting);
         }
         else
         {

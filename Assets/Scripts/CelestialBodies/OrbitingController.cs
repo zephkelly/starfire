@@ -135,12 +135,11 @@ namespace Starfire
     {
         if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
         {
-            _otherCollider.gameObject.GetComponent<ShipController>().SetOrbitingBody(celestialBehaviour);
+            _otherCollider.gameObject.GetComponent<IShipController>().SetOrbitingBody(celestialBehaviour);
         }
         else if (_otherCollider.CompareTag("Planet"))
         {
-            if (celestialBehaviour.CelestialBodyType == CelestialBodyType.Planet) return;
-
+            if (celestialBehaviour.CelestialBodyType is CelestialBodyType.Planet) return;
             Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
             SetChildOrbitingObject(planetRigidbody);
         }
@@ -170,6 +169,7 @@ namespace Starfire
         }
         else if (_otherCollider.CompareTag("Planet"))
         {
+            if (celestialBehaviour.CelestialBodyType is CelestialBodyType.Planet) return;
             Rigidbody2D planetRigidbody = _otherCollider.gameObject.GetComponent<Rigidbody2D>();
             orbitingBodies.Remove(planetRigidbody);
         }

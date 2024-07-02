@@ -150,9 +150,8 @@ public class ChunkManager : MonoBehaviour
     {
         const int minStarRange = -3;
         const int maxStarRange = 3;
-
-        const int minExcludeRange = -5;
-        const int maxExcludeRange = 5;
+        const int minExcludeRange = -11;
+        const int maxExcludeRange = 11;
 
         var starRimChunks = new List<Vector2Int>();
 

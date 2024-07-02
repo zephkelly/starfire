@@ -74,14 +74,13 @@ namespace Starfire
         {
             PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.StarType);
             List<Planet> planets = new List<Planet>();
-            int planetCount = UnityEngine.Random.Range(1, 3);
+            int planetCount = UnityEngine.Random.Range(2, 4);
 
             List<float> orbitDistances = GetAllOrbitDistances(_star, planetCount);
 
-            // Create a planet for each orbit distance we made
-            for (int i = 0; i < planetCount; i++)
+            foreach (var planetDistance in orbitDistances)
             {
-                planets.Add(CreatePlanet(_parentChunk, _star, allowablePlanetTypes, orbitDistances[i]));
+                planets.Add(CreatePlanet(_parentChunk, _star, allowablePlanetTypes, planetDistance));
             }
 
             return planets;
@@ -91,7 +90,7 @@ namespace Starfire
         {
             PlanetType planetType = GetPlanetType(_star, _allowableTypes, _orbitDistance);
             float mass = GetPlanetMass(planetType);
-            return new Planet(_parentChunk, planetType, _orbitDistance, mass);
+            return new Planet(_parentChunk, planetType, GetPlanetName(), _orbitDistance, mass);
         }
 
         private PlanetType[] GetAllowablePlanetTypes(StarType _starType)
@@ -109,10 +108,10 @@ namespace Starfire
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
             float maxStarRadius = _star.InfluenceRadius * 0.70f;
-            float minStarRadius = _star.InfluenceRadius * 0.22f;
+            float minStarRadius = _star.InfluenceRadius * 0.42f;
 
-            float partialRadius = maxStarRadius / _planetCount;
-            float minDistanceBetweenPlanets = _star.InfluenceRadius * 0.20f;
+            float partialRadius = (maxStarRadius - minStarRadius) / _planetCount;
+            float minDistanceBetweenPlanets = _star.InfluenceRadius * 0.30f;
 
             List<float> orbitDistances = new List<float>();
 
@@ -127,6 +126,8 @@ namespace Starfire
                 }
 
                 float orbitDistance = UnityEngine.Random.Range(minOrbitDistance, maxOrbitDistance);
+
+                if (orbitDistance > _star.InfluenceRadius) continue;
                 orbitDistances.Add(orbitDistance);
             }
 
@@ -172,6 +173,12 @@ namespace Starfire
         private float GetPlanetMass(PlanetType planetType)
         {
             return 90000;
+        }
+
+        private int planetNameIndex = 0;
+        private string GetPlanetName()
+        {
+            return "Planet" + planetNameIndex++;
         }
 
         private void CreatePlanetObjectPools()
