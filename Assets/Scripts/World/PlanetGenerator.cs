@@ -74,7 +74,7 @@ namespace Starfire
         {
             PlanetType[] allowablePlanetTypes = GetAllowablePlanetTypes(_star.StarType);
             List<Planet> planets = new List<Planet>();
-            int planetCount = UnityEngine.Random.Range(2, 6);
+            int planetCount = UnityEngine.Random.Range(1, 3);
 
             List<float> orbitDistances = GetAllOrbitDistances(_star, planetCount);
 
@@ -108,11 +108,11 @@ namespace Starfire
 
         private List<float> GetAllOrbitDistances(Star _star, int _planetCount)
         {
-            float maxStarRadius = _star.Radius * 0.70f;
-            float minStarRadius = _star.Radius * 0.22f;
+            float maxStarRadius = _star.InfluenceRadius * 0.70f;
+            float minStarRadius = _star.InfluenceRadius * 0.22f;
 
             float partialRadius = maxStarRadius / _planetCount;
-            float minDistanceBetweenPlanets = _star.Radius * 0.20f;
+            float minDistanceBetweenPlanets = _star.InfluenceRadius * 0.20f;
 
             List<float> orbitDistances = new List<float>();
 
@@ -136,9 +136,9 @@ namespace Starfire
         
         private PlanetType GetPlanetType(Star _star, PlanetType[] _allowableTypes, float _planetOrbitDistance)
         {
-            float starHotZone = _star.Radius * 0.22f;
-            float starHabitableZone = _star.Radius * 0.5f;
-            float starColdZone = _star.Radius * 0.7f;
+            float starHotZone = _star.InfluenceRadius * 0.22f;
+            float starHabitableZone = _star.InfluenceRadius * 0.5f;
+            float starColdZone = _star.InfluenceRadius * 0.7f;
 
             // Map each PlanetType to a range of allowable orbit distances
             Dictionary<PlanetType, (float min, float max)> planetTypeRanges = new Dictionary<PlanetType, (float min, float max)>
@@ -146,8 +146,8 @@ namespace Starfire
                 { PlanetType.Land, (starHabitableZone, starColdZone) },
                 { PlanetType.Rivers, (starHabitableZone, starColdZone) },
                 { PlanetType.Desert, (starHotZone, starHabitableZone) },
-                { PlanetType.Ice, (starColdZone, _star.Radius) },
-                { PlanetType.GasLayers, (starColdZone, _star.Radius) },
+                { PlanetType.Ice, (starColdZone, _star.InfluenceRadius) },
+                { PlanetType.GasLayers, (starColdZone, _star.InfluenceRadius) },
             };
 
             List<PlanetType> allowableTypes = new List<PlanetType>();

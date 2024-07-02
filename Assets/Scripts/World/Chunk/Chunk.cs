@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
@@ -93,6 +94,11 @@ public class Chunk : IChunk
         }
 
         chunkObject.transform.position = GetChunkPosition(currentWorldKey);
+
+        // instantiate a new box collider on the cunk object
+        // BoxCollider2D boxCollider = chunkObject.AddComponent<BoxCollider2D>();
+        // boxCollider.size = new Vector2(ChunkManager.Instance.ChunkDiameter, ChunkManager.Instance.ChunkDiameter);
+        // boxCollider.isTrigger = true;
     }
 
     private void RemoveChunkObject()

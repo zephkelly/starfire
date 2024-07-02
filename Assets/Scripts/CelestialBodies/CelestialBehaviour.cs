@@ -35,7 +35,7 @@ namespace Starfire
         public void NewPixelAmount(float amount) => SetPixel(amount);
 
         public string Name { get; protected set; }
-        public float Radius { get; protected set; }
+        public float InfluenceRadius { get; protected set; }
         public float Mass { get; protected set; }
         public float Temperature { get; private set; }
         public bool IsOrbiting { get; private set; }
@@ -43,7 +43,7 @@ namespace Starfire
         public void SetupCelestialBehaviour(CelestialBodyType type, float radius, float mass, string name)
         {
             _celestialBodyType = type;
-            Radius = radius;
+            InfluenceRadius = radius;
             Name = name;
             Mass = mass;
             _celestialTransform = transform;

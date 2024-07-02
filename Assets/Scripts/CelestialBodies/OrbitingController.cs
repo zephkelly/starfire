@@ -89,7 +89,7 @@ namespace Starfire
 
     public float GetThermalGradient(float _objectDistance)
     {
-        var distanceNormalized = _objectDistance / celestialBehaviour.Radius;
+        var distanceNormalized = _objectDistance / celestialBehaviour.InfluenceRadius;
         var trueDistance = 1 - distanceNormalized;
 
         return Mathf.Lerp(0, celestialBehaviour.Temperature, trueDistance);

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
@@ -13,7 +11,7 @@ namespace Starfire
         [SerializeField] private Transform panelTransform;
 
         [SerializeField] private float scaleFactor = 0.02f;
-        [SerializeField] private float mapBounds = 10000f;
+        [SerializeField] private float mapBounds = 130f;
         [SerializeField] private GameObject starMarkerPrefab;
         [SerializeField] private GameObject planetMarkerPrefab;
 
@@ -54,6 +52,8 @@ namespace Starfire
                 Vector2 starPosition = ChunkManager.Instance.Chunks[starChunkAbsKey].GetStarPosition;
                 Vector2 miniMapPos = GetMinimapPosition(starPosition);
 
+                if (IsWithinMapBounds(miniMapPos) is false) continue;
+
                 if (starMarkers.ContainsKey(starChunkAbsKey))
                 {
                     starMarkers[starChunkAbsKey].transform.localPosition = miniMapPos;
@@ -86,6 +86,8 @@ namespace Starfire
                         miniMapPos = GetMinimapPosition(planet.GetOrbitPosition());
                     }
 
+                    if (IsWithinMapBounds(miniMapPos) is false) continue;
+
                     if (planetMarkers.ContainsKey(planet))
                     {
                         planetMarkers[planet].transform.localPosition = miniMapPos;
@@ -94,7 +96,6 @@ namespace Starfire
 
                     GameObject planetMarker = Instantiate(planetMarkerPrefab, panelTransform);
                     planetMarker.transform.localPosition = miniMapPos;
-
                     planetMarkers.Add(planet, planetMarker);
                 }
             }
@@ -104,11 +105,23 @@ namespace Starfire
         {
             if (resetOrigin) return;
 
+            List<Vector2Int> starMarkersToRemove = new List<Vector2Int>();
+            List<Planet> planetMarkersToRemove = new List<Planet>();
+
             foreach (var starMarker in starMarkers)
             {
                 Vector2 starPosition = ChunkManager.Instance.Chunks[starMarker.Key].GetStarPosition;
                 Vector2 miniMapPos = GetMinimapPosition(starPosition);
-                starMarker.Value.transform.localPosition = miniMapPos;
+
+                if (IsWithinMapBounds(miniMapPos) is false)
+                {
+                    starMarkersToRemove.Add(starMarker.Key);
+                }
+                else
+                {
+                    starMarker.Value.transform.localPosition = miniMapPos;
+                }
+                
             }
 
             foreach (var planetMarker in planetMarkers)
@@ -124,7 +137,26 @@ namespace Starfire
                     miniMapPos = GetMinimapPosition(planetMarker.Key.GetOrbitPosition());
                 }
                 
-                planetMarker.Value.transform.localPosition = miniMapPos;
+                if (IsWithinMapBounds(miniMapPos) is false)
+                {
+                    planetMarkersToRemove.Add(planetMarker.Key);
+                }
+                else
+                {
+                    planetMarker.Value.transform.localPosition = miniMapPos;
+                }
+            }
+
+            foreach (var key in starMarkersToRemove)
+            {
+                Destroy(starMarkers[key]);
+                starMarkers.Remove(key);
+            }
+
+            foreach (var key in planetMarkersToRemove)
+            {
+                Destroy(planetMarkers[key]);
+                planetMarkers.Remove(key);
             }
         }
 
@@ -163,11 +195,9 @@ namespace Starfire
             }
         }
 
-        private bool IsWithinMapBounds(Vector2 objectPosition)
+        private bool IsWithinMapBounds(Vector2 mapPosition)
         {
-            Vector2 relativePosition = GetRelativePosition(objectPosition);
-
-            if (Mathf.Abs(relativePosition.x) > mapBounds || Mathf.Abs(relativePosition.y) > mapBounds)
+            if (Mathf.Abs(mapPosition.x) > mapBounds || Mathf.Abs(mapPosition.y) > mapBounds)
             {
                 return false;
             }

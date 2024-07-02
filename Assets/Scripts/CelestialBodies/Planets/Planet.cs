@@ -111,6 +111,8 @@ namespace Starfire
         public void RemovePlanetObject()
         {
             if (_planetObject == null) return;
+            if (_planetCelestialBehaviour == null) return;
+            if (_planetCelestialBehaviour.ParentOrbitingBody == null) return;
 
             // Set last active stats
             lastActiveTime = Time.time;

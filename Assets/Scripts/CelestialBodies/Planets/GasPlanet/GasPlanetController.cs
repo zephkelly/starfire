@@ -21,7 +21,7 @@ namespace Starfire
 
             SetInitialColors();
             
-            Radius = GetComponent<CircleCollider2D>().radius;
+            // Radius = GetComponent<CircleCollider2D>().radius;
             _celestialBodyType = CelestialBodyType.Planet;
         }
 

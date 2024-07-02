@@ -19,17 +19,14 @@ public class Star
     public CelestialBehaviour CelestialBehaviour { get; private set; }
     public StarType StarType { get; private set; }
     public Vector2 StarPosition { get; private set; }
-    public float Radius { get; private set; }
+    public float SurfaceRadius { get; private set; }
+    public float InfluenceRadius { get; private set; }
     public float Mass { get; private set; }
 
     private GameObject starObject = null;
 
 
     [SerializeField] private string starName;
- 
-    private float starRotation;
-    const int maxRadius = 3500;
-    const int minRadius = 2500;
 
     public GameObject GetStarObject { get => starObject; }
     public Vector2 GetStarPosition { get => ParentChunk.CurrentWorldKey * ChunkManager.Instance.ChunkDiameter + StarPosition; }
@@ -41,10 +38,9 @@ public class Star
         StarType = _type;
 
         starName = ChunkManager.Instance.NameGenerator.GetStarName();
-        Radius = ChunkManager.Instance.StarGenerator.GetStarRadius();
-        Mass = ChunkManager.Instance.StarGenerator.GetStarMass(StarType, Radius);
-
-        starRotation = Random.Range(0, 360);
+        SurfaceRadius = ChunkManager.Instance.StarGenerator.GetStarSurfaceRadius();
+        InfluenceRadius = ChunkManager.Instance.StarGenerator.GetStarInfluenceRadius();
+        Mass = ChunkManager.Instance.StarGenerator.GetStarMass(StarType, InfluenceRadius);
     }
 
     public CelestialBehaviour SetStarObject()
@@ -57,7 +53,7 @@ public class Star
         
         StarController celestialBehaviour = starObject.GetComponent<StarController>();
         SetStarProperties(celestialBehaviour);
-        SetStarVisuals(celestialBehaviour);
+        // SetStarVisuals(celestialBehaviour);
 
         return celestialBehaviour;
     }
@@ -78,39 +74,37 @@ public class Star
 
     private void SetStarProperties(StarController _controller)
     {
-        _controller.SetupCelestialBehaviour(CelestialBodyType.Star, Radius, Mass, starName);
+        _controller.SetupCelestialBehaviour(CelestialBodyType.Star, InfluenceRadius, Mass, starName);
 
         _controller.GetStarRigidbody.mass = Mass;
-        _controller.GetStarRadiusCollider.radius = Radius;
-        _controller.GetStarLight.pointLightOuterRadius = Radius;
+        _controller.GetStarRadiusCollider.radius = InfluenceRadius;
+        _controller.GetStarLight.pointLightOuterRadius = InfluenceRadius;
         starObject.transform.position = GetStarPosition;
     }
 
     private void SetStarVisuals(StarController _controller)
     {
         // Parallax Factor
-        float normalizedRadius = Mathf.InverseLerp(minRadius, maxRadius, Radius);
-        _controller.GetParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.80f, 0.92f, normalizedRadius));
 
         // Visual size of star
-        int visualSize = Mathf.RoundToInt(Radius / 4.5f);
+        int visualSize = Mathf.RoundToInt(InfluenceRadius / 4.5f);
         _controller.GetStarVisualTransform.localScale = new Vector3(visualSize, visualSize, 1);
 
-        // Rotate speed
-        float rotateSpeed = Mathf.Lerp(0.2f, 0.1f, normalizedRadius);
-        _controller.SetRotateSpeedFactor(rotateSpeed);
+        // // Rotate speed
+        // float rotateSpeed = Mathf.Lerp(0.2f, 0.1f, normalizedRadius);
+        // _controller.SetRotateSpeedFactor(rotateSpeed);
 
-        // Set pixel count
-        _controller.NewPixelAmount(visualSize);
+        // // Set pixel count
+        // _controller.NewPixelAmount(visualSize);
 
-        // Set rotation
-        _controller.SetRotate(starRotation);
+        // // Set rotation
+        // _controller.SetRotate(starRotation);
 
-        // Set random colour
-        _controller.SetRandColours();
+        // // Set random colour
+        // _controller.SetRandColours();
 
-        //Make star parallax
-        CameraController.Instance.starParallaxLayers.Add(_controller.GetParallaxLayer);
+        // //Make star parallax
+        // CameraController.Instance.starParallaxLayers.Add(_controller.GetParallaxLayer);
     }
 }
 }

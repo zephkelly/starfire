@@ -74,8 +74,6 @@ namespace Starfire
 
     private void FixedUpdate()
     {
-        if (target == null) return;
-
         Vector3 targetVector = target.position + currentOffsetAmount + (mouseLerpPosition * mouseInterpolateDistance * (targetVelocityMagnitude * 0.03f));   
 
         targetVector.z = cameraTransform.position.z;
