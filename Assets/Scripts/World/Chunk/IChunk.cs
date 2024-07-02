@@ -14,6 +14,7 @@ namespace Starfire
         bool HasStar { get; }
         Vector2 GetStarPosition { get; }
 
+        void AddStarToChunk(Star chunkStar);
         void SetActiveChunk(Vector2Int chunkKey);
         void SetLazyChunk(Vector2Int chunkKey);
         void SetInactiveChunk();

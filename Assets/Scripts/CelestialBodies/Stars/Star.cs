@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Starfire
@@ -23,8 +22,9 @@ public class Star
     public float InfluenceRadius { get; private set; }
     public float Mass { get; private set; }
 
+    const int maxRadius = 2000;
+    const int minRadius = 1500;
     private GameObject starObject = null;
-
 
     [SerializeField] private string starName;
 
@@ -53,7 +53,6 @@ public class Star
         
         StarController celestialBehaviour = starObject.GetComponent<StarController>();
         SetStarProperties(celestialBehaviour);
-        // SetStarVisuals(celestialBehaviour);
 
         return celestialBehaviour;
     }
@@ -76,35 +75,15 @@ public class Star
     {
         _controller.SetupCelestialBehaviour(CelestialBodyType.Star, InfluenceRadius, Mass, starName);
 
+        float normalizedRadius = Mathf.InverseLerp(minRadius, maxRadius, InfluenceRadius);
+        _controller.GetParallaxLayer.SetParallaxFactor(Mathf.Lerp(0.60f, 0.7f, normalizedRadius));
+        CameraController.Instance.starParallaxLayers.Add(_controller.GetParallaxLayer);
+
         _controller.GetStarRigidbody.mass = Mass;
         _controller.GetStarRadiusCollider.radius = InfluenceRadius;
+        _controller.GetStarVisualTransform.localScale = new Vector3(SurfaceRadius, SurfaceRadius, 1);
         _controller.GetStarLight.pointLightOuterRadius = InfluenceRadius;
         starObject.transform.position = GetStarPosition;
-    }
-
-    private void SetStarVisuals(StarController _controller)
-    {
-        // Parallax Factor
-
-        // Visual size of star
-        int visualSize = Mathf.RoundToInt(InfluenceRadius / 4.5f);
-        _controller.GetStarVisualTransform.localScale = new Vector3(visualSize, visualSize, 1);
-
-        // // Rotate speed
-        // float rotateSpeed = Mathf.Lerp(0.2f, 0.1f, normalizedRadius);
-        // _controller.SetRotateSpeedFactor(rotateSpeed);
-
-        // // Set pixel count
-        // _controller.NewPixelAmount(visualSize);
-
-        // // Set rotation
-        // _controller.SetRotate(starRotation);
-
-        // // Set random colour
-        // _controller.SetRandColours();
-
-        // //Make star parallax
-        // CameraController.Instance.starParallaxLayers.Add(_controller.GetParallaxLayer);
     }
 }
 }

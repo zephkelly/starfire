@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Pool;
 
 namespace Starfire
@@ -195,7 +193,7 @@ public class ChunkManager : MonoBehaviour
         {
             if (starChunkPosition == selectedChunk)
             {
-                _starChunk = CreateChunk(starChunkPosition, makeStar: true);
+                _starChunk = CreateChunk(starChunkPosition, forceMakeStar: true);
                 continue;
             }
 
@@ -273,8 +271,6 @@ public class ChunkManager : MonoBehaviour
         Vector2 offset = -(Vector2)playerTransform.position;
         offset += distanceFromChunkCenter;
 
-        // Transport ships + camera
-        // playerController.Transport(offset);
         foreach (var ship in ships)
         {
             ship.Transport(offset);
@@ -290,30 +286,48 @@ public class ChunkManager : MonoBehaviour
         return true;
     }
 
-    private Chunk CreateChunk(Vector2Int _chunkAbsKey, bool makeStar = false, bool preventMakeStar = false)
+    private Chunk CreateChunk(Vector2Int _chunkAbsKey, bool forceMakeStar = false, bool preventMakeStar = false)
     {
-        Chunk _chunk = new Chunk(ChunkIndex, _chunkAbsKey, makeStar, preventMakeStar);
+        bool shouldSpawnStar = starGenerator.ShouldSpawnStar(_chunkAbsKey, forceMakeStar, preventMakeStar);
+        Chunk _chunk = new Chunk(ChunkIndex, _chunkAbsKey, shouldSpawnStar);
 
-        if (!chunks.ContainsKey(_chunkAbsKey))
+        if (shouldSpawnStar is true && preventMakeStar is false)
         {
-            chunks.Add(_chunkAbsKey, _chunk);
+            //Create star for chunk
+            Vector2 starPosition = StarGenerator.GetStarPosition(ChunkDiameter);
+            Star newStar = new Star(_chunk, starPosition, StarType.NeutronStar);
+            _chunk.AddStarToChunk(newStar);
+
+            //Create planets for chunk
+            List<Planet> planets = PlanetGenerator.GetStarPlanets(_chunk, newStar);
+            _chunk.AddPlanetsToChunk(planets);
+        }
+
+        AddChunkToDictionaries(_chunk);
+
+        return _chunk;
+    }
+
+    private void AddChunkToDictionaries(Chunk _chunk)
+    {
+        if (starChunks.Contains(_chunk.ChunkKey) is false)
+        {
+            starChunks.Add(_chunk.ChunkKey);
+
+            if (_chunk.GetPlanets.Count > 0 && planetChunks.Contains(_chunk.ChunkKey) is false)
+            {
+                planetChunks.Add(_chunk.ChunkKey);
+            }
+        }
+
+        if (!chunks.ContainsKey(_chunk.ChunkKey))
+        {
+            chunks.Add(_chunk.ChunkKey, _chunk);
         }
         else
         {
             Debug.LogWarning("Chunk already exists in dictionary.");
         }
-
-        if (_chunk.HasStar && !starChunks.Contains(_chunkAbsKey))
-        {
-            starChunks.Add(_chunkAbsKey);
-
-            if (_chunk.HasPlanets && !planetChunks.Contains(_chunkAbsKey))
-            {
-                planetChunks.Add(_chunkAbsKey);
-            }
-        }
-
-        return _chunk;
     }
 
     private Vector2Int GetChunkAbsKey(int x, int y)

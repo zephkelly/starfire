@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
@@ -35,25 +34,29 @@ public class Chunk : IChunk
     public ChunkState ChunkState { get => chunkState; }
     public GameObject ChunkObject { get => chunkObject; }
     public Star GetStar { get => star; }
-    public bool HasStar { get => star != null; }
+    public bool HasStar { get; private set; }
     public List<Planet> GetPlanets { get => planets; }
     public bool HasPlanets { get => planets.Count > 0; }
     public Vector2 GetStarPosition { get => currentWorldKey * ChunkManager.Instance.ChunkDiameter + star.StarPosition; }
 
-    public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool makeStar = false, bool preventMakeStar = false)
+    public Chunk(uint _chunkIndex, Vector2Int _chunkKey, bool hasStar)
     {
         chunkIndex = _chunkIndex;
         chunkKey = _chunkKey;
         chunkCellKey = ChunkUtils.GetChunkCell(chunkKey);
+        HasStar = hasStar;
+    }
 
-        bool shouldSpawnStar = ChunkManager.Instance.StarGenerator.ShouldSpawnStar(chunkKey, makeStar, preventMakeStar);
+    public void AddStarToChunk(Star _chunkStar)
+    {
+        star = _chunkStar;
+    }
 
-        if (shouldSpawnStar)
+    public void AddPlanetsToChunk(List<Planet> _chunkPlanets)
+    {
+        foreach (Planet planet in _chunkPlanets)
         {
-            Vector2 starPosition = ChunkManager.Instance.StarGenerator.GetStarPosition(ChunkManager.Instance.ChunkDiameter);
-            star = new Star(this, starPosition, StarType.NeutronStar);
-
-            planets = ChunkManager.Instance.PlanetGenerator.GetStarPlanets(this, star);
+            planets.Add(planet);
         }
     }
 

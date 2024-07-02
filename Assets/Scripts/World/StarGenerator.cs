@@ -17,8 +17,8 @@ namespace Starfire
 
     private const float maximumStarInfluenceRadius = 2000f;
     private const float minimumStarInfluenceRadius = 1500f;
-    private const float maximumStarSurfaceRadius = 45f;
-    private const float minimumStarSurfaceRadius = 35f;
+    private const float maximumStarSurfaceRadius = 25f;
+    private const float minimumStarSurfaceRadius = 18f;
 
     public ObjectPool<GameObject> StarPool { get => starPool; }
 
