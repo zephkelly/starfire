@@ -78,12 +78,12 @@ namespace Starfire
                 whichRaycastableLayers
             );
 
-            weightedDirection = _shipController.CirclePlayer(weightedDirection, _paladinTransform.position, _paladinRigid2D.velocity, lastKnownTargetPosition);
+            weightedDirection = _shipController.CircleTarget(weightedDirection, _paladinTransform.position, _paladinRigid2D.velocity, lastKnownTargetPosition);
 
             lerpVector = Vector2.Lerp(_paladinTransform.up, weightedDirection, 0.7f);
             visualLerpVector = Vector2.Lerp(_paladinTransform.up, weightedDirection, 0.15f);
 
-            bool isPlayerInSight = _shipController.IsPlayerWithinSight(_paladinTransform.position, lastKnownTargetPosition, targetSightDistance, targetSightAngle);
+            bool isPlayerInSight = _shipController.IsTargetWithinSight(_paladinTransform.position, lastKnownTargetPosition, targetSightDistance, targetSightAngle);
 
             if (_shipController.CanFireProjectile() && isPlayerInSight)
             {

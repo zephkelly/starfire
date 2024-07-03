@@ -10,17 +10,14 @@ namespace Starfire
         private Transform scavengerTransform;
         private GameObject scavengerObject;
         private Rigidbody2D scavengerRigid2D;
-        private Transform targetShipTransform;
-        private Rigidbody2D targetShipRigid2D;
 
-        private Dictionary<GameObject, (int, float)> scavengerTargetList = new Dictionary<GameObject, (int, float)>();
+        // Target info
+        // private Dictionary<GameObject, (int, float)> scavengerTargetList = new Dictionary<GameObject, (int, float)>();
 
         public StateMachine ScavengerStateMachine { get => stateMachine; }
         public Transform ScavengerTransform { get => scavengerTransform; }
         public Rigidbody2D ScavengerRigidbody { get => scavengerRigid2D; }
         public GameObject ScavengerObject { get => scavengerObject; }
-        public Transform TargetTransform { get => targetShipTransform; }
-        public Rigidbody2D TargetRigidbody { get => targetShipRigid2D; }
 
         protected override void Awake()
         {
@@ -69,16 +66,19 @@ namespace Starfire
         {
             base.OnParticleCollision(other);
 
-            if (scavengerTargetList.ContainsKey(other))
-            {
-                scavengerTargetList[other] = (scavengerTargetList[other].Item1 + 1, Time.time);
-            }
-            else
-            {
-                scavengerTargetList.Add(other, (1, Time.time));
-            }
+            SetTargetShip(other.transform);
+            stateMachine.ChangeState(new ScavengerChaseState(this));
 
-            EvaluateNextTarget();
+            // if (scavengerTargetList.ContainsKey(other))
+            // {
+            //     scavengerTargetList[other] = (scavengerTargetList[other].Item1 + 1, Time.time);
+            // }
+            // else
+            // {
+            //     scavengerTargetList.Add(other, (1, Time.time));
+            // }
+
+            // EvaluateNextTarget();
             UpdateHealthBar(configuration.Health, configuration.MaxHealth);
         }
 
@@ -101,64 +101,64 @@ namespace Starfire
             base.DestroyShip();
         }
 
-        public void EvaluateNextTarget()
-        {
-            List<GameObject> targetObjects = new List<GameObject>(scavengerTargetList.Keys);
+        // public void EvaluateNextTarget()
+        // {
+        //     List<GameObject> targetObjects = new List<GameObject>(scavengerTargetList.Keys);
 
-            foreach (GameObject target in targetObjects)
-            {
-                if (target == null)
-                {
-                    scavengerTargetList.Remove(target);
-                    continue;
-                }
+        //     foreach (GameObject target in targetObjects)
+        //     {
+        //         if (target == null)
+        //         {
+        //             scavengerTargetList.Remove(target);
+        //             continue;
+        //         }
 
-                if (Time.time - scavengerTargetList[target].Item2 < 15f) continue;
+        //         if (Time.time - scavengerTargetList[target].Item2 < 15f) continue;
                 
-                var distanceToPlayer = Vector2.Distance(target.transform.position, scavengerTransform.position);
+        //         var distanceToPlayer = Vector2.Distance(target.transform.position, scavengerTransform.position);
 
-                if (target.CompareTag("Player") && distanceToPlayer < 180f && Random.Range(0, 100) > 40)
-                {
-                    targetShipTransform = target.GetComponentInParent<ShipController>().transform;
-                    targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
-                    stateMachine.ChangeState(new ScavengerChaseState(this));
-                    return;
-                }
+        //         if (target.CompareTag("Player") && distanceToPlayer < 180f && Random.Range(0, 100) > 40)
+        //         {
+        //             targetShipTransform = target.GetComponentInParent<ShipController>().transform;
+        //             targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
+        //             stateMachine.ChangeState(new ScavengerChaseState(this));
+        //             return;
+        //         }
 
-                scavengerTargetList.Remove(target);
+        //         scavengerTargetList.Remove(target);
                 
-            }
+        //     }
 
-            if (scavengerTargetList.Count == 0)
-            {
-                stateMachine.ChangeState(new ScavengerIdleState(this));
-            }
-            else
-            {
-                int maxHits = 0;
-                GameObject nextTarget = null;
+        //     if (scavengerTargetList.Count == 0)
+        //     {
+        //         stateMachine.ChangeState(new ScavengerIdleState(this));
+        //     }
+        //     else
+        //     {
+        //         int maxHits = 0;
+        //         GameObject nextTarget = null;
 
-                foreach (var target in targetObjects)
-                {
-                    if (scavengerTargetList.ContainsKey(target) is false) continue;
-                    if (scavengerTargetList[target].Item1 < maxHits) continue;
+        //         foreach (var target in targetObjects)
+        //         {
+        //             if (scavengerTargetList.ContainsKey(target) is false) continue;
+        //             if (scavengerTargetList[target].Item1 < maxHits) continue;
                     
-                    if (target.CompareTag("Player")) 
-                    {
-                        if (Random.Range(0, 100) > 20 && targetShipTransform != null) continue;
-                    }
+        //             if (target.CompareTag("Player")) 
+        //             {
+        //                 if (Random.Range(0, 100) > 20 && targetShipTransform != null) continue;
+        //             }
 
-                    maxHits = scavengerTargetList[target].Item1;
-                    nextTarget = target;
-                }
+        //             maxHits = scavengerTargetList[target].Item1;
+        //             nextTarget = target;
+        //         }
 
-                if (nextTarget == null) return;
+        //         if (nextTarget == null) return;
 
-                targetShipTransform = nextTarget.GetComponentInParent<ShipController>().transform;
-                targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
-            }
+        //         targetShipTransform = nextTarget.GetComponentInParent<ShipController>().transform;
+        //         targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
+        //     }
 
-            stateMachine.ChangeState(new ScavengerChaseState(this));
-        }
+        //     stateMachine.ChangeState(new ScavengerChaseState(this));
+        // }
     }
 }

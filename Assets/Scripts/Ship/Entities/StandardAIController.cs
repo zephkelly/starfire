@@ -4,25 +4,41 @@ using System.Linq;
 
 namespace Starfire
 {
-    public class StandardAIController : ShipController
+    public class StandardAIController : ShipController, IStandardAI
     {
-        protected Dictionary<Transform, float> nearbyEntites = new Dictionary<Transform, float>();
-        protected const float nearbyEntityRetentionTime = 10f;
+        // Target info
+        protected Vector2 targetPosition;
+        protected Transform targetShipTransform;
+        protected Rigidbody2D targetShipRigid2D;
 
         // Raycasting variables
-        protected Vector3[] radialRaycastData;  // x, y: direction, z: weight
+        private Vector3[] radialRaycastData;  // x, y: direction, z: weight
 
         // protected float timeSpentNotCircling = 0f;
-        protected float timeToSpendNotShootingProjectile = 0f;
-        protected float timeToSpendShootingProjectile = 0f;
+        private float timeToSpendNotShootingProjectile = 0f;
+        private float timeToSpendShootingProjectile = 0f;
 
+        public Vector2 TargetPosition { get => targetPosition; }
+        public Transform TargetTransform { get => targetShipTransform; }
+        public Rigidbody2D TargetRigidbody { get => targetShipRigid2D; }
         public float TimeSpentNotCircling { get; private set; }
         public float TimeSpentCircling { get; private set; }
+
+        public void SetTargetShip(Transform targetShip)
+        {
+            targetShipTransform = targetShip;
+            targetShipRigid2D = targetShip.GetComponent<Rigidbody2D>();
+        }
+
+        public void SetTargetPosition(Vector2 targetPos)
+        {
+            targetPosition = targetPos;
+        }
 
         protected override void UpdateTimers()
         {
             base.UpdateTimers();
-            NearbyEntityTimeTick();
+            // NearbyEntityTimeTick();
         }
 
         public bool CanFireProjectile()
@@ -47,7 +63,7 @@ namespace Starfire
             return false;
         }
 
-        public bool IsPlayerWithinSight(Vector2 ourShipPosition, Vector2 targetShipPosition, float sightDistance, float maximumFireAngle)
+        public bool IsTargetWithinSight(Vector2 ourShipPosition, Vector2 targetShipPosition, float sightDistance, float maximumFireAngle)
         {
             float distanceToPlayer = Vector2.Distance(ourShipPosition, targetShipPosition);
             float angleToPlayer = Vector2.Angle(transform.up, targetShipPosition - ourShipPosition);
@@ -97,7 +113,7 @@ namespace Starfire
 
                 if (hit.collider.TryGetComponent(out IShipController shipController))
                 {
-                    AddToNearbyEntities(hit.collider.transform);
+                    // AddToNearbyEntities(hit.collider.transform);
                 }
 
                 if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
@@ -159,7 +175,7 @@ namespace Starfire
 
                     if (hit.collider.TryGetComponent(out IShipController shipController))
                     {
-                        AddToNearbyEntities(hit.collider.transform);
+                        // AddToNearbyEntities(hit.collider.transform);
                     }
 
                     if (!hitProcessed)
@@ -197,7 +213,7 @@ namespace Starfire
             return finalWeightedDirection;
         }
 
-        public Vector2 CirclePlayer(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition)
+        public Vector2 CircleTarget(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition)
         {
             if (Vector2.Distance(ourShipPosition, targetShipPosition) < 80f)
             {
@@ -232,52 +248,52 @@ namespace Starfire
         }
 
 
-        public void AddToNearbyEntities(Transform newNearbyEntity)
-        {
-            if (newNearbyEntity == null) return;
+        // public void AddToNearbyEntities(Transform newNearbyEntity)
+        // {
+        //     if (newNearbyEntity == null) return;
 
-            if (nearbyEntites.ContainsKey(newNearbyEntity))
-            {
-                nearbyEntites[newNearbyEntity] = nearbyEntityRetentionTime;
-            }
-            else
-            {
-                nearbyEntites.Add(newNearbyEntity, nearbyEntityRetentionTime);
-            }
-        }
+        //     if (nearbyEntites.ContainsKey(newNearbyEntity))
+        //     {
+        //         nearbyEntites[newNearbyEntity] = nearbyEntityRetentionTime;
+        //     }
+        //     else
+        //     {
+        //         nearbyEntites.Add(newNearbyEntity, nearbyEntityRetentionTime);
+        //     }
+        // }
 
-        public void RemoveFromNearbyEntities(Transform entityToRemove)
-        {
-            if (nearbyEntites.ContainsKey(entityToRemove))
-            {
-                nearbyEntites.Remove(entityToRemove);
-            }
-        }
+        // public void RemoveFromNearbyEntities(Transform entityToRemove)
+        // {
+        //     if (nearbyEntites.ContainsKey(entityToRemove))
+        //     {
+        //         nearbyEntites.Remove(entityToRemove);
+        //     }
+        // }
 
-        public void NearbyEntityTimeTick()
-        {
-            List<Transform> entitiesToRemove = new List<Transform>();
+        // public void NearbyEntityTimeTick()
+        // {
+        //     List<Transform> entitiesToRemove = new List<Transform>();
 
-            foreach (var entity in nearbyEntites.ToList())
-            {
-                if (entity.Key == null)
-                {
-                    entitiesToRemove.Add(entity.Key);
-                    continue;
-                }
+        //     foreach (var entity in nearbyEntites.ToList())
+        //     {
+        //         if (entity.Key == null)
+        //         {
+        //             entitiesToRemove.Add(entity.Key);
+        //             continue;
+        //         }
 
-                nearbyEntites[entity.Key] -= Time.deltaTime;
+        //         nearbyEntites[entity.Key] -= Time.deltaTime;
 
-                if (nearbyEntites[entity.Key] <= 0)
-                {
-                    entitiesToRemove.Add(entity.Key);
-                }
-            }
+        //         if (nearbyEntites[entity.Key] <= 0)
+        //         {
+        //             entitiesToRemove.Add(entity.Key);
+        //         }
+        //     }
 
-            foreach (Transform entity in entitiesToRemove)
-            {
-                RemoveFromNearbyEntities(entity);
-            }
-        }
+        //     foreach (Transform entity in entitiesToRemove)
+        //     {
+        //         RemoveFromNearbyEntities(entity);
+        //     }
+        // }
     }
 }

@@ -88,14 +88,11 @@ namespace Starfire
                 whichRaycastableAvoidanceLayers
             );
 
-            weightedDirection = _shipController.CirclePlayer(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
+            weightedDirection = _shipController.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
+            bool isPlayerInSight = _shipController.IsTargetWithinSight(_scavengerTransform.position, lastKnownTargetPosition, targetSightDistance, targetSightAngle);
 
             lerpVector = Vector2.Lerp(_scavengerTransform.up, weightedDirection, 0.7f).normalized;
             visualLerpVector = Vector2.Lerp(_scavengerTransform.up, weightedDirection, 0.15f);
-
-            Debug.DrawRay(_scavengerTransform.position, lerpVector.normalized * 20f, Color.green);
-
-            bool isPlayerInSight = _shipController.IsPlayerWithinSight(_scavengerTransform.position, lastKnownTargetPosition, targetSightDistance, targetSightAngle);
 
             if (_shipController.CanFireProjectile() && isPlayerInSight)
             {

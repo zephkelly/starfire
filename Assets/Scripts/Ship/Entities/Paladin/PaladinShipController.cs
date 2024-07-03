@@ -8,15 +8,11 @@ namespace Starfire
         private Transform scavengerTransform;
         private GameObject scavengerObject;
         private Rigidbody2D scavengerRigid2D;
-        private Transform targetShipTransform;
-        private Rigidbody2D targetShipRigid2D;
 
         public StateMachine ScavengerStateMachine { get => stateMachine; }
         public Transform ScavengerTransform { get => scavengerTransform; }
         public Rigidbody2D ScavengerRigidbody { get => scavengerRigid2D; }
         public GameObject ScavengerObject { get => scavengerObject; }
-        public Transform TargetTransform { get => targetShipTransform; }
-        public Rigidbody2D TargetRigidbody { get => targetShipRigid2D; }
 
         protected override void Awake()
         {
@@ -61,8 +57,6 @@ namespace Starfire
         {
             base.OnParticleCollision(other);
 
-            // if (other.CompareTag("Player"))
-            // {
             targetShipTransform = other.GetComponentInParent<ShipController>().transform;
             targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
             
@@ -70,7 +64,6 @@ namespace Starfire
             {
                 stateMachine.ChangeState(new PaladinChaseState(this));
             }
-            // }
 
             UpdateHealthBar(configuration.Health, configuration.MaxHealth);
         }
