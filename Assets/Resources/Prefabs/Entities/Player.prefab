@@ -175,7 +175,7 @@ GameObject:
   - component: {fileID: 7989201735155733259}
   - component: {fileID: 5249044119012061384}
   - component: {fileID: 3754963582616059425}
-  m_Layer: 6
+  m_Layer: 2
   m_Name: PickupRadius
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -231,7 +231,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: -0.1}
   serializedVersion: 2
-  m_Radius: 14
+  m_Radius: 20
 --- !u!114 &3754963582616059425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -497,7 +497,7 @@ CircleCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2

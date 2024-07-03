@@ -55,6 +55,13 @@ namespace Starfire
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 Instantiate(scavengerShip, mousePosition, Quaternion.identity);
             }
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                var scavengerShip = Resources.Load<GameObject>("Prefabs/Entities/Paladin");
+                //get mouse world position
+                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Instantiate(scavengerShip, mousePosition, Quaternion.identity);
+            }
         }
 
         private void LoadPlayer()

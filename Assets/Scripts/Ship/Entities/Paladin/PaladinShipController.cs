@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class PaladinShipController : ShipController, IScavengerData
+    public class PaladinShipController : StandardAIController
     {
         private StateMachine stateMachine;
         private Transform scavengerTransform;

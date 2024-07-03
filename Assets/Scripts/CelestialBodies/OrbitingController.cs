@@ -133,9 +133,9 @@ namespace Starfire
 
     private void OnTriggerEnter2D(Collider2D _otherCollider) 
     {
-        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
+        if (_otherCollider.TryGetComponent<ShipController>(out ShipController shipController))
         {
-            _otherCollider.gameObject.GetComponent<IShipController>().SetOrbitingBody(celestialBehaviour);
+            shipController.SetOrbitingBody(celestialBehaviour);
         }
         else if (_otherCollider.CompareTag("Planet"))
         {
@@ -152,25 +152,23 @@ namespace Starfire
 
     private void OnTriggerExit2D(Collider2D _otherCollider) 
     {
-        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
+        if (_otherCollider.TryGetComponent<ShipController>(out ShipController shipController))
         {
-            ShipController playerController = _otherCollider.gameObject.GetComponent<ShipController>();
-
             if (celestialBehaviour.ParentOrbitingBody == null) 
             {
                 orbitingBodies.Remove(_otherCollider.gameObject.GetComponent<Rigidbody2D>());
-                playerController.RemoveOrbitingBody(); 
+                shipController.RemoveOrbitingBody(); 
                 return;
             }
 
-            if (playerController.OrbitingBody == null)
+            if (shipController.OrbitingBody == null)
             {
-                playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, returningToParent: true);
+                shipController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, returningToParent: true);
                 return;
             }
 
-            if (playerController.OrbitingBody.Mass > celestialBehaviour.Mass && playerController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
-            playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, returningToParent: true);
+            if (shipController.OrbitingBody.Mass > celestialBehaviour.Mass && shipController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
+            shipController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, returningToParent: true);
         }
         else if (_otherCollider.CompareTag("Planet"))
         {
@@ -187,9 +185,9 @@ namespace Starfire
 
     private void OnTriggerStay2D(Collider2D _otherCollider) 
     {
-        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
+        if (_otherCollider.TryGetComponent<ShipController>(out ShipController shipController))
         {
-            _otherCollider.gameObject.GetComponent<IShipController>().SetOrbitingBody(celestialBehaviour);
+            shipController.SetOrbitingBody(celestialBehaviour);
         }
     }
 

@@ -22,7 +22,7 @@ namespace Starfire
 
     public override void ConfigureShip()
     {
-        configuration.SetConfiguration(this, 260, 100, 100, 160, 1500, 200, 6);
+        configuration.SetConfiguration(this, 260000, 100, 100, 160, 1500, 200, 6);
     }
 
     protected override void Update()

@@ -140,11 +140,7 @@ namespace Starfire
             
             if (orbitingBody != null && orbitingBody.CelestialBodyType is CelestialBodyType.Planet && _orbitingBody.CelestialBodyType is CelestialBodyType.Planet)
             {
-                if (_orbitingBody.Mass <= orbitingBody.Mass)
-                {
-                    Debug.LogWarning("Warning: Current Orbiting body is larger than new orbiting body");
-                    return;
-                }
+                if (_orbitingBody.Mass <= orbitingBody.Mass) return;
             }
 
             orbitingBody = _orbitingBody;

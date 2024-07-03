@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerShipController : ShipController, IScavengerData
+    public class ScavengerShipController : StandardAIController, IScavengerData
     {
         private StateMachine stateMachine;
         private Transform scavengerTransform;
@@ -31,8 +31,6 @@ namespace Starfire
             scavengerTransform = transform;
             scavengerObject = gameObject;
             scavengerRigid2D = transform.GetComponent<Rigidbody2D>();
-            
-            stateMachine.ChangeState(new ScavengerChaseState(this));
         }
 
         protected override void Update()
