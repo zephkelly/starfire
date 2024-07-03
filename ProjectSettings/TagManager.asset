@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Entities
   - Pickup
+  - Friend
   layers:
   - Default
   - TransparentFX
@@ -18,9 +19,9 @@ TagManager:
   - UI
   - Player
   - Entities
-  - 
-  - 
-  - 
+  - Enemy
+  - Friend
+  - Neutral
   - 
   - 
   - 

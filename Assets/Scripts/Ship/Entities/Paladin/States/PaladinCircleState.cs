@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerCircleState : IState
+    public class PaladinCircleState : IState
     {
-        private ScavengerShipController _shipController;
+        private PaladinShipController _shipController;
         private Rigidbody2D scavengerRigid2D;
         private Transform scavengerTransform;
         private Transform targetTransform;
@@ -41,10 +41,10 @@ namespace Starfire
             FigureEight
         }
 
-        public ScavengerCircleState(ScavengerShipController _scavenger, Rigidbody2D _scavengerRigid, Transform _targetTransform)
+        public PaladinCircleState(PaladinShipController _paladin, Rigidbody2D _scavengerRigid, Transform _targetTransform)
         {
-            _shipController = _scavenger;
-            scavengerTransform = _scavenger.transform;
+            _shipController = _paladin;
+            scavengerTransform = _paladin.transform;
             scavengerRigid2D = _scavengerRigid;
             targetTransform = _targetTransform;
             _targetRigid2D = _targetTransform.GetComponent<Rigidbody2D>();
@@ -54,20 +54,20 @@ namespace Starfire
         {
             timeTillCirclePatternChange = Random.Range(4f, 8f);
             timeTillMovePatternChange = Random.Range(4f, 8f);
-            whichRaycastableLayers = LayerMask.GetMask("Player", "Friend");
+            whichRaycastableLayers = LayerMask.GetMask("Enemy");
         }
 
         public void Execute()
         {
             if (targetTransform == null)
             {
-                _shipController.ScavengerStateMachine.ChangeState(new ScavengerIdleState(_shipController));
+                _shipController.ScavengerStateMachine.ChangeState(new PaladinIdleState(_shipController));
                 return;
             }
 
             if (timeSpentNotCircling > 4f)
             {
-                _shipController.ScavengerStateMachine.ChangeState(new ScavengerChaseState(_shipController));
+                _shipController.ScavengerStateMachine.ChangeState(new PaladinChaseState(_shipController));
             }
 
             RaycastToPlayer();
@@ -218,7 +218,7 @@ namespace Starfire
                 return;
             }
 
-            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Player"))
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
             {
                 lastKnownPlayerPosition = hit.point;
                 setBiasDirection = false;

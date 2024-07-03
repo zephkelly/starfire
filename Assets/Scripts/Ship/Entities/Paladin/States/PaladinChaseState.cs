@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerChaseState : IState
+    public class PaladinChaseState : IState
     {
-        private ScavengerShipController _shipController;
+        private PaladinShipController _shipController;
         private StateMachine _stateMachine;
         private GameObject _scavengerObject;
         private Rigidbody2D _scavengerRigid2D;
@@ -32,33 +32,33 @@ namespace Starfire
 
         private float timeSpentCircling = 0f;
 
-        public ScavengerChaseState(ScavengerShipController scavengerController)
+        public PaladinChaseState(PaladinShipController _paladin)
         {
-            _shipController = scavengerController;
-            _stateMachine = scavengerController.ScavengerStateMachine;
-            _scavengerObject = scavengerController.ScavengerObject;
-            _scavengerRigid2D = scavengerController.ScavengerRigidbody;
-            _scavengerTransform = scavengerController.ScavengerTransform;
-            _targetTransform = scavengerController.TargetTransform;
-            _targetRigid2D = scavengerController.TargetRigidbody;
+            _shipController = _paladin;
+            _stateMachine = _paladin.ScavengerStateMachine;
+            _scavengerObject = _paladin.ScavengerObject;
+            _scavengerRigid2D = _paladin.ScavengerRigidbody;
+            _scavengerTransform = _paladin.ScavengerTransform;
+            _targetTransform = _paladin.TargetTransform;
+            _targetRigid2D = _paladin.TargetRigidbody;
         }
 
         public void Enter()
         {
-            whichRaycastableLayers = LayerMask.GetMask("Player", "Friend");
+            whichRaycastableLayers = LayerMask.GetMask("Enemy");
         }
 
         public void Execute()
         {
             if (_targetTransform == null)
             {
-                _stateMachine.ChangeState(new ScavengerIdleState(_shipController));
+                _stateMachine.ChangeState(new PaladinIdleState(_shipController));
                 return;
             }
 
             if (timeSpentCircling > 4f)
             {
-                _stateMachine.ChangeState(new ScavengerCircleState(_shipController, _scavengerRigid2D, _targetTransform));
+                _stateMachine.ChangeState(new PaladinCircleState(_shipController, _scavengerRigid2D, _targetTransform));
                 return;
             }
 
@@ -177,7 +177,7 @@ namespace Starfire
                     AddToNearbyEntities(hit.collider.transform);
                 }
 
-                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Player"))
+                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
                 {
                     return hit.point;
                 }

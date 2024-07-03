@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class ScavengerShipController : ShipController, IScavengerData
+    public class PaladinShipController : ShipController, IScavengerData
     {
         private StateMachine stateMachine;
         private Transform scavengerTransform;
@@ -32,7 +32,7 @@ namespace Starfire
             scavengerObject = gameObject;
             scavengerRigid2D = transform.GetComponent<Rigidbody2D>();
             
-            stateMachine.ChangeState(new ScavengerChaseState(this));
+            stateMachine.ChangeState(new PaladinChaseState(this));
         }
 
         protected override void Update()
@@ -66,9 +66,9 @@ namespace Starfire
             targetShipTransform = other.GetComponentInParent<ShipController>().transform;
             targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
             
-            if (stateMachine.CurrentState is not ScavengerChaseState)
+            if (stateMachine.CurrentState is not PaladinChaseState)
             {
-                stateMachine.ChangeState(new ScavengerChaseState(this));
+                stateMachine.ChangeState(new PaladinChaseState(this));
             }
             // }
 

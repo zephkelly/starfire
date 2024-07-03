@@ -8,7 +8,7 @@ namespace Starfire
         Transform ScavengerTransform { get; }
         Rigidbody2D ScavengerRigidbody { get; }
         GameObject ScavengerObject { get; }
-        Transform PlayerTransform { get; }
-        Rigidbody2D PlayerRigidbody { get; }
+        Transform TargetTransform { get; }
+        Rigidbody2D TargetRigidbody { get; }
     }
 }
