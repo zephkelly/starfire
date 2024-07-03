@@ -82,8 +82,13 @@ namespace Starfire
 
             for (int i = 0; i < random; i++)
             {
-                var healthPickup = Instantiate(healthPickupPrefab, transform.position, Quaternion.identity);
-                healthPickup.GetComponent<Rigidbody2D>().AddForce(Random.insideUnitCircle * 50, ForceMode2D.Impulse);
+                Vector3 randomDirection = Random.insideUnitCircle;
+                float explosionForce = Random.Range(50f, 80f);
+
+                GameObject healthPickup = Instantiate(healthPickupPrefab, transform.position + (randomDirection * 1), Quaternion.identity);
+                healthPickup.TryGetComponent(out Rigidbody2D healthPickupRigidbody);
+                healthPickupRigidbody.velocity = scavengerRigid2D.velocity;
+                healthPickup.GetComponent<Rigidbody2D>().AddForce(randomDirection * explosionForce, ForceMode2D.Impulse);
             }
 
             base.DestroyShip();

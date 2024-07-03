@@ -128,7 +128,7 @@ namespace Starfire
             ApplyLinearDrag();
         }
         
-        public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool isParent = false)
+        public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool returningToParent = false)
         {
             if (_orbitingBody == null)
             {
@@ -136,16 +136,13 @@ namespace Starfire
                 return;
             }
 
-            if (_orbitingBody.CelestialBodyType == CelestialBodyType.Planet)
+            if (orbitingBody != null && orbitingBody.CelestialBodyType is CelestialBodyType.Planet && _orbitingBody.CelestialBodyType is CelestialBodyType.Planet)
             {
-                // Debug.LogError("Error: Parent cannot be a planet");
-                return;
-            }
-
-            if (orbitingBody is not null && orbitingBody.CelestialBodyType != CelestialBodyType.Star && _orbitingBody.Mass <= orbitingBody.Mass)
-            {
-                Debug.LogError("Error: Current Orbiting body is larger than new orbiting body");
-                return;
+                if (_orbitingBody.Mass <= orbitingBody.Mass)
+                {
+                    Debug.LogError("Error: Current Orbiting body is larger than new orbiting body");
+                    return;
+                }
             }
 
             orbitingBody = _orbitingBody;
@@ -181,7 +178,7 @@ namespace Starfire
             }
             else if (orbitingBody.CelestialBodyType == CelestialBodyType.Planet)
             {
-                orbitalVelocity = (desiredVelocity) + orbitingBody.OrbitController.GetVelocity();
+                orbitalVelocity = desiredVelocity + orbitingBody.OrbitController.GetVelocity();
             }
 
             ApplyOrbitalDrag();

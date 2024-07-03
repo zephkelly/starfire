@@ -146,7 +146,6 @@ namespace Starfire
         else if (_otherCollider.CompareTag("Pickup"))
         {
             _otherCollider.TryGetComponent(out Rigidbody2D pickupRigidbody);
-            ApplyInstantOrbitalVelocity(pickupRigidbody);
             orbitingBodies.Add(pickupRigidbody);
         }
     }
@@ -166,12 +165,12 @@ namespace Starfire
 
             if (playerController.OrbitingBody == null)
             {
-                playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
+                playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, returningToParent: true);
                 return;
             }
 
             if (playerController.OrbitingBody.Mass > celestialBehaviour.Mass && playerController.OrbitingBody.CelestialBodyType is CelestialBodyType.Planet) return;
-            playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, isParent: true);
+            playerController.SetOrbitingBody(celestialBehaviour.ParentOrbitingBody, returningToParent: true);
         }
         else if (_otherCollider.CompareTag("Planet"))
         {
@@ -200,7 +199,11 @@ namespace Starfire
         foreach (Rigidbody2D body in orbitingBodies)
         {
             if (body == null) continue;
-            body.GetComponent<CelestialBehaviour>().RemoveOrbitingBody();
+            // body.GetComponent<CelestialBehaviour>().RemoveOrbitingBody();
+            if (body.TryGetComponent(out CelestialBehaviour celestialBehaviour))
+            {
+                celestialBehaviour.RemoveOrbitingBody();
+            }
         }
     }
 }

@@ -172,7 +172,7 @@ namespace Starfire
 
         private float GetPlanetMass(PlanetType planetType)
         {
-            return 90000;
+            return 9000;
         }
 
         private int planetNameIndex = 0;

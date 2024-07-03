@@ -76,14 +76,19 @@ namespace Starfire
         ApplyLinearDrag();
     }
 
-    public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
+    public override void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool returningToParent = false)
     {
-        if (isParent is false)
+        if (returningToParent is false)
         {
-            UIManager.Instance.DisplayMinorAlert("Now orbiting " + orbitingBody.Name);
+            UIManager.Instance.DisplayMinorAlert("Now orbiting " + _orbitingBody.Name);
         }
 
-        base.SetOrbitingBody(orbitingBody, isParent);
+        if (returningToParent is true)
+        {
+            UIManager.Instance.DisplayMinorAlert("Leaving " +  orbitingBody.Name);
+        }
+
+        base.SetOrbitingBody(_orbitingBody, returningToParent);
     }
 
     public override void RemoveOrbitingBody()

@@ -11,11 +11,10 @@ GameObject:
   - component: {fileID: 1392776058936712590}
   - component: {fileID: 7168005226867560679}
   - component: {fileID: 2116815888817923546}
-  - component: {fileID: 5676603223538330393}
   - component: {fileID: 5993970796529182948}
   - component: {fileID: 7879276689273676022}
   - component: {fileID: 3657491421512639333}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: PickupHealth
   m_TagString: Pickup
   m_Icon: {fileID: 0}
@@ -75,8 +74,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1885881325
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: 479166525, guid: 1f9f3ec141a9f2544b7cd28dc500d841, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -109,7 +108,7 @@ MonoBehaviour:
   m_Intensity: 1.41
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
-  m_ApplyToSortingLayers: bf8a612df3112e5b00000000c5b86ba4
+  m_ApplyToSortingLayers: 00000000ed436870
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -139,41 +138,6 @@ MonoBehaviour:
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
---- !u!58 &5676603223538330393
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5466669113188352556}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.9375
 --- !u!58 &5993970796529182948
 CircleCollider2D:
   m_ObjectHideFlags: 0

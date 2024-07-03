@@ -7,12 +7,15 @@ namespace Starfire
 {
     public class ShipPickupCollector : MonoBehaviour
     {
-        private ShipController shipController;
+        [SerializeField] private ShipController shipController;
         private const float pickupSpeed = 0.95f;
 
         private void Awake()
         {
-            shipController = GetComponent<ShipController>();
+            if (shipController == null)
+            {
+                Debug.LogWarning("Error: Ship controller not found!");
+            }
         }
 
         private async void OnTriggerEnter2D(Collider2D otherCollider)

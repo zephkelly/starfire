@@ -43,15 +43,18 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 2758523077
+    locked: 0
   - name: Star
     uniqueID: 761367231
     locked: 0
   - name: CelestialBodies
     uniqueID: 1529745907
     locked: 0
+  - name: Intermediate
+    uniqueID: 1885881325
+    locked: 0
   - name: Default
     uniqueID: 0
-    locked: 0
-  - name: Background
-    uniqueID: 2758523077
     locked: 0
