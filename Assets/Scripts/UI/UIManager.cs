@@ -42,6 +42,11 @@ namespace Starfire
             HUDManager.UpdateHealthBar(health, maxHealth);
         }
 
+        public void UpdateWarpFuelBar(float warpFuel, float maxWarpFuel)
+        {
+            HUDManager.UpdateWarpFuelBar(warpFuel, maxWarpFuel);
+        }
+
         public void DisplayDialogue(Message dialogueText)
         {
             DialogueManager.DisplayMessage(dialogueText);

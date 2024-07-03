@@ -8,6 +8,9 @@ namespace Starfire
         [SerializeField] private Canvas healthbarCanvas;
         [SerializeField] private Image healthbarFill;
 
+        [SerializeField] private Canvas warpFuelCanvas;
+        [SerializeField] private Image warpFuelFill;
+
         private void Awake()
         {
             if (healthbarCanvas == null)
@@ -19,6 +22,12 @@ namespace Starfire
             {
                 Debug.LogError("Healthbar fill not set in HUDManager");
             }
+        }
+
+        
+        private void Update()
+        {
+
         }
 
         public void Show()
@@ -34,6 +43,11 @@ namespace Starfire
         public void UpdateHealthBar(float health, float maxHealth)
         {
             healthbarFill.fillAmount = health / maxHealth;
+        }
+
+        public void UpdateWarpFuelBar(float warpFuel, float maxWarpFuel)
+        {
+            warpFuelFill.fillAmount = warpFuel / maxWarpFuel;
         }
     }
 }

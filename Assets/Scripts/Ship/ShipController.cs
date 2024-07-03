@@ -56,6 +56,7 @@ namespace Starfire
         [SerializeField] protected Gradient thrusterWarpGradient;
 
         public ShipConfiguration Configuration => configuration;
+        public Rigidbody2D ShipRigidBody => shipRigidBody;
         public ShipInventory Inventory => inventory;
         public CelestialBehaviour OrbitingBody => orbitingBody;
         public bool IsOrbiting => isOrbiting;
@@ -93,7 +94,7 @@ namespace Starfire
 
         public virtual void ConfigureShip()
         {
-            configuration.SetConfiguration(this, 480, 100, 100, 155, 1400, 360, 6);
+            configuration.SetConfiguration(this, 480, 100, 100, 100, 155, 1400, 360, 6);
         }
 
         protected virtual void Update() 
@@ -225,8 +226,16 @@ namespace Starfire
             SetThrusters(boost, direction, false);
         }
 
+        private const float warpFuelConsumeTime = 1;
+        private float warpFuelTimer = 0;
         public virtual void WarpInDirection(Vector2 direction, float moveSpeed, bool boost) //, float maxSpeed
         {
+            if (configuration.WarpFuel <= 0) 
+            {
+                MoveInDirection(direction, configuration.ThrusterMaxSpeed, boost);
+                return;
+            }
+
             float velocityPercentage = shipRigidBody.velocity.magnitude / configuration.WarpMaxSpeed;
             float newMoveSpeed = Mathf.Lerp(moveSpeed, configuration.WarpMaxSpeed, velocityPercentage);
 
@@ -253,6 +262,18 @@ namespace Starfire
             {
                 shipRigidBody.velocity = shipRigidBody.velocity.normalized * configuration.WarpMaxSpeed;
             }
+
+            if (warpFuelTimer > 0)
+            {
+                warpFuelTimer -= Time.deltaTime;
+            }
+            else
+            {
+                warpFuelTimer = warpFuelConsumeTime;
+                configuration.UseWarpFuel();
+            }
+
+            Debug.Log(configuration.WarpFuel);
         }
         
         private void SetThrusters(bool isActive, Vector2 movementDirection, bool isWarping)
@@ -432,6 +453,11 @@ namespace Starfire
             healthBarFill.fillAmount = currentHealth / maxHealth;
 
             timeTillDisableHealthbar = healthbarDisableTime;
+        }
+
+        public virtual void UpdateWarpFuelBar(float currentWarpFuel, float maxWarpFuel)
+        {
+            
         }
 
         protected virtual void DisableHealthbar()

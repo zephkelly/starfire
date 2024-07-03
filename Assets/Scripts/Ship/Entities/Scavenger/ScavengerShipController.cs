@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
@@ -10,6 +12,8 @@ namespace Starfire
         private Rigidbody2D scavengerRigid2D;
         private Transform targetShipTransform;
         private Rigidbody2D targetShipRigid2D;
+
+        private Dictionary<GameObject, (int, float)> scavengerTargetList = new Dictionary<GameObject, (int, float)>();
 
         public StateMachine ScavengerStateMachine { get => stateMachine; }
         public Transform ScavengerTransform { get => scavengerTransform; }
@@ -37,6 +41,12 @@ namespace Starfire
         {
             base.Update();
             stateMachine.Update();
+
+            if (targetShipTransform == null)
+            {
+                if (stateMachine.CurrentState is ScavengerIdleState) return;
+                stateMachine.ChangeState(new ScavengerIdleState(this));
+            }
         }
 
         protected override void FixedUpdate()
@@ -59,17 +69,16 @@ namespace Starfire
         {
             base.OnParticleCollision(other);
 
-            // if (other.CompareTag("Player"))
-            // {
-            targetShipTransform = other.GetComponentInParent<ShipController>().transform;
-            targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
-            
-            if (stateMachine.CurrentState is not ScavengerChaseState)
+            if (scavengerTargetList.ContainsKey(other))
             {
-                stateMachine.ChangeState(new ScavengerChaseState(this));
+                scavengerTargetList[other] = (scavengerTargetList[other].Item1 + 1, Time.time);
             }
-            // }
+            else
+            {
+                scavengerTargetList.Add(other, (1, Time.time));
+            }
 
+            EvaluateNextTarget();
             UpdateHealthBar(configuration.Health, configuration.MaxHealth);
         }
 
@@ -90,6 +99,66 @@ namespace Starfire
             }
 
             base.DestroyShip();
+        }
+
+        public void EvaluateNextTarget()
+        {
+            List<GameObject> targetObjects = new List<GameObject>(scavengerTargetList.Keys);
+
+            foreach (GameObject target in targetObjects)
+            {
+                if (target == null)
+                {
+                    scavengerTargetList.Remove(target);
+                    continue;
+                }
+
+                if (Time.time - scavengerTargetList[target].Item2 < 15f) continue;
+                
+                var distanceToPlayer = Vector2.Distance(target.transform.position, scavengerTransform.position);
+
+                if (target.CompareTag("Player") && distanceToPlayer < 180f && Random.Range(0, 100) > 40)
+                {
+                    targetShipTransform = target.GetComponentInParent<ShipController>().transform;
+                    targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
+                    stateMachine.ChangeState(new ScavengerChaseState(this));
+                    return;
+                }
+
+                scavengerTargetList.Remove(target);
+                
+            }
+
+            if (scavengerTargetList.Count == 0)
+            {
+                stateMachine.ChangeState(new ScavengerIdleState(this));
+            }
+            else
+            {
+                int maxHits = 0;
+                GameObject nextTarget = null;
+
+                foreach (var target in targetObjects)
+                {
+                    if (scavengerTargetList.ContainsKey(target) is false) continue;
+                    if (scavengerTargetList[target].Item1 < maxHits) continue;
+                    
+                    if (target.CompareTag("Player")) 
+                    {
+                        if (Random.Range(0, 100) > 20 && targetShipTransform != null) continue;
+                    }
+
+                    maxHits = scavengerTargetList[target].Item1;
+                    nextTarget = target;
+                }
+
+                if (nextTarget == null) return;
+
+                targetShipTransform = nextTarget.GetComponentInParent<ShipController>().transform;
+                targetShipRigid2D = targetShipTransform.GetComponent<Rigidbody2D>();
+            }
+
+            stateMachine.ChangeState(new ScavengerChaseState(this));
         }
     }
 }

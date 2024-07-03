@@ -22,7 +22,7 @@ namespace Starfire
 
     public override void ConfigureShip()
     {
-        configuration.SetConfiguration(this, 260000, 100, 100, 160, 1500, 200, 6);
+        configuration.SetConfiguration(this, 2600, 100, 100, 100, 160, 1500, 200, 6);
     }
 
     protected override void Update()
@@ -54,9 +54,14 @@ namespace Starfire
 
         Vector2 inputDirection = keyboardInput.normalized;
 
+        // When we orbit a planet we want to increase the speed so we can account for gravity
+        float newWarpSpeed = configuration.WarpIncrementSpeed;
+        if (isOrbiting) newWarpSpeed = configuration.ThrusterMaxSpeed;
+
         if (Input.GetKey(KeyCode.Space) && isBoosting is true)
         {
-            WarpInDirection(inputDirection, configuration.ThrusterMaxSpeed, isBoosting);
+            WarpInDirection(inputDirection, newWarpSpeed, isBoosting);
+            UpdateWarpFuelBar(configuration.WarpFuel, configuration.MaxWarpFuel);
         }
         else
         {
@@ -84,11 +89,6 @@ namespace Starfire
         {
             UIManager.Instance.DisplayMinorAlert("Now orbiting " + _orbitingBody.Name);
         }
-
-        // if (returningToParent is true)
-        // {
-        //     UIManager.Instance.DisplayMinorAlert("Leaving " +  orbitingBody.Name);
-        // }
 
         base.SetOrbitingBody(_orbitingBody, returningToParent);
     }
@@ -124,6 +124,11 @@ namespace Starfire
     public override void UpdateHealthBar(float currentHealth, float maxHealth)
     {
         UIManager.Instance.UpdateHealthBar(currentHealth, maxHealth);
+    }
+
+    public override void UpdateWarpFuelBar(float currentWarpFuel, float maxWarpFuel)
+    {
+        UIManager.Instance.UpdateWarpFuelBar(currentWarpFuel, maxWarpFuel);
     }
 
     private Vector2 GetMouseWorldPosition()
