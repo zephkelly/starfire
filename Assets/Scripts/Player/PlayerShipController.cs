@@ -49,10 +49,12 @@ namespace Starfire
 
     private void UpdateMovement()
     {
-        bool isBoosting = Input.GetKey(KeyCode.LeftShift);
+        bool isBoosting = true;
+        if (Input.GetKey(KeyCode.LeftShift)) isBoosting = false;
+
         Vector2 inputDirection = keyboardInput.normalized;
 
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) && isBoosting is true)
         {
             WarpInDirection(inputDirection, configuration.ThrusterMaxSpeed, isBoosting);
         }
@@ -83,10 +85,10 @@ namespace Starfire
             UIManager.Instance.DisplayMinorAlert("Now orbiting " + _orbitingBody.Name);
         }
 
-        if (returningToParent is true)
-        {
-            UIManager.Instance.DisplayMinorAlert("Leaving " +  orbitingBody.Name);
-        }
+        // if (returningToParent is true)
+        // {
+        //     UIManager.Instance.DisplayMinorAlert("Leaving " +  orbitingBody.Name);
+        // }
 
         base.SetOrbitingBody(_orbitingBody, returningToParent);
     }

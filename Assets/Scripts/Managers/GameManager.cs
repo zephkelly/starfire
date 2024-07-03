@@ -47,6 +47,14 @@ namespace Starfire
                     respawnTimer = 0f;
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                var scavengerShip = Resources.Load<GameObject>("Prefabs/Entities/Scavenger");
+                //get mouse world position
+                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Instantiate(scavengerShip, mousePosition, Quaternion.identity);
+            }
         }
 
         private void LoadPlayer()

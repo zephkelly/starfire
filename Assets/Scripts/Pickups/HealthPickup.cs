@@ -13,7 +13,7 @@ namespace Starfire
         private void Awake()
         {
             type = PickupType.Health;
-            value = 50;
+            value = 20;
         }
     }
 }

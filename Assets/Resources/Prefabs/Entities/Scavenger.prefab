@@ -116,7 +116,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -169,7 +169,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 380
+      scalar: 450
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -5085,7 +5085,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -5138,7 +5138,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 380
+      scalar: 450
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -9900,8 +9900,8 @@ GameObject:
   - component: {fileID: 4447715483684185069}
   - component: {fileID: 5001581654531359489}
   - component: {fileID: 2274862760583280884}
-  - component: {fileID: 8777421711200661380}
   - component: {fileID: 2756918316670815881}
+  - component: {fileID: 8777421711200661380}
   m_Layer: 7
   m_Name: Scavenger
   m_TagString: Entities
@@ -10007,6 +10007,60 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!60 &2756918316670815881
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6469693482504899954}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2.6875, y: 2.6875}
+    newSize: {x: 1.5, y: 1.5}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0.66127205, y: 0.23871613}
+      - {x: 0.19502068, y: 1.0799904}
+      - {x: 0.011260986, y: 1.2312546}
+      - {x: 0.011260986, y: 1.2312546}
+      - {x: -0.18500137, y: 1.0512619}
+      - {x: -0.6462555, y: 0.22003174}
+      - {x: -1.1112518, y: -1.3012123}
+      - {x: -0.008800507, y: -0.84877014}
+      - {x: 1.0887547, y: -1.2987518}
+  m_UseDelaunayMesh: 0
 --- !u!114 &8777421711200661380
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10026,7 +10080,7 @@ MonoBehaviour:
   weaponProjectilePS:
   - {fileID: 8018265943451217944}
   - {fileID: 6402020936452252906}
-  fireRate: 0.3
+  fireRate: 0.2
   healthbarCanvas: {fileID: 3121176593845383894}
   healthBarFill: {fileID: 8488019745678144538}
   shipDamageColor: {r: 1, g: 0.43825188, b: 0.1462264, a: 1}
@@ -10090,60 +10144,6 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
---- !u!60 &2756918316670815881
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6469693482504899954}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2.6875, y: 2.6875}
-    newSize: {x: 1.5, y: 1.5}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.66127205, y: 0.23871613}
-      - {x: 0.19502068, y: 1.0799904}
-      - {x: 0.011260986, y: 1.2312546}
-      - {x: 0.011260986, y: 1.2312546}
-      - {x: -0.18500137, y: 1.0512619}
-      - {x: -0.6462555, y: 0.22003174}
-      - {x: -1.1112518, y: -1.3012123}
-      - {x: -0.008800507, y: -0.84877014}
-      - {x: 1.0887547, y: -1.2987518}
-  m_UseDelaunayMesh: 0
 --- !u!1 &8687220832301523372
 GameObject:
   m_ObjectHideFlags: 0

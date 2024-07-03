@@ -84,6 +84,9 @@ public class Star
         _controller.GetStarVisualTransform.localScale = new Vector3(SurfaceRadius, SurfaceRadius, 1);
         _controller.GetStarLight.pointLightOuterRadius = InfluenceRadius;
         starObject.transform.position = GetStarPosition;
+
+        // depending on the type of star we will set different values
+        
     }
 }
 }

@@ -105,7 +105,7 @@ namespace Starfire
             float distanceToPlayer = Vector2.Distance(_scavengerTransform.position, _playerTransform.position);
             float angleToPlayer = Vector2.Angle(_scavengerTransform.up, _playerTransform.position - _scavengerTransform.position);
 
-            if (distanceToPlayer < 125f && angleToPlayer < 55f)
+            if (distanceToPlayer < 145f && angleToPlayer < 20f)
             {
                 return true;
             }

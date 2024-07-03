@@ -130,17 +130,19 @@ namespace Starfire
         
         public virtual void SetOrbitingBody(CelestialBehaviour _orbitingBody, bool returningToParent = false)
         {
+            if (orbitingBody == _orbitingBody) return;
+
             if (_orbitingBody == null)
             {
                 Debug.LogError("Error: SetOrbitingBody() null reference");
                 return;
             }
-
+            
             if (orbitingBody != null && orbitingBody.CelestialBodyType is CelestialBodyType.Planet && _orbitingBody.CelestialBodyType is CelestialBodyType.Planet)
             {
                 if (_orbitingBody.Mass <= orbitingBody.Mass)
                 {
-                    Debug.LogError("Error: Current Orbiting body is larger than new orbiting body");
+                    Debug.LogWarning("Warning: Current Orbiting body is larger than new orbiting body");
                     return;
                 }
             }

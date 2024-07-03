@@ -185,6 +185,14 @@ namespace Starfire
         }
     }
 
+    private void OnTriggerStay2D(Collider2D _otherCollider) 
+    {
+        if (_otherCollider.CompareTag("Player") || _otherCollider.CompareTag("Entities"))
+        {
+            _otherCollider.gameObject.GetComponent<IShipController>().SetOrbitingBody(celestialBehaviour);
+        }
+    }
+
     private void OnDestroy() 
     {
         foreach (Rigidbody2D body in orbitingBodies)

@@ -418,7 +418,7 @@ MonoBehaviour:
   - {fileID: 5937820426171543135}
   - {fileID: 228162301552525811}
   - {fileID: 4465410827706967548}
-  fireRate: 0.01
+  fireRate: 0.05
   healthbarCanvas: {fileID: 0}
   healthBarFill: {fileID: 0}
   shipDamageColor: {r: 0.28432587, g: 0.754717, b: 0, a: 1}
@@ -5471,7 +5471,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -10391,7 +10391,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -20149,7 +20149,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 3
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
