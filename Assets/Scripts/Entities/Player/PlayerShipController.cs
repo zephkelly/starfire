@@ -19,7 +19,7 @@ namespace Starfire
         var newTransponder = new Transponder("Player", Faction.Player, 90000);
         var newInventory = new Inventory();
         
-        var newShip = new Ship(newConfiguration, newTransponder, newInventory);
+        var newShip = new Ship(this, newConfiguration, newTransponder, newInventory);
         
         SetShip(newShip, new StandardAICore());
 

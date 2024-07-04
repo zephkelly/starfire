@@ -6,12 +6,9 @@ namespace Starfire
 {
     public class ScavengerShipController : ShipController
     {
-        public StateMachine StateMachine { get; private set; }
-
         protected override void Awake()
         {
             base.Awake();
-            StateMachine = new StateMachine();
         }
 
         protected override void Start()
@@ -21,7 +18,7 @@ namespace Starfire
             var newTransponder = new Transponder("Scavenger", Faction.Scavenger, 90000);
             var newInventory = new Inventory();
 
-            var newShip = new Ship(newConfiguration, newTransponder, newInventory);
+            var newShip = new Ship(this, newConfiguration, newTransponder, newInventory);
             SetShip(newShip, new StandardAICore());
 
             base.Start();  

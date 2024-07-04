@@ -10,6 +10,7 @@ namespace Starfire
     {
         public Ship Ship { get; private set; }
         public ShipCore ShipCore { get; private set; }
+        public StateMachine StateMachine { get; private set; }
         public CelestialBehaviour OrbitingBody { get; private set; }
         public bool IsOrbiting { get; private set; }
 
@@ -42,7 +43,7 @@ namespace Starfire
         [SerializeField] protected Color shipDamageColor;
         private const float invulnerabilityTime = 0.5f;
 
-        public void SetShip(Ship ship, ShipCore shipCore)
+        public virtual void SetShip(Ship ship, ShipCore shipCore)
         {
             Ship = ship;
             ShipCore = shipCore;
@@ -69,6 +70,8 @@ namespace Starfire
             {
                 shipSpriteRenderer = sr;
             }
+
+            StateMachine = new StateMachine();
         }
 
         protected virtual void Start()

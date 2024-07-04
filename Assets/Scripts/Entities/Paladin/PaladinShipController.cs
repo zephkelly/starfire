@@ -4,35 +4,41 @@ namespace Starfire
 {
     public class PaladinShipController : ShipController
     {
-        public StateMachine StateMachine { get; private set; }
+        
+
+        public override void SetShip(Ship ship, ShipCore shipCore)
+        {
+            base.SetShip(ship, shipCore);
+        }
 
         protected override void Awake()
         {
             base.Awake();
-            StateMachine = new StateMachine();
         }
 
         protected override void Start()
         {
-            var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            newConfiguration.SetConfiguration(this, 360, 100, 100, 100, 160, 1500, 200, 6);
-            var newTransponder = new Transponder("Paladin", Faction.Friendly, 90000);
-            var newInventory = new Inventory();
-
-            var newShip = new Ship(newConfiguration, newTransponder, newInventory);
-            SetShip(newShip, new StandardAICore());
-
-            base.Start();  
+            base.Start(); 
         }
 
         protected override void Update()
         {
             base.Update();
+
+            if (ShipCore == null)
+            {
+                return;
+            }
+
             ShipCore.Update();
 
             if (ShipCore.CurrentTarget == null)
             {
                 StateMachine.ChangeState(new PaladinIdleState(this));
+            }
+            else
+            {
+                StateMachine.ChangeState(new PaladinChaseState(this));
             }
 
             StateMachine.Update();
@@ -41,6 +47,12 @@ namespace Starfire
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
+
+            if (ShipCore == null)
+            {
+                return;
+            }
+
             ShipCore.Update();
 
             if (ShipCore.CurrentTarget == null)

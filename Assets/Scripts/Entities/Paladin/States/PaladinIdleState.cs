@@ -18,7 +18,6 @@ namespace Starfire
 
         public void Execute()
         {
-
         }
 
         public void FixedUpdate()
