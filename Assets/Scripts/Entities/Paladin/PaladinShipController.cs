@@ -40,8 +40,15 @@ namespace Starfire
 
         protected override void FixedUpdate()
         {
-            StateMachine.FixedUpdate();
             base.FixedUpdate();
+            ShipCore.Update();
+
+            if (ShipCore.CurrentTarget == null)
+            {
+                StateMachine.ChangeState(new PaladinIdleState(this));
+            }
+
+            StateMachine.FixedUpdate();
         }
 
         public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)

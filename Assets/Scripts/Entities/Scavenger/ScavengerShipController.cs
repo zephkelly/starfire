@@ -42,8 +42,15 @@ namespace Starfire
 
         protected override void FixedUpdate()
         {
-            StateMachine.FixedUpdate();
             base.FixedUpdate();
+            ShipCore.Update();
+
+            if (ShipCore.CurrentTarget == null)
+            {
+                StateMachine.ChangeState(new ScavengerIdleState(this));
+            }
+
+            StateMachine.FixedUpdate();
         }
 
         public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
