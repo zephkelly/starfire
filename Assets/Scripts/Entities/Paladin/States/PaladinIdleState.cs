@@ -4,16 +4,16 @@ namespace Starfire
 {
     public class PaladinIdleState : IState
     {
-        private  PaladinShipController shipController;
+        private  PaladinShipController _shipController;
 
-        public PaladinIdleState(PaladinShipController _paladin)
+        public PaladinIdleState(PaladinShipController controller)
         {
-            shipController = _paladin;
+            _shipController = controller;
         }
 
         public void Enter()
         {
-            
+            _shipController.SetThrusters(false, Vector2.zero, false);
         }
 
         public void Execute()

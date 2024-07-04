@@ -77,6 +77,12 @@ namespace Starfire
                 whichRaycastableTargetLayers
             );
 
+            if (lastKnownTargetPosition == Vector2.zero)
+            {
+                _shipController.StateMachine.ChangeState(new ScavengerIdleState(_shipController));
+                return;
+            }
+
             Vector2 weightedDirection = _shipCore.FindBestDirection(
                 _scavengerObject,
                 _scavengerTransform.position, 

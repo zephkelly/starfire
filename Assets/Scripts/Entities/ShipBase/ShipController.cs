@@ -171,8 +171,6 @@ namespace Starfire
                 warpFuelTimer = warpFuelConsumeTime;
                 Ship.Configuration.UseWarpFuel();
             }
-
-            Debug.Log(Ship.Configuration.WarpFuel);
         }
 
         public virtual void RotateToPosition(Vector2 targetPosition, float degreesPerSecond)
@@ -321,6 +319,30 @@ namespace Starfire
             IsOrbiting = false;
         }
 
+        public void SetThrusters(bool isActive, Vector2 movementDirection, bool isWarping)
+        {
+            if (movementDirection.magnitude > 0.1f && isActive is true)
+            {
+                for (int i = 0; i < shipThrusterPS.Length; i++)
+                {
+                    UpdateThrusterGradientByVelocity(shipThrusterPS[i], isWarping);
+
+                    if (shipThrusterPS[i].isPlaying is true) continue;
+                    shipThrusterPS[i].Play();
+                    shipThrusterLight[i].enabled = true;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < shipThrusterPS.Length; i++)
+                {
+                    if (shipThrusterPS[i].isPlaying is false) continue;
+                    shipThrusterPS[i].Stop();
+                    shipThrusterLight[i].enabled = false;
+                }
+            }
+        }
+
         protected void OrbitCelestialBody()
         {
             if (OrbitingBody == null)
@@ -406,30 +428,6 @@ namespace Starfire
                 Quaternion rotation = Quaternion.Euler(0, 0, angle - 90);
 
                 weapon.transform.rotation = rotation;
-            }
-        }
-
-        private void SetThrusters(bool isActive, Vector2 movementDirection, bool isWarping)
-        {
-            if (movementDirection.magnitude > 0.1f && isActive is true)
-            {
-                for (int i = 0; i < shipThrusterPS.Length; i++)
-                {
-                    UpdateThrusterGradientByVelocity(shipThrusterPS[i], isWarping);
-
-                    if (shipThrusterPS[i].isPlaying is true) continue;
-                    shipThrusterPS[i].Play();
-                    shipThrusterLight[i].enabled = true;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < shipThrusterPS.Length; i++)
-                {
-                    if (shipThrusterPS[i].isPlaying is false) continue;
-                    shipThrusterPS[i].Stop();
-                    shipThrusterLight[i].enabled = false;
-                }
             }
         }
 

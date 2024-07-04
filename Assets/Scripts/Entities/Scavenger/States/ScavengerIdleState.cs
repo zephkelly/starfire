@@ -4,16 +4,16 @@ namespace Starfire
 {
     public class ScavengerIdleState : IState
     {
-        private  ScavengerShipController shipController;
+        private  ScavengerShipController _shipController;
 
         public ScavengerIdleState(ScavengerShipController _scavenger)
         {
-            shipController = _scavenger;
+            _shipController = _scavenger;
         }
 
         public void Enter()
         {
-            
+            _shipController.SetThrusters(false, Vector2.zero, false);
         }
 
         public void Execute()
