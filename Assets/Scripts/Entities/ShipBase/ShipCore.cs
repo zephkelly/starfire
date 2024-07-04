@@ -25,7 +25,6 @@ namespace Starfire
 
         public bool RemoveTarget()
         {
-            Debug.Log("Trying to remove target");
             if (currentTarget is null) return false;
 
             currentTarget = null;

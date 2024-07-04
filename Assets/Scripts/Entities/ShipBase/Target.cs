@@ -56,19 +56,16 @@ namespace Starfire
         {
             if (Type == TargetType.Position) return targetPosition;
 
-            // if (targetTransform == null) return Vector2.zero;
             return targetTransform.position;
         }
 
         public Vector2 GetVelocity()
         {
-            // if (targetRigidbody2D == null) return Vector2.zero;
             return targetRigidbody2D.velocity;
         }
 
         public Vector2 GetVelocityMagnitude()
         {
-            // if (targetRigidbody2D == null) return Vector2.zero;
             return targetRigidbody2D.velocity.normalized;
         }
 
