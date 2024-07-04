@@ -1,10 +1,11 @@
 namespace Starfire
 {
-    public enum FactionType
+    public enum Faction
     {
         Player,
-        Scavenger,
         Pirate,
+        Scavenger,
+        Friendly,
         Neutral
     }
 
@@ -28,12 +29,12 @@ namespace Starfire
     public class Transponder
     {
         public string Name { get; private set; }
-        public FactionType Faction { get; private set; }
+        public Faction Faction { get; private set; }
 
         public TransponderStatus Status { get; private set; } 
-        public string Frequency { get; private set; }
+        public int Frequency { get; private set; }
 
-        public Transponder(string name, FactionType factionType, string frequency)
+        public Transponder(string name, Faction factionType, int frequency)
         {
             Name = name;
             Faction = factionType;

@@ -10073,17 +10073,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 216d2df6cede07b4a9fbe1ba85f73047, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fireRate: 0.2
+  weaponProjectilePS:
+  - {fileID: 8018265943451217944}
+  - {fileID: 6402020936452252906}
   shipThrusterPS:
   - {fileID: 1416800823937537743}
   shipThrusterLight:
   - {fileID: 7682278367717131017}
-  weaponProjectilePS:
-  - {fileID: 8018265943451217944}
-  - {fileID: 6402020936452252906}
-  fireRate: 0.2
-  healthbarCanvas: {fileID: 3121176593845383894}
-  healthBarFill: {fileID: 8488019745678144538}
-  shipDamageColor: {r: 1, g: 0.43825188, b: 0.1462264, a: 1}
   thrusterNormalGradient:
     serializedVersion: 2
     key0: {r: 1, g: 0.94741553, b: 0.711813, a: 1}
@@ -10144,6 +10141,9 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
+  healthbarCanvas: {fileID: 3121176593845383894}
+  healthBarFill: {fileID: 8488019745678144538}
+  shipDamageColor: {r: 1, g: 0.43825188, b: 0.1462264, a: 1}
 --- !u!1 &8687220832301523372
 GameObject:
   m_ObjectHideFlags: 0

@@ -36,8 +36,8 @@ namespace Starfire
 
         private void Start()
         {
-            var newSender = new Transponder("Scavenger", FactionType.Scavenger, "90000Hz");
-            var newReceiver = new Transponder("Player", FactionType.Player, "90000Hz");
+            var newSender = new Transponder("Scavenger", Faction.Scavenger, 90000);
+            var newReceiver = new Transponder("Player", Faction.Player, 90000);
 
             var newMessage = new Message(newSender, newReceiver, "Hello young new traveller! First time in this sector? I'm here to help you out!");
             DisplayMessage(newMessage);
@@ -49,13 +49,13 @@ namespace Starfire
             {
                 string text = dialogueQueue.Peek().Text;
                 float displayLength = text.Length * 0.1f;
-                FactionType senderType = dialogueQueue.Peek().Sender.Faction;
+                Faction senderType = dialogueQueue.Peek().Sender.Faction;
 
-                if (senderType is FactionType.Player)
+                if (senderType is Faction.Player)
                 {
                     StartCoroutine(FadeTextEffect(dialogueQueue.Dequeue().Text, displayLength, Color.green));
                 }
-                else if (senderType is FactionType.Scavenger)
+                else if (senderType is Faction.Scavenger)
                 {
                     StartCoroutine(FadeTextEffect(dialogueQueue.Dequeue().Text, displayLength, Color.red));
                 }
