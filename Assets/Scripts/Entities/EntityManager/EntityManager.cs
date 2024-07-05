@@ -15,6 +15,11 @@ namespace Starfire
         private void Update()
         {
             UpdateFleets();
+
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                var mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            }
         }
 
         private void UpdateFleets()
@@ -30,7 +35,7 @@ namespace Starfire
             Fleet fleet = new Fleet(FleetType.Military, FleetAllegience.Friend);
             fleets.Add(fleet);
 
-            var randomFleetNumber = Random.Range(1, 4);
+            var randomFleetNumber = Random.Range(6, 8);
             
             for (int i = 0; i < randomFleetNumber; i++)
             {
@@ -45,16 +50,16 @@ namespace Starfire
                 var newInventory = new Inventory();
 
                 var newShip = new Ship(shipController, newConfiguration, newTransponder, newInventory);
-                shipController.SetShip(newShip, new StandardAICore());
+                shipController.SetShip(newShip, new StandardAICore(newShip, fleet));
+
+                if (i == 0)
+                {
+                    fleet.SetFlagship(newShip);
+                }
 
                 fleet.AddShip(newShip);
             }
 
-
-            var newFleetCommand = new FleetCommand(FleetCommand.CommandType.Move, new Vector2(100, 2000));
-            var newFleetCommand2 = new FleetCommand(FleetCommand.CommandType.Idle);
-            fleet.AddNewCommand(newFleetCommand);
-            fleet.AddNewCommand(newFleetCommand2);
         }
     }
 }

@@ -4,11 +4,9 @@ namespace Starfire
 {
     public class PaladinShipController : ShipController
     {
-        
-
-        public override void SetShip(Ship ship, ShipCore shipCore)
+        public override void SetShip(Ship ship, AICore aiCore)
         {
-            base.SetShip(ship, shipCore);
+            base.SetShip(ship, aiCore);
         }
 
         protected override void Awake()
@@ -25,22 +23,6 @@ namespace Starfire
         {
             base.Update();
 
-            if (ShipCore == null)
-            {
-                return;
-            }
-
-            ShipCore.Update();
-
-            if (ShipCore.CurrentTarget == null)
-            {
-                StateMachine.ChangeState(new PaladinIdleState(this));
-            }
-            else
-            {
-                StateMachine.ChangeState(new PaladinChaseState(this));
-            }
-
             StateMachine.Update();
         }
 
@@ -48,17 +30,6 @@ namespace Starfire
         {
             base.FixedUpdate();
 
-            if (ShipCore == null)
-            {
-                return;
-            }
-
-            ShipCore.Update();
-
-            if (ShipCore.CurrentTarget == null)
-            {
-                StateMachine.ChangeState(new PaladinIdleState(this));
-            }
 
             StateMachine.FixedUpdate();
         }
@@ -75,10 +46,8 @@ namespace Starfire
             var otherShipController = other.GetComponentInParent<ShipController>();
             var otherShipGameObject = otherShipController.gameObject;
 
-            if (ShipCore.SetTarget(otherShipGameObject))
-            {
-                StateMachine.ChangeState(new PaladinChaseState(this));
-            }
+            // Ask AI core to process the command
+            // Send info to fleet
 
             UpdateHealth(Ship.Configuration.Health, Ship.Configuration.MaxHealth);
         }

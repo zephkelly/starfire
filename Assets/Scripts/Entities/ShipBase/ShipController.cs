@@ -6,10 +6,10 @@ using UnityEngine.Rendering.Universal;
 
 namespace Starfire
 {
-    public abstract class ShipController : MonoBehaviour
+    public abstract class ShipController: MonoBehaviour
     {
         public Ship Ship { get; private set; }
-        public ShipCore ShipCore { get; private set; }
+        public AICore AICore { get; set; }
         public StateMachine StateMachine { get; private set; }
         public CelestialBehaviour OrbitingBody { get; private set; }
         public bool IsOrbiting { get; private set; }
@@ -43,10 +43,10 @@ namespace Starfire
         [SerializeField] protected Color shipDamageColor;
         private const float invulnerabilityTime = 0.5f;
 
-        public virtual void SetShip(Ship ship, ShipCore shipCore)
+        public virtual void SetShip(Ship ship, AICore aiCore)
         {
             Ship = ship;
-            ShipCore = shipCore;
+            AICore = aiCore;
         }
 
         protected virtual void Awake()
@@ -88,6 +88,7 @@ namespace Starfire
         protected virtual void Update()
         {
             UpdateTimers();
+            AICore.Update();
         }
 
         protected virtual void FixedUpdate()

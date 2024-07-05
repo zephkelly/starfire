@@ -21,7 +21,7 @@ namespace Starfire
         
         var newShip = new Ship(this, newConfiguration, newTransponder, newInventory);
         
-        SetShip(newShip, new StandardAICore());
+        SetShip(newShip, new StandardAICore(newShip));
 
         shipRigidBody.centerOfMass = Vector2.zero;
         ChunkManager.Instance.AddShip(this);

@@ -4,9 +4,9 @@ namespace Starfire
 {
     public class PaladinChaseState : IState
     {
+        private Command _currentCommand;
         private PaladinShipController _shipController;
         private StandardAICore _shipCore;
-        private Target _currentTarget;
 
         private StateMachine _stateMachine;
         private GameObject _paladinObject;
@@ -21,16 +21,16 @@ namespace Starfire
         private int numberOfRays = 16;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 30f;
-        private float targetSightDistance = 200f;
+        private float targetSightDistance = 1000f;
         private float targetSightAngle = 90f;
 
         private float timeToSpendCirclingTillStateChange;
 
-        public PaladinChaseState(PaladinShipController paladinController)
+        public PaladinChaseState(PaladinShipController paladinController, Command command)
         {
             _shipController = paladinController;
-            _shipCore = (StandardAICore)_shipController.ShipCore;
-            _currentTarget = _shipController.ShipCore.CurrentTarget;
+            _shipCore = (StandardAICore)_shipController.AICore;
+            _currentCommand = command;
 
             _stateMachine = _shipController.StateMachine;
             _paladinObject = _shipController.ShipObject;
@@ -46,7 +46,7 @@ namespace Starfire
 
         public void Execute()
         {
-            if (_currentTarget == null)
+            if (_currentCommand == null)
             {
                 _stateMachine.ChangeState(new PaladinIdleState(_shipController));
                 return;
@@ -54,13 +54,7 @@ namespace Starfire
 
             if (_shipCore.TimeSpentCircling > timeToSpendCirclingTillStateChange)
             {
-                _stateMachine.ChangeState(new PaladinCircleState(_shipController));
-                return;
-            }
-
-            if (_currentTarget == null) 
-            {
-                _shipController.StateMachine.ChangeState(new PaladinIdleState(_shipController));
+                _stateMachine.ChangeState(new PaladinCircleState(_shipController, _currentCommand));
                 return;
             }
 
@@ -68,19 +62,19 @@ namespace Starfire
                 _paladinObject,
                 _paladinTransform.position,
                 _paladinRigid2D.velocity,
-                _currentTarget.GetPosition(), 
-                chaseRadius,
-                whichRaycastableTargetLayers
+                _currentCommand.GetTargetPosition(), 
+                whichRaycastableTargetLayers,
+                chaseRadius
             );
 
             Vector2 weightedDirection = _shipCore.FindBestDirection(
                 _paladinObject,
                 _paladinTransform.position, 
-                _currentTarget.GetPosition(),
+                _currentCommand.GetTargetPosition(),
                 _paladinRigid2D.velocity.magnitude,
                 numberOfRays,
-                collisionCheckRadius,
-                whichRaycastableAvoidanceLayers
+                whichRaycastableAvoidanceLayers,
+                collisionCheckRadius
             );
 
             weightedDirection = _shipCore.CircleTarget(weightedDirection, _paladinTransform.position, _paladinRigid2D.velocity, lastKnownTargetPosition);
@@ -103,9 +97,9 @@ namespace Starfire
         {
             float distance = 0f;
 
-            if (_currentTarget != null)
+            if (_currentCommand != null)
             {
-                distance = Vector2.Distance(_paladinTransform.position, _currentTarget.GetPosition());
+                distance = Vector2.Distance(_paladinTransform.position, _currentCommand.GetTargetPosition());
             }
 
             float speedMultiplier = GetSpeedMultiplier(distance);

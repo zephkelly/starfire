@@ -2,8 +2,10 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class StandardAICore : ShipCore
-    { 
+    public class StandardAICore : AICore
+    {   
+        public StandardAICore(Ship _ship, Fleet _fleet = default) : base(_ship, _fleet) { }
+
         public float TimeSpentNotCircling { get; private set; }
         public float TimeSpentCircling { get; private set; }
 
@@ -60,7 +62,7 @@ namespace Starfire
             return targetPosition;
         }
 
-        public Vector2 GetTargetPosition(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float chaseRadius, LayerMask whichRaycastableLayers)
+        public Vector2 GetTargetPosition(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, LayerMask whichRaycastableLayers, float chaseRadius = 60f)
         {
             Vector2 directionToPlayer = targetShipPosition - ourShipPosition;
             Vector2 lastKnownPlayerPosition = Vector2.zero;
@@ -108,7 +110,7 @@ namespace Starfire
         }
 
         private Vector3[] radialRaycastData;  // x, y: direction, z: weight
-        public Vector2 FindBestDirection(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 lastTargetShipPosition, float ourShipVelocityMagnitude, int numberOfRays, float collisionCheckRadius, LayerMask whichRaycastableLayers)
+        public Vector2 FindBestDirection(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 lastTargetShipPosition, float ourShipVelocityMagnitude, int numberOfRays, LayerMask whichRaycastableLayers, float collisionCheckRadius = 30f)
         {
             radialRaycastData = new Vector3[numberOfRays];
             Vector2 direction = Vector2.zero;

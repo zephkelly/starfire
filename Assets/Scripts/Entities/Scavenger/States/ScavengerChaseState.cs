@@ -10,7 +10,7 @@ namespace Starfire
     {
         private ScavengerShipController _shipController;
         private StandardAICore _shipCore;
-        private Target _currentTarget;
+        private Command _currentCommand;
 
         private StateMachine _stateMachine;
         private GameObject _scavengerObject;
@@ -25,16 +25,16 @@ namespace Starfire
         private int numberOfRays = 16;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 30f;
-        private float targetSightDistance = 200f;
+        private float targetSightDistance = 1000f;
         private float targetSightAngle = 90f;
 
         private float timeToSpendCirclingTillStateChange;
 
-        public ScavengerChaseState(ScavengerShipController scavengerController)
+        public ScavengerChaseState(ScavengerShipController scavengerController, Command command)
         {
             _shipController = scavengerController;
-            _shipCore = (StandardAICore)scavengerController.ShipCore;
-            _currentTarget = scavengerController.ShipCore.CurrentTarget;
+            _shipCore = (StandardAICore)scavengerController.AICore;
+            _currentCommand = command;
 
             _stateMachine = scavengerController.StateMachine;
             _scavengerObject = scavengerController.ShipObject;
@@ -50,7 +50,7 @@ namespace Starfire
 
         public void Execute()
         {
-            if (_currentTarget == null)
+            if (_currentCommand == null)
             {
                 _stateMachine.ChangeState(new ScavengerIdleState(_shipController));
                 return;
@@ -58,13 +58,7 @@ namespace Starfire
 
             if (_shipCore.TimeSpentCircling > timeToSpendCirclingTillStateChange)
             {
-                _stateMachine.ChangeState(new ScavengerCircleState(_shipController));
-                return;
-            }
-
-            if (_currentTarget == null) 
-            {
-                _shipController.StateMachine.ChangeState(new ScavengerIdleState(_shipController));
+                _stateMachine.ChangeState(new ScavengerCircleState(_shipController, _currentCommand));
                 return;
             }
 
@@ -72,16 +66,10 @@ namespace Starfire
                 _scavengerObject,
                 _scavengerTransform.position,
                 _scavengerRigid2D.velocity,
-                _currentTarget.GetPosition(), 
-                chaseRadius,
-                whichRaycastableTargetLayers
+                _currentCommand.GetTargetPosition(), 
+                whichRaycastableTargetLayers,
+                chaseRadius
             );
-
-            if (lastKnownTargetPosition == Vector2.zero)
-            {
-                _shipController.StateMachine.ChangeState(new ScavengerIdleState(_shipController));
-                return;
-            }
 
             Vector2 weightedDirection = _shipCore.FindBestDirection(
                 _scavengerObject,
@@ -89,15 +77,12 @@ namespace Starfire
                 lastKnownTargetPosition,
                 _scavengerRigid2D.velocity.magnitude,
                 numberOfRays,
-                collisionCheckRadius,
-                whichRaycastableAvoidanceLayers
+                whichRaycastableAvoidanceLayers,
+                collisionCheckRadius
             );
 
             weightedDirection = _shipCore.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
             bool isPlayerInSight = _shipCore.IsTargetWithinSight(_scavengerTransform.position, _scavengerTransform.up,  lastKnownTargetPosition, targetSightDistance, targetSightAngle);
-
-            lerpVector = Vector2.Lerp(_scavengerTransform.up, weightedDirection, 0.7f).normalized;
-            visualLerpVector = Vector2.Lerp(_scavengerTransform.up, weightedDirection, 0.15f);
 
             if (_shipCore.CanFireProjectile() && isPlayerInSight)
             {
@@ -114,9 +99,9 @@ namespace Starfire
         {
             float distance = 0f;
 
-            if (_currentTarget != null)
+            if (_currentCommand != null)
             {
-                distance = Vector2.Distance(_scavengerTransform.position, _currentTarget.GetPosition());
+                distance = Vector2.Distance(_scavengerTransform.position, _currentCommand.GetTargetPosition());
             }
 
             float speedMultiplier = GetSpeedMultiplier(distance);

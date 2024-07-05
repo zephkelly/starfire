@@ -6,7 +6,7 @@ namespace Starfire
     {
         private ScavengerShipController _shipController;
         private StandardAICore _shipCore;
-        private Target _currentTarget;
+        private Command _currentCommand;
 
         private StateMachine _stateMachine;
         private GameObject _scavengerObject;
@@ -21,7 +21,7 @@ namespace Starfire
         private int numberOfRays = 16;
         private float chaseRadius = 300f;
         private float collisionCheckRadius = 12f;
-        private float targetSightDistance = 200f;
+        private float targetSightDistance = 1000f;
         private float targetSightAngle = 90f;
 
         private MovementPattern currentMovementPattern = MovementPattern.Normal;
@@ -43,11 +43,11 @@ namespace Starfire
             FigureEight
         }
 
-        public ScavengerCircleState(ScavengerShipController controller)
+        public ScavengerCircleState(ScavengerShipController controller, Command command)
         {
             _shipController = controller;
-            _shipCore = (StandardAICore)controller.ShipCore;
-            _currentTarget = controller.ShipCore.CurrentTarget;
+            _shipCore = (StandardAICore)controller.AICore;
+            _currentCommand = command;
 
             _stateMachine = controller.StateMachine;
             _scavengerObject = controller.ShipObject;
@@ -64,7 +64,7 @@ namespace Starfire
 
         public void Execute()
         {
-            if (_currentTarget == null)
+            if (_currentCommand == null)
             {
                 _shipController.StateMachine.ChangeState(new ScavengerIdleState(_shipController));
                 return;
@@ -72,22 +72,16 @@ namespace Starfire
 
             if (_shipCore.TimeSpentNotCircling > 4f)
             {
-                _shipController.StateMachine.ChangeState(new ScavengerChaseState(_shipController));
-            }
-
-            if (_currentTarget == null) 
-            {
-                _shipController.StateMachine.ChangeState(new ScavengerIdleState(_shipController));
-                return;
+                _shipController.StateMachine.ChangeState(new ScavengerChaseState(_shipController, _currentCommand));
             }
 
             lastKnownPlayerPosition = _shipCore.GetTargetPosition(
                 _scavengerObject,
                 _scavengerTransform.position,
                 _scavengerRigid2D.velocity,
-                _currentTarget.GetPosition(),
-                chaseRadius,
-                whichRaycastableLayers
+                _currentCommand.GetTargetPosition(), 
+                whichRaycastableLayers,
+                chaseRadius
             );
 
             weightedDirection = _shipCore.FindBestDirection(
@@ -96,8 +90,8 @@ namespace Starfire
                 lastKnownPlayerPosition,
                 _scavengerRigid2D.velocity.magnitude,
                 numberOfRays,
-                collisionCheckRadius,
-                whichRaycastableLayers
+                whichRaycastableLayers,
+                collisionCheckRadius
             );
 
             weightedDirection = _shipCore.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownPlayerPosition);
