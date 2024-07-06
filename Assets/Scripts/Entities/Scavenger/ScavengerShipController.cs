@@ -18,8 +18,7 @@ namespace Starfire
             var newTransponder = new Transponder("Scavenger", Faction.Scavenger, 90000);
             var newInventory = new Inventory();
 
-            var newShip = new Ship(this, newConfiguration, newTransponder, newInventory);
-            // SetShip(newShip, new StandardAICore(newShip));
+            var newShip = new Ship(this, new StandardAICore(), newConfiguration, newTransponder, newInventory);
 
             base.Start();  
         }
@@ -28,47 +27,12 @@ namespace Starfire
         {
             base.Update();
 
-            // DetermineState();
-
             StateMachine.Update();
-        }
-
-        private void DetermineState()
-        {
-            // bool isCurrentCommand = AICore.CurrentCommand != null;
-            // bool isCurrentFleetCommand = AICore.CurrentFleetCommand != null;
-
-            // if (isCurrentCommand is false && isCurrentFleetCommand is false)
-            // {
-            //     StateMachine.ChangeState(new ScavengerIdleState(this));
-            // }
-
-            // if (isCurrentFleetCommand)
-            // {
-            //     if (AICore.CurrentFleetCommand.CommandType == FleetCommand.Type.Move)
-            //     {
-            //         StateMachine.ChangeState(new ScavengerChaseState(this, AICore.CurrentFleetCommand));
-            //     }
-            // }
-            // else if (isCurrentCommand)
-            // {
-            //     if (AICore.CurrentCommand.CommandType == Command.Type.Move)
-            //     {
-            //         StateMachine.ChangeState(new ScavengerChaseState(this, AICore.CurrentCommand));
-            //     }
-
-            //     if (AICore.CurrentCommand.CommandType == Command.Type.Attack)
-            //     {
-            //         StateMachine.ChangeState(new ScavengerChaseState(this, AICore.CurrentCommand));
-            //     }
-            // }
         }
 
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
-
-            DetermineState();
 
             StateMachine.FixedUpdate();
         }
@@ -84,17 +48,6 @@ namespace Starfire
 
             var otherShipController = other.GetComponentInParent<ShipController>();
             var otherShipGameObject = otherShipController.gameObject;
-
-            var newCommand = new Command(
-                Command.Type.Attack,
-                Command.Priority.High,
-                otherShipController.Ship
-            );
-
-            // if (AICore.SetCommand(newCommand))
-            // {
-            //     StateMachine.ChangeState(new ScavengerChaseState(this, newCommand));
-            // }
 
             UpdateHealth(Ship.Configuration.Health, Ship.Configuration.MaxHealth);
         }

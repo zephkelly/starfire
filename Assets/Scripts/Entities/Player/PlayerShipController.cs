@@ -19,10 +19,8 @@ namespace Starfire
         var newTransponder = new Transponder("Player", Faction.Player, 90000);
         var newInventory = new Inventory();
         
-        var newShip = new Ship(this, newConfiguration, newTransponder, newInventory);
+        var newShip = new Ship(this, new StandardAICore(), newConfiguration, newTransponder, newInventory);
         
-        SetShip(newShip, new StandardAICore(newShip));
-
         shipRigidBody.centerOfMass = Vector2.zero;
         ChunkManager.Instance.AddShip(this);
     }

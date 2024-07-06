@@ -1,24 +1,24 @@
+using UnityEngine;
+
 namespace Starfire
 {
-    public class CommandIdle : ICommand
+    public class CommandIdle<T> : Command<T>
     {
-        public CommandIdle()
+        public CommandIdle(T _target) : base(_target) { }
+
+        public override void Enter()
         {
+            Debug.Log("CommandIdle: Enter");
         }
 
-        public void Enter()
+        public override void Execute()
         {
-            // Debug.Log("Fleet Idle State Entered");
+            Debug.Log("CommandIdle: Execute");
         }
 
-        public void Execute()
+        public override void Exit()
         {
-            // Debug.Log("Fleet Idle State Executed");
-        }
-
-        public void Exit()
-        {
-            // Debug.Log("Fleet Idle State Exited");
+            Debug.Log("CommandIdle: Exit");
         }
     }
 }

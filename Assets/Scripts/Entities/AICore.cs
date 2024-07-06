@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using Unity.Mathematics;
-using UnityEngine;
+using System.Numerics;
 
 namespace Starfire
 {
@@ -12,11 +9,13 @@ namespace Starfire
 
         protected CommandStateMachine commandStateMachine;
 
-        public AICore(Ship _ship, Fleet _fleet = default)
+        public AICore() { }
+
+        public virtual void SetShip(Ship _ship, Fleet _fleet = default)
         {
             ship = _ship;
             commandStateMachine = new CommandStateMachine();
-            commandStateMachine.ChangeState(new CommandIdle());
+            commandStateMachine.ChangeState(new CommandIdle<Vector2>(Vector2.Zero));
 
             if (_fleet != default)
             {
@@ -24,8 +23,11 @@ namespace Starfire
             
             }
             fleet = _fleet;
+        }
 
-
+        public virtual void SetCurrentCommand(ICommand newCommand)
+        {
+            commandStateMachine.ChangeState(newCommand);
         }
 
         public virtual void Update()

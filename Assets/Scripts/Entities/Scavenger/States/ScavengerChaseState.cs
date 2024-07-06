@@ -10,7 +10,6 @@ namespace Starfire
     {
         private ScavengerShipController _shipController;
         private StandardAICore _shipCore;
-        private Command _currentCommand;
 
         private StateMachine _stateMachine;
         private GameObject _scavengerObject;
@@ -30,11 +29,10 @@ namespace Starfire
 
         private float timeToSpendCirclingTillStateChange;
 
-        public ScavengerChaseState(ScavengerShipController scavengerController, Command command)
+        public ScavengerChaseState(ScavengerShipController scavengerController)
         {
             _shipController = scavengerController;
             _shipCore = (StandardAICore)scavengerController.AICore;
-            _currentCommand = command;
 
             _stateMachine = scavengerController.StateMachine;
             _scavengerObject = scavengerController.ShipObject;
@@ -50,60 +48,48 @@ namespace Starfire
 
         public void Execute()
         {
-            if (_currentCommand == null)
-            {
-                _stateMachine.ChangeState(new ScavengerIdleState(_shipController));
-                return;
-            }
-
             if (_shipCore.TimeSpentCircling > timeToSpendCirclingTillStateChange)
             {
-                _stateMachine.ChangeState(new ScavengerCircleState(_shipController, _currentCommand));
+                _stateMachine.ChangeState(new ScavengerCircleState(_shipController));
                 return;
             }
 
-            Vector2 lastKnownTargetPosition = _shipCore.GetTargetPosition(
-                _scavengerObject,
-                _scavengerTransform.position,
-                _scavengerRigid2D.velocity,
-                _currentCommand.GetTargetPosition(), 
-                whichRaycastableTargetLayers,
-                chaseRadius
-            );
+            // Vector2 lastKnownTargetPosition = _shipCore.GetTargetPosition(
+            //     _scavengerObject,
+            //     _scavengerTransform.position,
+            //     _scavengerRigid2D.velocity,
+            //     _currentCommand.GetTargetPosition(), 
+            //     whichRaycastableTargetLayers,
+            //     chaseRadius
+            // );
 
-            Vector2 weightedDirection = _shipCore.FindBestDirection(
-                _scavengerObject,
-                _scavengerTransform.position, 
-                lastKnownTargetPosition,
-                _scavengerRigid2D.velocity.magnitude,
-                numberOfRays,
-                whichRaycastableAvoidanceLayers,
-                collisionCheckRadius
-            );
+            // Vector2 weightedDirection = _shipCore.FindBestDirection(
+            //     _scavengerObject,
+            //     _scavengerTransform.position, 
+            //     lastKnownTargetPosition,
+            //     _scavengerRigid2D.velocity.magnitude,
+            //     numberOfRays,
+            //     whichRaycastableAvoidanceLayers,
+            //     collisionCheckRadius
+            // );
 
-            weightedDirection = _shipCore.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
-            bool isPlayerInSight = _shipCore.IsTargetWithinSight(_scavengerTransform.position, _scavengerTransform.up,  lastKnownTargetPosition, targetSightDistance, targetSightAngle);
+            // weightedDirection = _shipCore.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
+            // bool isPlayerInSight = _shipCore.IsTargetWithinSight(_scavengerTransform.position, _scavengerTransform.up,  lastKnownTargetPosition, targetSightDistance, targetSightAngle);
 
-            if (_shipCore.CanFireProjectile() && isPlayerInSight)
-            {
-                Vector2 firingPosition = _shipCore.GetProjectileFiringPosition(
-                    _scavengerTransform.position,
-                    lastKnownTargetPosition
-                );
+            // if (_shipCore.CanFireProjectile() && isPlayerInSight)
+            // {
+            //     Vector2 firingPosition = _shipCore.GetProjectileFiringPosition(
+            //         _scavengerTransform.position,
+            //         lastKnownTargetPosition
+            //     );
 
-                _shipController.FireProjectileToPosition(firingPosition);
-            }
+            //     _shipController.FireProjectileToPosition(firingPosition);
+            // }
         }
 
         public void FixedUpdate()
         {
             float distance = 0f;
-
-            if (_currentCommand != null)
-            {
-                distance = Vector2.Distance(_scavengerTransform.position, _currentCommand.GetTargetPosition());
-            }
-
             float speedMultiplier = GetSpeedMultiplier(distance);
             float speed = _shipController.Ship.Configuration.ThrusterMaxSpeed * speedMultiplier;
 

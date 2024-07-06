@@ -4,8 +4,6 @@ namespace Starfire
 {
     public class PaladinMoveState : IState
     {
-        private Command _currentCommand;
-
         private PaladinShipController _shipController;
         private StandardAICore _shipCore;
 
@@ -20,11 +18,10 @@ namespace Starfire
         private LayerMask whichRaycastableTargetLayers;
         private int numberOfRays = 8;
 
-        public PaladinMoveState(PaladinShipController controller, Command command)
+        public PaladinMoveState(PaladinShipController controller)
         {
             _shipController = controller;
             _shipCore = (StandardAICore)controller.AICore;
-            _currentCommand = command;
 
             _stateMachine = controller.StateMachine;
             _shipObject = controller.ShipObject;
@@ -39,30 +36,24 @@ namespace Starfire
 
         public void Execute()
         {
-            if (_currentCommand == null)
-            {
-                _stateMachine.ChangeState(new PaladinIdleState(_shipController));
-            }
+            // Vector2 weightedDirection = _shipCore.FindBestDirection(
+            //     _shipObject,
+            //     _shipTransform.position,
+            //     _currentCommand.GetTargetPosition(),
+            //     _shipRigidBody.velocity.magnitude,
+            //     numberOfRays,
+            //     whichRaycastableTargetLayers
+            // );
 
+            // weightedDirection = _shipCore.CircleTarget(
+            //     weightedDirection,
+            //     _shipTransform.position,
+            //     _shipRigidBody.velocity,
+            //     _currentCommand.GetTargetPosition()
+            // );
 
-            Vector2 weightedDirection = _shipCore.FindBestDirection(
-                _shipObject,
-                _shipTransform.position,
-                _currentCommand.GetTargetPosition(),
-                _shipRigidBody.velocity.magnitude,
-                numberOfRays,
-                whichRaycastableTargetLayers
-            );
-
-            weightedDirection = _shipCore.CircleTarget(
-                weightedDirection,
-                _shipTransform.position,
-                _shipRigidBody.velocity,
-                _currentCommand.GetTargetPosition()
-            );
-
-            lerpVector = Vector2.Lerp(_shipTransform.up, weightedDirection, 0.7f).normalized;
-            visualLerpVector = Vector2.Lerp(_shipTransform.up, weightedDirection, 0.15f);
+            // lerpVector = Vector2.Lerp(_shipTransform.up, weightedDirection, 0.7f).normalized;
+            // visualLerpVector = Vector2.Lerp(_shipTransform.up, weightedDirection, 0.15f);
             
         }
 

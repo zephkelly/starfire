@@ -4,19 +4,20 @@ namespace Starfire
 {
     public class PaladinShipController : ShipController
     {
-        public override void SetShip(Ship ship, AICore aiCore)
-        {
-            base.SetShip(ship, aiCore);
-        }
 
         protected override void Awake()
         {
             base.Awake();
         }
 
+        public override void SetShip(Ship ship, AICore aiCore)
+        {
+            base.SetShip(ship, aiCore);
+        }
+
         protected override void Start()
         {
-            base.Start(); 
+            base.Start();
         }
 
         protected override void Update()

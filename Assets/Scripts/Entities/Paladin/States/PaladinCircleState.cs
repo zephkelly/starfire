@@ -4,8 +4,6 @@ namespace Starfire
 {
     public class PaladinCircleState : IState
     {
-        private Command _currentCommand;
-
         private PaladinShipController _shipController;
         private StandardAICore _shipCore;
 
@@ -42,11 +40,10 @@ namespace Starfire
             FigureEight
         }
 
-        public PaladinCircleState(PaladinShipController controller, Command command)
+        public PaladinCircleState(PaladinShipController controller)
         {
             _shipController = controller;
             _shipCore = (StandardAICore)controller.AICore;
-            _currentCommand = command;
 
             _paladinRigid2D = _shipController.ShipRigidBody;
             _paladinTransform = _shipController.ShipTransform;
@@ -61,56 +58,50 @@ namespace Starfire
 
         public void Execute()
         {
-            if (_currentCommand == null)
-            {
-                _shipController.StateMachine.ChangeState(new PaladinIdleState(_shipController));
-                return;
-            }
-
             if (_shipCore.TimeSpentNotCircling > 4f)
             {
-                _shipController.StateMachine.ChangeState(new PaladinChaseState(_shipController, _currentCommand));
+                _shipController.StateMachine.ChangeState(new PaladinChaseState(_shipController));
             }
 
-            lastKnowTargetPosition = _shipCore.GetTargetPosition(
-                _shipController.ShipObject,
-                _paladinTransform.position,
-                _paladinRigid2D.velocity,
-                _currentCommand.GetTargetPosition(), 
-                whichRaycastableLayers,
-                chaseRadius
-            );
+            // lastKnowTargetPosition = _shipCore.GetTargetPosition(
+            //     _shipController.ShipObject,
+            //     _paladinTransform.position,
+            //     _paladinRigid2D.velocity,
+            //     _currentCommand.GetTargetPosition(), 
+            //     whichRaycastableLayers,
+            //     chaseRadius
+            // );
 
-            weightedDirection = _shipCore.FindBestDirection(
-                _shipController.ShipObject,
-                _paladinTransform.position,
-                lastKnowTargetPosition,
-                _paladinRigid2D.velocity.magnitude,
-                numberOfRays,
-                whichRaycastableLayers,
-                collisionCheckRadius
-            );
+            // weightedDirection = _shipCore.FindBestDirection(
+            //     _shipController.ShipObject,
+            //     _paladinTransform.position,
+            //     lastKnowTargetPosition,
+            //     _paladinRigid2D.velocity.magnitude,
+            //     numberOfRays,
+            //     whichRaycastableLayers,
+            //     collisionCheckRadius
+            // );
 
-            weightedDirection = _shipCore.CircleTarget(weightedDirection, _paladinTransform.position, _paladinRigid2D.velocity, lastKnowTargetPosition);
+            // weightedDirection = _shipCore.CircleTarget(weightedDirection, _paladinTransform.position, _paladinRigid2D.velocity, lastKnowTargetPosition);
 
-            lerpVector = Vector2.Lerp(_paladinTransform.up, AdjustLerpPattern(weightedDirection), 0.7f).normalized;
-            visualLerpVector = Vector2.Lerp(_paladinTransform.up, AdjustVisualLerpPattern(weightedDirection), 0.15f);
+            // lerpVector = Vector2.Lerp(_paladinTransform.up, AdjustLerpPattern(weightedDirection), 0.7f).normalized;
+            // visualLerpVector = Vector2.Lerp(_paladinTransform.up, AdjustVisualLerpPattern(weightedDirection), 0.15f);
 
-            Debug.DrawRay(_paladinTransform.position, lerpVector.normalized * 10f, Color.red);
+            // Debug.DrawRay(_paladinTransform.position, lerpVector.normalized * 10f, Color.red);
 
-            currentCirclePattern = GetRandomCirclePattern();
-            currentMovementPattern = GetRandomMovementPattern();
+            // currentCirclePattern = GetRandomCirclePattern();
+            // currentMovementPattern = GetRandomMovementPattern();
 
-            bool isPlayerInSight = _shipCore.IsTargetWithinSight(_paladinTransform.position, _paladinTransform.up, lastKnowTargetPosition, targetSightDistance, targetSightAngle);
+            // bool isPlayerInSight = _shipCore.IsTargetWithinSight(_paladinTransform.position, _paladinTransform.up, lastKnowTargetPosition, targetSightDistance, targetSightAngle);
 
-            if (_shipCore.CanFireProjectile() && isPlayerInSight)
-            {
-                Vector2 firingPosition = _shipCore.GetProjectileFiringPosition(
-                    _paladinTransform.position,
-                    lastKnowTargetPosition
-                );
-                _shipController.FireProjectileToPosition(firingPosition);
-            }
+            // if (_shipCore.CanFireProjectile() && isPlayerInSight)
+            // {
+            //     Vector2 firingPosition = _shipCore.GetProjectileFiringPosition(
+            //         _paladinTransform.position,
+            //         lastKnowTargetPosition
+            //     );
+            //     _shipController.FireProjectileToPosition(firingPosition);
+            // }
         }
 
         public void FixedUpdate()

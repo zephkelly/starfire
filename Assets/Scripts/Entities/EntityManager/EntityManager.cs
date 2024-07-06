@@ -49,8 +49,7 @@ namespace Starfire
                 var newTransponder = new Transponder("Paladin", Faction.Friendly, 90000);
                 var newInventory = new Inventory();
 
-                var newShip = new Ship(shipController, newConfiguration, newTransponder, newInventory);
-                shipController.SetShip(newShip, new StandardAICore(newShip, fleet));
+                var newShip = new Ship(shipController, new StandardAICore(), newConfiguration, newTransponder, newInventory);
 
                 if (i == 0)
                 {

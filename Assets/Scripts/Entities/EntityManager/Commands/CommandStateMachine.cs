@@ -1,12 +1,5 @@
 namespace Starfire
 {
-    public interface ICommand
-    {
-        void Enter();
-        void Execute();
-        void Exit();
-    }
-
     public class CommandStateMachine
     {
         public ICommand CurrentCommand { get; private set; }

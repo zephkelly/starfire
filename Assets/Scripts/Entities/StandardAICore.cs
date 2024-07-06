@@ -4,7 +4,7 @@ namespace Starfire
 {
     public class StandardAICore : AICore
     {   
-        public StandardAICore(Ship _ship, Fleet _fleet = default) : base(_ship, _fleet) { }
+        public StandardAICore() { }
 
         public float TimeSpentNotCircling { get; private set; }
         public float TimeSpentCircling { get; private set; }
