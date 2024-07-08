@@ -10,7 +10,7 @@ namespace Starfire
     {
         public Ship Ship { get; private set; }
         public AICore AICore { get; set; }
-        public StateMachine StateMachine { get; private set; }
+        public StateMachine ShipStateMachine { get; private set; }
         public CelestialBehaviour OrbitingBody { get; private set; }
         public bool IsOrbiting { get; private set; }
 
@@ -71,7 +71,7 @@ namespace Starfire
                 shipSpriteRenderer = sr;
             }
 
-            StateMachine = new StateMachine();
+            ShipStateMachine = new StateMachine();
         }
 
         protected virtual void Start()
@@ -89,6 +89,7 @@ namespace Starfire
         {
             UpdateTimers();
             AICore.Update();
+            ShipStateMachine.Update();
         }
 
         protected virtual void FixedUpdate()

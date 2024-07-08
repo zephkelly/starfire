@@ -34,7 +34,7 @@ namespace Starfire
             _shipController = scavengerController;
             _shipCore = (StandardAICore)scavengerController.AICore;
 
-            _stateMachine = scavengerController.StateMachine;
+            _stateMachine = scavengerController.ShipStateMachine;
             _scavengerObject = scavengerController.ShipObject;
             _scavengerRigid2D = scavengerController.ShipRigidBody;
             _scavengerTransform = scavengerController.ShipTransform;

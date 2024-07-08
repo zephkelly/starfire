@@ -60,7 +60,7 @@ namespace Starfire
         {
             if (_shipCore.TimeSpentNotCircling > 4f)
             {
-                _shipController.StateMachine.ChangeState(new PaladinChaseState(_shipController));
+                _shipController.ShipStateMachine.ChangeState(new PaladinChaseState(_shipController));
             }
 
             // lastKnowTargetPosition = _shipCore.GetTargetPosition(

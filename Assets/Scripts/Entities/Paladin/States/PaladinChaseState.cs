@@ -30,7 +30,7 @@ namespace Starfire
             _shipController = paladinController;
             _shipCore = (StandardAICore)_shipController.AICore;
 
-            _stateMachine = _shipController.StateMachine;
+            _stateMachine = _shipController.ShipStateMachine;
             _paladinObject = _shipController.ShipObject;
             _paladinRigid2D = _shipController.ShipRigidBody;
             _paladinTransform = _shipController.ShipTransform;

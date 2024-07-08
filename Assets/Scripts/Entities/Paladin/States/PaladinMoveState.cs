@@ -23,7 +23,7 @@ namespace Starfire
             _shipController = controller;
             _shipCore = (StandardAICore)controller.AICore;
 
-            _stateMachine = controller.StateMachine;
+            _stateMachine = controller.ShipStateMachine;
             _shipObject = controller.ShipObject;
             _shipRigidBody = controller.ShipRigidBody;
             _shipTransform = controller.ShipTransform;

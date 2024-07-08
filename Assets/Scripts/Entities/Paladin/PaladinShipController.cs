@@ -10,11 +10,6 @@ namespace Starfire
             base.Awake();
         }
 
-        public override void SetShip(Ship ship, AICore aiCore)
-        {
-            base.SetShip(ship, aiCore);
-        }
-
         protected override void Start()
         {
             base.Start();
@@ -23,16 +18,11 @@ namespace Starfire
         protected override void Update()
         {
             base.Update();
-
-            StateMachine.Update();
         }
 
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
-
-
-            StateMachine.FixedUpdate();
         }
 
         public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)

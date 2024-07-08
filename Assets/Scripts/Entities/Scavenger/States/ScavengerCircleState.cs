@@ -47,7 +47,7 @@ namespace Starfire
             _shipController = controller;
             _shipCore = (StandardAICore)controller.AICore;
 
-            _stateMachine = controller.StateMachine;
+            _stateMachine = controller.ShipStateMachine;
             _scavengerObject = controller.ShipObject;
             _scavengerRigid2D = controller.ShipRigidBody;
             _scavengerTransform = controller.ShipTransform;
@@ -64,7 +64,7 @@ namespace Starfire
         {
             if (_shipCore.TimeSpentNotCircling > 4f)
             {
-                _shipController.StateMachine.ChangeState(new ScavengerChaseState(_shipController));
+                _stateMachine.ChangeState(new ScavengerChaseState(_shipController));
             }
 
             // lastKnownPlayerPosition = _shipCore.GetTargetPosition(

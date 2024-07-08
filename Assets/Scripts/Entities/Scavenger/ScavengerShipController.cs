@@ -13,28 +13,17 @@ namespace Starfire
 
         protected override void Start()
         {
-            // var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            // newConfiguration.SetConfiguration(this, 260, 100, 100, 100, 160, 1500, 200, 6);
-            // var newTransponder = new Transponder("Scavenger", Faction.Scavenger, 90000);
-            // var newInventory = new Inventory();
-
-            // var newShip = new Ship(this, new StandardAICore(), newConfiguration, newTransponder, newInventory);
-
             base.Start();  
         }
 
         protected override void Update()
         {
             base.Update();
-
-            StateMachine.Update();
         }
 
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
-
-            StateMachine.FixedUpdate();
         }
 
         public override void SetOrbitingBody(CelestialBehaviour orbitingBody, bool isParent = false)
