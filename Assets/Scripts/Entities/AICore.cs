@@ -28,5 +28,10 @@ namespace Starfire
         {
             behaviourTree.Evaluate();
         }
+
+        public virtual void FixedUpdate()
+        {
+            behaviourTree.FixedUpdate();
+        }
     }
 }

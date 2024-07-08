@@ -45,7 +45,7 @@ namespace Starfire
                 newPaladin.TryGetComponent<ShipController>(out var shipController);
 
                 var newConfiguration = new ShipConfiguration(shipController, 360, 100, 100, 100, 160, 1500, 200);
-                var newTransponder = new Transponder("Paladin", Faction.Friendly, 90000);
+                var newTransponder = new Transponder("Paladin", Faction.Friend, 90000);
                 var newInventory = new Inventory();
 
                 var newShip = new Ship(shipController, new StandardAICore(), newConfiguration, newTransponder, newInventory);

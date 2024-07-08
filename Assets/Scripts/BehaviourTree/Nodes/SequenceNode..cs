@@ -35,5 +35,13 @@ namespace Starfire
             state = anyChildRunning ? NodeState.Running : NodeState.Success;
             return state;
         }
+
+        public override void FixedUpdate()
+        {
+            foreach (Node node in nodes)
+            {
+                node.FixedUpdate();
+            }
+        }
     }
 }

@@ -33,5 +33,13 @@ namespace Starfire
             state = NodeState.Failure;
             return state;
         }
+
+        public override void FixedUpdate()
+        {
+            foreach (Node node in nodes)
+            {
+                node.FixedUpdate();
+            }
+        }
     }
 }

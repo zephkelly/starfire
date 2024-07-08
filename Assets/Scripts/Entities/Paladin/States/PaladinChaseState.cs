@@ -97,7 +97,7 @@ namespace Starfire
 
         private float GetSpeedMultiplier(float distance)
         {
-            float minSpeedMultiplier = 0.5f;
+            float minSpeedMultiplier = 0.8f;
             float maxSpeedMultiplier = 1.1f;
             return Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, Mathf.InverseLerp(0, 220, distance));
         }

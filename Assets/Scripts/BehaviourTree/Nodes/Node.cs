@@ -16,5 +16,7 @@ namespace Starfire
         public NodeState CurrentNodeState => state;
 
         public abstract NodeState Evaluate();
+
+        public abstract void FixedUpdate();
     }
 }

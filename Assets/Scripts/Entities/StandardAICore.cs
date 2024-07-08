@@ -110,7 +110,7 @@ namespace Starfire
         }
 
         private Vector3[] radialRaycastData;  // x, y: direction, z: weight
-        public Vector2 FindBestDirection(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 lastTargetShipPosition, float ourShipVelocityMagnitude, int numberOfRays, LayerMask whichRaycastableLayers, float collisionCheckRadius = 30f)
+        public Vector2 FindBestDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 lastTargetShipPosition, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)
         {
             radialRaycastData = new Vector3[numberOfRays];
             Vector2 direction = Vector2.zero;

@@ -3,27 +3,15 @@ namespace Starfire
     public enum Faction
     {
         Player,
-        Pirate,
-        Scavenger,
-        Friendly,
-        Neutral
-    }
-
-    public enum TransponderType
-    {
-        Civilian,
-        Military,
-        Pirate,
-        Scavenger,
+        Enemy,
+        Friend,
         Neutral
     }
 
     public enum TransponderStatus
     {
         Active,
-        Dark,
-        Inactive,
-        Damaged
+        Inactive
     }
 
     public class Transponder

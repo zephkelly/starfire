@@ -36,11 +36,13 @@ namespace Starfire
 
         private void Start()
         {
-            var newSender = new Transponder("Scavenger", Faction.Scavenger, 90000);
+            var newSender = new Transponder("Scavenger", Faction.Enemy, 90000);
             var newReceiver = new Transponder("Player", Faction.Player, 90000);
 
-            var newMessage = new Message(newSender, newReceiver, "Hello young new traveller! First time in this sector? I'm here to help you out!");
+            var newMessage = new Message(newSender, newReceiver, "Hello new traveller. First time in this sector? I'm here to help ya out!");
+            var newMessage2 = new Message(newSender, newReceiver, "Just turn off your ships engines and we'll take care of the rest.");
             DisplayMessage(newMessage);
+            DisplayMessage(newMessage2);
         }
 
         private void Update()
@@ -55,7 +57,7 @@ namespace Starfire
                 {
                     StartCoroutine(FadeTextEffect(dialogueQueue.Dequeue().Text, displayLength, Color.green));
                 }
-                else if (senderType is Faction.Scavenger)
+                else if (senderType is Faction.Enemy)
                 {
                     StartCoroutine(FadeTextEffect(dialogueQueue.Dequeue().Text, displayLength, Color.red));
                 }

@@ -18,5 +18,13 @@ namespace Starfire
                 rootNode.Evaluate();
             }
         }
+
+        public void FixedUpdate()
+        {
+            if (rootNode != null)
+            {
+                rootNode.FixedUpdate();
+            }
+        }
     }
 }
