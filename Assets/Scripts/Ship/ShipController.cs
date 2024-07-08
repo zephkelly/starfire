@@ -88,10 +88,9 @@ namespace Starfire
         protected virtual void Update()
         {
             UpdateTimers();
+            
             AICore.Update();
             ShipStateMachine.Update();
-
-            Debug.Log(AICore.GetCommandStatus());
         }
 
         protected virtual void FixedUpdate()

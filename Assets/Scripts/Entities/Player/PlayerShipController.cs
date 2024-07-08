@@ -22,7 +22,7 @@ namespace Starfire
         var aiCore = new StandardAICore();
     
         var newShip = new Ship(this, aiCore, newConfiguration, newTransponder, newInventory);
-        aiCore.SetCurrentCommand(new CommandMove<Vector2>(newShip, new Vector2(200, 200)));
+        // aiCore.SetCurrentCommand(new CommandMove<Vector2>(newShip, new Vector2(200, 200)));
         
         ChunkManager.Instance.AddShip(this);
     }

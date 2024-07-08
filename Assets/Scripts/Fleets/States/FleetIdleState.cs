@@ -1,6 +1,6 @@
 namespace Starfire
 {
-    public class FleetIdleState : IFleetState
+    public class FleetIdleState : IState
     {
         private Fleet fleet;
 
@@ -17,6 +17,11 @@ namespace Starfire
         public void Execute()
         {
             // Debug.Log("Fleet Idle State Executed");
+        }
+
+        public void FixedUpdate()
+        {
+            // Debug.Log("Fleet Idle State Fixed Executed");
         }
 
         public void Exit()

@@ -20,7 +20,7 @@ namespace Starfire
     [System.Serializable]
     public class Fleet
     {
-        private FleetStateMachine fleetStateMachine;
+        private StateMachine fleetStateMachine;
 
         [SerializeField] private Ship flagship;
         private List<Ship> ships = new List<Ship>();
@@ -36,7 +36,7 @@ namespace Starfire
             fleetType = _type;
             allegience = _allegience;
 
-            fleetStateMachine = new FleetStateMachine();
+            fleetStateMachine = new StateMachine();
             fleetStateMachine.ChangeState(new FleetIdleState(this));
         }
 
