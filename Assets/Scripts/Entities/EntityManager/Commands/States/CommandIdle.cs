@@ -4,21 +4,15 @@ namespace Starfire
 {
     public class CommandIdle<T> : Command<T>
     {
-        public CommandIdle(T _target) : base(_target) { }
+        public CommandIdle(Ship _ship, T _target) : base(_ship, _target) { }
 
         public override void Enter()
         {
-            Debug.Log("CommandIdle: Enter");
+            commandStatus = CommandStatus.Completed;
         }
 
-        public override void Execute()
-        {
-            Debug.Log("CommandIdle: Execute");
-        }
+        public override void Execute() { }
 
-        public override void Exit()
-        {
-            Debug.Log("CommandIdle: Exit");
-        }
+        public override void Exit() { }
     }
 }

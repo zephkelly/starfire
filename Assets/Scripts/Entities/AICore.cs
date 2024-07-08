@@ -9,13 +9,14 @@ namespace Starfire
 
         protected CommandStateMachine commandStateMachine;
 
+        public CommandStatus GetCommandStatus() => commandStateMachine.GetCommandStatus();
+
         public AICore() { }
 
-        public virtual void SetShip(Ship _ship, Fleet _fleet = default)
+        public void SetShip(Ship _ship, Fleet _fleet = default)
         {
             ship = _ship;
             commandStateMachine = new CommandStateMachine();
-            commandStateMachine.ChangeState(new CommandIdle<Vector2>(Vector2.Zero));
 
             if (_fleet != default)
             {

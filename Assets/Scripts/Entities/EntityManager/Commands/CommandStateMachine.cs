@@ -22,5 +22,17 @@ namespace Starfire
                 CurrentCommand.Execute();
             }
         }
+
+        public CommandStatus GetCommandStatus()
+        {
+            if(CurrentCommand != null)
+            {
+                return CurrentCommand.GetCommandStatus();
+            }
+            else
+            {
+                return CommandStatus.None;
+            }
+        }
     }
 }

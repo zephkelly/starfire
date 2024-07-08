@@ -3,8 +3,8 @@ namespace Starfire
     public class Ship
     {
         public ShipController Controller { get; private set; }
+        public ShipConfiguration Configuration { get; private set; } 
         public AICore AICore { get; private set; }     
-        public ShipConfiguration Configuration { get; private set; }    // How the ship is configured
         public Transponder Transponder { get; private set; }            // How in game objects communicate
         public Inventory Inventory { get; private set; }
 
