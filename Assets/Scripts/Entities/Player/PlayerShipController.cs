@@ -138,8 +138,8 @@ namespace Starfire
 
     private Vector2 GetKeyboardInput()
     {
-        keyboardInput.x = Input.GetAxis("Horizontal");
-        keyboardInput.y = Input.GetAxis("Vertical");
+        keyboardInput.x = Input.GetAxisRaw("Horizontal");
+        keyboardInput.y = Input.GetAxisRaw("Vertical");
         keyboardInput.Normalize();
 
         return keyboardInput;
