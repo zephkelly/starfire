@@ -20,9 +20,7 @@ namespace Starfire
             if (_fleet != default)
             {
                 fleet = _fleet;
-            
             }
-            fleet = _fleet;
         }
 
         public virtual void SetCurrentCommand(ICommand newCommand)

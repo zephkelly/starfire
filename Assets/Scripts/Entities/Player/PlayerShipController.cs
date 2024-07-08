@@ -14,8 +14,10 @@ namespace Starfire
 
     protected override void Start()
     {
-        var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-        newConfiguration.SetConfiguration(this, 2600, 100, 100, 100, 160, 1500, 200, 6);
+        // var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
+        // newConfiguration.SetConfiguration(this, 2600, 100, 100, 100, 160, 1500, 200, 6);
+
+        var newConfiguration = new ShipConfiguration(this, 2600, 100, 100, 100, 160, 1500, 200);
         var newTransponder = new Transponder("Player", Faction.Player, 90000);
         var newInventory = new Inventory();
         

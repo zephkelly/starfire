@@ -13,12 +13,12 @@ namespace Starfire
 
         protected override void Start()
         {
-            var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-            newConfiguration.SetConfiguration(this, 260, 100, 100, 100, 160, 1500, 200, 6);
-            var newTransponder = new Transponder("Scavenger", Faction.Scavenger, 90000);
-            var newInventory = new Inventory();
+            // var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
+            // newConfiguration.SetConfiguration(this, 260, 100, 100, 100, 160, 1500, 200, 6);
+            // var newTransponder = new Transponder("Scavenger", Faction.Scavenger, 90000);
+            // var newInventory = new Inventory();
 
-            var newShip = new Ship(this, new StandardAICore(), newConfiguration, newTransponder, newInventory);
+            // var newShip = new Ship(this, new StandardAICore(), newConfiguration, newTransponder, newInventory);
 
             base.Start();  
         }

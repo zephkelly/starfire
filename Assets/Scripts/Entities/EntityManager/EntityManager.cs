@@ -44,8 +44,7 @@ namespace Starfire
                 var newPaladin = Instantiate(paladinPrefab, position, Quaternion.identity);
                 newPaladin.TryGetComponent<PaladinShipController>(out var shipController);
 
-                var newConfiguration = ScriptableObject.CreateInstance("ShipConfiguration") as ShipConfiguration;
-                newConfiguration.SetConfiguration(shipController, 360, 100, 100, 100, 160, 1500, 200, 6);
+                var newConfiguration = new ShipConfiguration(shipController, 360, 100, 100, 100, 160, 1500, 200);
                 var newTransponder = new Transponder("Paladin", Faction.Friendly, 90000);
                 var newInventory = new Inventory();
 
