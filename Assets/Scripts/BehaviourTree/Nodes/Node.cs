@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 
 namespace Starfire
 {
@@ -11,12 +11,16 @@ namespace Starfire
             Failure
         }
 
-        protected NodeState state;
+        public Node(Blackboard _blackboard)
+        {
+            blackboard = _blackboard;
+        }
 
+        protected NodeState state;
+        protected Blackboard blackboard;
         public NodeState CurrentNodeState => state;
 
         public abstract NodeState Evaluate();
-
-        public abstract void FixedUpdate();
+        public abstract void FixedEvaluate();
     }
 }

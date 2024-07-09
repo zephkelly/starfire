@@ -6,10 +6,7 @@ namespace Starfire
     {
         protected List<Node> nodes = new List<Node>();
 
-        // public SequenceNode(List<Node> nodes)
-        // {
-        //     this.nodes = nodes;
-        // }
+        public SequenceNode(Blackboard _blackboard) : base(_blackboard) { }
 
         public void AddNode(Node node)
         {
@@ -41,11 +38,11 @@ namespace Starfire
             return state;
         }
 
-        public override void FixedUpdate()
+        public override void FixedEvaluate()
         {
             foreach (Node node in nodes)
             {
-                node.FixedUpdate();
+                node.FixedEvaluate();
             }
         }
     }

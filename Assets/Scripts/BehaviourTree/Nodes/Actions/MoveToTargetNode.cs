@@ -8,15 +8,13 @@ namespace Starfire
         private StandardAICore aiCore;
         private object target;
 
-        private float currentDistance;
-
         private Vector2 movementLerpVector;
         private Vector2 visualLerpVector;
 
         private LayerMask raycastAvoidanceLayers;
         private LayerMask raycastTargetLayers;
 
-        public MoveToTargetNode(Ship _ship)
+        public MoveToTargetNode(Ship _ship, Blackboard _blackboard) : base(_blackboard)
         {
             ship = _ship;
             aiCore = (StandardAICore)ship.Controller.AICore;
@@ -65,7 +63,7 @@ namespace Starfire
 
             Update();
 
-            currentDistance = Vector2.Distance(ship.Controller.ShipTransform.position, GetTargetPosition());
+            float currentDistance = Vector2.Distance(ship.Controller.ShipTransform.position, GetTargetPosition());
 
             if (currentDistance < 40f)
             {
@@ -97,10 +95,11 @@ namespace Starfire
             visualLerpVector = Vector2.Lerp(ship.Controller.ShipTransform.up, weightedDirection, 0.15f);
         }
 
-        public override void FixedUpdate()
+        public override void FixedEvaluate()
         {
             if (ship == null || target == null || state == NodeState.Success || state == NodeState.Failure)
             {
+
                 return;
             }
 

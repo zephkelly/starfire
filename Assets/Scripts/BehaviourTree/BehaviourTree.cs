@@ -19,11 +19,11 @@ namespace Starfire
             }
         }
 
-        public void FixedUpdate()
+        public void FixedEvaluate()
         {
             if (rootNode != null)
             {
-                rootNode.FixedUpdate();
+                rootNode.FixedEvaluate();
             }
         }
     }

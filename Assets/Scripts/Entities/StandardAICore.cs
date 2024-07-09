@@ -9,6 +9,18 @@ namespace Starfire
         public float TimeSpentNotCircling { get; private set; }
         public float TimeSpentCircling { get; private set; }
 
+        // protected override void CreateBehaviourTree()
+        // {
+        //     var rootNode = new SelectorNode(blackboard);
+        //         rootNode.AddNode(new MoveToTargetNode(newShip, fleetBlackboard));
+
+        //     var behaviourTree = new BehaviourTree(rootNode);
+
+
+        //     // moveToTargetNode = new MoveToTargetNode(ship, fleet);
+        //     // behaviourTree = new BehaviourTree(moveToTargetNode);
+        // }
+
         protected float timeToSpendNotShootingProjectile = 0f;
         protected float timeToSpendShootingProjectile = 0f;
         public bool CanFireProjectile()

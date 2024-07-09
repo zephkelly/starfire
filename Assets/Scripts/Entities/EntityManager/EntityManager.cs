@@ -33,6 +33,8 @@ namespace Starfire
         private void CreateFleet()
         {
             Fleet fleet = new Fleet(FleetType.Military, FleetAllegience.Friend);
+            Blackboard fleetBlackboard = fleet.GetBlackboard();
+            fleetBlackboard.SetValue("Fleet", "Hello World!");
             fleets.Add(fleet);
 
             var randomFleetNumber = Random.Range(6, 8);
@@ -50,8 +52,9 @@ namespace Starfire
                 var aiCore = new StandardAICore();
 
                 var newShip = new Ship(shipController, aiCore, newConfiguration, newTransponder, newInventory);
+                newShip.InjectAIDependencies(fleet, fleetBlackboard);
 
-                newShip.AICore.SetTarget(new Vector2(200, 1000));
+                newShip.AICore.SetTarget(new Vector2(1000, 1000));
 
                 if (i == 0)
                 {

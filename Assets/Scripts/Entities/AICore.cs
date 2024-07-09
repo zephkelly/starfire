@@ -1,29 +1,43 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Starfire
 {
     public abstract class AICore
     {
+        protected Blackboard blackboard;
         protected BehaviourTree behaviourTree;
-        private MoveToTargetNode moveToTargetNode;
+        protected SelectorNode rootNode;
+        protected MoveToTargetNode moveToTargetNode;
 
         protected Ship ship;
         protected Fleet fleet;
 
-        public AICore() { }
+        public AICore()
+        {
+            blackboard = new Blackboard();
+        }
 
-        public void SetShip(Ship _ship, Fleet _fleet = default)
+        public void SetShip(Ship _ship)
         {
             ship = _ship;
+        }
 
-            if (_fleet != default)
-            {
-                fleet = _fleet;
-            }
+        public void SetFleet(Fleet _fleet)
+        {
+            fleet = _fleet;
+        }
+        public void SetBlackboard(Blackboard _blackboard)
+        {
+            if (_blackboard == null) return;
+            blackboard = _blackboard;
+        }
 
-            var rootNode = new SelectorNode();
+        public void CreateBehaviourTree()
+        {
+            rootNode = new SelectorNode(blackboard);
+            moveToTargetNode = new MoveToTargetNode(ship, blackboard);
 
-            moveToTargetNode = new MoveToTargetNode(ship);
             rootNode.AddNode(moveToTargetNode);
 
             behaviourTree = new BehaviourTree(rootNode);
@@ -45,12 +59,14 @@ namespace Starfire
 
         public virtual void Update()
         {
+            if (behaviourTree == null) return;
             behaviourTree.Evaluate();
         }
 
         public virtual void FixedUpdate()
         {
-            behaviourTree.FixedUpdate();
+            if (behaviourTree == null) return;
+            behaviourTree.FixedEvaluate();
         }
     }
 }
