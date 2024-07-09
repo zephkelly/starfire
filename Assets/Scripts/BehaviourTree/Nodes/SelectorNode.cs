@@ -6,9 +6,14 @@ namespace Starfire
     {
         protected List<Node> nodes = new List<Node>();
 
-        public SelectorNode(List<Node> nodes)
+        // public SelectorNode(List<Node> nodes)
+        // {
+        //     this.nodes = nodes;
+        // }
+
+        public void AddNode(Node node)
         {
-            this.nodes = nodes;
+            nodes.Add(node);
         }
 
         public override NodeState Evaluate()

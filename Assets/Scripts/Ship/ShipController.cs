@@ -95,6 +95,8 @@ namespace Starfire
 
         protected virtual void FixedUpdate()
         {
+            AICore.FixedUpdate();
+
             if (IsOrbiting is true)
             {
                 OrbitCelestialBody();
@@ -325,7 +327,17 @@ namespace Starfire
             IsOrbiting = false;
         }
 
-        public void SetThrusters(bool isActive, Vector2 movementDirection, bool isWarping)
+        public void DisableThrusters()
+        {
+            for (int i = 0; i < shipThrusterPS.Length; i++)
+            {
+                if (shipThrusterPS[i].isPlaying is false) continue;
+                shipThrusterPS[i].Stop();
+                shipThrusterLight[i].enabled = false;
+            }
+        }
+
+        private void SetThrusters(bool isActive, Vector2 movementDirection, bool isWarping)
         {
             if (movementDirection.magnitude > 0.1f && isActive is true)
             {

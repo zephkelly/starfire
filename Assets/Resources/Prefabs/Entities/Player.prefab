@@ -174,7 +174,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7989201735155733259}
   - component: {fileID: 5249044119012061384}
-  - component: {fileID: 3754963582616059425}
+  - component: {fileID: 652524412059816480}
   m_Layer: 2
   m_Name: PickupRadius
   m_TagString: Untagged
@@ -232,7 +232,7 @@ CircleCollider2D:
   m_Offset: {x: 0, y: -0.1}
   serializedVersion: 2
   m_Radius: 20
---- !u!114 &3754963582616059425
+--- !u!114 &652524412059816480
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -241,7 +241,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4980824729743690085}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 745c588ab441d6c4ca2246954ca44ac7, type: 3}
+  m_Script: {fileID: 11500000, guid: 877dabb2a2d5d694180bd8d0da32ce4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   shipController: {fileID: 5274103794809817241}
@@ -408,20 +408,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd9d227f8c6196a43a9c80d9423c640a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fireRate: 0.05
+  weaponProjectilePS:
+  - {fileID: 5937820426171543135}
+  - {fileID: 228162301552525811}
+  - {fileID: 4465410827706967548}
   shipThrusterPS:
   - {fileID: 1416800823937537743}
   - {fileID: 1358188656163797991}
   shipThrusterLight:
   - {fileID: 7682278367717131017}
   - {fileID: 7682278367717131017}
-  weaponProjectilePS:
-  - {fileID: 5937820426171543135}
-  - {fileID: 228162301552525811}
-  - {fileID: 4465410827706967548}
-  fireRate: 0.05
-  healthbarCanvas: {fileID: 0}
-  healthBarFill: {fileID: 0}
-  shipDamageColor: {r: 0.28432587, g: 0.754717, b: 0, a: 1}
   thrusterNormalGradient:
     serializedVersion: 2
     key0: {r: 1, g: 0.94741553, b: 0.711813, a: 1}
@@ -482,6 +479,9 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
+  healthbarCanvas: {fileID: 0}
+  healthBarFill: {fileID: 0}
+  shipDamageColor: {r: 0.28432587, g: 0.754717, b: 0, a: 1}
 --- !u!58 &8291825868069658777
 CircleCollider2D:
   m_ObjectHideFlags: 0

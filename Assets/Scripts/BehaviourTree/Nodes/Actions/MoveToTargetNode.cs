@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class MoveToTargetNode<T> : Node
+    public class MoveToTargetNode : Node
     {
         private Ship ship;
         private StandardAICore aiCore;
-        private T target;
+        private object target;
 
         private float currentDistance;
 
@@ -16,13 +16,17 @@ namespace Starfire
         private LayerMask raycastAvoidanceLayers;
         private LayerMask raycastTargetLayers;
 
-        public MoveToTargetNode(Ship _ship, T _target)
+        public MoveToTargetNode(Ship _ship)
         {
             ship = _ship;
             aiCore = (StandardAICore)ship.Controller.AICore;
-            target = _target;
 
             raycastTargetLayers = GetRaycastTargetLayers();
+        }
+
+        public void SetTarget<T>(T _target)
+        {
+            target = _target;
         }
 
         private LayerMask GetRaycastTargetLayers()
@@ -63,9 +67,11 @@ namespace Starfire
 
             currentDistance = Vector2.Distance(ship.Controller.ShipTransform.position, GetTargetPosition());
 
-            if (currentDistance < 10f)
+            if (currentDistance < 40f)
             {
                 state = NodeState.Success;
+                ship.Controller.DisableThrusters();
+
                 return state;
             }
             else
@@ -93,6 +99,11 @@ namespace Starfire
 
         public override void FixedUpdate()
         {
+            if (ship == null || target == null || state == NodeState.Success || state == NodeState.Failure)
+            {
+                return;
+            }
+
             float speed = ship.Configuration.ThrusterMaxSpeed;
             ship.Controller.MoveInDirection(movementLerpVector, speed, true);
             ship.Controller.RotateToDirection(visualLerpVector, ship.Configuration.TurnDegreesPerSecond);

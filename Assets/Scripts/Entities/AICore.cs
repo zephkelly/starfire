@@ -1,10 +1,11 @@
-using System.Numerics;
+using UnityEngine;
 
 namespace Starfire
 {
     public abstract class AICore
     {
         protected BehaviourTree behaviourTree;
+        private MoveToTargetNode moveToTargetNode;
 
         protected Ship ship;
         protected Fleet fleet;
@@ -20,8 +21,26 @@ namespace Starfire
                 fleet = _fleet;
             }
 
-            // Set up the behaviour tree
-            behaviourTree = new BehaviourTree();
+            var rootNode = new SelectorNode();
+
+            moveToTargetNode = new MoveToTargetNode(ship);
+            rootNode.AddNode(moveToTargetNode);
+
+            behaviourTree = new BehaviourTree(rootNode);
+        }
+
+        public void SetTarget(Ship _target)
+        {
+            moveToTargetNode.SetTarget(_target);
+        }
+        public void SetTarget(Vector2 _target)
+        {
+            moveToTargetNode.SetTarget(_target);
+        }
+
+        public void SetTarget(Transform _target)
+        {
+            moveToTargetNode.SetTarget(_target);
         }
 
         public virtual void Update()
