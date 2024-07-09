@@ -6,11 +6,17 @@ namespace Starfire
     {
         protected List<Node> nodes = new List<Node>();
 
-        public SequenceNode(Blackboard _blackboard) : base(_blackboard) { }
-
         public void AddNode(Node node)
         {
             nodes.Add(node);
+        }
+
+        public override void Initialise()
+        {
+            foreach (Node node in nodes)
+            {
+                node.Initialise();
+            }
         }
 
         public override NodeState Evaluate()
@@ -42,7 +48,16 @@ namespace Starfire
         {
             foreach (Node node in nodes)
             {
+                if (node.CurrentNodeState != NodeState.Running) return;
                 node.FixedEvaluate();
+            }
+        }
+
+        public override void Terminate()
+        {
+            foreach (Node node in nodes)
+            {
+                node.Terminate();
             }
         }
     }

@@ -33,8 +33,7 @@ namespace Starfire
         private void CreateFleet()
         {
             Fleet fleet = new Fleet(FleetType.Military, FleetAllegience.Friend);
-            Blackboard fleetBlackboard = fleet.GetBlackboard();
-            fleetBlackboard.SetValue("Fleet", "Hello world!");
+            FleetBlackboard fleetBlackboard = fleet.FleetBlackboard;
             fleets.Add(fleet);
 
             var randomFleetNumber = Random.Range(6, 8);

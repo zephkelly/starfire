@@ -4,46 +4,35 @@ namespace Starfire
 {
     public class Blackboard
     {
-        private Blackboard fleetBlackboard;
-        private Dictionary<string, object> blackboard = new Dictionary<string, object>();
+        private List<Ship> detectedThreats = new List<Ship>();
+        public FleetBlackboard FleetBlackboard { get; private set; }
 
-        public Blackboard FleetBlackboard => fleetBlackboard;
+        public IReadOnlyList<Ship> DetectedThreats => detectedThreats.AsReadOnly();
 
-        public void SetFleetBlackboard(Blackboard _fleetBlackboard)
+        public void SetFleetBlackboard(FleetBlackboard _fleetBlackboard)
         {
-            fleetBlackboard = _fleetBlackboard;
+            FleetBlackboard = _fleetBlackboard;
         }
 
-        public void SetValue(string key, object value)
+        public void AddDetectedThreat(Ship threat)
         {
-            if (blackboard.ContainsKey(key))
+            if (!detectedThreats.Contains(threat))
             {
-                blackboard[key] = value;
-            }
-            else
-            {
-                blackboard.Add(key, value);
+                detectedThreats.Add(threat);
             }
         }
 
-        public object GetValue(string key)
+        public void RemoveDetectedThreat(Ship threat)
         {
-            if (blackboard.ContainsKey(key))
+            if (detectedThreats.Contains(threat))
             {
-                return blackboard[key];
-            }
-            else
-            {
-                return null;
+                detectedThreats.Remove(threat);
             }
         }
 
-        public void RemoveValue(string key)
+        public void ClearDetectedThreats()
         {
-            if (blackboard.ContainsKey(key))
-            {
-                blackboard.Remove(key);
-            }
+            detectedThreats.Clear();
         }
     }
 }

@@ -1,18 +1,40 @@
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
 {
+    // Root (Selector)
+    // |-- Emergency Response (Sequence)
+    //     |-- Check For Immediate Threats
+    //     |-- Respond To Threats (Selector)
+    //         |-- Perform Evasive Maneuvers
+    //         |-- Counter-Attack
+    // |-- Follow Fleet Command (Sequence)
+    //     |-- Get Fleet Command
+    //     |-- Execute Fleet Command (Selector)
+    //         |-- Move To Target (Sequence)
+    //             |-- Check If In Star's Orbit (Decorator)
+    //             |-- Move To Target Position
+    //             |-- Avoid Gravity (if needed)
+    //         |-- Orbit Star (Sequence)
+    //             |-- Check If Outside Star's Orbit (Decorator)
+    //             |-- Move To Orbit
+    //             |-- Maintain Orbit
+    // |-- Individual Ship Behavior (Sequence)
+    //     |-- Patrol Area
+    //     |-- Perform Routine Tasks
+
+
     public abstract class AICore : IAICore
     {
         protected Blackboard blackboard;
         protected BehaviourTree behaviourTree;
-        protected SelectorNode rootNode;
+
         protected MoveToTargetNode moveToTargetNode;
 
         protected Ship ship;
         protected Fleet fleet;
+
+        public Blackboard Blackboard => blackboard;
 
         public AICore()
         {
@@ -28,7 +50,8 @@ namespace Starfire
         {
             fleet = _fleet;
         }
-        public void SetBlackboard(Blackboard _blackboard)
+
+        public void SetFleetBlackboard(FleetBlackboard _blackboard)
         {
             if (_blackboard == null) return;
             blackboard.SetFleetBlackboard(_blackboard);
@@ -36,15 +59,22 @@ namespace Starfire
 
         public void CreateBehaviourTree()
         {
-            Debug.Log(blackboard.GetValue("Fleet"));
-            Debug.Log(blackboard.FleetBlackboard.GetValue("Fleet"));
+            var root = new SelectorNode();
+            
+            var respondToThreats = new RespondToThreats(ship);
+            respondToThreats.AddNode(new EvasiveManeuvers(ship));
+            respondToThreats.AddNode(new CounterAttack(ship));
 
-            rootNode = new SelectorNode(blackboard);
-            moveToTargetNode = new MoveToTargetNode(ship, blackboard);
+            var emergencyResponse = new EmergencyResponse(ship);
+            emergencyResponse.AddNode(new CheckForImmediateThreats(ship));
+            emergencyResponse.AddNode(respondToThreats);
 
-            rootNode.AddNode(moveToTargetNode);
+            moveToTargetNode = new MoveToTargetNode(ship);
 
-            behaviourTree = new BehaviourTree(rootNode);
+            root.AddNode(emergencyResponse);
+            root.AddNode(moveToTargetNode);
+
+            behaviourTree = new BehaviourTree(root);
         }
 
         public void SetTarget(Ship _target)

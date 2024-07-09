@@ -20,10 +20,11 @@ namespace Starfire
             AICore.SetShip(this);
         }
 
-        public void InjectAIDependencies(Fleet fleet = default, Blackboard blackboard = default)
+        public void InjectAIDependencies(Fleet fleet = default, FleetBlackboard blackboard = default)
         {
             AICore.SetFleet(fleet);
-            AICore.SetBlackboard(blackboard);
+            AICore.SetFleetBlackboard(blackboard);
+            
             AICore.CreateBehaviourTree();
         }
     }

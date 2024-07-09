@@ -4,16 +4,11 @@ namespace Starfire
 {
     public abstract class DecoratorNode : Node
     {
-        protected Node child;
+        protected Node node;
 
-        protected DecoratorNode(Node child, Blackboard _blackboard) : base(_blackboard)
+        protected DecoratorNode(Node node)
         {
-            this.child = child;
-        }
-
-        public override void FixedEvaluate()
-        {
-            child.FixedEvaluate();
+            this.node = node;
         }
     }
 }

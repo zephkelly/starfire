@@ -107,9 +107,12 @@ namespace Starfire
         protected virtual void OnParticleCollision(GameObject other)
         {
             if (other == gameObject) return;
-            int damage = other.GetComponentInParent<ShipController>().Ship.Configuration.ProjectileDamage;
+
+            Ship otherShip = other.GetComponentInParent<ShipController>().Ship;
+            int damage = otherShip.Configuration.ProjectileDamage;
 
             Ship.Configuration.Damage(damage, DamageType.Hull);
+            Ship.AICore.Blackboard.AddDetectedThreat(otherShip);
 
             if (invulnerabilityTimer > 0) return;
             invulnerabilityTimer = invulnerabilityTime;

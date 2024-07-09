@@ -1,10 +1,10 @@
 namespace Starfire
 {
-    public class CheckIfInStarOrbit : DecoratorNode
+    public class CheckForImmediateThreats : Node
     {
         private Ship ship;
 
-        public CheckIfInStarOrbit(Ship ship, Node node) : base(node)
+        public CheckForImmediateThreats(Ship ship)
         {
             this.ship = ship;
         }
@@ -13,19 +13,16 @@ namespace Starfire
 
         public override NodeState Evaluate()
         {
-            if (IsShipInOrbit())
+            if (ship.AICore.Blackboard.DetectedThreats.Count > 0)
             {
-                return node.Evaluate();
+                state = NodeState.Success;
             }
             else
             {
-                return NodeState.Failure;
+                state = NodeState.Failure;
             }
-        }
-
-        private bool IsShipInOrbit()
-        {
-            return ship.Controller.IsOrbiting;
+            
+            return state;
         }
 
         public override void FixedEvaluate() { }

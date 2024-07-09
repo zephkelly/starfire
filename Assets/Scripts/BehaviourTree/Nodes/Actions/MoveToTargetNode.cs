@@ -16,12 +16,16 @@ namespace Starfire
 
         private float targetReachedDistance = 40f;
 
-        public MoveToTargetNode(Ship _ship, Blackboard _blackboard) : base(_blackboard)
+        public MoveToTargetNode(Ship _ship)
         {
             ship = _ship;
             aiCore = _ship.AICore;
 
-            raycastTargetLayers = GetRaycastTargetLayers();
+            raycastAvoidanceLayers = GetRaycastTargetLayers();
+        }
+
+        public override void Initialise()
+        {
         }
 
         public void SetTarget<T>(T _target)
@@ -58,6 +62,7 @@ namespace Starfire
 
         public override NodeState Evaluate()
         {
+
             if (ship == null || target == null)
             {
                 state = NodeState.Failure;
@@ -71,8 +76,6 @@ namespace Starfire
             if (currentDistance < targetReachedDistance)
             {
                 state = NodeState.Success;
-                ship.Controller.DisableThrusters();
-
                 return state;
             }
             else
@@ -89,7 +92,7 @@ namespace Starfire
                 ship.Controller.ShipTransform.position,
                 ship.Controller.ShipRigidBody.velocity.magnitude,
                 GetTargetPosition(),
-                raycastAvoidanceLayers,
+                raycastTargetLayers,
                 16,
                 30f
             );
@@ -102,13 +105,18 @@ namespace Starfire
         {
             if (ship == null || target == null || state == NodeState.Success || state == NodeState.Failure)
             {
-
                 return;
             }
 
             float speed = ship.Configuration.ThrusterMaxSpeed;
             ship.Controller.MoveInDirection(movementLerpVector, speed, true);
             ship.Controller.RotateToDirection(visualLerpVector, ship.Configuration.TurnDegreesPerSecond);
+        }
+
+        public override void Terminate()
+        {
+            Debug.Log("MoveToTargetNode: Terminate");
+            ship.Controller.DisableThrusters();
         }
     }
 }

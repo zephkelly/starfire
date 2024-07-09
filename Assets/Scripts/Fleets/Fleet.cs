@@ -21,7 +21,7 @@ namespace Starfire
     public class Fleet
     {
         private StateMachine fleetStateMachine;
-        private Blackboard blackboard;
+        private FleetBlackboard fleetBlackboard;
 
         [SerializeField] private Ship flagship;
         private List<Ship> ships = new List<Ship>();
@@ -29,7 +29,7 @@ namespace Starfire
         [SerializeField] private FleetType fleetType;
         [SerializeField] private FleetAllegience fleetAllegience;
 
-        public Blackboard GetBlackboard() => blackboard;
+        public FleetBlackboard FleetBlackboard => fleetBlackboard;
         public Ship Flagship => flagship;
         public IReadOnlyList<Ship> Ships => ships.AsReadOnly();
 
@@ -41,7 +41,7 @@ namespace Starfire
             fleetStateMachine = new StateMachine();
             fleetStateMachine.ChangeState(new FleetIdleState(this));
 
-            blackboard = new Blackboard();
+            fleetBlackboard = new FleetBlackboard();
         }
 
         public void AddShip(Ship ship)
