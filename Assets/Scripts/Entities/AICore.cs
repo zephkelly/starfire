@@ -30,11 +30,14 @@ namespace Starfire
         public void SetBlackboard(Blackboard _blackboard)
         {
             if (_blackboard == null) return;
-            blackboard = _blackboard;
+            blackboard.SetFleetBlackboard(_blackboard);
         }
 
         public void CreateBehaviourTree()
         {
+            Debug.Log(blackboard.GetValue("Fleet"));
+            Debug.Log(blackboard.FleetBlackboard.GetValue("Fleet"));
+
             rootNode = new SelectorNode(blackboard);
             moveToTargetNode = new MoveToTargetNode(ship, blackboard);
 

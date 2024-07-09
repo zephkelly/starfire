@@ -4,7 +4,15 @@ namespace Starfire
 {
     public class Blackboard
     {
+        private Blackboard fleetBlackboard;
         private Dictionary<string, object> blackboard = new Dictionary<string, object>();
+
+        public Blackboard FleetBlackboard => fleetBlackboard;
+
+        public void SetFleetBlackboard(Blackboard _fleetBlackboard)
+        {
+            fleetBlackboard = _fleetBlackboard;
+        }
 
         public void SetValue(string key, object value)
         {
