@@ -9,7 +9,6 @@ namespace Starfire
     public abstract class ShipController: MonoBehaviour
     {
         public Ship Ship { get; private set; }
-        public AICore AICore { get; set; }
         public StateMachine ShipStateMachine { get; private set; }
         public CelestialBehaviour OrbitingBody { get; private set; }
         public bool IsOrbiting { get; private set; }
@@ -43,10 +42,9 @@ namespace Starfire
         [SerializeField] protected Color shipDamageColor;
         private const float invulnerabilityTime = 0.5f;
 
-        public virtual void SetShip(Ship ship, AICore aiCore)
+        public virtual void SetShip(Ship ship)
         {
             Ship = ship;
-            AICore = aiCore;
         }
 
         protected virtual void Awake()
@@ -89,13 +87,13 @@ namespace Starfire
         {
             UpdateTimers();
             
-            AICore.Update();
+            Ship.AICore.Update();
             ShipStateMachine.Update();
         }
 
         protected virtual void FixedUpdate()
         {
-            AICore.FixedUpdate();
+            Ship.AICore.FixedUpdate();
 
             if (IsOrbiting is true)
             {

@@ -9,18 +9,6 @@ namespace Starfire
         public float TimeSpentNotCircling { get; private set; }
         public float TimeSpentCircling { get; private set; }
 
-        // protected override void CreateBehaviourTree()
-        // {
-        //     var rootNode = new SelectorNode(blackboard);
-        //         rootNode.AddNode(new MoveToTargetNode(newShip, fleetBlackboard));
-
-        //     var behaviourTree = new BehaviourTree(rootNode);
-
-
-        //     // moveToTargetNode = new MoveToTargetNode(ship, fleet);
-        //     // behaviourTree = new BehaviourTree(moveToTargetNode);
-        // }
-
         protected float timeToSpendNotShootingProjectile = 0f;
         protected float timeToSpendShootingProjectile = 0f;
         public bool CanFireProjectile()
@@ -122,7 +110,7 @@ namespace Starfire
         }
 
         private Vector3[] radialRaycastData;  // x, y: direction, z: weight
-        public Vector2 FindBestDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 lastTargetShipPosition, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)
+        public override Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)
         {
             radialRaycastData = new Vector3[numberOfRays];
             Vector2 direction = Vector2.zero;
@@ -134,7 +122,7 @@ namespace Starfire
                 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
                 direction.Normalize();
 
-                float angleBetween = Vector2.Angle(direction, lastTargetShipPosition - ourShipPosition);
+                float angleBetween = Vector2.Angle(direction, currentDirection - ourShipPosition);
                 float weight = Mathf.Pow(1f - (angleBetween / 180f), 1.15f);
 
                 RaycastHit2D[] hits = Physics2D.RaycastAll(ourShipPosition, direction, collisionCheckRadius * (1 + Mathf.InverseLerp(0, 40, ourShipVelocityMagnitude)) * weight, whichRaycastableLayers);

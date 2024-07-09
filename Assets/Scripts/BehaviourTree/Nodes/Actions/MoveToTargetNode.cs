@@ -5,7 +5,7 @@ namespace Starfire
     public class MoveToTargetNode : Node
     {
         private Ship ship;
-        private StandardAICore aiCore;
+        private IAICore aiCore;
         private object target;
 
         private Vector2 movementLerpVector;
@@ -14,10 +14,12 @@ namespace Starfire
         private LayerMask raycastAvoidanceLayers;
         private LayerMask raycastTargetLayers;
 
+        private float targetReachedDistance = 40f;
+
         public MoveToTargetNode(Ship _ship, Blackboard _blackboard) : base(_blackboard)
         {
             ship = _ship;
-            aiCore = (StandardAICore)ship.Controller.AICore;
+            aiCore = _ship.AICore;
 
             raycastTargetLayers = GetRaycastTargetLayers();
         }
@@ -49,6 +51,7 @@ namespace Starfire
                 case Transform _transform:
                     return _transform.position;
                 default:
+                    Debug.LogWarning("MoveToTargetNode: Target is not a valid type.");
                     return Vector2.zero;
             }
         }
@@ -65,7 +68,7 @@ namespace Starfire
 
             float currentDistance = Vector2.Distance(ship.Controller.ShipTransform.position, GetTargetPosition());
 
-            if (currentDistance < 40f)
+            if (currentDistance < targetReachedDistance)
             {
                 state = NodeState.Success;
                 ship.Controller.DisableThrusters();
@@ -81,7 +84,7 @@ namespace Starfire
 
         public void Update()
         {
-            Vector2 weightedDirection = aiCore.FindBestDirection(
+            Vector2 weightedDirection = aiCore.CalculateAvoidanceSteeringDirection(
                 ship.Controller.ShipObject,
                 ship.Controller.ShipTransform.position,
                 ship.Controller.ShipRigidBody.velocity.magnitude,

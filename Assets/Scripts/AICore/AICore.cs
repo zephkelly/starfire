@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Starfire
 {
-    public abstract class AICore
+    public abstract class AICore : IAICore
     {
         protected Blackboard blackboard;
         protected BehaviourTree behaviourTree;
@@ -70,6 +71,11 @@ namespace Starfire
         {
             if (behaviourTree == null) return;
             behaviourTree.FixedEvaluate();
+        }
+
+        public virtual Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)
+        {
+            return Vector2.zero;
         }
     }
 }

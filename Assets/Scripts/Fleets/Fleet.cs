@@ -27,16 +27,16 @@ namespace Starfire
         private List<Ship> ships = new List<Ship>();
 
         [SerializeField] private FleetType fleetType;
-        [SerializeField] private FleetAllegience allegience;
+        [SerializeField] private FleetAllegience fleetAllegience;
 
         public Blackboard GetBlackboard() => blackboard;
         public Ship Flagship => flagship;
-        public List<Ship> Ships => ships;
+        public IReadOnlyList<Ship> Ships => ships.AsReadOnly();
 
-        public Fleet(FleetType _type, FleetAllegience _allegience)
+        public Fleet(FleetType fleetType, FleetAllegience fleetAllegience)
         {
-            fleetType = _type;
-            allegience = _allegience;
+            this.fleetType = fleetType;
+            this.fleetAllegience = fleetAllegience;
 
             fleetStateMachine = new StateMachine();
             fleetStateMachine.ChangeState(new FleetIdleState(this));
