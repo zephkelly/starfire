@@ -47,8 +47,6 @@ namespace Starfire
         protected Blackboard blackboard;
         protected BehaviourTree behaviourTree;
 
-        protected MoveToTargetNode moveToTargetNode;
-
         protected Ship ship;
         protected Fleet fleet;
 
@@ -77,7 +75,7 @@ namespace Starfire
 
         public void CreateBehaviourTree()
         {
-            moveToTargetNode = new MoveToTargetNode(ship);
+            var moveToTargetNode = new MoveToTargetNode(ship);
             var chooseTargetNode = new ChooseTarget(ship);
             var checkForImmediateThreatsNode = new CheckForImmediateThreats(ship);
             var evasiveManeuversNode = new EvasiveManeuvers(ship);
@@ -105,30 +103,24 @@ namespace Starfire
             behaviourTree = new BehaviourTree(rootSelector);  
         }
 
-        public void SetTarget(Ship _target)
+        public void SetTarget(Ship newTargetShip)
         {
-            moveToTargetNode.SetTarget(_target);
+            blackboard.SetCurrentTarget(newTargetShip);
         }
-        public void SetTarget(Vector2 _target)
+        public void SetTarget(Vector2 newTargetVector)
         {
-            moveToTargetNode.SetTarget(_target);
+            blackboard.SetCurrentTarget(newTargetVector);
         }
 
-        public void SetTarget(Transform _target)
+        public void SetTarget(Transform newTargetTransform)
         {
-            moveToTargetNode.SetTarget(_target);
+            blackboard.SetCurrentTarget(newTargetTransform);
         }
 
         public virtual void Update()
         {
             if (behaviourTree == null) return;
             behaviourTree.Evaluate();
-        }
-
-        public virtual void FixedUpdate()
-        {
-            if (behaviourTree == null) return;
-            // behaviourTree.FixedEvaluate();
         }
 
         public virtual Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)

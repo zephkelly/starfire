@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Starfire
 {
@@ -7,10 +8,10 @@ namespace Starfire
         public FleetBlackboard FleetBlackboard { get; private set; }
 
         private Dictionary<Ship, int> immediateThreats = new Dictionary<Ship, int>();
-        private Ship currentTarget = null;
+        private object currentTarget = null;
 
         public IReadOnlyDictionary<Ship, int> ImmediateThreats => immediateThreats;
-        public Ship CurrentTarget => currentTarget;
+        public object CurrentTarget => currentTarget;
 
         public void SetFleetBlackboard(FleetBlackboard _fleetBlackboard)
         {
@@ -25,8 +26,7 @@ namespace Starfire
             }
             else
             {
-                immediateThreats[threat] += damage;
-            
+                immediateThreats[threat] += damage;    
             }
         }
 
@@ -43,15 +43,30 @@ namespace Starfire
             immediateThreats.Clear();
         }
 
-        public void SetCurrentTarget(Ship target)
+        public void SetCurrentTarget<T>(T newTarget)
         {
-            if (target is null || target == currentTarget) return;
-            currentTarget = target;
+            currentTarget = newTarget;
         }
 
         public void ClearCurrentTarget()
         {
             currentTarget = null;
+        }
+
+        public Vector2 GetCurrentTargetPosition()
+        {
+            switch (currentTarget)
+            {
+                case Ship _ship:
+                    return _ship.Controller.ShipTransform.position;
+                case Vector2 _vector2:
+                    return _vector2;
+                case Transform _transform:
+                    return _transform.position;
+                default:
+                    Debug.LogWarning("MoveToTargetNode: Target is not a valid type.");
+                    return Vector2.zero;
+            }
         }
     }
 }

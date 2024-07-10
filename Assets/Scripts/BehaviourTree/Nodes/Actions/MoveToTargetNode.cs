@@ -6,7 +6,7 @@ namespace Starfire
     {
         private Ship ship;
         private IAICore aiCore;
-        private object target;
+        // 
 
         private Vector2 movementLerpVector;
         private Vector2 visualLerpVector;
@@ -22,11 +22,6 @@ namespace Starfire
             aiCore = _ship.AICore;
 
             raycastAvoidanceLayers = GetRaycastTargetLayers();
-        }
-
-        public void SetTarget<T>(T _target)
-        {
-            target = _target;
         }
 
         protected override void Initialise()
@@ -45,31 +40,18 @@ namespace Starfire
             }
         }
 
-        private Vector2 GetTargetPosition()
-        {
-            switch (target)
-            {
-                case Ship _ship:
-                    return _ship.Controller.ShipTransform.position;
-                case Vector2 _vector2:
-                    return _vector2;
-                case Transform _transform:
-                    return _transform.position;
-                default:
-                    Debug.LogWarning("MoveToTargetNode: Target is not a valid type.");
-                    return Vector2.zero;
-            }
-        }
-
         protected override NodeState OnEvaluate()
         {
-            if (ship == null || target == null)
+            if (ship == null || ship.AICore.Blackboard.CurrentTarget == null)
             {
                 state = NodeState.Failure;
                 return state;
             }
 
-            float currentDistance = Vector2.Distance(ship.Controller.ShipTransform.position, GetTargetPosition());
+            Vector2 shipPosition = ship.Controller.ShipTransform.position;
+            Vector2 targetPosition = ship.AICore.Blackboard.GetCurrentTargetPosition();
+
+            float currentDistance = Vector2.Distance(shipPosition, targetPosition);
 
             if (currentDistance < targetReachedDistance)
             {
@@ -89,14 +71,14 @@ namespace Starfire
                 ship.Controller.ShipObject,
                 ship.Controller.ShipTransform.position,
                 ship.Controller.ShipRigidBody.velocity.magnitude,
-                GetTargetPosition(),
+                ship.AICore.Blackboard.GetCurrentTargetPosition(),
                 raycastTargetLayers,
                 16,
                 30f
             );
 
-            movementLerpVector = weightedDirection;
-            visualLerpVector = Vector2.Lerp(ship.Controller.ShipTransform.up, weightedDirection, 0.15f);
+            movementLerpVector = weightedDirection.normalized;
+            visualLerpVector = Vector2.Lerp(ship.Controller.ShipTransform.up, weightedDirection, 0.15f).normalized;
 
             float speed = ship.Configuration.ThrusterMaxSpeed;
             ship.Controller.MoveInDirection(movementLerpVector, speed, true);

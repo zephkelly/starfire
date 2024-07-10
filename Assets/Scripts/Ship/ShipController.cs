@@ -98,8 +98,6 @@ namespace Starfire
 
         protected virtual void FixedUpdate()
         {
-            Ship.AICore.FixedUpdate();
-
             if (IsOrbiting is true)
             {
                 OrbitCelestialBody();

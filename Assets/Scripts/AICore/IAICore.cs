@@ -8,7 +8,6 @@ namespace Starfire
         Blackboard Blackboard { get; }
 
         void Update();
-        void FixedUpdate();
         void SetShip(Ship ship);
         void SetFleet(Fleet fleet);
         void SetFleetBlackboard(FleetBlackboard blackboard);
