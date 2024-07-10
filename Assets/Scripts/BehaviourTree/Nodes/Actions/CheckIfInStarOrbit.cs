@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Starfire
 {
     public class CheckIfInStarOrbit : Node
@@ -11,19 +13,14 @@ namespace Starfire
 
         protected override NodeState OnEvaluate()
         {
-            if (IsShipInOrbit())
+            if (ship.Controller.IsOrbiting)
             {
-                return NodeState.Success;
+                state = NodeState.Success;
+                return state;
             }
-            else
-            {
-                return NodeState.Failure;
-            }
-        }
 
-        private bool IsShipInOrbit()
-        {
-            return ship.Controller.IsOrbiting;
+            state = NodeState.Failure;
+            return state;
         }
     }
 }

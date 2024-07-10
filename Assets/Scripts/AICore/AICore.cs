@@ -9,12 +9,17 @@ namespace Starfire
     //         |-- Perform Evasive Maneuvers
     //         |-- Counter-Attack (Sequence)
     //             |-- Choose Target (store in blackboard)
-    //             |-- GetDirectionToTarget (store in blackboard)
+    //             |-- GetHeadingToTarget (store in blackboard)
     //             |-- Engage Target (Selector)
     //                 |-- Close Range Engagement (Sequence)
     //                     |-- Check If Close Range
-    //                     |-- AddCircleBiasToHeading
-    //                     |-- Move Towards Heading
+    //                     |-- Location behaviour (Selector)
+    //                         |-- Star orbit behaviour (Sequence)    
+    //                             |-- Check If In Star's Orbit
+    //                             |-- SimpleMoveToTarget
+    //                         |-- Standard behaviour (Sequence)
+    //                             |-- AddCircleBiasToHeading (store in blackboard)
+    //                             |-- Move Towards Heading
     //                 |-- Medium Range Engagement (Sequence)
     //                     |-- Check If Medium Range
     //                     |-- Move Towards Target Direction
@@ -76,36 +81,42 @@ namespace Starfire
 
         public void CreateBehaviourTree()
         {
-            var moveToTargetNode = new SimpleMoveToTarget(ship);
-            var chooseTargetNode = new ChooseTarget(ship);
-            var checkForImmediateThreatsNode = new CheckForImmediateThreats(ship);
-            var evasiveManeuversNode = new EvasiveManeuvers(ship);
-
             var rootSelector = new SelectorNode();
             var emergencyResponseSequence = new SequenceNode();
             var respondToThreatsSelector = new SelectorNode();
             var counterAttackSequence = new SequenceNode();
             var engageTargetSelector = new SelectorNode();
             var closeRangeEngagementSequence = new SequenceNode();
+            var locationBehaviourSelector = new SelectorNode();
+            var starOrbitBehaviourSequence = new SequenceNode();
+            var standardBehaviourSequence = new SequenceNode();
+
+            standardBehaviourSequence.AddNode(new AddCircleBiasToHeading(ship));
+            standardBehaviourSequence.AddNode(new MoveToHeading(ship));
+
+            starOrbitBehaviourSequence.AddNode(new CheckIfInStarOrbit(ship));
+            starOrbitBehaviourSequence.AddNode(new SimpleMoveToTarget(ship, 100f));
+
+            locationBehaviourSelector.AddNode(starOrbitBehaviourSequence);
+            locationBehaviourSelector.AddNode(standardBehaviourSequence);
 
             closeRangeEngagementSequence.AddNode(new CheckIfCloseRange(ship));
-            closeRangeEngagementSequence.AddNode(new AddCircleBiasToHeading(ship));
-            closeRangeEngagementSequence.AddNode(new MoveToHeading(ship));
+            closeRangeEngagementSequence.AddNode(locationBehaviourSelector);
 
             engageTargetSelector.AddNode(closeRangeEngagementSequence);
 
-            counterAttackSequence.AddNode(chooseTargetNode);
+            counterAttackSequence.AddNode(new ChooseTarget(ship));
             counterAttackSequence.AddNode(new GetHeadingToTarget(ship));
             counterAttackSequence.AddNode(engageTargetSelector);
 
-            respondToThreatsSelector.AddNode(evasiveManeuversNode);
+            respondToThreatsSelector.AddNode(new EvasiveManeuvers(ship));
             respondToThreatsSelector.AddNode(counterAttackSequence);
 
-            emergencyResponseSequence.AddNode(checkForImmediateThreatsNode);
+            emergencyResponseSequence.AddNode(new CheckForImmediateThreats(ship));
             emergencyResponseSequence.AddNode(respondToThreatsSelector);
 
             rootSelector.AddNode(emergencyResponseSequence);
-            rootSelector.AddNode(moveToTargetNode);
+            rootSelector.AddNode(new SimpleMoveToTarget(ship, 60f));
 
             behaviourTree = new BehaviourTree(rootSelector);  
         }

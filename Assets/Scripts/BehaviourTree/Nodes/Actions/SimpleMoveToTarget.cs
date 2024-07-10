@@ -22,10 +22,11 @@ namespace Starfire
         private float targetReachedThreshold = 40f;
         private float currentTargetDistance = 0;
 
-        public SimpleMoveToTarget(Ship _ship)
+        public SimpleMoveToTarget(Ship _ship, float targetReachedThreshold)
         {
             ship = _ship;
             aiCore = _ship.AICore;
+            this.targetReachedThreshold = targetReachedThreshold;
         }
 
         private LayerMask GetRaycastTargetLayers()
