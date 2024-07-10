@@ -75,7 +75,7 @@ namespace Starfire
 
         public void CreateBehaviourTree()
         {
-            var moveToTargetNode = new MoveToTargetNode(ship);
+            var moveToTargetNode = new SimpleMoveToTarget(ship);
             var chooseTargetNode = new ChooseTarget(ship);
             var checkForImmediateThreatsNode = new CheckForImmediateThreats(ship);
             var evasiveManeuversNode = new EvasiveManeuvers(ship);

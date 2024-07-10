@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire
 {
-    public class MoveToTargetNode : Node
+    public class SimpleMoveToTarget : Node
     {
         private Ship ship;
         private IAICore aiCore;
@@ -11,22 +11,23 @@ namespace Starfire
         private Vector2 movementLerpVector;
         private Vector2 visualLerpVector;
 
-        private LayerMask raycastAvoidanceLayers;
+        // private LayerMask raycastAvoidanceLayers;
         private LayerMask raycastTargetLayers;
+        private int numberOfRays = 16;
+        private float collisionCheckRadius = 30f;
 
-        private float targetReachedDistance = 40f;
+        private float minSpeedMultiplier = 0.4f;
+        private float maxSpeedMultiplier = 1.15f;
+        private float speedMultiplierRange = 400f;
+        private float targetReachedThreshold = 40f;
+        private float currentTargetDistance = 0;
 
-        public MoveToTargetNode(Ship _ship)
+        public SimpleMoveToTarget(Ship _ship)
         {
             ship = _ship;
             aiCore = _ship.AICore;
 
-            raycastAvoidanceLayers = GetRaycastTargetLayers();
-        }
-
-        protected override void Initialise()
-        {
-            Debug.Log("MoveToTargetNode: Initialise");
+            // raycastAvoidanceLayers = GetRaycastTargetLayers();
         }
 
         private LayerMask GetRaycastTargetLayers()
@@ -51,9 +52,9 @@ namespace Starfire
             Vector2 shipPosition = ship.Controller.ShipTransform.position;
             Vector2 targetPosition = ship.AICore.Blackboard.GetCurrentTargetPosition();
 
-            float currentDistance = Vector2.Distance(shipPosition, targetPosition);
+            currentTargetDistance = Vector2.Distance(shipPosition, targetPosition);
 
-            if (currentDistance < targetReachedDistance)
+            if (currentTargetDistance < targetReachedThreshold)
             {
                 state = NodeState.Success;
                 return state;
@@ -73,16 +74,25 @@ namespace Starfire
                 ship.Controller.ShipRigidBody.velocity.magnitude,
                 ship.AICore.Blackboard.GetCurrentTargetPosition(),
                 raycastTargetLayers,
-                16,
-                30f
+                numberOfRays,
+                collisionCheckRadius
             );
 
             movementLerpVector = weightedDirection.normalized;
             visualLerpVector = Vector2.Lerp(ship.Controller.ShipTransform.up, weightedDirection, 0.15f).normalized;
 
-            float speed = ship.Configuration.ThrusterMaxSpeed;
+            float thrusterMaxSpeed = ship.Configuration.ThrusterMaxSpeed;
+            float speedMultiplier = GetSpeedMultiplier(currentTargetDistance);
+            float speed = thrusterMaxSpeed * speedMultiplier;
+
             ship.Controller.MoveInDirection(movementLerpVector, speed, true);
             ship.Controller.RotateToDirection(visualLerpVector, ship.Configuration.TurnDegreesPerSecond);
+        }
+
+        private float GetSpeedMultiplier(float distance)
+        {
+            float lerpValue = Mathf.InverseLerp(0, speedMultiplierRange, distance);
+            return Mathf.Lerp(minSpeedMultiplier, maxSpeedMultiplier, lerpValue);
         }
     }
 }
