@@ -24,7 +24,6 @@ namespace Starfire
         {
             AICore.SetFleet(fleet);
             AICore.SetFleetBlackboard(blackboard);
-            
             AICore.CreateBehaviourTree();
         }
     }

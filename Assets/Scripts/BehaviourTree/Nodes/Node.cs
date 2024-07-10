@@ -12,9 +12,20 @@ namespace Starfire
         protected NodeState state;
         public NodeState CurrentNodeState => state;
 
-        public abstract void Initialise();
-        public abstract NodeState Evaluate();
-        public abstract void FixedEvaluate();
-        public abstract void Terminate();
+        protected virtual void Initialise() { }
+
+        protected virtual void Terminate() { }
+        public NodeState Evaluate()
+        {
+            Initialise();
+
+            state = OnEvaluate();
+
+            Terminate();
+            
+            return state;
+        }
+
+        protected abstract NodeState OnEvaluate();
     }
 }

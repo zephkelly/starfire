@@ -12,13 +12,9 @@ namespace Starfire
             this.ship = ship;
         }
 
-        public override void Initialise() { }
-
-        public override NodeState Evaluate()
+        protected override NodeState OnEvaluate()
         {
-            var currentThreats = ship.AICore.Blackboard.DetectedThreats;
-
-            if (ShouldEvade(currentThreats))
+            if (ShouldEvade())
             {
                 PerformEvasiveManeuvers();
 
@@ -40,14 +36,9 @@ namespace Starfire
             Debug.Log("Performing evasive maneuvers");
         }
 
-        public override void FixedEvaluate() { }
-
-        private bool ShouldEvade(IReadOnlyList<Ship> currentThreats)
+        private bool ShouldEvade()
         {
             return false;
-            // return ship.Configuration.Health < ship.Configuration.MaxHealth * 0.5f;
         }
-
-        public override void Terminate() { }
     }
 }

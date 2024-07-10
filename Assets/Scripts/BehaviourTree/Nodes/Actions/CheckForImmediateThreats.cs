@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Starfire
 {
     public class CheckForImmediateThreats : Node
@@ -9,24 +11,18 @@ namespace Starfire
             this.ship = ship;
         }
 
-        public override void Initialise() { }
-
-        public override NodeState Evaluate()
+        protected override NodeState OnEvaluate()
         {
-            if (ship.AICore.Blackboard.DetectedThreats.Count > 0)
+            if (ship.AICore.Blackboard.ImmediateThreats.Count > 0)
             {
                 state = NodeState.Success;
+                return state;
             }
-            else
-            {
-                state = NodeState.Failure;
-            }
-            
-            return state;
+
+            Debug.Log("No immediate threats found");
+
+            state = NodeState.Failure;
+            return NodeState.Failure;
         }
-
-        public override void FixedEvaluate() { }
-
-        public override void Terminate() { }
     }
 }

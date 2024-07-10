@@ -4,35 +4,54 @@ namespace Starfire
 {
     public class Blackboard
     {
-        private List<Ship> detectedThreats = new List<Ship>();
         public FleetBlackboard FleetBlackboard { get; private set; }
 
-        public IReadOnlyList<Ship> DetectedThreats => detectedThreats.AsReadOnly();
+        private Dictionary<Ship, int> immediateThreats = new Dictionary<Ship, int>();
+        private Ship currentTarget = null;
+
+        public IReadOnlyDictionary<Ship, int> ImmediateThreats => immediateThreats;
+        public Ship CurrentTarget => currentTarget;
 
         public void SetFleetBlackboard(FleetBlackboard _fleetBlackboard)
         {
             FleetBlackboard = _fleetBlackboard;
         }
 
-        public void AddDetectedThreat(Ship threat)
+        public void AddImmediateThreat(Ship threat, int damage)
         {
-            if (!detectedThreats.Contains(threat))
+            if (!immediateThreats.ContainsKey(threat))
             {
-                detectedThreats.Add(threat);
+                immediateThreats.Add(threat, damage);
+            }
+            else
+            {
+                immediateThreats[threat] += damage;
+            
             }
         }
 
-        public void RemoveDetectedThreat(Ship threat)
+        public void RemoveImmediateThreat(Ship threat)
         {
-            if (detectedThreats.Contains(threat))
+            if (immediateThreats.ContainsKey(threat))
             {
-                detectedThreats.Remove(threat);
+                immediateThreats.Remove(threat);
             }
         }
 
-        public void ClearDetectedThreats()
+        public void ClearImmediateThreats()
         {
-            detectedThreats.Clear();
+            immediateThreats.Clear();
+        }
+
+        public void SetCurrentTarget(Ship target)
+        {
+            if (target is null || target == currentTarget) return;
+            currentTarget = target;
+        }
+
+        public void ClearCurrentTarget()
+        {
+            currentTarget = null;
         }
     }
 }

@@ -1,3 +1,4 @@
+using UnityEngine;
 using System.Collections.Generic;
 
 namespace Starfire
@@ -11,54 +12,25 @@ namespace Starfire
             nodes.Add(node);
         }
 
-        public override void Initialise()
+        protected override NodeState OnEvaluate()
         {
-            foreach (Node node in nodes)
-            {
-                node.Initialise();
-            }
-        }
-
-        public override NodeState Evaluate()
-        {
-            bool anyChildRunning = false;
-
+            bool anyNodeRunning = false;
             foreach (Node node in nodes)
             {
                 switch (node.Evaluate())
                 {
                     case NodeState.Failure:
-                        state = NodeState.Failure;
-                        return state;
-                    case NodeState.Running:
-                        anyChildRunning = true;
-                        continue;
+                        return NodeState.Failure;
                     case NodeState.Success:
                         continue;
+                    case NodeState.Running:
+                        anyNodeRunning = true;
+                        break;
                     default:
                         continue;
                 }
             }
-
-            state = anyChildRunning ? NodeState.Running : NodeState.Success;
-            return state;
-        }
-
-        public override void FixedEvaluate()
-        {
-            foreach (Node node in nodes)
-            {
-                if (node.CurrentNodeState != NodeState.Running) return;
-                node.FixedEvaluate();
-            }
-        }
-
-        public override void Terminate()
-        {
-            foreach (Node node in nodes)
-            {
-                node.Terminate();
-            }
+            return anyNodeRunning ? NodeState.Running : NodeState.Success;
         }
     }
 }

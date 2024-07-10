@@ -30,19 +30,6 @@ namespace Starfire
             base.SetOrbitingBody(orbitingBody, isParent);
         }
 
-        protected override void OnParticleCollision(GameObject other)
-        {
-            base.OnParticleCollision(other);
-
-            var otherShipController = other.GetComponentInParent<ShipController>();
-            var otherShipGameObject = otherShipController.gameObject;
-
-            // Ask AI core to process the command
-            // Send info to fleet
-
-            UpdateHealth(Ship.Configuration.Health, Ship.Configuration.MaxHealth);
-        }
-
         public override void DestroyShip()
         {
             int random = Random.Range(2, 4);

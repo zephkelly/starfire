@@ -24,13 +24,14 @@ namespace Starfire
             raycastAvoidanceLayers = GetRaycastTargetLayers();
         }
 
-        public override void Initialise()
-        {
-        }
-
         public void SetTarget<T>(T _target)
         {
             target = _target;
+        }
+
+        protected override void Initialise()
+        {
+            Debug.Log("MoveToTargetNode: Initialise");
         }
 
         private LayerMask GetRaycastTargetLayers()
@@ -60,16 +61,13 @@ namespace Starfire
             }
         }
 
-        public override NodeState Evaluate()
+        protected override NodeState OnEvaluate()
         {
-
             if (ship == null || target == null)
             {
                 state = NodeState.Failure;
                 return state;
             }
-
-            Update();
 
             float currentDistance = Vector2.Distance(ship.Controller.ShipTransform.position, GetTargetPosition());
 
@@ -78,14 +76,14 @@ namespace Starfire
                 state = NodeState.Success;
                 return state;
             }
-            else
-            {
-                state = NodeState.Running;
-                return state;
-            }
+
+            SteerShipToTarget();
+            
+            state = NodeState.Running;
+            return state;
         }
 
-        public void Update()
+        private void SteerShipToTarget()
         {
             Vector2 weightedDirection = aiCore.CalculateAvoidanceSteeringDirection(
                 ship.Controller.ShipObject,
@@ -99,24 +97,10 @@ namespace Starfire
 
             movementLerpVector = weightedDirection;
             visualLerpVector = Vector2.Lerp(ship.Controller.ShipTransform.up, weightedDirection, 0.15f);
-        }
-
-        public override void FixedEvaluate()
-        {
-            if (ship == null || target == null || state == NodeState.Success || state == NodeState.Failure)
-            {
-                return;
-            }
 
             float speed = ship.Configuration.ThrusterMaxSpeed;
             ship.Controller.MoveInDirection(movementLerpVector, speed, true);
             ship.Controller.RotateToDirection(visualLerpVector, ship.Configuration.TurnDegreesPerSecond);
-        }
-
-        public override void Terminate()
-        {
-            Debug.Log("MoveToTargetNode: Terminate");
-            ship.Controller.DisableThrusters();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Starfire
     {
         shipRigidBody.centerOfMass = Vector2.zero;
         
-        var newConfiguration = new ShipConfiguration(this, 2600, 100, 100, 100, 160, 1500, 200);
+        var newConfiguration = new ShipConfiguration(this, 2600, 100, 100, 100, 160, 1500, 200, 4);
         var newTransponder = new Transponder("Player", Faction.Player, 90000);
         var newInventory = new Inventory();
         var aiCore = new StandardAICore();
@@ -39,13 +39,14 @@ namespace Starfire
         {
             FireProjectileToPosition(mousePosition);
         }
+
+        UpdateMovement();
+        if (HandleOrbiting()) return;
+        HandleNonOrbitingBehavior();
     }
 
     protected override void FixedUpdate()
     {
-        UpdateMovement();
-        if (HandleOrbiting()) return;
-        HandleNonOrbitingBehavior();
     }
 
     private void UpdateMovement()
@@ -113,13 +114,6 @@ namespace Starfire
         if (currentProjectileFireTimer > 0) currentProjectileFireTimer -= Time.deltaTime;
 
         if (invulnerabilityTimer > 0) invulnerabilityTimer -= Time.deltaTime;
-    }
-
-    protected override void OnParticleCollision(GameObject other)
-    {
-        base.OnParticleCollision(other);
-
-        UpdateHealth(Ship.Configuration.Health, Ship.Configuration.MaxHealth);
     }
 
     public override void UpdateHealth(float currentHealth, float maxHealth)

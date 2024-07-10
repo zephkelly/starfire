@@ -38,14 +38,14 @@ namespace Starfire
 
             var randomFleetNumber = Random.Range(6, 8);
             
-            for (int i = 0; i < randomFleetNumber; i++)
+            for (int i = 0; i < 1; i++)
             {
                 Vector2 position = new Vector2(i * 20, 0);
                 var paladinPrefab = Resources.Load<GameObject>("Prefabs/Entities/Paladin");
                 var newPaladin = Instantiate(paladinPrefab, position, Quaternion.identity);
                 newPaladin.TryGetComponent<ShipController>(out var shipController);
 
-                var newConfiguration = new ShipConfiguration(shipController, 360, 100, 100, 100, 160, 1500, 200);
+                var newConfiguration = new ShipConfiguration(shipController, 360, 100, 100, 100, 160, 1500, 200, 3);
                 var newTransponder = new Transponder("Paladin", Faction.Friend, 90000);
                 var newInventory = new Inventory();
                 var aiCore = new StandardAICore();
@@ -53,7 +53,7 @@ namespace Starfire
                 var newShip = new Ship(shipController, aiCore, newConfiguration, newTransponder, newInventory);
                 newShip.InjectAIDependencies(fleet, fleetBlackboard);
 
-                newShip.AICore.SetTarget(new Vector2(1000, 1000));
+                newShip.AICore.SetTarget(new Vector2(1000, 100));
 
                 if (i == 0)
                 {
@@ -62,7 +62,6 @@ namespace Starfire
 
                 fleet.AddShip(newShip);
             }
-
         }
     }
 }

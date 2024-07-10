@@ -89,6 +89,11 @@ namespace Starfire
             
             Ship.AICore.Update();
             ShipStateMachine.Update();
+
+            if (shipRigidBody.velocity.magnitude < 0.5f)
+            {
+                SetThrusters(true, shipRigidBody.velocity.normalized, false);
+            }
         }
 
         protected virtual void FixedUpdate()
@@ -112,11 +117,12 @@ namespace Starfire
             int damage = otherShip.Configuration.ProjectileDamage;
 
             Ship.Configuration.Damage(damage, DamageType.Hull);
-            Ship.AICore.Blackboard.AddDetectedThreat(otherShip);
+            Ship.AICore.Blackboard.AddImmediateThreat(otherShip, damage);
 
             if (invulnerabilityTimer > 0) return;
             invulnerabilityTimer = invulnerabilityTime;
 
+            UpdateHealth(Ship.Configuration.Health, Ship.Configuration.MaxHealth);
             StartCoroutine(InvulnerabilityFlash());
         }
 
@@ -330,6 +336,9 @@ namespace Starfire
 
         public void DisableThrusters()
         {
+            // if (thrustersEnabled is false) return;
+            // thrustersEnabled = false;
+
             for (int i = 0; i < shipThrusterPS.Length; i++)
             {
                 if (shipThrusterPS[i].isPlaying is false) continue;
@@ -342,6 +351,9 @@ namespace Starfire
         {
             if (movementDirection.magnitude > 0.1f && isActive is true)
             {
+                // if (thrustersEnabled is true) return;
+                // thrustersEnabled = true;
+
                 for (int i = 0; i < shipThrusterPS.Length; i++)
                 {
                     UpdateThrusterGradientByVelocity(shipThrusterPS[i], isWarping);
@@ -353,6 +365,9 @@ namespace Starfire
             }
             else
             {
+                // if (thrustersEnabled is false) return;
+                // thrustersEnabled = false;
+
                 for (int i = 0; i < shipThrusterPS.Length; i++)
                 {
                     if (shipThrusterPS[i].isPlaying is false) continue;

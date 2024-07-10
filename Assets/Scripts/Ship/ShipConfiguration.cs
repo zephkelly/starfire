@@ -32,10 +32,10 @@ namespace Starfire
             SetConfiguration(shipConfigAsset);
         }
 
-        public ShipConfiguration(ShipController _shipController, int health, int fuel, int warpFuel, int cargo, int thrusterMaxSpeed, int warpMaxSpeed, int turnDegreesPerSecond)
+        public ShipConfiguration(ShipController _shipController, int health, int fuel, int warpFuel, int cargo, int thrusterMaxSpeed, int warpMaxSpeed, int turnDegreesPerSecond, int projectileDamage)
         {
             shipController = _shipController;
-            SetConfiguration(health, fuel, warpFuel, cargo, thrusterMaxSpeed, warpMaxSpeed, turnDegreesPerSecond);
+            SetConfiguration(health, fuel, warpFuel, cargo, thrusterMaxSpeed, warpMaxSpeed, turnDegreesPerSecond, projectileDamage);
         }
         
         private void SetConfiguration(ShipConfigurationAsset shipConfigAsset)
@@ -60,7 +60,7 @@ namespace Starfire
             ProjectileDamage = shipConfigAsset.ProjectileDamage;
         }
 
-        private void SetConfiguration(int health, int fuel, int warpFuel, int cargo, int thrusterMaxSpeed, int warpMaxSpeed, int turnDegreesPerSecond)
+        private void SetConfiguration(int health, int fuel, int warpFuel, int cargo, int thrusterMaxSpeed, int warpMaxSpeed, int turnDegreesPerSecond, int projectileDamage)
         {
             Health = health;
             MaxHealth = health;
@@ -78,6 +78,8 @@ namespace Starfire
             WarpIncrementSpeed = thrusterMaxSpeed / 2;
             WarpMaxSpeed = warpMaxSpeed;
             TurnDegreesPerSecond = turnDegreesPerSecond;
+
+            ProjectileDamage = projectileDamage;
         }
 
         public void UseWarpFuel()

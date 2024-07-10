@@ -7,7 +7,26 @@ namespace Starfire
     //     |-- Check For Immediate Threats
     //     |-- Respond To Threats (Selector)
     //         |-- Perform Evasive Maneuvers
-    //         |-- Counter-Attack
+    //         |-- Counter-Attack (Sequence)
+    //             |-- Choose Target (store in blackboard)
+    //             |-- Engage Target (Selector)
+    //                 |-- Close Range Engagement (Sequence)
+    //                     |-- Check If Close Range
+    //                     |-- Choose Orbit Direction (store in blackboard)
+    //                     |-- Add Orbital Bias to Direction
+    //                 |-- Medium Range Engagement (Sequence)
+    //                     |-- Check If Medium Range
+    //                     |-- Move Towards Target Direction
+    //                 |-- Long Range Engagement (Sequence)
+    //                     |-- Check If Long Range
+    //                     |-- Warp Towards Target Direction
+    //             |-- Combat Sequence (Sequence)
+    //                 |-- Get Fire Direction (store in blackboard)
+    //                 |-- Weapon Firing (Sequence)
+    //                     |-- Check If Can Fire (FOV and range check)
+    //                     |-- Choose Appropriate Weapon
+    //                     |-- Apply Weapon-Specific Bias to Fire Direction
+    //                     |-- Fire Weapon
     // |-- Follow Fleet Command (Sequence)
     //     |-- Get Fleet Command
     //     |-- Execute Fleet Command (Selector)
@@ -22,7 +41,6 @@ namespace Starfire
     // |-- Individual Ship Behavior (Sequence)
     //     |-- Patrol Area
     //     |-- Perform Routine Tasks
-
 
     public abstract class AICore : IAICore
     {
@@ -59,22 +77,32 @@ namespace Starfire
 
         public void CreateBehaviourTree()
         {
-            var root = new SelectorNode();
-            
-            var respondToThreats = new RespondToThreats(ship);
-            respondToThreats.AddNode(new EvasiveManeuvers(ship));
-            respondToThreats.AddNode(new CounterAttack(ship));
-
-            var emergencyResponse = new EmergencyResponse(ship);
-            emergencyResponse.AddNode(new CheckForImmediateThreats(ship));
-            emergencyResponse.AddNode(respondToThreats);
-
             moveToTargetNode = new MoveToTargetNode(ship);
+            var chooseTargetNode = new ChooseTarget(ship);
+            var checkForImmediateThreatsNode = new CheckForImmediateThreats(ship);
+            var evasiveManeuversNode = new EvasiveManeuvers(ship);
 
-            root.AddNode(emergencyResponse);
-            root.AddNode(moveToTargetNode);
+            var rootSelector = new SelectorNode();
+            var emergencyResponseSequence = new SequenceNode();
+            var respondToThreatsSelector = new SelectorNode();
+            var counterAttackSequence = new SequenceNode();
+            var engageTargetSelector = new SelectorNode();
 
-            behaviourTree = new BehaviourTree(root);
+            engageTargetSelector.AddNode(moveToTargetNode);
+
+            counterAttackSequence.AddNode(chooseTargetNode);
+            counterAttackSequence.AddNode(engageTargetSelector);
+
+            respondToThreatsSelector.AddNode(evasiveManeuversNode);
+            respondToThreatsSelector.AddNode(counterAttackSequence);
+
+            emergencyResponseSequence.AddNode(checkForImmediateThreatsNode);
+            emergencyResponseSequence.AddNode(respondToThreatsSelector);
+
+            rootSelector.AddNode(emergencyResponseSequence);
+            rootSelector.AddNode(moveToTargetNode);
+
+            behaviourTree = new BehaviourTree(rootSelector);  
         }
 
         public void SetTarget(Ship _target)
@@ -100,7 +128,7 @@ namespace Starfire
         public virtual void FixedUpdate()
         {
             if (behaviourTree == null) return;
-            behaviourTree.FixedEvaluate();
+            // behaviourTree.FixedEvaluate();
         }
 
         public virtual Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)

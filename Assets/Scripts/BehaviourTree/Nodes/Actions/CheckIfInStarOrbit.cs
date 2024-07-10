@@ -9,9 +9,7 @@ namespace Starfire
             this.ship = ship;
         }
 
-        public override void Initialise() { }
-
-        public override NodeState Evaluate()
+        protected override NodeState OnEvaluate()
         {
             if (IsShipInOrbit())
             {
@@ -27,9 +25,5 @@ namespace Starfire
         {
             return ship.Controller.IsOrbiting;
         }
-
-        public override void FixedEvaluate() { }
-
-        public override void Terminate() { }
     }
 }
