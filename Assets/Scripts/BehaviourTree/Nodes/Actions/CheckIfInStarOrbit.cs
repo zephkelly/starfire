@@ -1,10 +1,10 @@
 namespace Starfire
 {
-    public class CheckIfInStarOrbit : DecoratorNode
+    public class CheckIfInStarOrbit : Node
     {
         private Ship ship;
 
-        public CheckIfInStarOrbit(Ship ship, Node node) : base(node)
+        public CheckIfInStarOrbit(Ship ship)
         {
             this.ship = ship;
         }
@@ -13,7 +13,7 @@ namespace Starfire
         {
             if (IsShipInOrbit())
             {
-                return node.Evaluate();
+                return NodeState.Success;
             }
             else
             {

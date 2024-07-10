@@ -174,28 +174,25 @@ namespace Starfire
             return finalWeightedDirection;
         }
 
-        public Vector2 CircleTarget(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition)
+        public override Vector2 AddCircleTargetBias(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float orbitRadius, int orbitDirection)
         {
-            if (Vector2.Distance(ourShipPosition, targetShipPosition) < 80f)
+            if (Vector2.Distance(ourShipPosition, targetShipPosition) < orbitRadius)
             {
                 TimeSpentCircling += Time.deltaTime;
                 TimeSpentNotCircling = 0f;
-
                 float predictionTime = 1f;
                 Vector2 predictedPlayerPosition = targetShipPosition + (ourShipVelocity * predictionTime);
                 Vector2 newPlayerDirection = predictedPlayerPosition - ourShipPosition;
-                Vector2 newBiasDirection = Vector2.Perpendicular(newPlayerDirection).normalized;
-
+                Vector2 newBiasDirection = Vector2.Perpendicular(newPlayerDirection).normalized * orbitDirection;
                 float distance = Vector2.Distance(ourShipPosition, targetShipPosition);
-                float biasMagnitude = Mathf.InverseLerp(60, 0, distance);
+                float biasMagnitude = Mathf.InverseLerp(orbitRadius, 0, distance);
                 float playerVelocity = ourShipVelocity.magnitude;
                 float biasMultiplier = 4f;
-                
+               
                 if (playerVelocity > 50f)
                 {
                     biasMultiplier = 2f;
                 }
-
                 weightedDirection += newBiasDirection * (biasMagnitude * biasMultiplier);
                 weightedDirection.Normalize();
             }
@@ -204,7 +201,6 @@ namespace Starfire
                 TimeSpentNotCircling += Time.deltaTime;
                 TimeSpentCircling = 0f;
             }
-
             return weightedDirection;
         }
     }

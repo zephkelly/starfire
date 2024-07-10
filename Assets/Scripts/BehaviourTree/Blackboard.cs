@@ -9,9 +9,12 @@ namespace Starfire
 
         private Dictionary<Ship, int> immediateThreats = new Dictionary<Ship, int>();
         private object currentTarget = null;
+        private Vector2 currentHeading = Vector2.zero;
+    
 
         public IReadOnlyDictionary<Ship, int> ImmediateThreats => immediateThreats;
         public object CurrentTarget => currentTarget;
+        public Vector2 CurrentHeading => currentHeading;
 
         public void SetFleetBlackboard(FleetBlackboard _fleetBlackboard)
         {
@@ -46,6 +49,11 @@ namespace Starfire
         public void SetCurrentTarget<T>(T newTarget)
         {
             currentTarget = newTarget;
+        }
+
+        public void SetCurrentHeadingAndNormalise(Vector2 newHeading)
+        {
+            currentHeading = newHeading.normalized;
         }
 
         public void ClearCurrentTarget()

@@ -26,8 +26,6 @@ namespace Starfire
         {
             ship = _ship;
             aiCore = _ship.AICore;
-
-            // raycastAvoidanceLayers = GetRaycastTargetLayers();
         }
 
         private LayerMask GetRaycastTargetLayers()

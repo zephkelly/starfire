@@ -9,11 +9,12 @@ namespace Starfire
     //         |-- Perform Evasive Maneuvers
     //         |-- Counter-Attack (Sequence)
     //             |-- Choose Target (store in blackboard)
+    //             |-- GetDirectionToTarget (store in blackboard)
     //             |-- Engage Target (Selector)
     //                 |-- Close Range Engagement (Sequence)
     //                     |-- Check If Close Range
-    //                     |-- Choose Orbit Direction (store in blackboard)
-    //                     |-- Add Orbital Bias to Direction
+    //                     |-- AddCircleBiasToHeading
+    //                     |-- Move Towards Heading
     //                 |-- Medium Range Engagement (Sequence)
     //                     |-- Check If Medium Range
     //                     |-- Move Towards Target Direction
@@ -85,10 +86,16 @@ namespace Starfire
             var respondToThreatsSelector = new SelectorNode();
             var counterAttackSequence = new SequenceNode();
             var engageTargetSelector = new SelectorNode();
+            var closeRangeEngagementSequence = new SequenceNode();
 
-            engageTargetSelector.AddNode(moveToTargetNode);
+            closeRangeEngagementSequence.AddNode(new CheckIfCloseRange(ship));
+            closeRangeEngagementSequence.AddNode(new AddCircleBiasToHeading(ship));
+            closeRangeEngagementSequence.AddNode(new MoveToHeading(ship));
+
+            engageTargetSelector.AddNode(closeRangeEngagementSequence);
 
             counterAttackSequence.AddNode(chooseTargetNode);
+            counterAttackSequence.AddNode(new GetHeadingToTarget(ship));
             counterAttackSequence.AddNode(engageTargetSelector);
 
             respondToThreatsSelector.AddNode(evasiveManeuversNode);
@@ -123,9 +130,8 @@ namespace Starfire
             behaviourTree.Evaluate();
         }
 
-        public virtual Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f)
-        {
-            return Vector2.zero;
-        }
+        public abstract Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f);
+
+        public abstract Vector2 AddCircleTargetBias(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float orbitDistance, int orbitDirection);
     }
 }

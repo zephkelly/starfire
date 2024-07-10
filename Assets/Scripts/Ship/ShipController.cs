@@ -149,7 +149,7 @@ namespace Starfire
             }
 
             float velocityPercentage = shipRigidBody.velocity.magnitude / Ship.Configuration.WarpMaxSpeed;
-            float newMoveSpeed = Mathf.Lerp(moveSpeed / 8, Ship.Configuration.WarpMaxSpeed / 8, velocityPercentage);
+            float newMoveSpeed = Mathf.Lerp(moveSpeed, Ship.Configuration.WarpMaxSpeed, velocityPercentage);
 
             if (boost is true)
             {
