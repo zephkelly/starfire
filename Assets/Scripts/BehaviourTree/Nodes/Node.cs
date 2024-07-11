@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Starfire
 {
     public abstract class Node
@@ -15,6 +17,7 @@ namespace Starfire
         protected virtual void Initialise() { }
 
         protected virtual void Terminate() { }
+
         public NodeState Evaluate()
         {
             Initialise();
@@ -26,6 +29,15 @@ namespace Starfire
             return state;
         }
 
+        public virtual void FixedEvaluate()
+        {
+            if (state == NodeState.Running)
+            {
+                OnFixedEvaluate();
+            }
+        }
+
         protected abstract NodeState OnEvaluate();
+        protected virtual void OnFixedEvaluate() { }
     }
 }

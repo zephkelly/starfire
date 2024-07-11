@@ -62,7 +62,7 @@ namespace Starfire
             return targetPosition;
         }
 
-        public Vector2 GetTargetPosition(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, LayerMask whichRaycastableLayers, float chaseRadius = 60f)
+        public override Vector2 GetTargetPosition(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, LayerMask whichRaycastableLayers, float chaseRadius = 60f)
         {
             Vector2 directionToPlayer = targetShipPosition - ourShipPosition;
             Vector2 lastKnownPlayerPosition = Vector2.zero;
@@ -81,7 +81,7 @@ namespace Starfire
                     continue;
                 }
 
-                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                if (hit.collider.gameObject.layer == whichRaycastableLayers)
                 {
                     return hit.point;
                 }
@@ -174,34 +174,51 @@ namespace Starfire
             return finalWeightedDirection;
         }
 
-        public override Vector2 AddCircleTargetBias(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float orbitRadius, int orbitDirection)
-        {
-            if (Vector2.Distance(ourShipPosition, targetShipPosition) < orbitRadius)
-            {
-                TimeSpentCircling += Time.deltaTime;
-                TimeSpentNotCircling = 0f;
-                float predictionTime = 1f;
-                Vector2 predictedPlayerPosition = targetShipPosition + (ourShipVelocity * predictionTime);
-                Vector2 newPlayerDirection = predictedPlayerPosition - ourShipPosition;
-                Vector2 newBiasDirection = Vector2.Perpendicular(newPlayerDirection).normalized * orbitDirection;
-                float distance = Vector2.Distance(ourShipPosition, targetShipPosition);
-                float biasMagnitude = Mathf.InverseLerp(orbitRadius, 0, distance);
-                float playerVelocity = ourShipVelocity.magnitude;
-                float biasMultiplier = 4f;
-               
-                if (playerVelocity > 50f)
-                {
-                    biasMultiplier = 2f;
-                }
-                weightedDirection += newBiasDirection * (biasMagnitude * biasMultiplier);
-                weightedDirection.Normalize();
-            }
-            else
-            {
-                TimeSpentNotCircling += Time.deltaTime;
-                TimeSpentCircling = 0f;
-            }
-            return weightedDirection;
-        }
+        // private int lastOrbitDirection = 0;
+        // private float orbitChangeTimer = 0f;
+        // private const float OrbitChangeDuration = 1.5f;
+        // public override Vector2 AddCircleTargetBias(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float orbitRadius, int orbitDirection)
+        // {
+        //     float distanceToTarget = Vector2.Distance(ourShipPosition, targetShipPosition);
+
+        //     if (distanceToTarget < orbitRadius)
+        //     {
+        //         TimeSpentCircling += Time.deltaTime;
+        //         TimeSpentNotCircling = 0f;
+
+        //         Vector2 targetDirection = (targetShipPosition - ourShipPosition).normalized;
+        //         Vector2 orbitTangent = Vector2.Perpendicular(targetDirection) * orbitDirection;
+
+        //         if (orbitDirection != lastOrbitDirection)
+        //         {
+        //             orbitChangeTimer = OrbitChangeDuration;
+        //             lastOrbitDirection = orbitDirection;
+        //         }
+
+        //         Vector2 biasDirection = orbitTangent;
+
+        //         if (orbitChangeTimer > 0)
+        //         {
+        //             orbitChangeTimer -= Time.deltaTime;
+        //             float outwardBiasStrength = Mathf.Clamp01(orbitChangeTimer / OrbitChangeDuration);
+        //             Vector2 outwardBias = -targetDirection * outwardBiasStrength;
+        //             biasDirection = (orbitTangent + outwardBias).normalized;
+        //         }
+
+        //         float biasMagnitude = Mathf.InverseLerp(orbitRadius, 0, distanceToTarget);
+        //         float playerVelocityMagnitude = ourShipVelocity.magnitude;
+        //         float biasMultiplier = playerVelocityMagnitude > 50f ? 3f : 5f;
+
+        //         weightedDirection += biasDirection * (biasMagnitude * biasMultiplier);
+        //         weightedDirection.Normalize();
+        //     }
+        //     else
+        //     {
+        //         TimeSpentNotCircling += Time.deltaTime;
+        //         TimeSpentCircling = 0f;
+        //     }
+
+        //     return weightedDirection;
+        // }
     }
 }

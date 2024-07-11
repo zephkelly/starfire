@@ -13,12 +13,14 @@ namespace Starfire
     //             |-- Engage Target (Selector)
     //                 |-- Close Range Engagement (Sequence)
     //                     |-- Check If Close Range
-    //                     |-- Location behaviour (Selector)
+    //                     |-- Location specific behaviour (Selector)
     //                         |-- Star orbit behaviour (Sequence)    
     //                             |-- Check If In Star's Orbit
     //                             |-- SimpleMoveToTarget
-    //                         |-- Standard behaviour (Sequence)
-    //                             |-- AddCircleBiasToHeading (store in blackboard)
+    //                         |-- Follow procedure (Sequence)
+    //                             |-- Engagement Behaviour (Selector)
+    //                                 |-- Steer to Target Stern (blackboard heading)
+    //                                 |-- AddCircleBiasToHeading (store in blackboard)
     //                             |-- Move Towards Heading
     //                 |-- Medium Range Engagement (Sequence)
     //                     |-- Check If Medium Range
@@ -90,12 +92,16 @@ namespace Starfire
             var locationBehaviourSelector = new SelectorNode();
             var starOrbitBehaviourSequence = new SequenceNode();
             var standardBehaviourSequence = new SequenceNode();
+            var followProcedureSelector = new SelectorNode();
 
-            standardBehaviourSequence.AddNode(new AddCircleBiasToHeading(ship));
+            followProcedureSelector.AddNode(new SteerToTargetStern(ship, 60f, 35f));
+            followProcedureSelector.AddNode(new AddCircleTargetBias(ship, 150f, 8f));
+
+            standardBehaviourSequence.AddNode(followProcedureSelector);
             standardBehaviourSequence.AddNode(new MoveToHeading(ship));
 
             starOrbitBehaviourSequence.AddNode(new CheckIfInStarOrbit(ship));
-            starOrbitBehaviourSequence.AddNode(new SimpleMoveToTarget(ship, 100f));
+            starOrbitBehaviourSequence.AddNode(new SimpleMoveToTarget(ship, 140f));
 
             locationBehaviourSelector.AddNode(starOrbitBehaviourSequence);
             locationBehaviourSelector.AddNode(standardBehaviourSequence);
@@ -141,8 +147,16 @@ namespace Starfire
             behaviourTree.Evaluate();
         }
 
+        public virtual void FixedUpdate()
+        {
+            if (behaviourTree == null) return;
+            behaviourTree.FixedEvaluate();
+        }
+
         public abstract Vector2 CalculateAvoidanceSteeringDirection(GameObject ourShipObject, Vector2 ourShipPosition, float ourShipVelocityMagnitude, Vector2 currentDirection, LayerMask whichRaycastableLayers, int numberOfRays, float collisionCheckRadius = 30f);
 
-        public abstract Vector2 AddCircleTargetBias(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float orbitDistance, int orbitDirection);
+        public abstract Vector2 GetTargetPosition(GameObject ourShipObject, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, LayerMask whichRaycastableLayers, float chaseRadius = 60f);
+
+        // public abstract Vector2 AddCircleTargetBias(Vector2 weightedDirection, Vector2 ourShipPosition, Vector2 ourShipVelocity, Vector2 targetShipPosition, float orbitDistance, int orbitDirection);
     }
 }

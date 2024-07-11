@@ -19,8 +19,6 @@ namespace Starfire
                 return state;
             }
 
-            Debug.Log("No immediate threats found");
-
             state = NodeState.Failure;
             return NodeState.Failure;
         }

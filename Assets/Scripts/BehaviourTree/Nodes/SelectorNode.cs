@@ -32,5 +32,16 @@ namespace Starfire
 
             return NodeState.Failure;
         }
+
+        protected override void OnFixedEvaluate()
+        {
+            foreach (Node node in nodes)
+            {
+                if (node.CurrentNodeState == NodeState.Running)
+                {
+                    node.FixedEvaluate();
+                }
+            }
+        }
     }
 }

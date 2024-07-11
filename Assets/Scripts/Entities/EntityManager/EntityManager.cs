@@ -38,7 +38,7 @@ namespace Starfire
 
             var randomFleetNumber = Random.Range(6, 8);
             
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < randomFleetNumber; i++)
             {
                 Vector2 position = new Vector2(i * 20, 0);
                 var paladinPrefab = Resources.Load<GameObject>("Prefabs/Entities/Paladin");

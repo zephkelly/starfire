@@ -8,7 +8,7 @@ namespace Starfire
 
 
         private int numberOfRays = 16;
-        private float collisionCheckRadius = 20f;
+        private float collisionCheckRadius = 60f;
 
         private LayerMask whichRaycastableLayers = LayerMask.GetMask("Player", "Friend");
 
@@ -27,6 +27,14 @@ namespace Starfire
 
             Vector2 currentHeading = ship.AICore.Blackboard.CurrentHeading;
 
+            currentHeading = ship.AICore.GetTargetPosition(
+                ship.Controller.ShipObject,
+                ship.Controller.ShipTransform.position,
+                ship.Controller.ShipRigidBody.velocity,
+                ship.AICore.Blackboard.GetCurrentTargetPosition(),
+                whichRaycastableLayers
+            );
+
             currentHeading = ship.AICore.CalculateAvoidanceSteeringDirection(
                 ship.Controller.ShipObject,
                 ship.Controller.ShipTransform.position,
@@ -39,12 +47,15 @@ namespace Starfire
 
             Vector2 shipPosition = ship.Controller.ShipTransform.position;
             Vector2 targetPosition = ship.AICore.Blackboard.GetCurrentTargetPosition();
-
-            float thrusterMaxSpeed = ship.Configuration.ThrusterMaxSpeed;
-            ship.Controller.MoveInDirection(ship.AICore.Blackboard.CurrentHeading, thrusterMaxSpeed, true);
             
             state = NodeState.Running;
             return state;
+        }
+
+        protected override void OnFixedEvaluate()
+        {
+            float thrusterMaxSpeed = ship.Configuration.ThrusterMaxSpeed;
+            ship.Controller.MoveInDirection(ship.AICore.Blackboard.CurrentHeading, thrusterMaxSpeed, true);
         }
     }
 }
