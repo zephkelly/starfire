@@ -115,7 +115,7 @@ namespace Starfire
 
             // Set last active stats
             lastActiveTime = Time.time;
-            lastActiveVelocity = _planetRigid2D.velocity;
+            lastActiveVelocity = _planetRigid2D.linearVelocity;
             lastActivePosition = (Vector2)_planetObject.transform.position - _planetCelestialBehaviour.ParentOrbitingBody.WorldPosition;
 
             // Release object

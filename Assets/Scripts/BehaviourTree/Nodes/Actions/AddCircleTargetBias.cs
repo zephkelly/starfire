@@ -88,7 +88,7 @@ namespace Starfire
             }
 
             float biasMagnitude = Mathf.InverseLerp(currentOrbitRadius, 0, distanceToTarget);
-            float playerVelocityMagnitude = ship.Controller.ShipRigidBody.velocity.magnitude;
+            float playerVelocityMagnitude = ship.Controller.ShipRigidBody.linearVelocity.magnitude;
             float biasMultiplier = playerVelocityMagnitude > 50f ? 3f : 5f;
 
             Vector2 newDirection = currentHeading + biasDirection * (biasMagnitude * biasMultiplier);

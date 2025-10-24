@@ -87,7 +87,7 @@ namespace Starfire
             const int maxWarpFuelUsage = 10;
             const int minWarpFuelUsage = 0;
 
-            int warpFuelUsage = (int) Mathf.Lerp(maxWarpFuelUsage, minWarpFuelUsage, shipController.ShipRigidBody.velocity.magnitude / (WarpMaxSpeed * 0.8f));
+            int warpFuelUsage = (int) Mathf.Lerp(maxWarpFuelUsage, minWarpFuelUsage, shipController.ShipRigidBody.linearVelocity.magnitude / (WarpMaxSpeed * 0.8f));
             if (shipController.IsOrbiting) warpFuelUsage = 4;
             WarpFuel -= warpFuelUsage;
         }

@@ -11,7 +11,7 @@ namespace Starfire
     private const float G = 0.2f;
     private List<Rigidbody2D> orbitingBodies = new List<Rigidbody2D>();
 
-    public Vector2 GetVelocity() => celestialRigidbody.velocity;
+    public Vector2 GetVelocity() => celestialRigidbody.linearVelocity;
 
     private void Awake()
     {
@@ -62,9 +62,9 @@ namespace Starfire
         Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
         Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
         Vector2 appliedOrbitalVelocity = perpendicularDirection * Mathf.Sqrt((G * starMass) / distanceToStar);
-        Vector2 deltaVelocity = appliedOrbitalVelocity - _body.velocity;
+        Vector2 deltaVelocity = appliedOrbitalVelocity - _body.linearVelocity;
 
-        _body.velocity += deltaVelocity;
+        _body.linearVelocity += deltaVelocity;
     }
 
     public Vector2 GetOrbitalVelocity(Rigidbody2D _body)
@@ -84,7 +84,7 @@ namespace Starfire
         Vector2 directionToStar = (celestialRigidbody.position - _body.position).normalized;
         Vector2 perpendicularDirection = Vector2.Perpendicular(directionToStar);
 
-        return Vector2.Dot(perpendicularDirection, _body.velocity) > 0 ? 1 : -1;
+        return Vector2.Dot(perpendicularDirection, _body.linearVelocity) > 0 ? 1 : -1;
     }
 
     public float GetThermalGradient(float _objectDistance)

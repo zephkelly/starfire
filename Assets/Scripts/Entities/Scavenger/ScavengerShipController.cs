@@ -43,7 +43,7 @@ namespace Starfire
 
                 GameObject healthPickup = Instantiate(healthPickupPrefab, transform.position + (randomDirection * 1), Quaternion.identity);
                 healthPickup.TryGetComponent(out Rigidbody2D healthPickupRigidbody);
-                healthPickupRigidbody.velocity = shipRigidBody.velocity;
+                healthPickupRigidbody.linearVelocity = shipRigidBody.linearVelocity;
                 healthPickup.GetComponent<Rigidbody2D>().AddForce(randomDirection * explosionForce, ForceMode2D.Impulse);
             }
 

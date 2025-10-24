@@ -5,7 +5,6 @@ namespace Starfire
     public class SimpleMoveToTarget : Node
     {
         private Ship ship;
-        private IAICore aiCore;
         // 
 
         private Vector2 movementLerpVector;
@@ -25,7 +24,6 @@ namespace Starfire
         public SimpleMoveToTarget(Ship _ship, float targetReachedThreshold)
         {
             ship = _ship;
-            aiCore = _ship.AICore;
             this.targetReachedThreshold = targetReachedThreshold;
         }
 
@@ -67,10 +65,10 @@ namespace Starfire
 
         private void SteerShipToTarget()
         {
-            Vector2 weightedDirection = aiCore.CalculateAvoidanceSteeringDirection(
+            Vector2 weightedDirection = ship.AICore.CalculateAvoidanceSteeringDirection(
                 ship.Controller.ShipObject,
                 ship.Controller.ShipTransform.position,
-                ship.Controller.ShipRigidBody.velocity.magnitude,
+                ship.Controller.ShipRigidBody.linearVelocity.magnitude,
                 ship.AICore.Blackboard.GetCurrentTargetPosition(),
                 raycastTargetLayers,
                 numberOfRays,

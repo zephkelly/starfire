@@ -90,9 +90,9 @@ namespace Starfire
             Ship.AICore.Update();
             ShipStateMachine.Update();
 
-            if (shipRigidBody.velocity.magnitude < 0.5f)
+            if (shipRigidBody.linearVelocity.magnitude < 0.5f)
             {
-                SetThrusters(true, shipRigidBody.velocity.normalized, false);
+                SetThrusters(true, shipRigidBody.linearVelocity.normalized, false);
             }
         }
 
@@ -150,7 +150,7 @@ namespace Starfire
                 return;
             }
 
-            float velocityPercentage = shipRigidBody.velocity.magnitude / Ship.Configuration.WarpMaxSpeed;
+            float velocityPercentage = shipRigidBody.linearVelocity.magnitude / Ship.Configuration.WarpMaxSpeed;
             float newMoveSpeed = Mathf.Lerp(moveSpeed, Ship.Configuration.WarpMaxSpeed, velocityPercentage);
 
             if (boost is true)
@@ -172,9 +172,9 @@ namespace Starfire
             }
 
             //if the ship is moving faster than the max speed, clamp it
-            if (shipRigidBody.velocity.magnitude > Ship.Configuration.WarpMaxSpeed)
+            if (shipRigidBody.linearVelocity.magnitude > Ship.Configuration.WarpMaxSpeed)
             {
-                shipRigidBody.velocity = shipRigidBody.velocity.normalized * Ship.Configuration.WarpMaxSpeed;
+                shipRigidBody.linearVelocity = shipRigidBody.linearVelocity.normalized * Ship.Configuration.WarpMaxSpeed;
             }
 
             if (warpFuelTimer > 0)
@@ -410,16 +410,16 @@ namespace Starfire
 
         private void ApplyOrbitalDrag()
         {
-            Vector2 orbitalDragX = new Vector2(orbitalVelocity.x - shipRigidBody.velocity.x, 0);
-            Vector2 orbitalDragY = new Vector2(0, orbitalVelocity.y - shipRigidBody.velocity.y);
+            Vector2 orbitalDragX = new Vector2(orbitalVelocity.x - shipRigidBody.linearVelocity.x, 0);
+            Vector2 orbitalDragY = new Vector2(0, orbitalVelocity.y - shipRigidBody.linearVelocity.y);
 
             //Orbital drag
-            if (shipRigidBody.velocity.x > orbitalVelocity.x || shipRigidBody.velocity.x < orbitalVelocity.x)
+            if (shipRigidBody.linearVelocity.x > orbitalVelocity.x || shipRigidBody.linearVelocity.x < orbitalVelocity.x)
             {
                 shipRigidBody.AddForce(orbitalDragX * shipRigidBody.mass, ForceMode2D.Force);
             }
 
-            if (shipRigidBody.velocity.y > orbitalVelocity.y || shipRigidBody.velocity.y < orbitalVelocity.y)
+            if (shipRigidBody.linearVelocity.y > orbitalVelocity.y || shipRigidBody.linearVelocity.y < orbitalVelocity.y)
             {
                 shipRigidBody.AddForce(orbitalDragY * shipRigidBody.mass, ForceMode2D.Force);
             } 
@@ -437,19 +437,19 @@ namespace Starfire
 
         protected void ApplyLinearDrag()
         {
-            float currentSpeed = shipRigidBody.velocity.magnitude;
+            float currentSpeed = shipRigidBody.linearVelocity.magnitude;
             float thrusterSpeed = 160f;
 
             if (currentSpeed > thrusterSpeed)
             {
-                shipRigidBody.AddForce((-shipRigidBody.velocity * 0.8f) * shipRigidBody.mass, ForceMode2D.Force);
+                shipRigidBody.AddForce((-shipRigidBody.linearVelocity * 0.8f) * shipRigidBody.mass, ForceMode2D.Force);
             }
             else
             {
-                shipRigidBody.AddForce(-shipRigidBody.velocity * shipRigidBody.mass, ForceMode2D.Force);
+                shipRigidBody.AddForce(-shipRigidBody.linearVelocity * shipRigidBody.mass, ForceMode2D.Force);
             }
 
-            if (shipRigidBody.velocity.magnitude < 0.1f) shipRigidBody.velocity = Vector2.zero;
+            if (shipRigidBody.linearVelocity.magnitude < 0.1f) shipRigidBody.linearVelocity = Vector2.zero;
         }
 
         protected virtual void AimWeapons(Vector2 targetPosition)

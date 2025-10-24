@@ -59,7 +59,7 @@ namespace Starfire
         mouseLerpPosition = (mainCamera.ScreenToWorldPoint(Input.mousePosition) - target.position).normalized;
         mouseLerpPosition.y = mouseLerpPosition.y * 1.4f;   //beacuse the camera is wider than it is tall
 
-        targetVelocityMagnitude = targetRigidbody.velocity.magnitude;
+        targetVelocityMagnitude = targetRigidbody.linearVelocity.magnitude;
 
         UpdateZoom();
     }

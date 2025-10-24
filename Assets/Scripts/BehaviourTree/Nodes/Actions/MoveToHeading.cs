@@ -30,7 +30,7 @@ namespace Starfire
             currentHeading = ship.AICore.GetTargetPosition(
                 ship.Controller.ShipObject,
                 ship.Controller.ShipTransform.position,
-                ship.Controller.ShipRigidBody.velocity,
+                ship.Controller.ShipRigidBody.linearVelocity,
                 ship.AICore.Blackboard.GetCurrentTargetPosition(),
                 whichRaycastableLayers
             );
@@ -38,7 +38,7 @@ namespace Starfire
             currentHeading = ship.AICore.CalculateAvoidanceSteeringDirection(
                 ship.Controller.ShipObject,
                 ship.Controller.ShipTransform.position,
-                ship.Controller.ShipRigidBody.velocity.magnitude,
+                ship.Controller.ShipRigidBody.linearVelocity.magnitude,
                 currentHeading,
                 whichRaycastableLayers,
                 numberOfRays,

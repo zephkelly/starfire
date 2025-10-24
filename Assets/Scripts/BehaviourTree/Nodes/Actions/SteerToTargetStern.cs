@@ -73,8 +73,8 @@ namespace Starfire
 
         private float DotProductOfHeadingDirection(Ship currentTarget)
         {
-            Vector2 ourVelocity = ship.Controller.ShipRigidBody.velocity;
-            Vector2 targetVelocity = currentTarget.Controller.ShipRigidBody.velocity;
+            Vector2 ourVelocity = ship.Controller.ShipRigidBody.linearVelocity;
+            Vector2 targetVelocity = currentTarget.Controller.ShipRigidBody.linearVelocity;
             
             if (ourVelocity.magnitude > 0.1f && targetVelocity.magnitude > 0.1f)
             {
@@ -87,7 +87,7 @@ namespace Starfire
         private Vector2 SetHeadingToTargetStern(Ship currentTarget, Vector2 currentHeading, float headingDotProduct)
         {
             Vector2 targetPosition = currentTarget.Controller.ShipTransform.position;
-            Vector2 targetVelocity = currentTarget.Controller.ShipRigidBody.velocity;
+            Vector2 targetVelocity = currentTarget.Controller.ShipRigidBody.linearVelocity;
             Vector2 shipPosition = ship.Controller.ShipTransform.position;
 
             Vector2 directionToTarget = (targetPosition - shipPosition).normalized;

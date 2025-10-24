@@ -54,37 +54,37 @@ namespace Starfire
         //         return;
         //     }
 
-        //     // Vector2 lastKnownTargetPosition = _shipCore.GetTargetPosition(
-        //     //     _scavengerObject,
-        //     //     _scavengerTransform.position,
-        //     //     _scavengerRigid2D.velocity,
-        //     //     _currentCommand.GetTargetPosition(), 
-        //     //     whichRaycastableTargetLayers,
-        //     //     chaseRadius
-        //     // );
+        //     Vector2 lastKnownTargetPosition = _shipCore.GetTargetPosition(
+        //         _scavengerObject,
+        //         _scavengerTransform.position,
+        //         _scavengerRigid2D.velocity,
+        //         _currentCommand.GetTargetPosition(), 
+        //         whichRaycastableTargetLayers,
+        //         chaseRadius
+        //     );
 
-        //     // Vector2 weightedDirection = _shipCore.FindBestDirection(
-        //     //     _scavengerObject,
-        //     //     _scavengerTransform.position, 
-        //     //     lastKnownTargetPosition,
-        //     //     _scavengerRigid2D.velocity.magnitude,
-        //     //     numberOfRays,
-        //     //     whichRaycastableAvoidanceLayers,
-        //     //     collisionCheckRadius
-        //     // );
+        //     Vector2 weightedDirection = _shipCore.FindBestDirection(
+        //         _scavengerObject,
+        //         _scavengerTransform.position, 
+        //         lastKnownTargetPosition,
+        //         _scavengerRigid2D.velocity.magnitude,
+        //         numberOfRays,
+        //         whichRaycastableAvoidanceLayers,
+        //         collisionCheckRadius
+        //     );
 
-        //     // weightedDirection = _shipCore.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
-        //     // bool isPlayerInSight = _shipCore.IsTargetWithinSight(_scavengerTransform.position, _scavengerTransform.up,  lastKnownTargetPosition, targetSightDistance, targetSightAngle);
+        //     weightedDirection = _shipCore.CircleTarget(weightedDirection, _scavengerTransform.position, _scavengerRigid2D.velocity, lastKnownTargetPosition);
+        //     bool isPlayerInSight = _shipCore.IsTargetWithinSight(_scavengerTransform.position, _scavengerTransform.up,  lastKnownTargetPosition, targetSightDistance, targetSightAngle);
 
-        //     // if (_shipCore.CanFireProjectile() && isPlayerInSight)
-        //     // {
-        //     //     Vector2 firingPosition = _shipCore.GetProjectileFiringPosition(
-        //     //         _scavengerTransform.position,
-        //     //         lastKnownTargetPosition
-        //     //     );
+        //     if (_shipCore.CanFireProjectile() && isPlayerInSight)
+        //     {
+        //         Vector2 firingPosition = _shipCore.GetProjectileFiringPosition(
+        //             _scavengerTransform.position,
+        //             lastKnownTargetPosition
+        //         );
 
-        //     //     _shipController.FireProjectileToPosition(firingPosition);
-        //     // }
+        //         _shipController.FireProjectileToPosition(firingPosition);
+        //     }
         // }
 
         // public void FixedUpdate()
