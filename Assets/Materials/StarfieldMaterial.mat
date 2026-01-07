@@ -41,15 +41,26 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _ColorVariation: 0.447
+    - _EdgeSharpness: 0.106
     - _EnableExternalAlpha: 0
-    - _ParallaxFactor: 0.02
-    - _StarBrightness: 1
-    - _StarDensity: 20
+    - _ParallaxFactor: 0.1
+    - _RenderBackground: 1
+    - _SizeDistribution: 0.888
+    - _SpawnChance: 0.578
+    - _StarBrightness: 0.655
+    - _StarDensity: 4.7
     - _StarSize: 0.1
+    - _StarSizeMax: 0.02
+    - _StarSizeMin: 0.01
+    - _TwinkleAmount: 0.837
+    - _TwinkleSpeed: 1.486
+    - _WarmCoolMix: 0.502
     - _ZWrite: 0
     m_Colors:
     - _BackgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _StarColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

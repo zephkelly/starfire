@@ -222,7 +222,7 @@ Transform:
   m_GameObject: {fileID: 426350009}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 36.6, y: 22.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -337,7 +337,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 15
+  orthographic size: 25
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -362,7 +362,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 1.8, y: 1.9, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -377,12 +377,86 @@ MonoBehaviour:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 397d61c63dbfbaf4798a98e31b1cc170, type: 3}
+  m_Script: {fileID: 11500000, guid: 7538f1efbbf206f488ebfe5a88069178, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.StarfieldBackground
-  starfieldMaterial: {fileID: 2100000, guid: c6ae54dcffd30e6488cbf2d9d47118a7, type: 2}
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.StarfieldManager
   backgroundDepth: 100
-  scaleMultiplier: 0.8
+  scaleMultiplier: 1.1
+  enableEditorPreview: 0
+  layers:
+  - rid: 2281391137234616388
+  - rid: 2281391137234616389
+  - rid: 2281391137234616387
+  references:
+    version: 2
+    RefIds:
+    - rid: 2281391137234616387
+      type: {class: StarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Stars 1
+        parallaxDepth: 0.03
+        density: 80
+        spawnChance: 0.001
+        brightness: 0.26
+        sizeMin: 0.1
+        sizeMax: 0.12
+        sizeDistribution: 0.248
+        twinkleSpeed: 1
+        twinkleAmount: 0.283
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        colorVariation: 0.416
+        warmCoolMix: 0.505
+        edgeSharpness: 0.032
+        renderBackground: 0
+        backgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
+        layerSeed: 0
+        clusterAmount: 0.3
+        clusterScale: 0.05
+    - rid: 2281391137234616388
+      type: {class: StarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Stars 2
+        parallaxDepth: 0.001
+        density: 7.3
+        spawnChance: 0.807
+        brightness: 0.316
+        sizeMin: 0.01
+        sizeMax: 0.015
+        sizeDistribution: 0.5
+        twinkleSpeed: 0.914
+        twinkleAmount: 0.925
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        colorVariation: 0.659
+        warmCoolMix: 0.431
+        edgeSharpness: 0.028
+        renderBackground: 1
+        backgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
+        layerSeed: 0
+        clusterAmount: 0.3
+        clusterScale: 0.05
+    - rid: 2281391137234616389
+      type: {class: ShootingStarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Shooting Stars 3
+        parallaxDepth: 0.001
+        spawnInterval: 30
+        spawnIntervalVariance: 15
+        maxActiveStars: 3
+        speed: 15
+        speedVariance: 8
+        trailLength: 4
+        noiseScale: 0.08
+        noiseInfluence: 0.167
+        baseAngle: 225
+        angleVariance: 30
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        brightness: 0.5
+        brightnessVariance: 0.252
+        starWidthMin: 0.09
+        starWidthMax: 0.15
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0

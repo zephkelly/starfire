@@ -40,11 +40,17 @@ namespace Starfire.Core.Background.Editor
             // Layers
             EditorGUILayout.LabelField("Layers", EditorStyles.boldLabel);
 
-            // Add layer button
-            if (GUILayout.Button("+ Add Star Layer", GUILayout.Height(25)))
+            // Add layer buttons
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+ Star Layer", GUILayout.Height(25)))
             {
                 AddStarLayer();
             }
+            if (GUILayout.Button("+ Shooting Stars", GUILayout.Height(25)))
+            {
+                AddShootingStarLayer();
+            }
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
 
@@ -130,6 +136,28 @@ namespace Starfire.Core.Background.Editor
                     EditorGUILayout.PropertyField(iterator, true);
                 }
 
+                // Add spawn button for ShootingStarLayer
+                if (layer is ShootingStarLayer shootingLayer)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Space(EditorGUI.indentLevel * 15);
+
+                    GUI.enabled = Application.isPlaying && shootingLayer.IsInitialized;
+                    if (GUILayout.Button("Spawn Shooting Star", GUILayout.Height(22)))
+                    {
+                        shootingLayer.SpawnStar();
+                    }
+                    GUI.enabled = true;
+
+                    if (!Application.isPlaying)
+                    {
+                        EditorGUILayout.HelpBox("Enter Play mode to spawn", MessageType.None);
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+
                 EditorGUI.indentLevel--;
             }
 
@@ -139,11 +167,31 @@ namespace Starfire.Core.Background.Editor
 
         private void AddStarLayer()
         {
-            // Create a new StarLayer instance
+            // Create a new StarLayer instance with unique seed
             var newLayer = new StarLayer
             {
                 layerName = $"Stars {_layers.arraySize + 1}",
-                renderBackground = _layers.arraySize == 0
+                renderBackground = _layers.arraySize == 0,
+                // Assign unique seed based on layer count to ensure different star positions per layer
+                layerSeed = _layers.arraySize
+            };
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
+        private void AddShootingStarLayer()
+        {
+            // Create a new ShootingStarLayer instance
+            var newLayer = new ShootingStarLayer
+            {
+                layerName = $"Shooting Stars {_layers.arraySize + 1}",
+                parallaxDepth = 0.01f
             };
 
             // Add to array using SerializeReference

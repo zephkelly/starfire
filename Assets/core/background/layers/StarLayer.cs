@@ -53,6 +53,18 @@ namespace Starfire.Core.Background.Layers
         public bool renderBackground = false;
         public Color backgroundColor = new Color(0, 0, 0.02f, 1);
 
+        [Header("Distribution")]
+        [Tooltip("Random seed for this layer's star positions (use different values per layer)")]
+        public int layerSeed = 0;
+
+        [Tooltip("How much clustering affects star density (0 = uniform, 1 = heavily clustered)")]
+        [Range(0f, 1f)]
+        public float clusterAmount = 0.3f;
+
+        [Tooltip("Scale of clusters (smaller = tighter clusters, larger = broader regions)")]
+        [Min(0.01f)]
+        public float clusterScale = 0.05f;
+
         // Shader property IDs (cached for performance)
         private static readonly int StarDensityID = Shader.PropertyToID("_StarDensity");
         private static readonly int SpawnChanceID = Shader.PropertyToID("_SpawnChance");
@@ -69,6 +81,9 @@ namespace Starfire.Core.Background.Layers
         private static readonly int BackgroundColorID = Shader.PropertyToID("_BackgroundColor");
         private static readonly int ParallaxFactorID = Shader.PropertyToID("_ParallaxFactor");
         private static readonly int RenderBackgroundID = Shader.PropertyToID("_RenderBackground");
+        private static readonly int LayerSeedID = Shader.PropertyToID("_LayerSeed");
+        private static readonly int ClusterAmountID = Shader.PropertyToID("_ClusterAmount");
+        private static readonly int ClusterScaleID = Shader.PropertyToID("_ClusterScale");
 
         public override Shader GetShader()
         {
@@ -92,6 +107,9 @@ namespace Starfire.Core.Background.Layers
             material.SetColor(BackgroundColorID, renderBackground ? backgroundColor : Color.clear);
             material.SetFloat(ParallaxFactorID, parallaxDepth);
             material.SetFloat(RenderBackgroundID, renderBackground ? 1f : 0f);
+            material.SetFloat(LayerSeedID, layerSeed);
+            material.SetFloat(ClusterAmountID, clusterAmount);
+            material.SetFloat(ClusterScaleID, clusterScale);
         }
     }
 }

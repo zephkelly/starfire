@@ -63,7 +63,11 @@ namespace Starfire.Core.Background
             _renderer.material = _material;
             _renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _renderer.receiveShadows = false;
-            _renderer.sortingOrder = sortOrder;
+
+            // Ensure background renders behind all sprites
+            // Use negative sorting order to stay behind default sprites (which start at 0)
+            _renderer.sortingLayerName = "Default";
+            _renderer.sortingOrder = -1000 + sortOrder;
 
             ConfigureMaterial(_material);
         }

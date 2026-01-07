@@ -30,6 +30,11 @@ Shader "Starfire/Starfield"
 
         [Header(Layer Mode)]
         [Toggle] _RenderBackground ("Render Background", Float) = 1
+
+        [Header(Distribution)]
+        _LayerSeed ("Layer Seed", Float) = 0
+        _ClusterAmount ("Cluster Amount", Range(0, 1)) = 0.3
+        _ClusterScale ("Cluster Scale", Float) = 0.05
     }
 
     SubShader
@@ -84,24 +89,62 @@ Shader "Starfire/Starfield"
                 float4 _BackgroundColor;
                 float _ParallaxFactor;
                 float _RenderBackground;
+                float _LayerSeed;
+                float _ClusterAmount;
+                float _ClusterScale;
             CBUFFER_END
 
             // Set from script
             float2 _CameraWorldPos;
             float _ScreenAspect;
 
-            // Hash function for pseudo-random values
-            float2 hash2(float2 p)
-            {
-                p = float2(dot(p, float2(127.1, 311.7)),
-                           dot(p, float2(269.5, 183.3)));
-                return frac(sin(p) * 43758.5453);
-            }
-
-            // Single value hash
+            // PCG-style hash functions - much longer period, no sin() periodicity issues
             float hash1(float2 p)
             {
-                return frac(sin(dot(p, float2(12.9898, 78.233))) * 43758.5453);
+                float3 p3 = frac(float3(p.xyx) * 0.1031);
+                p3 += dot(p3, p3.yzx + 33.33);
+                return frac((p3.x + p3.y) * p3.z);
+            }
+
+            float2 hash2(float2 p)
+            {
+                float3 p3 = frac(float3(p.xyx) * float3(0.1031, 0.1030, 0.0973));
+                p3 += dot(p3, p3.yzx + 33.33);
+                return frac((p3.xx + p3.yz) * p3.zy);
+            }
+
+            // Gradient function for Perlin noise
+            float2 grad2(float2 p)
+            {
+                float angle = hash1(p) * 6.28318530718;
+                return float2(cos(angle), sin(angle));
+            }
+
+            // 2D Perlin noise for natural clustering
+            float perlin2D(float2 p)
+            {
+                float2 i = floor(p);
+                float2 f = frac(p);
+
+                // Quintic interpolation curve
+                float2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+
+                // Get gradients at corners
+                float2 g00 = grad2(i + float2(0.0, 0.0));
+                float2 g10 = grad2(i + float2(1.0, 0.0));
+                float2 g01 = grad2(i + float2(0.0, 1.0));
+                float2 g11 = grad2(i + float2(1.0, 1.0));
+
+                // Compute dot products
+                float n00 = dot(g00, f - float2(0.0, 0.0));
+                float n10 = dot(g10, f - float2(1.0, 0.0));
+                float n01 = dot(g01, f - float2(0.0, 1.0));
+                float n11 = dot(g11, f - float2(1.0, 1.0));
+
+                // Bilinear interpolation
+                float nx0 = lerp(n00, n10, u.x);
+                float nx1 = lerp(n01, n11, u.x);
+                return lerp(nx0, nx1, u.y) * 0.5 + 0.5; // Normalize to 0-1
             }
 
             // HSV to RGB conversion
@@ -131,15 +174,20 @@ Shader "Starfire/Starfield"
             }
 
             // Generate stars for a single layer
-            float3 stars(float2 uv, float density, float sizeMin, float sizeMax, float sizeDistrib, float spawnChance, float twinkleSpeed, float twinkleAmount, float time, float aspect, float3 baseColor, float colorVariation, float warmCool, float edgeSharpness)
+            float3 stars(float2 uv, float density, float sizeMin, float sizeMax, float sizeDistrib, float spawnChance, float twinkleSpeed, float twinkleAmount, float time, float aspect, float3 baseColor, float colorVariation, float warmCool, float edgeSharpness, float layerSeed, float clusterAmount, float clusterScale)
             {
                 float3 result = float3(0, 0, 0);
 
                 // Correct for aspect ratio to make grid cells square
                 float2 aspectCorrectedUV = float2(uv.x * aspect, uv.y);
 
+                // Apply layer seed offset to break up alignment between layers
+                // Use hash to generate a unique large offset per layer seed
+                float2 layerOffset = hash2(float2(layerSeed * 127.1, layerSeed * 311.7)) * 1000.0;
+                float2 offsetUV = aspectCorrectedUV + layerOffset;
+
                 // Scale UV by density to create grid
-                float2 gridUV = aspectCorrectedUV * density;
+                float2 gridUV = offsetUV * density;
 
                 // Get grid cell ID
                 float2 cellID = floor(gridUV);
@@ -154,9 +202,17 @@ Shader "Starfire/Starfield"
                     {
                         float2 neighborCell = cellID + float2(x, y);
 
+                        // Calculate cluster noise for natural density variation
+                        float clusterNoise = perlin2D(neighborCell * clusterScale);
+                        // Modulate spawn chance: clusterAmount controls how much noise affects distribution
+                        // At clusterAmount=0: uniform distribution (original spawnChance)
+                        // At clusterAmount=1: heavily clustered (spawnChance varies 0.2x to 1.0x based on noise)
+                        float clusterModifier = lerp(1.0, 0.2 + clusterNoise * 0.8, clusterAmount);
+                        float adjustedSpawnChance = spawnChance * clusterModifier;
+
                         // Spawn chance - skip some cells entirely
                         float spawnRoll = hash1(neighborCell + 200.0);
-                        if (spawnRoll > spawnChance) continue;
+                        if (spawnRoll > adjustedSpawnChance) continue;
 
                         // Random position for star within this cell
                         float2 starPos = hash2(neighborCell);
@@ -214,8 +270,8 @@ Shader "Starfire/Starfield"
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
                 float2 parallaxUV = uv + parallaxOffset;
 
-                // Generate starfield with parallax, twinkling, color, and sharpness
-                float3 starValue = stars(parallaxUV, _StarDensity, _StarSizeMin, _StarSizeMax, _SizeDistribution, _SpawnChance, _TwinkleSpeed, _TwinkleAmount, _Time.y, _ScreenAspect, _StarColor.rgb, _ColorVariation, _WarmCoolMix, _EdgeSharpness);
+                // Generate starfield with parallax, twinkling, color, sharpness, and natural distribution
+                float3 starValue = stars(parallaxUV, _StarDensity, _StarSizeMin, _StarSizeMax, _SizeDistribution, _SpawnChance, _TwinkleSpeed, _TwinkleAmount, _Time.y, _ScreenAspect, _StarColor.rgb, _ColorVariation, _WarmCoolMix, _EdgeSharpness, _LayerSeed, _ClusterAmount, _ClusterScale);
 
                 // Apply brightness
                 starValue *= _StarBrightness;
