@@ -8,8 +8,8 @@ Shader "Starfire/Starfield"
         _StarBrightness ("Star Brightness", Range(0.1, 2.0)) = 1.0
 
         [Header(Star Size)]
-        _StarSizeMin ("Size Min", Range(0.01, 0.3)) = 0.02
-        _StarSizeMax ("Size Max", Range(0.02, 0.5)) = 0.15
+        [Min(0)] _StarSizeMin ("Size Min", Float) = 0.02
+        [Min(0)] _StarSizeMax ("Size Max", Float) = 0.15
         _SizeDistribution ("Size Distribution", Range(0, 1)) = 0.5
 
         [Header(Twinkle)]
@@ -26,14 +26,17 @@ Shader "Starfire/Starfield"
 
         [Header(Background)]
         _BackgroundColor ("Background Color", Color) = (0, 0, 0.02, 1)
-        _ParallaxFactor ("Parallax Factor", Range(0.001, 0.1)) = 0.02
+        [Min(0)] _ParallaxFactor ("Parallax Factor", Float) = 0.02
+
+        [Header(Layer Mode)]
+        [Toggle] _RenderBackground ("Render Background", Float) = 1
     }
 
     SubShader
     {
         Tags
         {
-            "RenderType" = "Opaque"
+            "RenderType" = "Transparent"
             "Queue" = "Background"
             "RenderPipeline" = "UniversalPipeline"
         }
@@ -45,6 +48,7 @@ Shader "Starfire/Starfield"
             Cull Off
             ZWrite Off
             ZTest Always
+            Blend One OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -79,6 +83,7 @@ Shader "Starfire/Starfield"
                 float _EdgeSharpness;
                 float4 _BackgroundColor;
                 float _ParallaxFactor;
+                float _RenderBackground;
             CBUFFER_END
 
             // Set from script
@@ -215,10 +220,21 @@ Shader "Starfire/Starfield"
                 // Apply brightness
                 starValue *= _StarBrightness;
 
-                // Combine with background
-                float3 finalColor = _BackgroundColor.rgb + starValue;
+                // Calculate star luminance for alpha
+                float starAlpha = saturate(dot(starValue, float3(0.299, 0.587, 0.114)) * 2.0);
 
-                return half4(finalColor, 1.0);
+                // Combine with background or output transparent
+                if (_RenderBackground > 0.5)
+                {
+                    // First layer: render background + stars, fully opaque
+                    float3 finalColor = _BackgroundColor.rgb + starValue;
+                    return half4(finalColor, 1.0);
+                }
+                else
+                {
+                    // Additional layers: stars only, additive with alpha
+                    return half4(starValue, starAlpha);
+                }
             }
 
             ENDHLSL

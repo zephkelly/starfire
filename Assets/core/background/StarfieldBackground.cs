@@ -5,8 +5,8 @@ namespace Starfire.Core.Background
     /// <summary>
     /// Creates and manages a full-screen quad for the starfield background.
     /// Attach this to your main camera or an empty GameObject in the scene.
-    /// Only creates the quad during play mode.
     /// </summary>
+    [ExecuteAlways]
     public class StarfieldBackground : MonoBehaviour
     {
         [Header("References")]
@@ -18,6 +18,10 @@ namespace Starfire.Core.Background
 
         [Tooltip("Extra scale multiplier for the quad size")]
         [SerializeField] private float scaleMultiplier = 1.1f;
+
+        [Header("Editor")]
+        [Tooltip("Enable to see the starfield in Scene view without entering Play mode")]
+        [SerializeField] private bool enableEditorPreview = false;
 
         private GameObject _quadObject;
         private MeshRenderer _meshRenderer;
@@ -39,7 +43,15 @@ namespace Starfire.Core.Background
                 _camera = FindFirstObjectByType<Camera>();
             }
 
-            CreateQuad();
+            if (ShouldRender())
+            {
+                CreateQuad();
+            }
+        }
+
+        private bool ShouldRender()
+        {
+            return Application.isPlaying || enableEditorPreview;
         }
 
         private void CleanupStaleQuads()
@@ -61,6 +73,8 @@ namespace Starfire.Core.Background
 
         private void LateUpdate()
         {
+            if (!ShouldRender()) return;
+
             if (_quadObject != null && _camera != null)
             {
                 UpdateQuadTransform();
@@ -186,9 +200,32 @@ namespace Starfire.Core.Background
 
         private void OnValidate()
         {
+            // Handle preview toggle changes in editor
+            if (!Application.isPlaying)
+            {
+                if (enableEditorPreview && _quadObject == null)
+                {
+                    // Find camera if not set
+                    if (_camera == null)
+                    {
+                        _camera = Camera.main;
+                        if (_camera == null)
+                        {
+                            _camera = FindFirstObjectByType<Camera>();
+                        }
+                    }
+                    CreateQuad();
+                }
+                else if (!enableEditorPreview && _quadObject != null)
+                {
+                    DestroyQuad();
+                }
+            }
+
             if (_quadObject != null && _camera != null)
             {
                 UpdateQuadTransform();
+                UpdateShaderProperties();
             }
         }
     }
