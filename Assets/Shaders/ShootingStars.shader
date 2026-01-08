@@ -40,7 +40,7 @@ Shader "Starfire/ShootingStars"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             // Maximum number of simultaneous shooting stars
-            #define MAX_STARS 8
+            #define MAX_STARS 264
 
             struct Attributes
             {
@@ -67,11 +67,12 @@ Shader "Starfire/ShootingStars"
             float2 _CameraWorldPos;
             float _ScreenAspect;
             float _CameraOrthoSize;
+            float _ReferenceZoom;
 
             // Set from script - shooting star data
             int _ActiveStarCount;
             float4 _StarPositions[MAX_STARS];    // xy = head position, zw = tail position (world space)
-            float4 _StarParams[MAX_STARS];       // x = brightness, y = progress (0-1), z = width, w = unused
+            float4 _StarParams[MAX_STARS];       // x = brightness (pre-multiplied with opacity), y = progress (0-1), z = width, w = behavior type
 
             // Distance from point to line segment
             float distToSegment(float2 p, float2 a, float2 b)
@@ -100,29 +101,39 @@ Shader "Starfire/ShootingStars"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                // Convert UV to world space
+                // Convert UV to world space with parallax
                 float2 uv = IN.uv;
 
                 // Calculate world position from UV
                 // UV 0-1 maps to camera view
                 float2 centeredUV = (uv - 0.5) * 2.0; // -1 to 1
-                float2 worldPos;
-                worldPos.x = centeredUV.x * _CameraOrthoSize * _ScreenAspect + _CameraWorldPos.x;
-                worldPos.y = centeredUV.y * _CameraOrthoSize + _CameraWorldPos.y;
 
-                // Apply parallax
-                worldPos += _CameraWorldPos * _ParallaxFactor;
+                // Depth-aware zoom: distant layers (low parallax) zoom less, nearby layers zoom more
+                // This matches the Starfield shader's behavior
+                float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
+                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
+                float effectiveOrthoSize = _ReferenceZoom * depthZoomFactor;
+
+                // Parallax coordinate space with depth-aware zoom
+                // - UV scaled by effectiveOrthoSize gives screen-space coordinates
+                // - Camera position scaled by parallax creates parallax movement effect
+                // - Low parallax = camera offset barely changes = distant layer effect
+                float2 worldPos;
+                worldPos.x = centeredUV.x * effectiveOrthoSize * _ScreenAspect + _CameraWorldPos.x * _ParallaxFactor;
+                worldPos.y = centeredUV.y * effectiveOrthoSize + _CameraWorldPos.y * _ParallaxFactor;
 
                 float3 result = float3(0, 0, 0);
 
                 // Check each active shooting star
                 for (int i = 0; i < _ActiveStarCount && i < MAX_STARS; i++)
                 {
-                    float2 headPos = _StarPositions[i].xy;
-                    float2 tailPos = _StarPositions[i].zw;
+                    // Positions scaled by parallax (same coordinate space as worldPos)
+                    float2 headPos = _StarPositions[i].xy * _ParallaxFactor;
+                    float2 tailPos = _StarPositions[i].zw * _ParallaxFactor;
                     float starBrightness = _StarParams[i].x;
                     float progress = _StarParams[i].y;
-                    float width = _StarParams[i].z;
+                    // Width is screen-relative: percentage of effectiveOrthoSize (matches coordinate space)
+                    float width = _StarParams[i].z * effectiveOrthoSize;
 
                     // Distance from pixel to the shooting star line
                     float dist = distToSegment(worldPos, tailPos, headPos);
@@ -146,12 +157,8 @@ Shader "Starfire/ShootingStars"
                     headCore = pow(headCore, 2.0) * 2.0;
 
                     // Combine trail and head
+                    // Note: starBrightness already includes behavior-specific opacity (calculated on CPU)
                     float intensity = (coreFalloff * trailGradient + headCore) * starBrightness;
-
-                    // Fade in at start, fade out at end
-                    float fadeIn = smoothstep(0.0, 0.1, progress);
-                    float fadeOut = 1.0 - smoothstep(0.9, 1.0, progress);
-                    intensity *= fadeIn * fadeOut;
 
                     result += intensity * _StarColor.rgb;
                 }

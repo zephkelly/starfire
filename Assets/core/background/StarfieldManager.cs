@@ -18,6 +18,10 @@ namespace Starfire.Core.Background
         [Tooltip("Extra scale multiplier for the quad size")]
         [SerializeField] private float scaleMultiplier = 1.1f;
 
+        [Header("Zoom Response")]
+        [Tooltip("Reference orthographic size for zoom scaling (default camera zoom)")]
+        [SerializeField] private float referenceZoom = 10f;
+
         [Header("Editor")]
         [Tooltip("Enable to see the starfield in Scene view without entering Play mode")]
         [SerializeField] private bool enableEditorPreview = false;
@@ -32,6 +36,8 @@ namespace Starfire.Core.Background
 
         private static readonly int CameraWorldPosID = Shader.PropertyToID("_CameraWorldPos");
         private static readonly int ScreenAspectID = Shader.PropertyToID("_ScreenAspect");
+        private static readonly int CameraOrthoSizeID = Shader.PropertyToID("_CameraOrthoSize");
+        private static readonly int ReferenceZoomID = Shader.PropertyToID("_ReferenceZoom");
 
         private void Awake()
         {
@@ -151,6 +157,8 @@ namespace Starfire.Core.Background
             Vector3 camPos = _camera.transform.position;
             Shader.SetGlobalVector(CameraWorldPosID, new Vector4(camPos.x, camPos.y, 0, 0));
             Shader.SetGlobalFloat(ScreenAspectID, _camera.aspect);
+            Shader.SetGlobalFloat(CameraOrthoSizeID, _camera.orthographicSize);
+            Shader.SetGlobalFloat(ReferenceZoomID, referenceZoom);
         }
 
         private void UpdateAllLayers()

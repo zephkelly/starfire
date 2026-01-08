@@ -15,8 +15,16 @@ namespace Starfire.Core.Background.Layers
         [Range(0, 1)]
         public float spawnChance = 0.8f;
 
+        [Header("Brightness")]
         [Range(0.1f, 2f)]
-        public float brightness = 1f;
+        public float brightnessMin = 0.3f;
+
+        [Range(0.1f, 2f)]
+        public float brightnessMax = 1f;
+
+        [Tooltip("Distribution curve (0=favor dim, 0.5=uniform, 1=favor bright)")]
+        [Range(0, 1)]
+        public float brightnessDistribution = 0.5f;
 
         [Header("Star Size")]
         [Min(0)]
@@ -68,7 +76,9 @@ namespace Starfire.Core.Background.Layers
         // Shader property IDs (cached for performance)
         private static readonly int StarDensityID = Shader.PropertyToID("_StarDensity");
         private static readonly int SpawnChanceID = Shader.PropertyToID("_SpawnChance");
-        private static readonly int StarBrightnessID = Shader.PropertyToID("_StarBrightness");
+        private static readonly int StarBrightnessMinID = Shader.PropertyToID("_StarBrightnessMin");
+        private static readonly int StarBrightnessMaxID = Shader.PropertyToID("_StarBrightnessMax");
+        private static readonly int BrightnessDistributionID = Shader.PropertyToID("_BrightnessDistribution");
         private static readonly int StarSizeMinID = Shader.PropertyToID("_StarSizeMin");
         private static readonly int StarSizeMaxID = Shader.PropertyToID("_StarSizeMax");
         private static readonly int SizeDistributionID = Shader.PropertyToID("_SizeDistribution");
@@ -94,7 +104,9 @@ namespace Starfire.Core.Background.Layers
         {
             material.SetFloat(StarDensityID, density);
             material.SetFloat(SpawnChanceID, spawnChance);
-            material.SetFloat(StarBrightnessID, brightness);
+            material.SetFloat(StarBrightnessMinID, brightnessMin);
+            material.SetFloat(StarBrightnessMaxID, brightnessMax);
+            material.SetFloat(BrightnessDistributionID, brightnessDistribution);
             material.SetFloat(StarSizeMinID, sizeMin);
             material.SetFloat(StarSizeMaxID, sizeMax);
             material.SetFloat(SizeDistributionID, sizeDistribution);

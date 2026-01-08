@@ -128,6 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 426350014}
+  - component: {fileID: 426350015}
   - component: {fileID: 426350013}
   - component: {fileID: 426350012}
   - component: {fileID: 426350011}
@@ -184,6 +185,7 @@ MonoBehaviour:
   energy: 50
   fuel: 100
   shieldHealth: 50
+  rotationModule: {fileID: 11400000, guid: d97580a0ad8ce0941a6dd017d7fc2902, type: 2}
 --- !u!114 &426350012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,9 +229,21 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 940894958}
-  - {fileID: 519420032}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &426350015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 426350009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b49b0fcb2c3fc44db048a76516cb3cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.EntityCameraTarget
+  priority: 1
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,6 +256,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420034}
   - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Camera
@@ -362,11 +377,11 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.8, y: 1.9, z: -10}
+  m_LocalPosition: {x: 38.399998, y: 24.5, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 426350014}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &519420033
 MonoBehaviour:
@@ -382,10 +397,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.StarfieldManager
   backgroundDepth: 100
   scaleMultiplier: 1.1
-  enableEditorPreview: 0
+  referenceZoom: 10
+  enableEditorPreview: 1
   layers:
   - rid: 2281391137234616388
   - rid: 2281391137234616389
+  - rid: 2281391160900190275
   - rid: 2281391137234616387
   references:
     version: 2
@@ -398,12 +415,14 @@ MonoBehaviour:
         parallaxDepth: 0.03
         density: 80
         spawnChance: 0.001
-        brightness: 0.26
+        brightnessMin: 0.1
+        brightnessMax: 0.109
+        brightnessDistribution: 0.819
         sizeMin: 0.1
         sizeMax: 0.12
         sizeDistribution: 0.248
-        twinkleSpeed: 1
-        twinkleAmount: 0.283
+        twinkleSpeed: 2.336
+        twinkleAmount: 0.18
         starColor: {r: 1, g: 1, b: 1, a: 1}
         colorVariation: 0.416
         warmCoolMix: 0.505
@@ -421,7 +440,9 @@ MonoBehaviour:
         parallaxDepth: 0.001
         density: 7.3
         spawnChance: 0.807
-        brightness: 0.316
+        brightnessMin: 0.3
+        brightnessMax: 1
+        brightnessDistribution: 0.5
         sizeMin: 0.01
         sizeMax: 0.015
         sizeDistribution: 0.5
@@ -442,21 +463,79 @@ MonoBehaviour:
         enabled: 1
         layerName: Shooting Stars 3
         parallaxDepth: 0.001
-        spawnInterval: 30
-        spawnIntervalVariance: 15
+        spawnInterval: 1
+        spawnIntervalVariance: 1
         maxActiveStars: 3
-        speed: 15
+        speed: 10
         speedVariance: 8
-        trailLength: 4
+        trailLength: 0.09
         noiseScale: 0.08
         noiseInfluence: 0.167
         baseAngle: 225
         angleVariance: 30
         starColor: {r: 1, g: 1, b: 1, a: 1}
-        brightness: 0.5
-        brightnessVariance: 0.252
-        starWidthMin: 0.09
-        starWidthMax: 0.15
+        brightness: 0.578
+        brightnessVariance: 0.423
+        speedBrightnessCurve: 0.845
+        starWidthMin: 0.001
+        starWidthMax: 0.004
+        behaviorConfigs:
+        - {fileID: 11400000, guid: 89f0c95acc6c33b4497eab7299b26b3d, type: 2}
+        - {fileID: 11400000, guid: fc9748f5241dfc84b97fd30c3d1efb82, type: 2}
+        persistentLifetimeMultiplier: 3
+    - rid: 2281391160900190275
+      type: {class: CometLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Comets 4
+        parallaxDepth: 0.001
+        spawnInterval: 0.1
+        spawnIntervalVariance: 0.1
+        maxActiveComets: 3
+        speed: 20
+        speedVariance: 10
+        trailTime: 0.313
+        referenceParallaxDepth: 0.0009
+        noiseScale: 0.05
+        noiseInfluence: 0.5
+        baseAngle: 225
+        angleVariance: 30
+        nucleusSize: 0.15
+        comaSize: 0.6
+        comaSoftness: 2
+        particleCount: 24
+        particleSizeMin: 0.02
+        particleSizeMax: 0.08
+        particleSpread: 0.5
+        particleFadeRate: 2
+        cometColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+        brightness: 2
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24876525dba70ae4696e12fb0ec77c30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.CameraController
+  defaultPreset: {fileID: 11400000, guid: 861295d0a2678f94eba42f38716d2a62, type: 2}
+  initialTarget: {fileID: 426350015}
+  autoFindTarget: 0
+  snapOnStart: 1
+  updateMode: 2
+  useInterpolation: 1
+  postProcessVolume: {fileID: 1887904437}
+  autoFindVolume: 0
+  showDebugInfo: 0
+  enableDebugControls: 1
+  debugShakeIntensity: 0.5
+  debugPunchForce: 0.3
+  debugChromaticIntensity: 0.5
+  debugVignetteIntensity: 0.3
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -632,9 +711,60 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &1887904436
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1887904438}
+  - component: {fileID: 1887904437}
+  m_Layer: 0
+  m_Name: Global Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1887904437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887904436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 00e1ddeed27661648a800bbaba4886a8, type: 2}
+--- !u!4 &1887904438
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887904436}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 19.178564, y: 26.29386, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 619394802}
+  - {fileID: 519420032}
   - {fileID: 426350014}
+  - {fileID: 1887904438}

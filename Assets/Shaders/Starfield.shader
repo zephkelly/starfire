@@ -5,7 +5,11 @@ Shader "Starfire/Starfield"
         [Header(Star Field)]
         _StarDensity ("Star Density", Range(1, 100)) = 20
         _SpawnChance ("Spawn Chance", Range(0, 1)) = 0.8
-        _StarBrightness ("Star Brightness", Range(0.1, 2.0)) = 1.0
+
+        [Header(Brightness)]
+        _StarBrightnessMin ("Brightness Min", Range(0.1, 2)) = 0.3
+        _StarBrightnessMax ("Brightness Max", Range(0.1, 2)) = 1.0
+        _BrightnessDistribution ("Brightness Distribution", Range(0, 1)) = 0.5
 
         [Header(Star Size)]
         [Min(0)] _StarSizeMin ("Size Min", Float) = 0.02
@@ -76,7 +80,9 @@ Shader "Starfire/Starfield"
             CBUFFER_START(UnityPerMaterial)
                 float _StarDensity;
                 float _SpawnChance;
-                float _StarBrightness;
+                float _StarBrightnessMin;
+                float _StarBrightnessMax;
+                float _BrightnessDistribution;
                 float _StarSizeMin;
                 float _StarSizeMax;
                 float _SizeDistribution;
@@ -97,6 +103,8 @@ Shader "Starfire/Starfield"
             // Set from script
             float2 _CameraWorldPos;
             float _ScreenAspect;
+            float _CameraOrthoSize;
+            float _ReferenceZoom;
 
             // PCG-style hash functions - much longer period, no sin() periodicity issues
             float hash1(float2 p)
@@ -217,9 +225,11 @@ Shader "Starfire/Starfield"
                         // Random position for star within this cell
                         float2 starPos = hash2(neighborCell);
 
-                        // Random brightness variation
-                        float brightness = hash1(neighborCell + 100.0);
-                        brightness = 0.3 + brightness * 0.7; // Range 0.3 to 1.0
+                        // Random brightness variation with distribution curve
+                        float brightnessRand = hash1(neighborCell + 100.0);
+                        float distributionPower = lerp(2.0, 0.5, _BrightnessDistribution);
+                        brightnessRand = pow(brightnessRand, distributionPower);
+                        float brightness = lerp(_StarBrightnessMin, _StarBrightnessMax, brightnessRand);
 
                         // Twinkle - per-star phase and intensity for varied flickering
                         float twinklePhase = hash1(neighborCell + 150.0) * 6.28318;
@@ -266,15 +276,22 @@ Shader "Starfire/Starfield"
             {
                 float2 uv = IN.uv;
 
+                // Calculate zoom factor relative to reference zoom
+                float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
+
+                // Depth-aware zoom: distant layers (low parallax) zoom less, nearby layers zoom more
+                // _ParallaxFactor typically ranges 0.01-0.1, multiply by 10 to get 0.1-1.0 range
+                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
+
+                // Scale UVs around center point
+                float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+
                 // Apply parallax offset based on camera position
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
-                float2 parallaxUV = uv + parallaxOffset;
+                float2 parallaxUV = scaledUV + parallaxOffset;
 
                 // Generate starfield with parallax, twinkling, color, sharpness, and natural distribution
                 float3 starValue = stars(parallaxUV, _StarDensity, _StarSizeMin, _StarSizeMax, _SizeDistribution, _SpawnChance, _TwinkleSpeed, _TwinkleAmount, _Time.y, _ScreenAspect, _StarColor.rgb, _ColorVariation, _WarmCoolMix, _EdgeSharpness, _LayerSeed, _ClusterAmount, _ClusterScale);
-
-                // Apply brightness
-                starValue *= _StarBrightness;
 
                 // Calculate star luminance for alpha
                 float starAlpha = saturate(dot(starValue, float3(0.299, 0.587, 0.114)) * 2.0);

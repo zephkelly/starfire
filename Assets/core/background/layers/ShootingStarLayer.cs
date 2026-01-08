@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Core.Noise;
+using Starfire.Core.Background.Behaviors;
 
 namespace Starfire.Core.Background.Layers
 {
@@ -8,32 +10,39 @@ namespace Starfire.Core.Background.Layers
     /// A layer that spawns and renders shooting stars.
     /// Stars originate outside the camera view and travel until they exit.
     /// Direction is influenced by Perlin noise for regional variation.
+    /// Supports multiple behavior types with weighted UnityEngine.Random selection.
     /// </summary>
     [System.Serializable]
     public class ShootingStarLayer : StarfieldLayer
     {
-        private const int MAX_STARS = 8;
+        private const int MAX_STARS = 264;  // Must match shader array sizes
 
         [Header("Spawning")]
         [Tooltip("Average seconds between spawn attempts")]
         public float spawnInterval = 3f;
 
-        [Tooltip("Random variance in spawn timing")]
+        [Tooltip("UnityEngine.Random variance in spawn timing")]
         public float spawnIntervalVariance = 2f;
 
-        [Tooltip("Maximum simultaneous shooting stars")]
-        [Range(1, 8)]
+        [Tooltip("Enable to limit the number of simultaneous shooting stars")]
+        public bool limitActiveStars = true;
+
+        [Tooltip("Maximum simultaneous shooting stars (only used when limitActiveStars is enabled)")]
+        [Range(1, 264)]
         public int maxActiveStars = 5;
 
         [Header("Movement")]
-        [Tooltip("Base speed in world units per second")]
-        public float speed = 30f;
+        [Tooltip("Visual speed in shader units per second (screen height = 2 * orthoSize)")]
+        public float speed = 15f;
 
-        [Tooltip("Random speed variance")]
-        public float speedVariance = 15f;
+        [Tooltip("UnityEngine.Random speed variance")]
+        public float speedVariance = 7f;
 
-        [Tooltip("Trail length in world units")]
-        public float trailLength = 3f;
+        [Tooltip("Visual trail length as fraction of screen height (0.15 = 15%)")]
+        public float trailLength = 0.15f;
+
+        [Tooltip("Random trail length variance")]
+        public float trailLengthVariance = 0.05f;
 
         [Header("Direction Noise")]
         [Tooltip("Perlin noise scale (smaller = larger regions with same direction)")]
@@ -43,10 +52,7 @@ namespace Starfire.Core.Background.Layers
         [Range(0f, 1f)]
         public float noiseInfluence = 0.5f;
 
-        [Tooltip("Base direction in degrees (0=right, 90=up, 225=down-left)")]
-        public float baseAngle = 225f;
-
-        [Tooltip("Random angle variance on top of noise")]
+        [Tooltip("Random angle variance applied to the toward-viewport direction")]
         public float angleVariance = 30f;
 
         [Header("Appearance")]
@@ -56,22 +62,37 @@ namespace Starfire.Core.Background.Layers
         [Range(0.5f, 5f)]
         public float brightness = 1.5f;
 
-        [Tooltip("Random brightness variance (0 = all same brightness)")]
+        [Tooltip("UnityEngine.Random brightness variance (0 = all same brightness)")]
         [Range(0f, 1f)]
         public float brightnessVariance = 0.3f;
 
-        [Tooltip("Minimum width of the shooting star")]
-        [Min(0.01f)]
-        public float starWidthMin = 0.3f;
+        [Tooltip("Exponent for speed-to-brightness curve (1=linear, <1=brighter slow stars, >1=dimmer slow stars)")]
+        [Range(0.5f, 3f)]
+        public float speedBrightnessCurve = 1f;
 
-        [Tooltip("Maximum width of the shooting star")]
-        [Min(0.01f)]
-        public float starWidthMax = 0.7f;
+        [Tooltip("Minimum width as fraction of screen height (0.01 = 1%)")]
+        [Min(0.001f)]
+        public float starWidthMin = 0.01f;
+
+        [Tooltip("Maximum width as fraction of screen height (0.03 = 3%)")]
+        [Min(0.001f)]
+        public float starWidthMax = 0.03f;
+
+        [Header("Behavior Configuration")]
+        [Tooltip("List of behavior configs with selection weights. Leave empty to use default behavior.")]
+        [SerializeField] private List<ShootingStarBehaviorConfig> behaviorConfigs = new List<ShootingStarBehaviorConfig>();
+
+        [Tooltip("Lifetime multiplier for Persistent behavior stars")]
+        [Min(1f)]
+        [SerializeField] private float persistentLifetimeMultiplier = 3f;
 
         // Runtime state
         [System.NonSerialized] private List<ShootingStarData> _activeStars = new List<ShootingStarData>();
         [System.NonSerialized] private float _nextSpawnTime;
         [System.NonSerialized] private Camera _camera;
+
+        // Event mode state
+        [System.NonSerialized] private EventModeConfig _activeEventMode;
 
         // Shader property IDs
         private static readonly int ActiveStarCountID = Shader.PropertyToID("_ActiveStarCount");
@@ -96,8 +117,12 @@ namespace Starfire.Core.Background.Layers
             base.Initialize(parent, quadMesh, sortOrder);
 
             _activeStars = new List<ShootingStarData>();
-            _nextSpawnTime = Time.time + Random.Range(0f, spawnInterval);
+            _nextSpawnTime = Time.time + UnityEngine.Random.Range(0f, spawnInterval);
             _camera = Camera.main;
+
+            // Ensure arrays are properly sized (may be stale from serialization)
+            _positionArray = new Vector4[MAX_STARS];
+            _paramsArray = new Vector4[MAX_STARS];
         }
 
         public override void Update()
@@ -106,11 +131,18 @@ namespace Starfire.Core.Background.Layers
             if (_camera == null) _camera = Camera.main;
             if (_camera == null) return;
 
-            // Try to spawn new stars
-            if (Time.time >= _nextSpawnTime && _activeStars.Count < maxActiveStars)
+            // Get effective values (may be overridden by event mode)
+            float effectiveSpawnInterval = _activeEventMode?.SpawnIntervalOverride ?? spawnInterval;
+            int effectiveMaxStars = _activeEventMode?.MaxStarsOverride ?? (limitActiveStars ? maxActiveStars : MAX_STARS);
+
+            // Try to spawn new stars (may spawn multiple per frame if interval is very short)
+            while (Time.time >= _nextSpawnTime && _activeStars.Count < effectiveMaxStars)
             {
                 TrySpawnStar();
-                _nextSpawnTime = Time.time + spawnInterval + Random.Range(-spawnIntervalVariance, spawnIntervalVariance);
+                // Clamp variance to not exceed interval, and ensure positive result
+                float clampedVariance = Mathf.Min(spawnIntervalVariance, effectiveSpawnInterval * 0.9f);
+                float nextInterval = effectiveSpawnInterval + UnityEngine.Random.Range(-clampedVariance, clampedVariance);
+                _nextSpawnTime += Mathf.Max(0.001f, nextInterval);  // Use += to properly catch up
             }
 
             // Update existing stars
@@ -118,10 +150,38 @@ namespace Starfire.Core.Background.Layers
             {
                 var star = _activeStars[i];
                 star.UpdatePosition();
+
+                // Check if star is in view (with trail margin)
+                bool isInView = IsInCameraView(star.position, star.trailLength);
+
+                // Behavior-specific state updates
+                if (star.behavior.behaviorType == ShootingStarBehaviorType.Persistent)
+                {
+                    // Track when star first enters view
+                    if (isInView && !star.behavior.HasEnteredView)
+                    {
+                        star.behavior.SetHasEnteredView();
+                    }
+
+                    // Start exit fade when leaving view (after having entered)
+                    // Also start fade if star is outside view and has traveled past 40% of its journey
+                    // (fallback for edge cases where star never registered as "in view")
+                    bool shouldStartFade = !isInView && star.exitFadeStartTime == 0f &&
+                        (star.behavior.HasEnteredView || star.Progress > 0.4f);
+
+                    if (shouldStartFade)
+                    {
+                        star.exitFadeStartTime = Time.time;
+                        star.behavior.SetIsExitFading();
+                    }
+                }
+
                 _activeStars[i] = star;
 
-                // Remove completed stars
-                if (star.IsComplete)
+                // Determine if star should be removed
+                bool shouldRemove = ShouldRemoveStar(star, isInView);
+
+                if (shouldRemove)
                 {
                     _activeStars.RemoveAt(i);
                 }
@@ -129,6 +189,48 @@ namespace Starfire.Core.Background.Layers
 
             // Update shader
             ConfigureMaterial(_material);
+        }
+
+        private bool ShouldRemoveStar(ShootingStarData star, bool isInView)
+        {
+            switch (star.behavior.behaviorType)
+            {
+                case ShootingStarBehaviorType.Standard:
+                    return star.IsComplete;
+
+                case ShootingStarBehaviorType.Persistent:
+                    // Failsafe: remove if lifetime exceeded (star never entered view)
+                    // Normal: remove when fully faded after exiting view
+                    return star.IsComplete || (star.behavior.IsExitFading && star.CalculateOpacity(isInView) <= 0f);
+
+                case ShootingStarBehaviorType.SlowFade:
+                    return star.CalculateOpacity(isInView) <= 0f;
+
+                default:
+                    return star.IsComplete;
+            }
+        }
+
+        private bool IsInCameraView(Vector2 worldPos, float margin = 0f)
+        {
+            if (_camera == null) return true;
+
+            // Convert shader visible area to world space
+            // In shader: worldPos is ±orthoSize range, positions are scaled by parallax
+            // A world position is visible when: (worldPos - camPos) * parallax is within orthoSize bounds
+            // Therefore world-space bounds = orthoSize / parallax
+            float worldHalfHeight = _camera.orthographicSize / parallaxDepth;
+            float worldHalfWidth = worldHalfHeight * _camera.aspect;
+            Vector2 camPos = _camera.transform.position;
+
+            // Margin is in world units
+            float halfWidth = worldHalfWidth + margin;
+            float halfHeight = worldHalfHeight + margin;
+
+            return worldPos.x >= camPos.x - halfWidth &&
+                   worldPos.x <= camPos.x + halfWidth &&
+                   worldPos.y >= camPos.y - halfHeight &&
+                   worldPos.y <= camPos.y + halfHeight;
         }
 
         public override void ConfigureMaterial(Material material)
@@ -142,6 +244,12 @@ namespace Starfire.Core.Background.Layers
                 material.SetFloat(CameraOrthoSizeID, _camera.orthographicSize);
             }
 
+            // Ensure arrays are properly sized
+            if (_positionArray == null || _positionArray.Length != MAX_STARS)
+                _positionArray = new Vector4[MAX_STARS];
+            if (_paramsArray == null || _paramsArray.Length != MAX_STARS)
+                _paramsArray = new Vector4[MAX_STARS];
+
             // Pack star data into arrays
             int count = Mathf.Min(_activeStars.Count, MAX_STARS);
             material.SetInt(ActiveStarCountID, count);
@@ -151,10 +259,13 @@ namespace Starfire.Core.Background.Layers
                 if (i < count)
                 {
                     var star = _activeStars[i];
+                    bool isInView = IsInCameraView(star.position, star.trailLength);
+                    float opacity = star.CalculateOpacity(isInView);
+
                     // xy = head position, zw = tail position
                     _positionArray[i] = new Vector4(star.position.x, star.position.y, star.TailPosition.x, star.TailPosition.y);
-                    // x = brightness, y = progress, z = per-star width
-                    _paramsArray[i] = new Vector4(star.brightness, star.Progress, star.width, 0);
+                    // x = brightness (pre-multiplied with opacity), y = progress, z = per-star width, w = behavior type
+                    _paramsArray[i] = new Vector4(star.brightness * opacity, star.Progress, star.width, (int)star.behavior.behaviorType);
                 }
                 else
                 {
@@ -167,75 +278,224 @@ namespace Starfire.Core.Background.Layers
             material.SetVectorArray(StarParamsID, _paramsArray);
         }
 
+        private ShootingStarBehaviorConfig SelectBehaviorConfig()
+        {
+            // Use event mode configs if active and has overrides
+            var configs = (_activeEventMode != null && _activeEventMode.HasBehaviorOverrides)
+                ? _activeEventMode.BehaviorOverrides
+                : behaviorConfigs;
+
+            if (configs == null || configs.Count == 0)
+                return null;
+
+            if (configs.Count == 1)
+                return configs[0];
+
+            // Always recalculate total weight to handle inspector changes
+            // (caching caused issues when configs were modified at runtime)
+            float totalWeight = 0f;
+            foreach (var config in configs)
+            {
+                if (config != null)
+                    totalWeight += config.SelectionWeight;
+            }
+
+            if (totalWeight <= 0f)
+                return configs[0];
+
+            // Weighted UnityEngine.Random selection
+            float Random = UnityEngine.Random.Range(0f, totalWeight);
+            float cumulative = 0f;
+
+            foreach (var config in configs)
+            {
+                if (config == null) continue;
+                cumulative += config.SelectionWeight;
+                if (Random < cumulative)
+                    return config;
+            }
+
+            return configs[configs.Count - 1];
+        }
+
+        private Vector2 CalculateDirection(Vector2 spawnPos)
+        {
+            // Use event mode direction override if active
+            if (_activeEventMode?.DirectionOverride != null)
+            {
+                return _activeEventMode.DirectionOverride.Value;
+            }
+
+            Vector2 camPos = _camera.transform.position;
+
+            // Calculate world-space view bounds
+            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
+            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
+
+            // Pick a random target point INSIDE the viewport
+            // This ensures the star will cross through the visible area
+            Vector2 targetOffset = new Vector2(
+                UnityEngine.Random.Range(-effectiveHalfWidth * 0.8f, effectiveHalfWidth * 0.8f),
+                UnityEngine.Random.Range(-effectiveHalfHeight * 0.8f, effectiveHalfHeight * 0.8f)
+            );
+            Vector2 targetPos = camPos + targetOffset;
+
+            // Base direction toward target
+            Vector2 baseDirection = (targetPos - spawnPos).normalized;
+            float baseAngleRad = Mathf.Atan2(baseDirection.y, baseDirection.x);
+
+            // Apply noise and variance as angular offsets
+            float noiseValue = NoiseUtility.Perlin2D(spawnPos, noiseScale);
+            float noiseAngleOffset = noiseValue * 180f * noiseInfluence * Mathf.Deg2Rad;
+            float randomOffset = UnityEngine.Random.Range(-angleVariance, angleVariance) * Mathf.Deg2Rad;
+
+            float finalAngle = baseAngleRad + noiseAngleOffset + randomOffset;
+
+            return new Vector2(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle));
+        }
+
         private void TrySpawnStar()
         {
             if (_camera == null) return;
 
-            // Get camera bounds
-            float camHeight = _camera.orthographicSize * 2f;
-            float camWidth = camHeight * _camera.aspect;
             Vector2 camPos = _camera.transform.position;
 
-            // Calculate spawn position outside view
-            // Pick a random edge and position along it
-            float edgeAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float margin = Mathf.Max(camWidth, camHeight) * 0.6f; // Spawn outside view
+            // Calculate spawn position outside the shader visible area
+            // In shader: positions are scaled by parallax, visible range is ±orthoSize
+            // Therefore world-space visible area = orthoSize / parallax
+            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
+            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
+
+            // Spawn just outside this area (1.2x margin ensures off-screen)
+            float edgeAngle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            float margin = Mathf.Max(effectiveHalfWidth, effectiveHalfHeight) * 1.2f;
 
             Vector2 spawnPos = camPos + new Vector2(
                 Mathf.Cos(edgeAngle) * margin,
                 Mathf.Sin(edgeAngle) * margin
             );
 
-            // Calculate direction using noise
-            float noiseValue = NoiseUtility.Perlin2D(spawnPos, noiseScale);
-            float noiseAngleOffset = noiseValue * 180f * noiseInfluence;
-            float randomOffset = Random.Range(-angleVariance, angleVariance);
-            float finalAngle = (baseAngle + noiseAngleOffset + randomOffset) * Mathf.Deg2Rad;
-
-            Vector2 direction = new Vector2(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle));
+            Vector2 direction = CalculateDirection(spawnPos);
 
             // Calculate how long the star needs to travel to fully exit view
-            // This is an approximation - shoot across the full diagonal
-            float travelDistance = Mathf.Sqrt(camWidth * camWidth + camHeight * camHeight) + margin * 2f;
-            float starSpeed = speed + Random.Range(-speedVariance, speedVariance);
-            float lifetime = travelDistance / starSpeed;
+            // Diagonal of the effective visible area plus spawn margin on both ends
+            float effectiveDiagonal = Mathf.Sqrt(effectiveHalfWidth * effectiveHalfWidth + effectiveHalfHeight * effectiveHalfHeight) * 2f;
+            float travelDistance = effectiveDiagonal + margin * 2f;
 
-            // Calculate per-star brightness and width with variance
-            float starBrightness = brightness * (1f + Random.Range(-brightnessVariance, brightnessVariance));
-            float starWidth = Random.Range(starWidthMin, starWidthMax);
+            // Convert visual speed to world speed
+            // User's speed is "visual speed" (shader units per second)
+            // In shader: worldSpeed * parallax = visualSpeed, so worldSpeed = visualSpeed / parallax
+            float visualSpeed = speed + UnityEngine.Random.Range(-speedVariance, speedVariance);
+            float worldSpeed = visualSpeed / parallaxDepth;
+            float lifetime = travelDistance / worldSpeed;
 
-            // Create the star
+            // Convert visual trail length to world trail length
+            // trailLength is fraction of screen height, multiply by orthoSize*2 for shader units
+            // Then divide by parallax to get world units
+            float visualTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
+            float worldTrailLength = Mathf.Max(0.01f, visualTrailLength) / parallaxDepth;
+
+            // Calculate speed ratio (0-1 range based on min/max possible speed)
+            float minSpeed = speed - speedVariance;
+            float maxSpeed = speed + speedVariance;
+            float speedRatio = Mathf.InverseLerp(minSpeed, maxSpeed, visualSpeed);
+
+            // Apply curve exponent for configurable falloff
+            float speedFactor = Mathf.Pow(speedRatio, speedBrightnessCurve);
+
+            // Calculate final brightness with speed factor and variance
+            float starBrightness = brightness * speedFactor * (1f + UnityEngine.Random.Range(-brightnessVariance, brightnessVariance));
+            float starWidth = UnityEngine.Random.Range(starWidthMin, starWidthMax);
+
+            // Select behavior
+            var behaviorConfig = SelectBehaviorConfig();
+            var behaviorData = behaviorConfig?.CreateBehaviorData() ?? ShootingStarBehaviorData.CreateDefault();
+
+            // Adjust lifetime for persistent behavior
+            if (behaviorData.behaviorType == ShootingStarBehaviorType.Persistent)
+            {
+                lifetime *= persistentLifetimeMultiplier;
+            }
+
+            // Create the star with world-space values
             var star = ShootingStarData.Create(
                 spawnPos,
                 direction,
-                starSpeed,
+                worldSpeed,
                 lifetime,
                 starBrightness,
-                trailLength,
-                starWidth
+                worldTrailLength,
+                starWidth,
+                behaviorData
             );
 
             _activeStars.Add(star);
         }
 
+        #region Runtime API
+
         /// <summary>
-        /// Manually spawn a shooting star (for game events, power-ups, etc.)
+        /// Set an event mode that overrides normal behavior configuration.
         /// </summary>
-        /// <param name="overrideDirection">Optional specific direction (normalized)</param>
-        /// <returns>True if spawned, false if at max capacity</returns>
-        public bool SpawnStar(Vector2? overrideDirection = null)
+        /// <param name="config">The event mode configuration to apply.</param>
+        public void SetEventMode(EventModeConfig config)
         {
-            if (_activeStars.Count >= maxActiveStars) return false;
+            _activeEventMode = config;
+        }
+
+        /// <summary>
+        /// Clear the active event mode, returning to normal configuration.
+        /// </summary>
+        public void ClearEventMode()
+        {
+            _activeEventMode = null;
+        }
+
+        /// <summary>
+        /// Get the currently active event mode, if any.
+        /// </summary>
+        public EventModeConfig ActiveEventMode => _activeEventMode;
+
+        /// <summary>
+        /// Spawn multiple stars in a specific direction (for events like meteor showers).
+        /// </summary>
+        /// <param name="direction">Normalized direction for all spawned stars.</param>
+        /// <param name="count">Number of stars to spawn.</param>
+        /// <param name="behaviorOverride">Optional behavior to use for all spawned stars.</param>
+        /// <returns>Number of stars actually spawned (may be less if at capacity).</returns>
+        public int SpawnDirectional(Vector2 direction, int count, ShootingStarBehaviorConfig behaviorOverride = null)
+        {
+            int spawned = 0;
+            for (int i = 0; i < count && _activeStars.Count < MAX_STARS; i++)
+            {
+                if (SpawnStarWithBehavior(direction, behaviorOverride))
+                    spawned++;
+            }
+            return spawned;
+        }
+
+        /// <summary>
+        /// Spawn a star with specific behavior override.
+        /// </summary>
+        /// <param name="overrideDirection">Optional specific direction (normalized).</param>
+        /// <param name="behaviorOverride">Optional behavior config to use.</param>
+        /// <returns>True if spawned, false if at max capacity.</returns>
+        public bool SpawnStarWithBehavior(Vector2? overrideDirection = null, ShootingStarBehaviorConfig behaviorOverride = null)
+        {
+            if (_activeStars.Count >= MAX_STARS) return false;
             if (_camera == null) return false;
 
-            // Get camera bounds
-            float camHeight = _camera.orthographicSize * 2f;
-            float camWidth = camHeight * _camera.aspect;
             Vector2 camPos = _camera.transform.position;
 
-            // Random spawn position outside view
-            float edgeAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float margin = Mathf.Max(camWidth, camHeight) * 0.6f;
+            // Calculate spawn position outside the shader visible area
+            // In shader: positions are scaled by parallax, visible range is ±orthoSize
+            // Therefore world-space visible area = orthoSize / parallax
+            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
+            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
+
+            // UnityEngine.Random spawn position outside view (1.2x margin ensures off-screen)
+            float edgeAngle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            float margin = Mathf.Max(effectiveHalfWidth, effectiveHalfHeight) * 1.2f;
 
             Vector2 spawnPos = camPos + new Vector2(
                 Mathf.Cos(edgeAngle) * margin,
@@ -249,29 +509,59 @@ namespace Starfire.Core.Background.Layers
             }
             else
             {
-                float noiseValue = NoiseUtility.Perlin2D(spawnPos, noiseScale);
-                float noiseAngleOffset = noiseValue * 180f * noiseInfluence;
-                float randomOffset = Random.Range(-angleVariance, angleVariance);
-                float finalAngle = (baseAngle + noiseAngleOffset + randomOffset) * Mathf.Deg2Rad;
-                direction = new Vector2(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle));
+                direction = CalculateDirection(spawnPos);
             }
 
-            float travelDistance = Mathf.Sqrt(camWidth * camWidth + camHeight * camHeight) + margin * 2f;
-            float starSpeed = speed + Random.Range(-speedVariance, speedVariance);
-            float lifetime = travelDistance / starSpeed;
+            // Travel distance is diagonal of effective visible area plus margins
+            float effectiveDiagonal = Mathf.Sqrt(effectiveHalfWidth * effectiveHalfWidth + effectiveHalfHeight * effectiveHalfHeight) * 2f;
+            float travelDistance = effectiveDiagonal + margin * 2f;
 
-            // Calculate per-star brightness and width with variance
-            float starBrightness = brightness * (1f + Random.Range(-brightnessVariance, brightnessVariance));
-            float starWidth = Random.Range(starWidthMin, starWidthMax);
+            // Convert visual speed to world speed
+            // User's speed is "visual speed" (shader units per second)
+            // In shader: worldSpeed * parallax = visualSpeed, so worldSpeed = visualSpeed / parallax
+            float visualSpeed = speed + UnityEngine.Random.Range(-speedVariance, speedVariance);
+            float worldSpeed = visualSpeed / parallaxDepth;
+            float lifetime = travelDistance / worldSpeed;
 
+            // Convert visual trail length to world trail length
+            // trailLength is fraction of screen height, multiply by orthoSize*2 for shader units
+            // Then divide by parallax to get world units
+            float visualTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
+            float worldTrailLength = Mathf.Max(0.01f, visualTrailLength) / parallaxDepth;
+
+            // Calculate speed ratio (0-1 range based on min/max possible speed)
+            float minSpeed = speed - speedVariance;
+            float maxSpeed = speed + speedVariance;
+            float speedRatio = Mathf.InverseLerp(minSpeed, maxSpeed, visualSpeed);
+
+            // Apply curve exponent for configurable falloff
+            float speedFactor = Mathf.Pow(speedRatio, speedBrightnessCurve);
+
+            // Calculate final brightness with speed factor and variance
+            float starBrightness = brightness * speedFactor * (1f + UnityEngine.Random.Range(-brightnessVariance, brightnessVariance));
+            float starWidth = UnityEngine.Random.Range(starWidthMin, starWidthMax);
+
+            // Get behavior data
+            var behaviorData = behaviorOverride?.CreateBehaviorData()
+                ?? SelectBehaviorConfig()?.CreateBehaviorData()
+                ?? ShootingStarBehaviorData.CreateDefault();
+
+            // Adjust lifetime for persistent behavior
+            if (behaviorData.behaviorType == ShootingStarBehaviorType.Persistent)
+            {
+                lifetime *= persistentLifetimeMultiplier;
+            }
+
+            // Create the star with world-space values
             var star = ShootingStarData.Create(
                 spawnPos,
                 direction,
-                starSpeed,
+                worldSpeed,
                 lifetime,
                 starBrightness,
-                trailLength,
-                starWidth
+                worldTrailLength,
+                starWidth,
+                behaviorData
             );
 
             _activeStars.Add(star);
@@ -279,13 +569,53 @@ namespace Starfire.Core.Background.Layers
         }
 
         /// <summary>
+        /// Manually spawn a shooting star (for game events, power-ups, etc.)
+        /// </summary>
+        /// <param name="overrideDirection">Optional specific direction (normalized)</param>
+        /// <returns>True if spawned, false if at max capacity</returns>
+        public bool SpawnStar(Vector2? overrideDirection = null)
+        {
+            return SpawnStarWithBehavior(overrideDirection, null);
+        }
+
+        /// <summary>
         /// Get the number of currently active shooting stars.
         /// </summary>
         public int ActiveStarCount => _activeStars?.Count ?? 0;
 
+        /// <summary>
+        /// Get current behavior distribution for debugging.
+        /// </summary>
+        public Dictionary<ShootingStarBehaviorType, int> GetActiveBehaviorCounts()
+        {
+            var counts = new Dictionary<ShootingStarBehaviorType, int>();
+            if (_activeStars == null) return counts;
+
+            foreach (var star in _activeStars)
+            {
+                if (!counts.ContainsKey(star.behavior.behaviorType))
+                    counts[star.behavior.behaviorType] = 0;
+                counts[star.behavior.behaviorType]++;
+            }
+            return counts;
+        }
+
+        /// <summary>
+        /// No longer needed - weights are recalculated each spawn.
+        /// Kept for API compatibility.
+        /// </summary>
+        [Obsolete("Weights are now recalculated each spawn. This method does nothing.")]
+        public void InvalidateBehaviorWeights()
+        {
+            // No-op: weights are recalculated each spawn to support runtime inspector changes
+        }
+
+        #endregion
+
         public override void Cleanup()
         {
             _activeStars?.Clear();
+            _activeEventMode = null;
             base.Cleanup();
         }
     }

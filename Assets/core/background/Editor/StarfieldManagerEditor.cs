@@ -50,6 +50,10 @@ namespace Starfire.Core.Background.Editor
             {
                 AddShootingStarLayer();
             }
+            if (GUILayout.Button("+ Comet Layer", GUILayout.Height(25)))
+            {
+                AddCometLayer();
+            }
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
@@ -61,6 +65,12 @@ namespace Starfire.Core.Background.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            // Force repaint during play mode for live debug updates
+            if (Application.isPlaying)
+            {
+                Repaint();
+            }
         }
 
         private void DrawLayer(int index)
@@ -133,7 +143,20 @@ namespace Starfire.Core.Background.Editor
                 while (iterator.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iterator, endProperty))
                 {
                     enterChildren = false;
-                    EditorGUILayout.PropertyField(iterator, true);
+
+                    // Conditionally disable maxActiveStars when limitActiveStars is false
+                    if (layer is ShootingStarLayer && iterator.name == "maxActiveStars")
+                    {
+                        var limitProp = layerProperty.FindPropertyRelative("limitActiveStars");
+                        bool wasEnabled = GUI.enabled;
+                        GUI.enabled = wasEnabled && (limitProp != null && limitProp.boolValue);
+                        EditorGUILayout.PropertyField(iterator, true);
+                        GUI.enabled = wasEnabled;
+                    }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(iterator, true);
+                    }
                 }
 
                 // Add spawn button for ShootingStarLayer
@@ -156,6 +179,52 @@ namespace Starfire.Core.Background.Editor
                     }
 
                     EditorGUILayout.EndHorizontal();
+
+                    // Debug info during Play mode
+                    if (Application.isPlaying && shootingLayer.IsInitialized)
+                    {
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField("Debug Info", EditorStyles.miniLabel);
+
+                        int maxStars = shootingLayer.limitActiveStars ? shootingLayer.maxActiveStars : 8;
+                        EditorGUILayout.LabelField($"  Active Stars: {shootingLayer.ActiveStarCount} / {maxStars}");
+
+                        var behaviorCounts = shootingLayer.GetActiveBehaviorCounts();
+                        foreach (var kvp in behaviorCounts)
+                        {
+                            EditorGUILayout.LabelField($"    {kvp.Key}: {kvp.Value}");
+                        }
+                    }
+                }
+
+                // Add spawn button for CometLayer
+                if (layer is CometLayer cometLayer)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Space(EditorGUI.indentLevel * 15);
+
+                    GUI.enabled = Application.isPlaying && cometLayer.IsInitialized;
+                    if (GUILayout.Button("Spawn Comet", GUILayout.Height(22)))
+                    {
+                        cometLayer.SpawnComet();
+                    }
+                    GUI.enabled = true;
+
+                    if (!Application.isPlaying)
+                    {
+                        EditorGUILayout.HelpBox("Enter Play mode to spawn", MessageType.None);
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+
+                    // Debug info during Play mode
+                    if (Application.isPlaying && cometLayer.IsInitialized)
+                    {
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField("Debug Info", EditorStyles.miniLabel);
+                        EditorGUILayout.LabelField($"  Active Comets: {cometLayer.ActiveCometCount}");
+                    }
                 }
 
                 EditorGUI.indentLevel--;
@@ -192,6 +261,24 @@ namespace Starfire.Core.Background.Editor
             {
                 layerName = $"Shooting Stars {_layers.arraySize + 1}",
                 parallaxDepth = 0.01f
+            };
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
+        private void AddCometLayer()
+        {
+            // Create a new CometLayer instance
+            var newLayer = new CometLayer
+            {
+                layerName = $"Comets {_layers.arraySize + 1}",
+                parallaxDepth = 0.015f
             };
 
             // Add to array using SerializeReference
