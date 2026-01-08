@@ -1,4 +1,6 @@
 using UnityEngine;
+using Starfire.Entity.Modules;
+using Starfire.Entity.Modules.Rotation;
 
 namespace Starfire.Entity
 {
@@ -7,6 +9,9 @@ namespace Starfire.Entity
         public Entity Entity { get; private set; }
         public Rigidbody2D Rigidbody { get; private set; }
         public ControllerDriverStack DriverStack { get; } = new();
+        public ModuleSlot<IRotationModule> RotationSlot { get; private set; }
+
+        private Camera _mainCamera;
 
         private void Awake()
         {
@@ -14,6 +19,9 @@ namespace Starfire.Entity
             {
                 Rigidbody = rb;
             }
+
+            _mainCamera = Camera.main;
+            RotationSlot = new ModuleSlot<IRotationModule>(this);
         }
 
         public void Initialize(Entity entity)
@@ -27,17 +35,36 @@ namespace Starfire.Entity
             if (driver == null || Entity == null) return;
 
             var moveDirection = driver.GetMovementDirection();
-            var rotationInput = driver.GetRotationInput();
 
             if (moveDirection.sqrMagnitude > 0.01f)
             {
                 Move(moveDirection, Entity.MoveSpeed);
             }
 
-            if (Mathf.Abs(rotationInput) > 0.01f)
+            ProcessRotation(driver);
+        }
+
+        private void ProcessRotation(IControllerDriver driver)
+        {
+            if (!RotationSlot.HasModule) return;
+
+            Vector2 mouseWorld = Vector2.zero;
+            if (_mainCamera != null)
             {
-                Rotate(rotationInput * Entity.RotationSpeed * Time.deltaTime);
+                Vector2 aimScreenPos = driver.GetAimDirection();
+                Vector3 worldPos = _mainCamera.ScreenToWorldPoint(new Vector3(aimScreenPos.x, aimScreenPos.y, 0f));
+                mouseWorld = new Vector2(worldPos.x, worldPos.y);
             }
+
+            var input = new RotationInputData
+            {
+                KeyboardInput = driver.GetRotationInput(),
+                MouseWorldPosition = mouseWorld,
+                EntityPosition = transform.position,
+                CurrentRotation = Rigidbody != null ? Rigidbody.rotation : transform.eulerAngles.z
+            };
+
+            RotationSlot.Module.ProcessRotation(input, Time.deltaTime);
         }
 
         public void Move(Vector2 direction, float speed)
@@ -49,12 +76,21 @@ namespace Starfire.Entity
             }
         }
 
-        public void Rotate(float angle)
+        public void SetRotationModule(RotationModuleConfig config)
         {
-            if (Rigidbody != null)
+            if (config != null)
             {
-                Rigidbody.MoveRotation(Rigidbody.rotation + angle);
+                RotationSlot.Equip(config.CreateModule());
             }
+            else
+            {
+                RotationSlot.Unequip();
+            }
+        }
+
+        public void SetRotationModule(IRotationModule module)
+        {
+            RotationSlot.Equip(module);
         }
     }
 }

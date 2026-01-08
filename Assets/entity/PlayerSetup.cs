@@ -1,4 +1,5 @@
 using UnityEngine;
+using Starfire.Entity.Modules.Rotation;
 
 namespace Starfire.Entity
 {
@@ -16,6 +17,9 @@ namespace Starfire.Entity
         [SerializeField] private int fuel = 100;
         [SerializeField] private int shieldHealth = 50;
 
+        [Header("Modules")]
+        [SerializeField] private RotationModuleConfig rotationModule;
+
         private PlayerDriver playerDriver;
 
         private void Start()
@@ -28,6 +32,11 @@ namespace Starfire.Entity
 
             playerDriver = new PlayerDriver(inputProvider, priority: 10);
             entityController.DriverStack.Push(playerDriver);
+
+            if (rotationModule != null)
+            {
+                entityController.SetRotationModule(rotationModule);
+            }
         }
 
         private void OnDestroy()
