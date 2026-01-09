@@ -1,4 +1,5 @@
 using UnityEngine;
+using Starfire.Core;
 
 namespace Starfire.Core.Background
 {
@@ -17,7 +18,7 @@ namespace Starfire.Core.Background
         public string layerName = "Layer";
 
         [Tooltip("Parallax depth - lower values = farther/slower, higher = closer/faster")]
-        [Min(0.001f)]
+        [HighPrecision(5, 0.00001f)]
         public float parallaxDepth = 0.02f;
 
         // Runtime references (not serialized)

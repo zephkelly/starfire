@@ -61,18 +61,18 @@ Shader "Starfire/ShootingStars"
                 float _CoreSharpness;
                 float _TrailFalloff;
                 float _ParallaxFactor;
+
+                // Per-material star data (each layer has its own stars)
+                int _ActiveStarCount;
+                float4 _StarPositions[MAX_STARS];    // xy = head position, zw = tail position (parallax-adjusted in C#)
+                float4 _StarParams[MAX_STARS];       // x = brightness (pre-multiplied with opacity), y = progress (0-1), z = width, w = behavior type
             CBUFFER_END
 
-            // Set from script - camera data
+            // Set from script - camera data (global, shared between all layers)
             float2 _CameraWorldPos;
             float _ScreenAspect;
             float _CameraOrthoSize;
             float _ReferenceZoom;
-
-            // Set from script - shooting star data
-            int _ActiveStarCount;
-            float4 _StarPositions[MAX_STARS];    // xy = head position, zw = tail position (parallax-adjusted in C#)
-            float4 _StarParams[MAX_STARS];       // x = brightness (pre-multiplied with opacity), y = progress (0-1), z = width, w = behavior type
 
             // Distance from point to line segment
             float distToSegment(float2 p, float2 a, float2 b)

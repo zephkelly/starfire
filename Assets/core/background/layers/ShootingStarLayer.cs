@@ -31,6 +31,10 @@ namespace Starfire.Core.Background.Layers
         [Range(1, 264)]
         public int maxActiveStars = 5;
 
+        [Tooltip("Spawn margin multiplier - how far outside viewport stars spawn (1.0 = viewport edge)")]
+        [Min(1.0f)]
+        public float spawnMargin = 1.2f;
+
         [Header("Movement")]
         [Tooltip("Minimum visual speed in shader units per second")]
         [Min(0.01f)]
@@ -103,6 +107,26 @@ namespace Starfire.Core.Background.Layers
 
         [Tooltip("Color for destination markers")]
         [SerializeField] private Color gizmoDestinationColor = Color.red;
+
+        [Tooltip("Color for spawn area rectangle gizmo")]
+        [SerializeField] private Color gizmoSpawnAreaColor = new Color(0f, 1f, 0.5f, 0.5f);
+
+        [Tooltip("Color for kill zone rectangle gizmo")]
+        [SerializeField] private Color gizmoKillZoneColor = new Color(1f, 0f, 0f, 0.3f);
+
+        [Header("Kill Zone")]
+        [Tooltip("Multiplier for kill zone rectangle (relative to spawn margin). Stars beyond this are forcibly removed.")]
+        [Min(1.0f)]
+        public float killZoneMargin = 2.0f;
+
+        [Header("Spawn Validation")]
+        [Tooltip("Minimum dot product between direction and inward normal (0 = perpendicular allowed, 1 = must point directly inward)")]
+        [Range(0f, 0.5f)]
+        public float minimumInwardComponent = 0.1f;
+
+        [Tooltip("Maximum spawn attempts before giving up")]
+        [Range(1, 10)]
+        public int maxSpawnAttempts = 5;
 
         // Runtime state
         [System.NonSerialized] private List<ShootingStarData> _activeStars = new List<ShootingStarData>();
@@ -198,7 +222,9 @@ namespace Starfire.Core.Background.Layers
                 _activeStars[i] = star;
 
                 // Determine if star should be removed
-                bool shouldRemove = ShouldRemoveStar(star, isInView);
+                // Check kill zone first (immediate removal regardless of behavior)
+                bool outsideKillZone = IsOutsideKillZone(star.position);
+                bool shouldRemove = outsideKillZone || ShouldRemoveStar(star, isInView);
 
                 if (shouldRemove)
                 {
@@ -248,6 +274,23 @@ namespace Starfire.Core.Background.Layers
 
             return Mathf.Abs(worldPos.x - camPos.x) <= halfWidth &&
                    Mathf.Abs(worldPos.y - camPos.y) <= halfHeight;
+        }
+
+        /// <summary>
+        /// Check if a position is outside the kill zone boundary.
+        /// Stars outside this zone are forcibly removed regardless of behavior state.
+        /// </summary>
+        private bool IsOutsideKillZone(Vector2 worldPos)
+        {
+            if (_camera == null) return false;
+
+            Vector2 camPos = _camera.transform.position;
+            float effectiveOrtho = GetEffectiveOrthoSize();
+            float halfHeight = effectiveOrtho * spawnMargin * killZoneMargin;
+            float halfWidth = halfHeight * _camera.aspect;
+
+            return Mathf.Abs(worldPos.x - camPos.x) > halfWidth ||
+                   Mathf.Abs(worldPos.y - camPos.y) > halfHeight;
         }
 
         public override void ConfigureMaterial(Material material)
@@ -398,6 +441,117 @@ namespace Starfire.Core.Background.Layers
             return new Vector2(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle));
         }
 
+        /// <summary>
+        /// Get a random point on the perimeter of a rectangle.
+        /// </summary>
+        private Vector2 GetRandomPointOnRectanglePerimeter(Vector2 center, float halfWidth, float halfHeight)
+        {
+            // Calculate perimeter lengths
+            float horizLength = halfWidth * 2f;
+            float vertLength = halfHeight * 2f;
+            float totalPerimeter = 2f * (horizLength + vertLength);
+
+            // Pick random position along perimeter
+            float t = UnityEngine.Random.Range(0f, totalPerimeter);
+
+            if (t < horizLength) // Top edge
+                return center + new Vector2(-halfWidth + t, halfHeight);
+            t -= horizLength;
+
+            if (t < vertLength) // Right edge
+                return center + new Vector2(halfWidth, halfHeight - t);
+            t -= vertLength;
+
+            if (t < horizLength) // Bottom edge
+                return center + new Vector2(halfWidth - t, -halfHeight);
+            t -= horizLength;
+
+            // Left edge
+            return center + new Vector2(-halfWidth, -halfHeight + t);
+        }
+
+        /// <summary>
+        /// Check if a spawn position and direction combination will result in the star entering the view.
+        /// </summary>
+        /// <param name="spawnPos">Spawn position on the perimeter.</param>
+        /// <param name="direction">Normalized direction of travel.</param>
+        /// <param name="camPos">Camera center position.</param>
+        /// <returns>True if the star will enter the view.</returns>
+        private bool WillEnterView(Vector2 spawnPos, Vector2 direction, Vector2 camPos)
+        {
+            // Calculate inward normal (from spawn position toward camera center)
+            Vector2 inwardNormal = (camPos - spawnPos).normalized;
+
+            // Check if direction has sufficient inward component
+            float dotProduct = Vector2.Dot(direction, inwardNormal);
+            return dotProduct >= minimumInwardComponent;
+        }
+
+        /// <summary>
+        /// Get a spawn position that is valid for the given direction.
+        /// For explicit direction overrides, this chooses edges where the star will enter view.
+        /// </summary>
+        /// <param name="camPos">Camera center position.</param>
+        /// <param name="halfWidth">Half width of spawn rectangle.</param>
+        /// <param name="halfHeight">Half height of spawn rectangle.</param>
+        /// <param name="direction">Normalized direction of travel.</param>
+        /// <returns>A spawn position on an appropriate edge.</returns>
+        private Vector2 GetSpawnPositionForDirection(Vector2 camPos, float halfWidth, float halfHeight, Vector2 direction)
+        {
+            // Determine which edges are valid based on direction
+            // If direction.x > 0, star travels right, so spawn on left or vertical edges
+            // If direction.y > 0, star travels up, so spawn on bottom or horizontal edges
+
+            // Calculate edge weights based on how well they align with the direction
+            // An edge is good if the direction points "into" the screen from that edge
+            float topWeight = direction.y < -minimumInwardComponent ? 1f : 0f;    // Traveling down
+            float bottomWeight = direction.y > minimumInwardComponent ? 1f : 0f;  // Traveling up
+            float leftWeight = direction.x > minimumInwardComponent ? 1f : 0f;    // Traveling right
+            float rightWeight = direction.x < -minimumInwardComponent ? 1f : 0f;  // Traveling left
+
+            float totalWeight = topWeight + bottomWeight + leftWeight + rightWeight;
+
+            // Fallback: if no good edges (direction is nearly perpendicular), use any edge
+            if (totalWeight <= 0f)
+            {
+                return GetRandomPointOnRectanglePerimeter(camPos, halfWidth, halfHeight);
+            }
+
+            // Weighted random selection of edge
+            float roll = UnityEngine.Random.Range(0f, totalWeight);
+            float cumulative = 0f;
+
+            // Top edge
+            cumulative += topWeight;
+            if (roll < cumulative && topWeight > 0f)
+            {
+                float t = UnityEngine.Random.Range(-halfWidth, halfWidth);
+                return camPos + new Vector2(t, halfHeight);
+            }
+
+            // Bottom edge
+            cumulative += bottomWeight;
+            if (roll < cumulative && bottomWeight > 0f)
+            {
+                float t = UnityEngine.Random.Range(-halfWidth, halfWidth);
+                return camPos + new Vector2(t, -halfHeight);
+            }
+
+            // Left edge
+            cumulative += leftWeight;
+            if (roll < cumulative && leftWeight > 0f)
+            {
+                float t = UnityEngine.Random.Range(-halfHeight, halfHeight);
+                return camPos + new Vector2(-halfWidth, t);
+            }
+
+            // Right edge
+            {
+                float t = UnityEngine.Random.Range(-halfHeight, halfHeight);
+                return camPos + new Vector2(halfWidth, t);
+            }
+        }
+
         private void TrySpawnStar()
         {
             if (_camera == null) return;
@@ -408,22 +562,36 @@ namespace Starfire.Core.Background.Layers
             float halfHeight = effectiveOrtho;
             float halfWidth = halfHeight * _camera.aspect;
 
-            // Spawn just outside visible area (1.2x margin ensures off-screen)
-            float edgeAngle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float spawnMargin = Mathf.Max(halfWidth, halfHeight) * 1.2f;
+            // Spawn just outside visible area (rectangular, matching viewport shape)
+            float spawnHalfWidth = halfWidth * spawnMargin;
+            float spawnHalfHeight = halfHeight * spawnMargin;
 
-            // Spawn position in world space
-            Vector2 spawnPos = camPos + new Vector2(
-                Mathf.Cos(edgeAngle) * spawnMargin,
-                Mathf.Sin(edgeAngle) * spawnMargin
-            );
+            // Try to find a valid spawn position + direction combination
+            Vector2 spawnPos = Vector2.zero;
+            Vector2 direction = Vector2.zero;
+            bool validSpawn = false;
 
-            Vector2 direction = CalculateDirection(spawnPos);
+            for (int attempt = 0; attempt < maxSpawnAttempts; attempt++)
+            {
+                // Pick random point on rectangle perimeter
+                spawnPos = GetRandomPointOnRectanglePerimeter(camPos, spawnHalfWidth, spawnHalfHeight);
+                direction = CalculateDirection(spawnPos);
+
+                // Validate that direction will bring star into view
+                if (WillEnterView(spawnPos, direction, camPos))
+                {
+                    validSpawn = true;
+                    break;
+                }
+            }
+
+            // Give up if no valid spawn found after max attempts
+            if (!validSpawn) return;
 
             // Calculate travel distance in world units
-            // Diagonal of visible area plus spawn margin on both ends
-            float diagonal = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight) * 2f;
-            float travelDistance = diagonal + spawnMargin * 2f;
+            // Diagonal of spawn area ensures star can traverse entire view
+            float spawnDiagonal = Mathf.Sqrt(spawnHalfWidth * spawnHalfWidth + spawnHalfHeight * spawnHalfHeight) * 2f;
+            float travelDistance = spawnDiagonal;
 
             // Speed in world units per second
             float randomT = UnityEngine.Random.Range(0f, 1f);
@@ -537,29 +705,47 @@ namespace Starfire.Core.Background.Layers
             float halfHeight = effectiveOrtho;
             float halfWidth = halfHeight * _camera.aspect;
 
-            // Spawn just outside visible area (1.2x margin ensures off-screen)
-            float edgeAngle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float spawnMargin = Mathf.Max(halfWidth, halfHeight) * 1.2f;
+            // Spawn just outside visible area (rectangular, matching viewport shape)
+            float spawnHalfWidth = halfWidth * spawnMargin;
+            float spawnHalfHeight = halfHeight * spawnMargin;
 
-            // Spawn position in world space
-            Vector2 spawnPos = camPos + new Vector2(
-                Mathf.Cos(edgeAngle) * spawnMargin,
-                Mathf.Sin(edgeAngle) * spawnMargin
-            );
-
+            Vector2 spawnPos;
             Vector2 direction;
+
             if (overrideDirection.HasValue)
             {
+                // Use smart edge selection for explicit direction
                 direction = overrideDirection.Value.normalized;
+                spawnPos = GetSpawnPositionForDirection(camPos, spawnHalfWidth, spawnHalfHeight, direction);
             }
             else
             {
-                direction = CalculateDirection(spawnPos);
+                // Try to find a valid spawn position + direction combination
+                bool validSpawn = false;
+
+                spawnPos = Vector2.zero;
+                direction = Vector2.zero;
+
+                for (int attempt = 0; attempt < maxSpawnAttempts; attempt++)
+                {
+                    spawnPos = GetRandomPointOnRectanglePerimeter(camPos, spawnHalfWidth, spawnHalfHeight);
+                    direction = CalculateDirection(spawnPos);
+
+                    if (WillEnterView(spawnPos, direction, camPos))
+                    {
+                        validSpawn = true;
+                        break;
+                    }
+                }
+
+                // Give up if no valid spawn found after max attempts
+                if (!validSpawn) return false;
             }
 
             // Calculate travel distance in world units
-            float diagonal = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight) * 2f;
-            float travelDistance = diagonal + spawnMargin * 2f;
+            // Diagonal of spawn area ensures star can traverse entire view
+            float spawnDiagonal = Mathf.Sqrt(spawnHalfWidth * spawnHalfWidth + spawnHalfHeight * spawnHalfHeight) * 2f;
+            float travelDistance = spawnDiagonal;
 
             // Speed in world units per second
             float randomT = UnityEngine.Random.Range(0f, 1f);
@@ -663,53 +849,174 @@ namespace Starfire.Core.Background.Layers
         #region Debug Gizmos
 
         /// <summary>
+        /// Calculate the time until a star fades out based on its behavior.
+        /// Returns the time from spawn when opacity reaches near-zero.
+        /// </summary>
+        private float GetVisibleDuration(ShootingStarData star)
+        {
+            switch (star.behavior.behaviorType)
+            {
+                case ShootingStarBehaviorType.Standard:
+                    // Standard fades out at the end of lifetime
+                    // fadeParam2 is fadeOutStart (0-1 progress), so visible until ~end
+                    return star.lifetime;
+
+                case ShootingStarBehaviorType.SlowFade:
+                    // fadeParam2 = delay, fadeParam1 = fade duration
+                    return star.behavior.fadeParam2 + star.behavior.fadeParam1;
+
+                case ShootingStarBehaviorType.SimpleTimeFade:
+                    // fadeParam2 = delay, fadeParam1 = fade duration
+                    return star.behavior.fadeParam2 + star.behavior.fadeParam1;
+
+                case ShootingStarBehaviorType.Persistent:
+                    // Persistent stars fade after leaving view - use lifetime as fallback
+                    // but typically they fade much sooner based on exit fade
+                    float exitFadeDuration = star.behavior.fadeParam1 + star.behavior.fadeParam2;
+                    // Estimate: assume star exits view around 40-60% through journey
+                    return star.lifetime * 0.5f + exitFadeDuration;
+
+                default:
+                    return star.lifetime;
+            }
+        }
+
+        /// <summary>
+        /// Transform a world position to its visual screen position.
+        /// This accounts for the depth-zoom effect that makes distant layers zoom less.
+        /// </summary>
+        private Vector2 ToVisualPosition(Vector2 worldPos, Vector2 cameraPos)
+        {
+            float effectiveOrtho = GetEffectiveOrthoSize();
+            float actualOrtho = _camera.orthographicSize;
+
+            // Calculate scale factor: how much the shader "expands" positions
+            // effectiveOrtho < actualOrtho for distant layers when zoomed out
+            // Visual position = camera + offset * (actualOrtho / effectiveOrtho)
+            float visualScale = actualOrtho / effectiveOrtho;
+
+            Vector2 offset = worldPos - cameraPos;
+            return cameraPos + offset * visualScale;
+        }
+
+        /// <summary>
         /// Draw debug gizmos for this layer. Call from StarfieldManager.OnDrawGizmos().
+        /// Shows spawn area rectangle, visual positions (where stars appear on screen), and fade-aware paths.
         /// </summary>
         public void DrawGizmos()
         {
-            if (!showSceneGizmos || _activeStars == null || _activeStars.Count == 0) return;
+            if (!showSceneGizmos) return;
             if (_camera == null) return;
 
-            // Calculate parallax offset (same formula as ConfigureMaterial)
             Vector2 currentCamPos = _camera.transform.position;
+
+            // Draw spawn area rectangle (in visual space, matching where stars appear)
+            float effectiveOrtho = GetEffectiveOrthoSize();
+            float halfHeight = effectiveOrtho;
+            float halfWidth = halfHeight * _camera.aspect;
+            float spawnHalfWidth = halfWidth * spawnMargin;
+            float spawnHalfHeight = halfHeight * spawnMargin;
+
+            // Calculate world-space corners of spawn rectangle
+            Vector2 worldTL = currentCamPos + new Vector2(-spawnHalfWidth, spawnHalfHeight);
+            Vector2 worldTR = currentCamPos + new Vector2(spawnHalfWidth, spawnHalfHeight);
+            Vector2 worldBR = currentCamPos + new Vector2(spawnHalfWidth, -spawnHalfHeight);
+            Vector2 worldBL = currentCamPos + new Vector2(-spawnHalfWidth, -spawnHalfHeight);
+
+            // Transform to visual positions (accounts for depth-zoom scaling)
+            Vector2 visualTL = ToVisualPosition(worldTL, currentCamPos);
+            Vector2 visualTR = ToVisualPosition(worldTR, currentCamPos);
+            Vector2 visualBR = ToVisualPosition(worldBR, currentCamPos);
+            Vector2 visualBL = ToVisualPosition(worldBL, currentCamPos);
+
+            Gizmos.color = gizmoSpawnAreaColor;
+            Vector3 tl = new Vector3(visualTL.x, visualTL.y, 0);
+            Vector3 tr = new Vector3(visualTR.x, visualTR.y, 0);
+            Vector3 br = new Vector3(visualBR.x, visualBR.y, 0);
+            Vector3 bl = new Vector3(visualBL.x, visualBL.y, 0);
+
+            Gizmos.DrawLine(tl, tr);
+            Gizmos.DrawLine(tr, br);
+            Gizmos.DrawLine(br, bl);
+            Gizmos.DrawLine(bl, tl);
+
+            // Draw kill zone rectangle (outer boundary where stars are forcibly removed)
+            float killHalfWidth = spawnHalfWidth * killZoneMargin;
+            float killHalfHeight = spawnHalfHeight * killZoneMargin;
+
+            Vector2 killWorldTL = currentCamPos + new Vector2(-killHalfWidth, killHalfHeight);
+            Vector2 killWorldTR = currentCamPos + new Vector2(killHalfWidth, killHalfHeight);
+            Vector2 killWorldBR = currentCamPos + new Vector2(killHalfWidth, -killHalfHeight);
+            Vector2 killWorldBL = currentCamPos + new Vector2(-killHalfWidth, -killHalfHeight);
+
+            Vector2 killVisualTL = ToVisualPosition(killWorldTL, currentCamPos);
+            Vector2 killVisualTR = ToVisualPosition(killWorldTR, currentCamPos);
+            Vector2 killVisualBR = ToVisualPosition(killWorldBR, currentCamPos);
+            Vector2 killVisualBL = ToVisualPosition(killWorldBL, currentCamPos);
+
+            Gizmos.color = gizmoKillZoneColor;
+            Vector3 killTL = new Vector3(killVisualTL.x, killVisualTL.y, 0);
+            Vector3 killTR = new Vector3(killVisualTR.x, killVisualTR.y, 0);
+            Vector3 killBR = new Vector3(killVisualBR.x, killVisualBR.y, 0);
+            Vector3 killBL = new Vector3(killVisualBL.x, killVisualBL.y, 0);
+
+            Gizmos.DrawLine(killTL, killTR);
+            Gizmos.DrawLine(killTR, killBR);
+            Gizmos.DrawLine(killBR, killBL);
+            Gizmos.DrawLine(killBL, killTL);
+
+            // Draw individual star gizmos if there are active stars
+            if (_activeStars == null || _activeStars.Count == 0) return;
 
             foreach (var star in _activeStars)
             {
-                // Calculate parallax offset for this star (matches ConfigureMaterial calculation)
-                // Note: Zoom depth scaling is handled in the shader, not here
+                // Calculate parallax offset
                 Vector2 cameraDelta = currentCamPos - star.spawnCameraPosition;
                 Vector2 parallaxOffset = cameraDelta * (1f - parallaxDepth);
 
-                // Calculate destination based on direction and remaining travel
-                float remainingTime = star.lifetime - (Time.time - star.spawnTime);
-                Vector2 destination = star.position + star.direction * star.speed * Mathf.Max(0, remainingTime);
+                // Calculate fade-out point (where star becomes invisible)
+                float visibleDuration = GetVisibleDuration(star);
+                float elapsed = Time.time - star.spawnTime;
+                float remainingVisible = Mathf.Max(0, visibleDuration - elapsed);
 
-                // Apply parallax offset to get apparent positions
-                Vector2 apparentSpawn = star.startPosition + parallaxOffset;
-                Vector2 apparentCurrent = star.position + parallaxOffset;
-                Vector2 apparentDest = destination + parallaxOffset;
+                // Destination is where star will be when it fades out, not raw lifetime end
+                Vector2 fadeOutPos = star.position + star.direction * star.speed * remainingVisible;
 
-                Vector3 worldSpawn = new Vector3(apparentSpawn.x, apparentSpawn.y, 0);
-                Vector3 worldCurrent = new Vector3(apparentCurrent.x, apparentCurrent.y, 0);
-                Vector3 worldDest = new Vector3(apparentDest.x, apparentDest.y, 0);
+                // Apply parallax offset to get world positions
+                Vector2 worldSpawn = star.startPosition + parallaxOffset;
+                Vector2 worldCurrent = star.position + parallaxOffset;
+                Vector2 worldDest = fadeOutPos + parallaxOffset;
+
+                // Transform to visual positions (where they appear on screen)
+                Vector2 visualSpawn = ToVisualPosition(worldSpawn, currentCamPos);
+                Vector2 visualCurrent = ToVisualPosition(worldCurrent, currentCamPos);
+                Vector2 visualDest = ToVisualPosition(worldDest, currentCamPos);
+
+                Vector3 gizmoSpawn = new Vector3(visualSpawn.x, visualSpawn.y, 0);
+                Vector3 gizmoCurrent = new Vector3(visualCurrent.x, visualCurrent.y, 0);
+                Vector3 gizmoDest = new Vector3(visualDest.x, visualDest.y, 0);
+
+                // Scale gizmo sizes based on visual scale
+                float visualScale = _camera.orthographicSize / GetEffectiveOrthoSize();
+                float baseSize = 0.3f * visualScale;
 
                 // Draw spawn point (wire sphere)
                 Gizmos.color = gizmoSpawnColor;
-                Gizmos.DrawWireSphere(worldSpawn, 0.5f);
+                Gizmos.DrawWireSphere(gizmoSpawn, baseSize * 1.5f);
 
                 // Draw current position (solid sphere)
                 Gizmos.color = gizmoCurrentColor;
-                Gizmos.DrawSphere(worldCurrent, 0.3f);
+                Gizmos.DrawSphere(gizmoCurrent, baseSize);
 
-                // Draw destination (wire sphere)
+                // Draw fade-out point (wire sphere, smaller to indicate fade)
                 Gizmos.color = gizmoDestinationColor;
-                Gizmos.DrawWireSphere(worldDest, 0.5f);
+                Gizmos.DrawWireSphere(gizmoDest, baseSize);
 
-                // Draw path line: spawn -> current (green) -> destination (red)
+                // Draw path line: spawn -> current (green) -> fade-out (red)
                 Gizmos.color = gizmoSpawnColor;
-                Gizmos.DrawLine(worldSpawn, worldCurrent);
+                Gizmos.DrawLine(gizmoSpawn, gizmoCurrent);
                 Gizmos.color = gizmoDestinationColor;
-                Gizmos.DrawLine(worldCurrent, worldDest);
+                Gizmos.DrawLine(gizmoCurrent, gizmoDest);
             }
         }
 
