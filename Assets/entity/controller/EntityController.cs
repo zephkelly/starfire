@@ -9,7 +9,7 @@ namespace Starfire.Entity
         public Entity Entity { get; private set; }
         public Rigidbody2D Rigidbody { get; private set; }
         public ControllerDriverStack DriverStack { get; } = new();
-        public ModuleSlot<IRotationModule> RotationSlot { get; private set; }
+        public ShipSystems Systems { get; private set; }
 
         private Camera _mainCamera;
 
@@ -21,32 +21,41 @@ namespace Starfire.Entity
             }
 
             _mainCamera = Camera.main;
-            RotationSlot = new ModuleSlot<IRotationModule>(this);
         }
 
-        public void Initialize(Entity entity)
+        public void Initialize(ShipClassDefinition definition)
+        {
+            Entity = definition.CreateShip();
+            Systems = new ShipSystems(this, definition.BuildSlotConfigurations());
+        }
+
+        public void Initialize(Entity entity, SlotConfiguration[] slotConfigurations)
         {
             Entity = entity;
+            Systems = new ShipSystems(this, slotConfigurations);
         }
 
         private void Update()
         {
             var driver = DriverStack.GetActiveDriver();
-            if (driver == null || Entity == null) return;
+            if (driver == null || Entity == null || Systems == null) return;
 
             var moveDirection = driver.GetMovementDirection();
 
             if (moveDirection.sqrMagnitude > 0.01f)
             {
-                Move(moveDirection, Entity.MoveSpeed);
+                float speed = Systems.Propulsion?.Module?.MaxSpeed ?? 10f;
+                Move(moveDirection, speed);
             }
 
             ProcessRotation(driver);
+
+            Systems.UpdateAll(Time.deltaTime);
         }
 
         private void ProcessRotation(IControllerDriver driver)
         {
-            if (!RotationSlot.HasModule) return;
+            if (Systems.Rotation == null || !Systems.Rotation.HasModule) return;
 
             Vector2 mouseWorld = Vector2.zero;
             if (_mainCamera != null)
@@ -64,7 +73,7 @@ namespace Starfire.Entity
                 CurrentRotation = Rigidbody != null ? Rigidbody.rotation : transform.eulerAngles.z
             };
 
-            RotationSlot.Module.ProcessRotation(input, Time.deltaTime);
+            Systems.Rotation.Module.ProcessRotation(input, Time.deltaTime);
         }
 
         public void Move(Vector2 direction, float speed)
@@ -74,23 +83,6 @@ namespace Starfire.Entity
                 Vector2 movement = direction.normalized * speed * Time.deltaTime;
                 Rigidbody.AddForce(movement, ForceMode2D.Force);
             }
-        }
-
-        public void SetRotationModule(RotationModuleConfig config)
-        {
-            if (config != null)
-            {
-                RotationSlot.Equip(config.CreateModule());
-            }
-            else
-            {
-                RotationSlot.Unequip();
-            }
-        }
-
-        public void SetRotationModule(IRotationModule module)
-        {
-            RotationSlot.Equip(module);
         }
     }
 }
