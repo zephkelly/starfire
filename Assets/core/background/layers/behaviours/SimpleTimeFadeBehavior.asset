@@ -15,5 +15,5 @@ MonoBehaviour:
   behaviorId: behavior
   displayName: Behavior
   selectionWeight: 1
-  fadeDuration: 60
+  fadeDuration: 40
   fadeDelay: 0

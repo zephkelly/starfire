@@ -111,25 +111,31 @@ Shader "Starfire/ShootingStars"
                 // UV 0-1 maps to camera view
                 float2 centeredUV = (uv - 0.5) * 2.0; // -1 to 1
 
-                // World position centered on camera
-                // This is the actual world position of the pixel being rendered
+                // Calculate depth-aware zoom factor (matches Starfield.shader)
+                // Distant layers (low parallax) zoom less, nearby layers zoom more
+                float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
+                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
+                float effectiveOrthoSize = _ReferenceZoom * depthZoomFactor;
+
+                // World position using depth-adjusted ortho size
+                // This makes distant layers appear to zoom less, matching Starfield.shader behavior
                 float2 worldPos;
-                worldPos.x = centeredUV.x * _CameraOrthoSize * _ScreenAspect + _CameraWorldPos.x;
-                worldPos.y = centeredUV.y * _CameraOrthoSize + _CameraWorldPos.y;
+                worldPos.x = centeredUV.x * effectiveOrthoSize * _ScreenAspect + _CameraWorldPos.x;
+                worldPos.y = centeredUV.y * effectiveOrthoSize + _CameraWorldPos.y;
 
                 float3 result = float3(0, 0, 0);
 
                 // Check each active shooting star
                 for (int i = 0; i < _ActiveStarCount && i < MAX_STARS; i++)
                 {
-                    // Get star positions (already parallax-adjusted in C#)
+                    // Get star positions (parallax-adjusted in C#, zoom handled here)
                     float2 headPos = _StarPositions[i].xy;
                     float2 tailPos = _StarPositions[i].zw;
 
                     float starBrightness = _StarParams[i].x;
                     float progress = _StarParams[i].y;
-                    // Width is screen-relative: percentage of orthoSize
-                    float width = _StarParams[i].z * _CameraOrthoSize;
+                    // Width uses same effective ortho size for consistency
+                    float width = _StarParams[i].z * effectiveOrthoSize;
 
                     // Distance from pixel to the shooting star line
                     float dist = distToSegment(worldPos, tailPos, headPos);

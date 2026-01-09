@@ -402,6 +402,7 @@ MonoBehaviour:
   layers:
   - rid: 2281391137234616388
   - rid: 2281391174049857603
+  - rid: 2281391174049857606
   - rid: 2281391137234616387
   - rid: 2281391174049857604
   references:
@@ -488,12 +489,12 @@ MonoBehaviour:
         enabled: 1
         layerName: Shooting Stars 4
         parallaxDepth: 0.001
-        spawnInterval: 1300
-        spawnIntervalVariance: 1500
+        spawnInterval: 22
+        spawnIntervalVariance: 8
         limitActiveStars: 1
         maxActiveStars: 2
         speedMin: 1300
-        speedMax: 1500
+        speedMax: 2000
         speedDistribution:
           serializedVersion: 2
           m_Curve:
@@ -529,12 +530,38 @@ MonoBehaviour:
         speedBrightnessCurve: 1.014
         starWidthMin: 0.001
         starWidthMax: 0.003
-        behaviorConfigs: []
+        behaviorConfigs:
+        - {fileID: 11400000, guid: 286b6d0493cecbc41ab8893573442eef, type: 2}
         persistentLifetimeMultiplier: 1
         showSceneGizmos: 1
         gizmoSpawnColor: {r: 0, g: 1, b: 0, a: 1}
         gizmoCurrentColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
         gizmoDestinationColor: {r: 1, g: 0, b: 0, a: 1}
+    - rid: 2281391174049857606
+      type: {class: StarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Stars 5
+        parallaxDepth: 0.0016
+        density: 7.6
+        spawnChance: 0.088
+        brightnessMin: 0.3
+        brightnessMax: 1
+        brightnessDistribution: 0.5
+        sizeMin: 0.015
+        sizeMax: 0.06
+        sizeDistribution: 0.55
+        twinkleSpeed: 0.073
+        twinkleAmount: 0.937
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        colorVariation: 0.632
+        warmCoolMix: 0.427
+        edgeSharpness: 0.024
+        renderBackground: 0
+        backgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
+        layerSeed: 4
+        clusterAmount: 0.3
+        clusterScale: 0.05
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0

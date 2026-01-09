@@ -274,13 +274,6 @@ namespace Starfire.Core.Background.Layers
             // Get current camera position for parallax calculation
             Vector2 currentCamPos = _camera != null ? (Vector2)_camera.transform.position : Vector2.zero;
 
-            // Calculate zoom depth factor (matches Starfield.shader behavior)
-            // Distant layers (low parallax) zoom less, nearby layers zoom more
-            float referenceZoom = Shader.GetGlobalFloat(ReferenceZoomID);
-            if (referenceZoom <= 0f) referenceZoom = 10f;
-            float zoomFactor = _camera != null ? _camera.orthographicSize / referenceZoom : 1f;
-            float depthZoomFactor = Mathf.Lerp(1f, zoomFactor, Mathf.Clamp01(parallaxDepth * 10f));
-
             for (int i = 0; i < MAX_STARS; i++)
             {
                 if (i < count)
@@ -289,7 +282,8 @@ namespace Starfire.Core.Background.Layers
                     bool isInView = IsInCameraView(star.position, star.trailLength);
                     float opacity = star.CalculateOpacity(isInView);
 
-                    // Calculate parallax-adjusted positions (matches gizmo calculation)
+                    // Calculate parallax-adjusted positions
+                    // Zoom depth scaling is now handled in the shader (using effectiveOrthoSize)
                     // Distant stars (low parallaxDepth) should move WITH the camera (appear stationary)
                     // Near stars (high parallaxDepth) should stay in world space (drift backward)
                     Vector2 cameraDelta = currentCamPos - star.spawnCameraPosition;
@@ -297,14 +291,7 @@ namespace Starfire.Core.Background.Layers
                     Vector2 apparentHead = star.position + parallaxOffset;
                     Vector2 apparentTail = star.TailPosition + parallaxOffset;
 
-                    // Apply zoom depth scaling - scale positions relative to camera center
-                    // Distant stars (low parallaxDepth) are less affected by zoom changes
-                    Vector2 headOffsetFromCam = apparentHead - currentCamPos;
-                    Vector2 tailOffsetFromCam = apparentTail - currentCamPos;
-                    apparentHead = currentCamPos + headOffsetFromCam * depthZoomFactor;
-                    apparentTail = currentCamPos + tailOffsetFromCam * depthZoomFactor;
-
-                    // xy = head position, zw = tail position (parallax-adjusted)
+                    // xy = head position, zw = tail position (parallax-adjusted only)
                     _positionArray[i] = new Vector4(apparentHead.x, apparentHead.y, apparentTail.x, apparentTail.y);
                     // x = brightness (pre-multiplied with opacity), y = progress, z = per-star width, w = behavior type
                     _paramsArray[i] = new Vector4(star.brightness * opacity, star.Progress, star.width, (int)star.behavior.behaviorType);
@@ -365,6 +352,19 @@ namespace Starfire.Core.Background.Layers
         /// Direction points toward a random target inside the visible area.
         /// </summary>
         /// <param name="worldSpawnPos">Spawn position in world coordinate space.</param>
+        /// <summary>
+        /// Calculate the effective orthographic size for this layer's depth.
+        /// Distant layers (low parallax) use a smaller effective size, matching shader behavior.
+        /// </summary>
+        private float GetEffectiveOrthoSize()
+        {
+            float referenceZoom = Shader.GetGlobalFloat(ReferenceZoomID);
+            if (referenceZoom <= 0f) referenceZoom = 10f;
+            float zoomFactor = _camera.orthographicSize / referenceZoom;
+            float depthZoomFactor = Mathf.Lerp(1f, zoomFactor, Mathf.Clamp01(parallaxDepth * 10f));
+            return referenceZoom * depthZoomFactor;
+        }
+
         private Vector2 CalculateDirection(Vector2 worldSpawnPos)
         {
             // Use event mode direction override if active
@@ -374,7 +374,7 @@ namespace Starfire.Core.Background.Layers
             }
 
             Vector2 camPos = _camera.transform.position;
-            float halfHeight = _camera.orthographicSize;
+            float halfHeight = GetEffectiveOrthoSize();
             float halfWidth = halfHeight * _camera.aspect;
 
             // Target inside visible area (0.8x to ensure it's well within bounds)
@@ -402,9 +402,10 @@ namespace Starfire.Core.Background.Layers
         {
             if (_camera == null) return;
 
-            // Spawn just outside ACTUAL camera viewport (world space, not shader space)
+            // Use effective ortho size to match shader's depth-adjusted view
             Vector2 camPos = _camera.transform.position;
-            float halfHeight = _camera.orthographicSize;
+            float effectiveOrtho = GetEffectiveOrthoSize();
+            float halfHeight = effectiveOrtho;
             float halfWidth = halfHeight * _camera.aspect;
 
             // Spawn just outside visible area (1.2x margin ensures off-screen)
@@ -436,9 +437,8 @@ namespace Starfire.Core.Background.Layers
             // Lifetime based on world-space travel (using parallax-scaled speed)
             float lifetime = travelDistance / worldSpeed;
 
-            // Trail length in world units
-            // trailLength is fraction of screen height, multiply by orthographicSize*2 for world units
-            float worldTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
+            // Trail length in world units (using effective ortho to match shader view)
+            float worldTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * effectiveOrtho * 2f;
             worldTrailLength = Mathf.Max(0.01f, worldTrailLength);
 
             // Calculate speed ratio (0-1) for brightness calculation (using base speed, not parallax-scaled)
@@ -531,9 +531,10 @@ namespace Starfire.Core.Background.Layers
             if (_activeStars.Count >= MAX_STARS) return false;
             if (_camera == null) return false;
 
-            // Spawn just outside ACTUAL camera viewport (world space)
+            // Use effective ortho size to match shader's depth-adjusted view
             Vector2 camPos = _camera.transform.position;
-            float halfHeight = _camera.orthographicSize;
+            float effectiveOrtho = GetEffectiveOrthoSize();
+            float halfHeight = effectiveOrtho;
             float halfWidth = halfHeight * _camera.aspect;
 
             // Spawn just outside visible area (1.2x margin ensures off-screen)
@@ -572,8 +573,8 @@ namespace Starfire.Core.Background.Layers
             // Lifetime based on world-space travel (using parallax-scaled speed)
             float lifetime = travelDistance / worldSpeed;
 
-            // Trail length in world units
-            float worldTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
+            // Trail length in world units (using effective ortho to match shader view)
+            float worldTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * effectiveOrtho * 2f;
             worldTrailLength = Mathf.Max(0.01f, worldTrailLength);
 
             // Calculate speed ratio (0-1) for brightness calculation (using base speed, not parallax-scaled)
@@ -672,15 +673,10 @@ namespace Starfire.Core.Background.Layers
             // Calculate parallax offset (same formula as ConfigureMaterial)
             Vector2 currentCamPos = _camera.transform.position;
 
-            // Calculate zoom depth factor (matches ConfigureMaterial)
-            float referenceZoom = Shader.GetGlobalFloat(ReferenceZoomID);
-            if (referenceZoom <= 0f) referenceZoom = 10f;
-            float zoomFactor = _camera.orthographicSize / referenceZoom;
-            float depthZoomFactor = Mathf.Lerp(1f, zoomFactor, Mathf.Clamp01(parallaxDepth * 10f));
-
             foreach (var star in _activeStars)
             {
                 // Calculate parallax offset for this star (matches ConfigureMaterial calculation)
+                // Note: Zoom depth scaling is handled in the shader, not here
                 Vector2 cameraDelta = currentCamPos - star.spawnCameraPosition;
                 Vector2 parallaxOffset = cameraDelta * (1f - parallaxDepth);
 
@@ -688,19 +684,10 @@ namespace Starfire.Core.Background.Layers
                 float remainingTime = star.lifetime - (Time.time - star.spawnTime);
                 Vector2 destination = star.position + star.direction * star.speed * Mathf.Max(0, remainingTime);
 
-                // Apply parallax offset to get apparent positions (where stars visually appear)
-                // Uses + to match ConfigureMaterial calculation
+                // Apply parallax offset to get apparent positions
                 Vector2 apparentSpawn = star.startPosition + parallaxOffset;
                 Vector2 apparentCurrent = star.position + parallaxOffset;
                 Vector2 apparentDest = destination + parallaxOffset;
-
-                // Apply zoom depth scaling (matches ConfigureMaterial)
-                Vector2 spawnOffset = apparentSpawn - currentCamPos;
-                Vector2 currentOffset = apparentCurrent - currentCamPos;
-                Vector2 destOffset = apparentDest - currentCamPos;
-                apparentSpawn = currentCamPos + spawnOffset * depthZoomFactor;
-                apparentCurrent = currentCamPos + currentOffset * depthZoomFactor;
-                apparentDest = currentCamPos + destOffset * depthZoomFactor;
 
                 Vector3 worldSpawn = new Vector3(apparentSpawn.x, apparentSpawn.y, 0);
                 Vector3 worldCurrent = new Vector3(apparentCurrent.x, apparentCurrent.y, 0);
