@@ -40,12 +40,20 @@ namespace Starfire.Core.Background.Editor
             // Layers
             EditorGUILayout.LabelField("Layers", EditorStyles.boldLabel);
 
-            // Add layer buttons
+            // Add layer buttons - first row
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("+ Star Layer", GUILayout.Height(25)))
             {
                 AddStarLayer();
             }
+            if (GUILayout.Button("+ Multi-Star Layer", GUILayout.Height(25)))
+            {
+                AddMultiStarLayer();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // Add layer buttons - second row
+            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("+ Shooting Stars", GUILayout.Height(25)))
             {
                 AddShootingStarLayer();
@@ -280,6 +288,25 @@ namespace Starfire.Core.Background.Editor
                 layerName = $"Comets {_layers.arraySize + 1}",
                 parallaxDepth = 0.015f
             };
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
+        private void AddMultiStarLayer()
+        {
+            // Create a new MultiStarLayer with 4 default depth configurations
+            var newLayer = new MultiStarLayer
+            {
+                layerName = $"Multi-Stars {_layers.arraySize + 1}",
+                renderBackground = _layers.arraySize == 0
+            };
+            // SetupDefaultDepths is called by the default field initializer
 
             // Add to array using SerializeReference
             _layers.arraySize++;
