@@ -349,6 +349,18 @@ namespace Starfire.Core.Background
             UnityEditor.EditorUtility.SetDirty(this);
         }
 
+        [ContextMenu("Add Shaped Star Layer")]
+        private void AddShapedStarLayer()
+        {
+            var layer = new ShapedStarLayer
+            {
+                layerName = $"Shaped Stars {layers.Count + 1}",
+                renderBackground = layers.Count == 0 // First layer renders background
+            };
+            layers.Add(layer);
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+
         [ContextMenu("Refresh All Layers")]
         private void EditorRefreshLayers()
         {

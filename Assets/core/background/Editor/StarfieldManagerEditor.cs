@@ -64,6 +64,14 @@ namespace Starfire.Core.Background.Editor
             }
             EditorGUILayout.EndHorizontal();
 
+            // Add layer buttons - third row
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+ Shaped Star Layer", GUILayout.Height(25)))
+            {
+                AddShapedStarLayer();
+            }
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.Space();
 
             // Draw each layer
@@ -307,6 +315,25 @@ namespace Starfire.Core.Background.Editor
                 renderBackground = _layers.arraySize == 0
             };
             // SetupDefaultDepths is called by the default field initializer
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
+        private void AddShapedStarLayer()
+        {
+            // Create a new ShapedStarLayer with default shape configuration
+            var newLayer = new ShapedStarLayer
+            {
+                layerName = $"Shaped Stars {_layers.arraySize + 1}",
+                renderBackground = _layers.arraySize == 0,
+                layerSeed = _layers.arraySize
+            };
 
             // Add to array using SerializeReference
             _layers.arraySize++;
