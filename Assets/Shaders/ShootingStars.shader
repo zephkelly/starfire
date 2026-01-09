@@ -71,7 +71,7 @@ Shader "Starfire/ShootingStars"
 
             // Set from script - shooting star data
             int _ActiveStarCount;
-            float4 _StarPositions[MAX_STARS];    // xy = head position, zw = tail position (world space)
+            float4 _StarPositions[MAX_STARS];    // xy = head position, zw = tail position (parallax-adjusted in C#)
             float4 _StarParams[MAX_STARS];       // x = brightness (pre-multiplied with opacity), y = progress (0-1), z = width, w = behavior type
 
             // Distance from point to line segment
@@ -101,39 +101,35 @@ Shader "Starfire/ShootingStars"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                // Convert UV to world space with parallax
+                // DEBUG: Show red if we have active stars (comment out for production)
+                // if (_ActiveStarCount > 0) return half4(1, 0, 0, 1);
+
+                // Convert UV to world space
                 float2 uv = IN.uv;
 
                 // Calculate world position from UV
                 // UV 0-1 maps to camera view
                 float2 centeredUV = (uv - 0.5) * 2.0; // -1 to 1
 
-                // Depth-aware zoom: distant layers (low parallax) zoom less, nearby layers zoom more
-                // This matches the Starfield shader's behavior
-                float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
-                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
-                float effectiveOrthoSize = _ReferenceZoom * depthZoomFactor;
-
-                // Parallax coordinate space with depth-aware zoom
-                // - UV scaled by effectiveOrthoSize gives screen-space coordinates
-                // - Camera position scaled by parallax creates parallax movement effect
-                // - Low parallax = camera offset barely changes = distant layer effect
+                // World position centered on camera
+                // This is the actual world position of the pixel being rendered
                 float2 worldPos;
-                worldPos.x = centeredUV.x * effectiveOrthoSize * _ScreenAspect + _CameraWorldPos.x * _ParallaxFactor;
-                worldPos.y = centeredUV.y * effectiveOrthoSize + _CameraWorldPos.y * _ParallaxFactor;
+                worldPos.x = centeredUV.x * _CameraOrthoSize * _ScreenAspect + _CameraWorldPos.x;
+                worldPos.y = centeredUV.y * _CameraOrthoSize + _CameraWorldPos.y;
 
                 float3 result = float3(0, 0, 0);
 
                 // Check each active shooting star
                 for (int i = 0; i < _ActiveStarCount && i < MAX_STARS; i++)
                 {
-                    // Positions scaled by parallax (same coordinate space as worldPos)
-                    float2 headPos = _StarPositions[i].xy * _ParallaxFactor;
-                    float2 tailPos = _StarPositions[i].zw * _ParallaxFactor;
+                    // Get star positions (already parallax-adjusted in C#)
+                    float2 headPos = _StarPositions[i].xy;
+                    float2 tailPos = _StarPositions[i].zw;
+
                     float starBrightness = _StarParams[i].x;
                     float progress = _StarParams[i].y;
-                    // Width is screen-relative: percentage of effectiveOrthoSize (matches coordinate space)
-                    float width = _StarParams[i].z * effectiveOrthoSize;
+                    // Width is screen-relative: percentage of orthoSize
+                    float width = _StarParams[i].z * _CameraOrthoSize;
 
                     // Distance from pixel to the shooting star line
                     float dist = distToSegment(worldPos, tailPos, headPos);

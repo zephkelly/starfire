@@ -401,9 +401,9 @@ MonoBehaviour:
   enableEditorPreview: 1
   layers:
   - rid: 2281391137234616388
-  - rid: 2281391137234616389
-  - rid: 2281391160900190275
+  - rid: 2281391174049857603
   - rid: 2281391137234616387
+  - rid: 2281391174049857604
   references:
     version: 2
     RefIds:
@@ -420,7 +420,7 @@ MonoBehaviour:
         brightnessDistribution: 0.819
         sizeMin: 0.1
         sizeMax: 0.12
-        sizeDistribution: 0.248
+        sizeDistribution: 0.037
         twinkleSpeed: 2.336
         twinkleAmount: 0.18
         starColor: {r: 1, g: 1, b: 1, a: 1}
@@ -438,8 +438,8 @@ MonoBehaviour:
         enabled: 1
         layerName: Stars 2
         parallaxDepth: 0.001
-        density: 7.3
-        spawnChance: 0.807
+        density: 9.5
+        spawnChance: 0.087
         brightnessMin: 0.3
         brightnessMax: 1
         brightnessDistribution: 0.5
@@ -457,59 +457,84 @@ MonoBehaviour:
         layerSeed: 0
         clusterAmount: 0.3
         clusterScale: 0.05
-    - rid: 2281391137234616389
+    - rid: 2281391174049857603
+      type: {class: StarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Stars 4
+        parallaxDepth: 0.0012
+        density: 11.3
+        spawnChance: 0.047
+        brightnessMin: 0.3
+        brightnessMax: 1
+        brightnessDistribution: 0.5
+        sizeMin: 0.01
+        sizeMax: 0.04
+        sizeDistribution: 0.641
+        twinkleSpeed: 1
+        twinkleAmount: 0.3
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        colorVariation: 0.3
+        warmCoolMix: 0.5
+        edgeSharpness: 0.024
+        renderBackground: 0
+        backgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
+        layerSeed: 3
+        clusterAmount: 0.3
+        clusterScale: 0.05
+    - rid: 2281391174049857604
       type: {class: ShootingStarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
       data:
         enabled: 1
-        layerName: Shooting Stars 3
+        layerName: Shooting Stars 4
         parallaxDepth: 0.001
-        spawnInterval: 1
-        spawnIntervalVariance: 1
-        maxActiveStars: 3
-        speed: 10
-        speedVariance: 8
-        trailLength: 0.09
-        noiseScale: 0.08
-        noiseInfluence: 0.167
-        baseAngle: 225
-        angleVariance: 30
-        starColor: {r: 1, g: 1, b: 1, a: 1}
-        brightness: 0.578
-        brightnessVariance: 0.423
-        speedBrightnessCurve: 0.845
-        starWidthMin: 0.001
-        starWidthMax: 0.004
-        behaviorConfigs:
-        - {fileID: 11400000, guid: 89f0c95acc6c33b4497eab7299b26b3d, type: 2}
-        - {fileID: 11400000, guid: fc9748f5241dfc84b97fd30c3d1efb82, type: 2}
-        persistentLifetimeMultiplier: 3
-    - rid: 2281391160900190275
-      type: {class: CometLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
-      data:
-        enabled: 1
-        layerName: Comets 4
-        parallaxDepth: 0.001
-        spawnInterval: 0.1
-        spawnIntervalVariance: 0.1
-        maxActiveComets: 3
-        speed: 20
-        speedVariance: 10
-        trailTime: 0.313
-        referenceParallaxDepth: 0.0009
+        spawnInterval: 1300
+        spawnIntervalVariance: 1500
+        limitActiveStars: 1
+        maxActiveStars: 2
+        speedMin: 1300
+        speedMax: 1500
+        speedDistribution:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0.016666412
+            value: 0.70715505
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.9666748
+            value: 0.33333206
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        trailLength: 0.06
+        trailLengthVariance: 0.03
         noiseScale: 0.05
         noiseInfluence: 0.5
-        baseAngle: 225
         angleVariance: 30
-        nucleusSize: 0.15
-        comaSize: 0.6
-        comaSoftness: 2
-        particleCount: 24
-        particleSizeMin: 0.02
-        particleSizeMax: 0.08
-        particleSpread: 0.5
-        particleFadeRate: 2
-        cometColor: {r: 0.8, g: 0.9, b: 1, a: 1}
-        brightness: 2
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        brightness: 0.374
+        brightnessVariance: 0.257
+        speedBrightnessCurve: 1.014
+        starWidthMin: 0.001
+        starWidthMax: 0.003
+        behaviorConfigs: []
+        persistentLifetimeMultiplier: 1
+        showSceneGizmos: 1
+        gizmoSpawnColor: {r: 0, g: 1, b: 0, a: 1}
+        gizmoCurrentColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+        gizmoDestinationColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -530,7 +555,7 @@ MonoBehaviour:
   useInterpolation: 1
   postProcessVolume: {fileID: 1887904437}
   autoFindVolume: 0
-  showDebugInfo: 0
+  showDebugInfo: 1
   enableDebugControls: 1
   debugShakeIntensity: 0.5
   debugPunchForce: 0.3

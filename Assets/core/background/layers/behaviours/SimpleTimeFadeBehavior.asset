@@ -9,13 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55421d77ec0b49b499af4db7d5109d67, type: 3}
-  m_Name: SlowFadeBehavior
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.Behaviors.SlowFadeBehaviorConfig
+  m_Script: {fileID: 11500000, guid: 61db7709336dec9488e85a809fbd8ce3, type: 3}
+  m_Name: SimpleTimeFadeBehavior
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.Behaviors.SimpleTimeFadeBehaviorConfig
   behaviorId: behavior
   displayName: Behavior
   selectionWeight: 1
-  fadeMode: 0
-  fadeDuration: 100
-  fadeDistance: 30
-  fadeDelay: 60
+  fadeDuration: 60
+  fadeDelay: 0

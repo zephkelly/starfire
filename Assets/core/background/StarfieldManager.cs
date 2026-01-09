@@ -320,6 +320,22 @@ namespace Starfire.Core.Background
         /// </summary>
         public IReadOnlyList<StarfieldLayer> Layers => layers;
 
+        /// <summary>
+        /// Draw gizmos for all layers that support it (e.g., ShootingStarLayer debug visualization).
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            if (layers == null) return;
+
+            foreach (var layer in layers)
+            {
+                if (layer is ShootingStarLayer shootingStarLayer)
+                {
+                    shootingStarLayer.DrawGizmos();
+                }
+            }
+        }
+
 #if UNITY_EDITOR
         [ContextMenu("Add Star Layer")]
         private void AddStarLayer()

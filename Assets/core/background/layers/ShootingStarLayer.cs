@@ -32,11 +32,16 @@ namespace Starfire.Core.Background.Layers
         public int maxActiveStars = 5;
 
         [Header("Movement")]
-        [Tooltip("Visual speed in shader units per second (screen height = 2 * orthoSize)")]
-        public float speed = 15f;
+        [Tooltip("Minimum visual speed in shader units per second")]
+        [Min(0.01f)]
+        public float speedMin = 8.00f;
 
-        [Tooltip("UnityEngine.Random speed variance")]
-        public float speedVariance = 7f;
+        [Tooltip("Maximum visual speed in shader units per second")]
+        [Min(0.01f)]
+        public float speedMax = 22.00f;
+
+        [Tooltip("Speed distribution curve (X=random 0-1, Y=lerp factor between min/max). Linear = uniform, ease-in = more slow stars, ease-out = more fast stars")]
+        public AnimationCurve speedDistribution = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
         [Tooltip("Visual trail length as fraction of screen height (0.15 = 15%)")]
         public float trailLength = 0.15f;
@@ -59,7 +64,7 @@ namespace Starfire.Core.Background.Layers
         public Color starColor = Color.white;
 
         [Tooltip("Base brightness of the shooting star")]
-        [Range(0.5f, 5f)]
+        [Range(0.2f, 5f)]
         public float brightness = 1.5f;
 
         [Tooltip("UnityEngine.Random brightness variance (0 = all same brightness)")]
@@ -86,6 +91,19 @@ namespace Starfire.Core.Background.Layers
         [Min(1f)]
         [SerializeField] private float persistentLifetimeMultiplier = 3f;
 
+        [Header("Debug")]
+        [Tooltip("Draw gizmos in Scene view showing star spawn points, paths, and destinations")]
+        [SerializeField] private bool showSceneGizmos = false;
+
+        [Tooltip("Color for spawn point markers")]
+        [SerializeField] private Color gizmoSpawnColor = Color.green;
+
+        [Tooltip("Color for current position markers")]
+        [SerializeField] private Color gizmoCurrentColor = Color.yellow;
+
+        [Tooltip("Color for destination markers")]
+        [SerializeField] private Color gizmoDestinationColor = Color.red;
+
         // Runtime state
         [System.NonSerialized] private List<ShootingStarData> _activeStars = new List<ShootingStarData>();
         [System.NonSerialized] private float _nextSpawnTime;
@@ -102,6 +120,7 @@ namespace Starfire.Core.Background.Layers
         private static readonly int BrightnessID = Shader.PropertyToID("_Brightness");
         private static readonly int ParallaxFactorID = Shader.PropertyToID("_ParallaxFactor");
         private static readonly int CameraOrthoSizeID = Shader.PropertyToID("_CameraOrthoSize");
+        private static readonly int ReferenceZoomID = Shader.PropertyToID("_ReferenceZoom");
 
         // Arrays for passing to shader
         private Vector4[] _positionArray = new Vector4[MAX_STARS];
@@ -206,31 +225,29 @@ namespace Starfire.Core.Background.Layers
                 case ShootingStarBehaviorType.SlowFade:
                     return star.CalculateOpacity(isInView) <= 0f;
 
+                case ShootingStarBehaviorType.SimpleTimeFade:
+                    return star.CalculateOpacity(isInView) <= 0f;
+
                 default:
                     return star.IsComplete;
             }
         }
 
+        /// <summary>
+        /// Check if a position in world-space is within the camera's visible area.
+        /// </summary>
+        /// <param name="worldPos">Position in world coordinate space.</param>
+        /// <param name="margin">Extra margin in world units.</param>
         private bool IsInCameraView(Vector2 worldPos, float margin = 0f)
         {
             if (_camera == null) return true;
 
-            // Convert shader visible area to world space
-            // In shader: worldPos is ±orthoSize range, positions are scaled by parallax
-            // A world position is visible when: (worldPos - camPos) * parallax is within orthoSize bounds
-            // Therefore world-space bounds = orthoSize / parallax
-            float worldHalfHeight = _camera.orthographicSize / parallaxDepth;
-            float worldHalfWidth = worldHalfHeight * _camera.aspect;
             Vector2 camPos = _camera.transform.position;
+            float halfHeight = _camera.orthographicSize + margin;
+            float halfWidth = halfHeight * _camera.aspect;
 
-            // Margin is in world units
-            float halfWidth = worldHalfWidth + margin;
-            float halfHeight = worldHalfHeight + margin;
-
-            return worldPos.x >= camPos.x - halfWidth &&
-                   worldPos.x <= camPos.x + halfWidth &&
-                   worldPos.y >= camPos.y - halfHeight &&
-                   worldPos.y <= camPos.y + halfHeight;
+            return Mathf.Abs(worldPos.x - camPos.x) <= halfWidth &&
+                   Mathf.Abs(worldPos.y - camPos.y) <= halfHeight;
         }
 
         public override void ConfigureMaterial(Material material)
@@ -254,6 +271,16 @@ namespace Starfire.Core.Background.Layers
             int count = Mathf.Min(_activeStars.Count, MAX_STARS);
             material.SetInt(ActiveStarCountID, count);
 
+            // Get current camera position for parallax calculation
+            Vector2 currentCamPos = _camera != null ? (Vector2)_camera.transform.position : Vector2.zero;
+
+            // Calculate zoom depth factor (matches Starfield.shader behavior)
+            // Distant layers (low parallax) zoom less, nearby layers zoom more
+            float referenceZoom = Shader.GetGlobalFloat(ReferenceZoomID);
+            if (referenceZoom <= 0f) referenceZoom = 10f;
+            float zoomFactor = _camera != null ? _camera.orthographicSize / referenceZoom : 1f;
+            float depthZoomFactor = Mathf.Lerp(1f, zoomFactor, Mathf.Clamp01(parallaxDepth * 10f));
+
             for (int i = 0; i < MAX_STARS; i++)
             {
                 if (i < count)
@@ -262,8 +289,23 @@ namespace Starfire.Core.Background.Layers
                     bool isInView = IsInCameraView(star.position, star.trailLength);
                     float opacity = star.CalculateOpacity(isInView);
 
-                    // xy = head position, zw = tail position
-                    _positionArray[i] = new Vector4(star.position.x, star.position.y, star.TailPosition.x, star.TailPosition.y);
+                    // Calculate parallax-adjusted positions (matches gizmo calculation)
+                    // Distant stars (low parallaxDepth) should move WITH the camera (appear stationary)
+                    // Near stars (high parallaxDepth) should stay in world space (drift backward)
+                    Vector2 cameraDelta = currentCamPos - star.spawnCameraPosition;
+                    Vector2 parallaxOffset = cameraDelta * (1f - parallaxDepth);
+                    Vector2 apparentHead = star.position + parallaxOffset;
+                    Vector2 apparentTail = star.TailPosition + parallaxOffset;
+
+                    // Apply zoom depth scaling - scale positions relative to camera center
+                    // Distant stars (low parallaxDepth) are less affected by zoom changes
+                    Vector2 headOffsetFromCam = apparentHead - currentCamPos;
+                    Vector2 tailOffsetFromCam = apparentTail - currentCamPos;
+                    apparentHead = currentCamPos + headOffsetFromCam * depthZoomFactor;
+                    apparentTail = currentCamPos + tailOffsetFromCam * depthZoomFactor;
+
+                    // xy = head position, zw = tail position (parallax-adjusted)
+                    _positionArray[i] = new Vector4(apparentHead.x, apparentHead.y, apparentTail.x, apparentTail.y);
                     // x = brightness (pre-multiplied with opacity), y = progress, z = per-star width, w = behavior type
                     _paramsArray[i] = new Vector4(star.brightness * opacity, star.Progress, star.width, (int)star.behavior.behaviorType);
                 }
@@ -318,7 +360,12 @@ namespace Starfire.Core.Background.Layers
             return configs[configs.Count - 1];
         }
 
-        private Vector2 CalculateDirection(Vector2 spawnPos)
+        /// <summary>
+        /// Calculate direction for a star spawned at the given world-space position.
+        /// Direction points toward a random target inside the visible area.
+        /// </summary>
+        /// <param name="worldSpawnPos">Spawn position in world coordinate space.</param>
+        private Vector2 CalculateDirection(Vector2 worldSpawnPos)
         {
             // Use event mode direction override if active
             if (_activeEventMode?.DirectionOverride != null)
@@ -327,25 +374,22 @@ namespace Starfire.Core.Background.Layers
             }
 
             Vector2 camPos = _camera.transform.position;
+            float halfHeight = _camera.orthographicSize;
+            float halfWidth = halfHeight * _camera.aspect;
 
-            // Calculate world-space view bounds
-            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
-            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
-
-            // Pick a random target point INSIDE the viewport
-            // This ensures the star will cross through the visible area
-            Vector2 targetOffset = new Vector2(
-                UnityEngine.Random.Range(-effectiveHalfWidth * 0.8f, effectiveHalfWidth * 0.8f),
-                UnityEngine.Random.Range(-effectiveHalfHeight * 0.8f, effectiveHalfHeight * 0.8f)
+            // Target inside visible area (0.8x to ensure it's well within bounds)
+            Vector2 target = camPos + new Vector2(
+                UnityEngine.Random.Range(-halfWidth * 0.8f, halfWidth * 0.8f),
+                UnityEngine.Random.Range(-halfHeight * 0.8f, halfHeight * 0.8f)
             );
-            Vector2 targetPos = camPos + targetOffset;
 
-            // Base direction toward target
-            Vector2 baseDirection = (targetPos - spawnPos).normalized;
+            // Base direction toward target in world space
+            Vector2 baseDirection = (target - worldSpawnPos).normalized;
             float baseAngleRad = Mathf.Atan2(baseDirection.y, baseDirection.x);
 
             // Apply noise and variance as angular offsets
-            float noiseValue = NoiseUtility.Perlin2D(spawnPos, noiseScale);
+            // Use world position scaled for noise sampling
+            float noiseValue = NoiseUtility.Perlin2D(worldSpawnPos, noiseScale);
             float noiseAngleOffset = noiseValue * 180f * noiseInfluence * Mathf.Deg2Rad;
             float randomOffset = UnityEngine.Random.Range(-angleVariance, angleVariance) * Mathf.Deg2Rad;
 
@@ -358,49 +402,49 @@ namespace Starfire.Core.Background.Layers
         {
             if (_camera == null) return;
 
+            // Spawn just outside ACTUAL camera viewport (world space, not shader space)
             Vector2 camPos = _camera.transform.position;
+            float halfHeight = _camera.orthographicSize;
+            float halfWidth = halfHeight * _camera.aspect;
 
-            // Calculate spawn position outside the shader visible area
-            // In shader: positions are scaled by parallax, visible range is ±orthoSize
-            // Therefore world-space visible area = orthoSize / parallax
-            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
-            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
-
-            // Spawn just outside this area (1.2x margin ensures off-screen)
+            // Spawn just outside visible area (1.2x margin ensures off-screen)
             float edgeAngle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float margin = Mathf.Max(effectiveHalfWidth, effectiveHalfHeight) * 1.2f;
+            float spawnMargin = Mathf.Max(halfWidth, halfHeight) * 1.2f;
 
+            // Spawn position in world space
             Vector2 spawnPos = camPos + new Vector2(
-                Mathf.Cos(edgeAngle) * margin,
-                Mathf.Sin(edgeAngle) * margin
+                Mathf.Cos(edgeAngle) * spawnMargin,
+                Mathf.Sin(edgeAngle) * spawnMargin
             );
 
             Vector2 direction = CalculateDirection(spawnPos);
 
-            // Calculate how long the star needs to travel to fully exit view
-            // Diagonal of the effective visible area plus spawn margin on both ends
-            float effectiveDiagonal = Mathf.Sqrt(effectiveHalfWidth * effectiveHalfWidth + effectiveHalfHeight * effectiveHalfHeight) * 2f;
-            float travelDistance = effectiveDiagonal + margin * 2f;
+            // Calculate travel distance in world units
+            // Diagonal of visible area plus spawn margin on both ends
+            float diagonal = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight) * 2f;
+            float travelDistance = diagonal + spawnMargin * 2f;
 
-            // Convert visual speed to world speed
-            // User's speed is "visual speed" (shader units per second)
-            // In shader: worldSpeed * parallax = visualSpeed, so worldSpeed = visualSpeed / parallax
-            float visualSpeed = speed + UnityEngine.Random.Range(-speedVariance, speedVariance);
-            float worldSpeed = visualSpeed / parallaxDepth;
+            // Speed in world units per second
+            float randomT = UnityEngine.Random.Range(0f, 1f);
+            float curvedT = speedDistribution.Evaluate(randomT);
+            float baseWorldSpeed = Mathf.Lerp(speedMin, speedMax, curvedT);
+
+            // Scale speed by parallax depth for apparent distance effect
+            // Distant stars (low parallax) appear to move slower
+            float worldSpeed = baseWorldSpeed * parallaxDepth;
+
+            // Lifetime based on world-space travel (using parallax-scaled speed)
             float lifetime = travelDistance / worldSpeed;
 
-            // Convert visual trail length to world trail length
-            // trailLength is fraction of screen height, multiply by orthoSize*2 for shader units
-            // Then divide by parallax to get world units
-            float visualTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
-            float worldTrailLength = Mathf.Max(0.01f, visualTrailLength) / parallaxDepth;
+            // Trail length in world units
+            // trailLength is fraction of screen height, multiply by orthographicSize*2 for world units
+            float worldTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
+            worldTrailLength = Mathf.Max(0.01f, worldTrailLength);
 
-            // Calculate speed ratio (0-1 range based on min/max possible speed)
-            float minSpeed = speed - speedVariance;
-            float maxSpeed = speed + speedVariance;
-            float speedRatio = Mathf.InverseLerp(minSpeed, maxSpeed, visualSpeed);
+            // Calculate speed ratio (0-1) for brightness calculation (using base speed, not parallax-scaled)
+            float speedRatio = Mathf.InverseLerp(speedMin, speedMax, baseWorldSpeed);
 
-            // Apply curve exponent for configurable falloff
+            // Apply curve exponent for speed-to-brightness mapping
             float speedFactor = Mathf.Pow(speedRatio, speedBrightnessCurve);
 
             // Calculate final brightness with speed factor and variance
@@ -418,6 +462,7 @@ namespace Starfire.Core.Background.Layers
             }
 
             // Create the star with world-space values
+            Vector2 cameraPos = _camera.transform.position;
             var star = ShootingStarData.Create(
                 spawnPos,
                 direction,
@@ -426,7 +471,8 @@ namespace Starfire.Core.Background.Layers
                 starBrightness,
                 worldTrailLength,
                 starWidth,
-                behaviorData
+                behaviorData,
+                cameraPos
             );
 
             _activeStars.Add(star);
@@ -485,21 +531,19 @@ namespace Starfire.Core.Background.Layers
             if (_activeStars.Count >= MAX_STARS) return false;
             if (_camera == null) return false;
 
+            // Spawn just outside ACTUAL camera viewport (world space)
             Vector2 camPos = _camera.transform.position;
+            float halfHeight = _camera.orthographicSize;
+            float halfWidth = halfHeight * _camera.aspect;
 
-            // Calculate spawn position outside the shader visible area
-            // In shader: positions are scaled by parallax, visible range is ±orthoSize
-            // Therefore world-space visible area = orthoSize / parallax
-            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
-            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
-
-            // UnityEngine.Random spawn position outside view (1.2x margin ensures off-screen)
+            // Spawn just outside visible area (1.2x margin ensures off-screen)
             float edgeAngle = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            float margin = Mathf.Max(effectiveHalfWidth, effectiveHalfHeight) * 1.2f;
+            float spawnMargin = Mathf.Max(halfWidth, halfHeight) * 1.2f;
 
+            // Spawn position in world space
             Vector2 spawnPos = camPos + new Vector2(
-                Mathf.Cos(edgeAngle) * margin,
-                Mathf.Sin(edgeAngle) * margin
+                Mathf.Cos(edgeAngle) * spawnMargin,
+                Mathf.Sin(edgeAngle) * spawnMargin
             );
 
             Vector2 direction;
@@ -512,29 +556,30 @@ namespace Starfire.Core.Background.Layers
                 direction = CalculateDirection(spawnPos);
             }
 
-            // Travel distance is diagonal of effective visible area plus margins
-            float effectiveDiagonal = Mathf.Sqrt(effectiveHalfWidth * effectiveHalfWidth + effectiveHalfHeight * effectiveHalfHeight) * 2f;
-            float travelDistance = effectiveDiagonal + margin * 2f;
+            // Calculate travel distance in world units
+            float diagonal = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight) * 2f;
+            float travelDistance = diagonal + spawnMargin * 2f;
 
-            // Convert visual speed to world speed
-            // User's speed is "visual speed" (shader units per second)
-            // In shader: worldSpeed * parallax = visualSpeed, so worldSpeed = visualSpeed / parallax
-            float visualSpeed = speed + UnityEngine.Random.Range(-speedVariance, speedVariance);
-            float worldSpeed = visualSpeed / parallaxDepth;
+            // Speed in world units per second
+            float randomT = UnityEngine.Random.Range(0f, 1f);
+            float curvedT = speedDistribution.Evaluate(randomT);
+            float baseWorldSpeed = Mathf.Lerp(speedMin, speedMax, curvedT);
+
+            // Scale speed by parallax depth for apparent distance effect
+            // Distant stars (low parallax) appear to move slower
+            float worldSpeed = baseWorldSpeed * parallaxDepth;
+
+            // Lifetime based on world-space travel (using parallax-scaled speed)
             float lifetime = travelDistance / worldSpeed;
 
-            // Convert visual trail length to world trail length
-            // trailLength is fraction of screen height, multiply by orthoSize*2 for shader units
-            // Then divide by parallax to get world units
-            float visualTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
-            float worldTrailLength = Mathf.Max(0.01f, visualTrailLength) / parallaxDepth;
+            // Trail length in world units
+            float worldTrailLength = (trailLength + UnityEngine.Random.Range(-trailLengthVariance, trailLengthVariance)) * _camera.orthographicSize * 2f;
+            worldTrailLength = Mathf.Max(0.01f, worldTrailLength);
 
-            // Calculate speed ratio (0-1 range based on min/max possible speed)
-            float minSpeed = speed - speedVariance;
-            float maxSpeed = speed + speedVariance;
-            float speedRatio = Mathf.InverseLerp(minSpeed, maxSpeed, visualSpeed);
+            // Calculate speed ratio (0-1) for brightness calculation (using base speed, not parallax-scaled)
+            float speedRatio = Mathf.InverseLerp(speedMin, speedMax, baseWorldSpeed);
 
-            // Apply curve exponent for configurable falloff
+            // Apply curve exponent for speed-to-brightness mapping
             float speedFactor = Mathf.Pow(speedRatio, speedBrightnessCurve);
 
             // Calculate final brightness with speed factor and variance
@@ -553,6 +598,7 @@ namespace Starfire.Core.Background.Layers
             }
 
             // Create the star with world-space values
+            Vector2 currentCamPos = _camera.transform.position;
             var star = ShootingStarData.Create(
                 spawnPos,
                 direction,
@@ -561,7 +607,8 @@ namespace Starfire.Core.Background.Layers
                 starBrightness,
                 worldTrailLength,
                 starWidth,
-                behaviorData
+                behaviorData,
+                currentCamPos
             );
 
             _activeStars.Add(star);
@@ -608,6 +655,75 @@ namespace Starfire.Core.Background.Layers
         public void InvalidateBehaviorWeights()
         {
             // No-op: weights are recalculated each spawn to support runtime inspector changes
+        }
+
+        #endregion
+
+        #region Debug Gizmos
+
+        /// <summary>
+        /// Draw debug gizmos for this layer. Call from StarfieldManager.OnDrawGizmos().
+        /// </summary>
+        public void DrawGizmos()
+        {
+            if (!showSceneGizmos || _activeStars == null || _activeStars.Count == 0) return;
+            if (_camera == null) return;
+
+            // Calculate parallax offset (same formula as ConfigureMaterial)
+            Vector2 currentCamPos = _camera.transform.position;
+
+            // Calculate zoom depth factor (matches ConfigureMaterial)
+            float referenceZoom = Shader.GetGlobalFloat(ReferenceZoomID);
+            if (referenceZoom <= 0f) referenceZoom = 10f;
+            float zoomFactor = _camera.orthographicSize / referenceZoom;
+            float depthZoomFactor = Mathf.Lerp(1f, zoomFactor, Mathf.Clamp01(parallaxDepth * 10f));
+
+            foreach (var star in _activeStars)
+            {
+                // Calculate parallax offset for this star (matches ConfigureMaterial calculation)
+                Vector2 cameraDelta = currentCamPos - star.spawnCameraPosition;
+                Vector2 parallaxOffset = cameraDelta * (1f - parallaxDepth);
+
+                // Calculate destination based on direction and remaining travel
+                float remainingTime = star.lifetime - (Time.time - star.spawnTime);
+                Vector2 destination = star.position + star.direction * star.speed * Mathf.Max(0, remainingTime);
+
+                // Apply parallax offset to get apparent positions (where stars visually appear)
+                // Uses + to match ConfigureMaterial calculation
+                Vector2 apparentSpawn = star.startPosition + parallaxOffset;
+                Vector2 apparentCurrent = star.position + parallaxOffset;
+                Vector2 apparentDest = destination + parallaxOffset;
+
+                // Apply zoom depth scaling (matches ConfigureMaterial)
+                Vector2 spawnOffset = apparentSpawn - currentCamPos;
+                Vector2 currentOffset = apparentCurrent - currentCamPos;
+                Vector2 destOffset = apparentDest - currentCamPos;
+                apparentSpawn = currentCamPos + spawnOffset * depthZoomFactor;
+                apparentCurrent = currentCamPos + currentOffset * depthZoomFactor;
+                apparentDest = currentCamPos + destOffset * depthZoomFactor;
+
+                Vector3 worldSpawn = new Vector3(apparentSpawn.x, apparentSpawn.y, 0);
+                Vector3 worldCurrent = new Vector3(apparentCurrent.x, apparentCurrent.y, 0);
+                Vector3 worldDest = new Vector3(apparentDest.x, apparentDest.y, 0);
+
+                // Draw spawn point (wire sphere)
+                Gizmos.color = gizmoSpawnColor;
+                Gizmos.DrawWireSphere(worldSpawn, 0.5f);
+
+                // Draw current position (solid sphere)
+                Gizmos.color = gizmoCurrentColor;
+                Gizmos.DrawSphere(worldCurrent, 0.3f);
+
+                // Draw destination (wire sphere)
+                Gizmos.color = gizmoDestinationColor;
+                Gizmos.DrawWireSphere(worldDest, 0.5f);
+
+                // Draw path line: spawn -> current (green) -> destination (red)
+                Gizmos.color = gizmoSpawnColor;
+                Gizmos.DrawLine(worldSpawn, worldCurrent);
+                Gizmos.color = gizmoDestinationColor;
+                Gizmos.DrawLine(worldCurrent, worldDest);
+            }
         }
 
         #endregion

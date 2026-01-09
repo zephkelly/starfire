@@ -25,7 +25,13 @@ namespace Starfire.Core.Background.Behaviors
         /// <summary>
         /// Reserved for future: Travels distance then explodes.
         /// </summary>
-        Explosion = 3
+        Explosion = 3,
+
+        /// <summary>
+        /// Simple time-based fade - fades from full brightness to zero over duration.
+        /// No modes or complex parameters, just fade duration and optional delay.
+        /// </summary>
+        SimpleTimeFade = 4
     }
 
     /// <summary>

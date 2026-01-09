@@ -16,6 +16,11 @@ namespace Starfire.Core.Background
         public Vector2 startPosition;
 
         /// <summary>
+        /// Camera position when this star was spawned (for parallax calculation).
+        /// </summary>
+        public Vector2 spawnCameraPosition;
+
+        /// <summary>
         /// Current position in world space.
         /// </summary>
         public Vector2 position;
@@ -115,6 +120,9 @@ namespace Starfire.Core.Background
                 case ShootingStarBehaviorType.SlowFade:
                     return CalculateSlowFadeOpacity();
 
+                case ShootingStarBehaviorType.SimpleTimeFade:
+                    return CalculateSimpleTimeFadeOpacity();
+
                 default:
                     return 1f;
             }
@@ -185,6 +193,24 @@ namespace Starfire.Core.Background
         }
 
         /// <summary>
+        /// Simple time-based fade opacity calculation.
+        /// fadeParam1 = fade duration, fadeParam2 = fade delay
+        /// </summary>
+        private float CalculateSimpleTimeFadeOpacity()
+        {
+            float elapsed = Time.time - spawnTime;
+            float fadeDelay = behavior.fadeParam2;
+            float fadeDuration = behavior.fadeParam1;
+
+            // Still in delay period - full brightness
+            if (elapsed < fadeDelay) return 1f;
+
+            // Calculate fade progress
+            float fadeProgress = (elapsed - fadeDelay) / fadeDuration;
+            return 1f - Mathf.Clamp01(fadeProgress);
+        }
+
+        /// <summary>
         /// Create a new shooting star with calculated parameters.
         /// </summary>
         public static ShootingStarData Create(
@@ -195,7 +221,8 @@ namespace Starfire.Core.Background
             float brightness,
             float trailLength,
             float width,
-            ShootingStarBehaviorData behavior)
+            ShootingStarBehaviorData behavior,
+            Vector2 cameraPosition)
         {
             return new ShootingStarData
             {
@@ -210,7 +237,8 @@ namespace Starfire.Core.Background
                 width = width,
                 behavior = behavior,
                 exitFadeStartTime = 0f,
-                distanceTraveled = 0f
+                distanceTraveled = 0f,
+                spawnCameraPosition = cameraPosition
             };
         }
 
@@ -224,10 +252,11 @@ namespace Starfire.Core.Background
             float lifetime,
             float brightness,
             float trailLength,
-            float width)
+            float width,
+            Vector2 cameraPosition)
         {
             return Create(startPos, direction, speed, lifetime, brightness, trailLength, width,
-                ShootingStarBehaviorData.CreateDefault());
+                ShootingStarBehaviorData.CreateDefault(), cameraPosition);
         }
     }
 }
