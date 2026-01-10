@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Sensor
 {
-    public abstract class SensorModuleConfig : ScriptableObject
+    public abstract class SensorModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Sensor;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "sensor_module";
         [SerializeField] protected string displayName = "Sensor Module";

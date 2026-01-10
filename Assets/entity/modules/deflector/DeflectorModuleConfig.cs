@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Deflector
 {
-    public abstract class DeflectorModuleConfig : ScriptableObject
+    public abstract class DeflectorModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Deflector;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "deflector_module";
         [SerializeField] protected string displayName = "Deflector Module";

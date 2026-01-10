@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Transponder
 {
-    public interface ITransponderModule : IShipModule
+    public interface ITransponderModule : IEntityModule
     {
         string ShipId { get; }
         string Faction { get; }

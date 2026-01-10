@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Hyperdrive
     public class BasicHyperdriveModule : IHyperdriveModule
     {
         private readonly BasicHyperdriveConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private float _chargeTimer;
         private bool _isCharging;
 
@@ -23,7 +23,7 @@ namespace Starfire.Entity.Modules.Hyperdrive
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

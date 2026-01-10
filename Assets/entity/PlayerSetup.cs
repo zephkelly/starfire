@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity
 {
-    [RequireComponent(typeof(EntityController))]
+    [RequireComponent(typeof(ShipController))]
     [RequireComponent(typeof(OldInputProvider))]
     public class PlayerSetup : MonoBehaviour
     {
@@ -13,7 +13,7 @@ namespace Starfire.Entity
 
         private void Start()
         {
-            var entityController = GetComponent<EntityController>();
+            var shipController = GetComponent<ShipController>();
             var inputProvider = GetComponent<OldInputProvider>();
 
             if (shipClass == null)
@@ -22,10 +22,10 @@ namespace Starfire.Entity
                 return;
             }
 
-            entityController.Initialize(shipClass);
+            shipController.Initialize(shipClass);
 
             playerDriver = new PlayerDriver(inputProvider, priority: 10);
-            entityController.DriverStack.Push(playerDriver);
+            shipController.DriverStack.Push(playerDriver);
         }
 
         private void OnDestroy()

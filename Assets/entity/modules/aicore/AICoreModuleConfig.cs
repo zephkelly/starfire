@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.AICore
 {
-    public abstract class AICoreModuleConfig : ScriptableObject
+    public abstract class AICoreModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.AICore;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "aicore_module";
         [SerializeField] protected string displayName = "AI Core Module";

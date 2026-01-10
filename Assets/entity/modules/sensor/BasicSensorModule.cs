@@ -3,7 +3,7 @@ namespace Starfire.Entity.Modules.Sensor
     public class BasicSensorModule : ISensorModule
     {
         private readonly BasicSensorConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -18,7 +18,7 @@ namespace Starfire.Entity.Modules.Sensor
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

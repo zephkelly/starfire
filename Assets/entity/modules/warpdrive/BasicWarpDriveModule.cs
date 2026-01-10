@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.WarpDrive
     public class BasicWarpDriveModule : IWarpDriveModule
     {
         private readonly BasicWarpDriveConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private float _cooldownTimer;
         private bool _isWarping;
 
@@ -24,7 +24,7 @@ namespace Starfire.Entity.Modules.WarpDrive
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

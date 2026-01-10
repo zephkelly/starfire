@@ -7,7 +7,7 @@ namespace Starfire.Core.Cam
     {
         [SerializeField] private float priority = 1f;
 
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private Rigidbody2D _rigidbody;
         private Camera _mainCamera;
 
@@ -98,7 +98,7 @@ namespace Starfire.Core.Cam
 
         private void Awake()
         {
-            _controller = GetComponent<EntityController>();
+            _controller = GetComponent<EntityControllerBase>();
             _rigidbody = GetComponent<Rigidbody2D>();
             _mainCamera = Camera.main;
         }

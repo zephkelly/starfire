@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Shield
     public class BasicShieldModule : IShieldModule
     {
         private readonly BasicShieldConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private ShieldState _state = ShieldState.Inactive;
 
         public string ModuleId => _config.ModuleId;
@@ -25,7 +25,7 @@ namespace Starfire.Entity.Modules.Shield
             _state = ShieldState.Active;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

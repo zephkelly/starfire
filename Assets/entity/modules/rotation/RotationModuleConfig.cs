@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Rotation
 {
-    public abstract class RotationModuleConfig : ScriptableObject
+    public abstract class RotationModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Rotation;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "rotation_module";
         [SerializeField] protected string displayName = "Rotation Module";

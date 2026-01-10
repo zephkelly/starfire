@@ -3,7 +3,7 @@ namespace Starfire.Entity.Modules.LifeSupport
     public class BasicLifeSupportModule : ILifeSupportModule
     {
         private readonly BasicLifeSupportConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -17,7 +17,7 @@ namespace Starfire.Entity.Modules.LifeSupport
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

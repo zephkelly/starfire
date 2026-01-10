@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Shield
 {
-    public abstract class ShieldModuleConfig : ScriptableObject
+    public abstract class ShieldModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Shield;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "shield_module";
         [SerializeField] protected string displayName = "Shield Module";

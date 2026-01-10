@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Hull
 {
-    public interface IHullModule : IShipModule
+    public interface IHullModule : IEntityModule
     {
         int MaxHealth { get; }
         int CurrentHealth { get; set; }

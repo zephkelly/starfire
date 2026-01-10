@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.LifeSupport
 {
-    public abstract class LifeSupportModuleConfig : ScriptableObject
+    public abstract class LifeSupportModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.LifeSupport;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "lifesupport_module";
         [SerializeField] protected string displayName = "Life Support Module";

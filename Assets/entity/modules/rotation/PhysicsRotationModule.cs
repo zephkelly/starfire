@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Rotation
     public class PhysicsRotationModule : IRotationModule
     {
         private readonly PhysicsRotationConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private float _previousError;
         private float _originalAngularDrag;
 
@@ -20,7 +20,7 @@ namespace Starfire.Entity.Modules.Rotation
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
 

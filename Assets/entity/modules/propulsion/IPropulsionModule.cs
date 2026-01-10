@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Propulsion
 {
-    public interface IPropulsionModule : IShipModule
+    public interface IPropulsionModule : IEntityModule
     {
         float MaxSpeed { get; }
         float Acceleration { get; }

@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.WarpDrive
 {
-    public abstract class WarpDriveModuleConfig : ScriptableObject
+    public abstract class WarpDriveModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.WarpDrive;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "warpdrive_module";
         [SerializeField] protected string displayName = "Warp Drive Module";

@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.CargoBay
 {
-    public abstract class CargoBayModuleConfig : ScriptableObject
+    public abstract class CargoBayModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.CargoBay;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "cargobay_module";
         [SerializeField] protected string displayName = "Cargo Bay Module";

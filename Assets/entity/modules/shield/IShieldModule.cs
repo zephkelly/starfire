@@ -1,6 +1,16 @@
 namespace Starfire.Entity.Modules.Shield
 {
-    public interface IShieldModule : IShipModule
+    public enum ShieldState
+    {
+        Destroyed,
+        Inactive,
+        Charging,
+        Recharging,
+        Overloading,
+        Active,
+    }
+
+    public interface IShieldModule : IEntityModule
     {
         int MaxShield { get; }
         int CurrentShield { get; set; }

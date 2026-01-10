@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Hull
     public class BasicHullModule : IHullModule
     {
         private readonly BasicHullConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -22,7 +22,7 @@ namespace Starfire.Entity.Modules.Hull
             CurrentHealth = MaxHealth;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Hyperdrive
 {
-    public abstract class HyperdriveModuleConfig : ScriptableObject
+    public abstract class HyperdriveModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Hyperdrive;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "hyperdrive_module";
         [SerializeField] protected string displayName = "Hyperdrive Module";

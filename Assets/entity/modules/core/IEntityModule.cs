@@ -1,13 +1,13 @@
 namespace Starfire.Entity.Modules
 {
-    public interface IShipModule
+    public interface IEntityModule
     {
         string ModuleId { get; }
         string DisplayName { get; }
         ModuleTier Tier { get; }
         bool IsEnabled { get; set; }
 
-        void OnAttach(EntityController controller);
+        void OnAttach(EntityControllerBase controller);
         void OnDetach();
         void OnUpdate(float deltaTime);
     }

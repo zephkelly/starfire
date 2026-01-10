@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.CargoBay
 {
-    public interface ICargoBayModule : IShipModule
+    public interface ICargoBayModule : IEntityModule
     {
         int Capacity { get; }
         int UsedSpace { get; }

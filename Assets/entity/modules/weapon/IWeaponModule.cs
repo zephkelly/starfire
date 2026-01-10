@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Weapon
 {
-    public interface IWeaponModule : IShipModule
+    public interface IWeaponModule : IEntityModule
     {
         float Damage { get; }
         float FireRate { get; }

@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Transponder
 {
-    public abstract class TransponderModuleConfig : ScriptableObject
+    public abstract class TransponderModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Transponder;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "transponder_module";
         [SerializeField] protected string displayName = "Transponder Module";

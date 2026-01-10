@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Rotation
     public class SmoothRotationModule : IRotationModule
     {
         private readonly SmoothRotationConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private float _currentVelocity;
 
         public string ModuleId => _config.ModuleId;
@@ -19,7 +19,7 @@ namespace Starfire.Entity.Modules.Rotation
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

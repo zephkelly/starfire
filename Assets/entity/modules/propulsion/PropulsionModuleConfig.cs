@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Propulsion
 {
-    public abstract class PropulsionModuleConfig : ScriptableObject
+    public abstract class PropulsionModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Propulsion;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "propulsion_module";
         [SerializeField] protected string displayName = "Propulsion Module";

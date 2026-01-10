@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Hull
 {
-    public abstract class HullModuleConfig : ScriptableObject
+    public abstract class HullModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Hull;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "hull_module";
         [SerializeField] protected string displayName = "Hull Module";

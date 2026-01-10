@@ -3,7 +3,7 @@ namespace Starfire.Entity.Modules.Deflector
     public class BasicDeflectorModule : IDeflectorModule
     {
         private readonly BasicDeflectorConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -18,7 +18,7 @@ namespace Starfire.Entity.Modules.Deflector
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

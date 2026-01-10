@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Transponder
     public class BasicTransponderModule : ITransponderModule
     {
         private readonly BasicTransponderConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -23,7 +23,7 @@ namespace Starfire.Entity.Modules.Transponder
             Faction = config.DefaultFaction;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

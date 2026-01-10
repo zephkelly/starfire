@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Weapon
     public class BasicWeaponModule : IWeaponModule
     {
         private readonly BasicWeaponConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
         private float _cooldownTimer;
 
         public string ModuleId => _config.ModuleId;
@@ -22,7 +22,7 @@ namespace Starfire.Entity.Modules.Weapon
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }

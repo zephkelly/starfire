@@ -2,8 +2,11 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Weapon
 {
-    public abstract class WeaponModuleConfig : ScriptableObject
+    public abstract class WeaponModuleConfig : ScriptableObject, IModuleConfig
     {
+        public ModuleSlotType SlotType => ModuleSlotType.Weapon;
+        IEntityModule IModuleConfig.CreateModule() => CreateModule();
+
         [Header("Module Identity")]
         [SerializeField] protected string moduleId = "weapon_module";
         [SerializeField] protected string displayName = "Weapon Module";

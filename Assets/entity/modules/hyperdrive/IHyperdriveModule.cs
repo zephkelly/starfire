@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Hyperdrive
 {
-    public interface IHyperdriveModule : IShipModule
+    public interface IHyperdriveModule : IEntityModule
     {
         float HyperdriveRange { get; }
         float ChargeTime { get; }

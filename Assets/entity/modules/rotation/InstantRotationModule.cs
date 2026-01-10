@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Rotation
     public class InstantRotationModule : IRotationModule
     {
         private readonly InstantRotationConfig _config;
-        private EntityController _controller;
+        private EntityControllerBase _controller;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -18,7 +18,7 @@ namespace Starfire.Entity.Modules.Rotation
             _config = config;
         }
 
-        public void OnAttach(EntityController controller)
+        public void OnAttach(EntityControllerBase controller)
         {
             _controller = controller;
         }
