@@ -194,8 +194,11 @@ namespace Starfire.Core.Background.Layers
                 var star = _activeStars[i];
                 star.UpdatePosition();
 
-                // Check if star is in view (with trail margin)
-                bool isInView = IsInCameraView(star.position, star.trailLength);
+                // Calculate apparent position (where the star APPEARS on screen after parallax)
+                Vector2 apparentPos = GetApparentPosition(star.position, star.spawnCameraPosition);
+
+                // Check if star is in view (with trail margin) using apparent position
+                bool isInView = IsInCameraView(apparentPos, star.trailLength);
 
                 // Behavior-specific state updates
                 if (star.behavior.behaviorType == ShootingStarBehaviorType.Persistent)
@@ -223,7 +226,8 @@ namespace Starfire.Core.Background.Layers
 
                 // Determine if star should be removed
                 // Check kill zone first (immediate removal regardless of behavior)
-                bool outsideKillZone = IsOutsideKillZone(star.position);
+                // Use apparent position to match where the star is visually rendered
+                bool outsideKillZone = IsOutsideKillZone(apparentPos);
                 bool shouldRemove = outsideKillZone || ShouldRemoveStar(star, isInView);
 
                 if (shouldRemove)
@@ -291,6 +295,20 @@ namespace Starfire.Core.Background.Layers
 
             return Mathf.Abs(worldPos.x - camPos.x) > halfWidth ||
                    Mathf.Abs(worldPos.y - camPos.y) > halfHeight;
+        }
+
+        /// <summary>
+        /// Calculate the apparent (parallax-adjusted) position of a star.
+        /// This is where the star appears on screen, accounting for camera movement since spawn.
+        /// </summary>
+        private Vector2 GetApparentPosition(Vector2 worldPos, Vector2 spawnCameraPosition)
+        {
+            if (_camera == null) return worldPos;
+
+            Vector2 currentCamPos = _camera.transform.position;
+            Vector2 cameraDelta = currentCamPos - spawnCameraPosition;
+            Vector2 parallaxOffset = cameraDelta * (1f - parallaxDepth);
+            return worldPos + parallaxOffset;
         }
 
         public override void ConfigureMaterial(Material material)

@@ -15,6 +15,6 @@ MonoBehaviour:
   moduleId: propulsion_module
   displayName: Propulsion Module
   tier: 1
-  maxSpeed: 10
-  acceleration: 5
-  drag: 1
+  maxSpeed: 300
+  acceleration: 20
+  drag: 10

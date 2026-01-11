@@ -16,6 +16,7 @@ namespace Starfire.Entity
 
         public int Priority { get; }
         public bool IsActive { get; set; } = true;
+        public bool IsWorldSpaceAim => false;
 
         public PlayerDriver(IInputProvider inputProvider, int priority = 10)
         {
@@ -59,6 +60,8 @@ namespace Starfire.Entity
         private void HandleHyperdriveReleased() => hyperdrivePressed = false;
 
         public Vector2 GetMovementDirection() => movementDirection;
+        public float GetThrottle() => 1f;
+        public Vector2 GetDesiredAcceleration() => Vector2.zero;  // Player uses direction/throttle
         public float GetRotationInput() => rotationInput;
         public Vector2 GetAimDirection() => aimDirection;
         public bool IsFirePressed() => firePressed;

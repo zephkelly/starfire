@@ -22,14 +22,22 @@ namespace Starfire.Entity
             MainCamera = Camera.main;
         }
 
+        protected virtual void FixedUpdate()
+        {
+            var driver = DriverStack.GetActiveDriver();
+            if (driver == null || Entity == null || Systems == null) return;
+
+            // Physics-based movement runs in FixedUpdate for consistent force application
+            ProcessMovement(driver);
+        }
+
         protected virtual void Update()
         {
             var driver = DriverStack.GetActiveDriver();
             if (driver == null || Entity == null || Systems == null) return;
 
-            ProcessMovement(driver);
+            // Rotation and systems update in Update for responsiveness
             ProcessRotation(driver);
-
             Systems.UpdateAll(Time.deltaTime);
         }
 
@@ -42,6 +50,19 @@ namespace Starfire.Entity
             {
                 Vector2 movement = direction.normalized * speed * Time.deltaTime;
                 Rigidbody.AddForce(movement, ForceMode2D.Force);
+            }
+        }
+
+        /// <summary>
+        /// Applies an acceleration vector directly to the rigidbody.
+        /// Used by AI steering for physics-correct movement.
+        /// </summary>
+        public virtual void ApplyAcceleration(Vector2 acceleration)
+        {
+            if (Rigidbody != null)
+            {
+                // F = m * a
+                Rigidbody.AddForce(acceleration * Rigidbody.mass, ForceMode2D.Force);
             }
         }
 

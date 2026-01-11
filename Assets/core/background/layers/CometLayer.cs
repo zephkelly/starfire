@@ -91,8 +91,98 @@ namespace Starfire.Core.Background.Layers
         public Color cometColor = new Color(0.8f, 0.9f, 1f, 1f);
 
         [Tooltip("Base brightness of the comet")]
+        [Range(0.5f, 8f)]
+        public float brightness = 3f;
+
+        [Header("Pixelization")]
+        [Tooltip("Resolution for pixel-art effect (higher = more pixels)")]
+        [Range(100f, 1000f)]
+        public float pixels = 400f;
+
+        [Header("Gradient")]
+        [Tooltip("1D gradient texture for color banding (hot->cold left to right)")]
+        public Texture2D gradientTexture;
+
+        [Header("Sun Direction")]
+        [Tooltip("Direction light comes FROM (normalized). Ion tail points opposite.")]
+        public Vector2 sunDirection = new Vector2(-1f, -0.5f);
+
+        [Header("Dual Tails")]
+        [Tooltip("How much the dust tail curves perpendicular to travel")]
+        [Range(0f, 1f)]
+        public float dustTailCurve = 0.3f;
+
+        [Tooltip("Width of the dust tail")]
+        [Range(0.1f, 2f)]
+        public float dustTailWidth = 0.8f;
+
+        [Tooltip("Dust tail falloff curve")]
+        [Range(1f, 5f)]
+        public float dustFalloff = 2f;
+
+        [Tooltip("Ion tail length relative to dust tail")]
+        [Range(0.5f, 2f)]
+        public float ionTailLengthMultiplier = 1.5f;
+
+        [Tooltip("Width of the ion tail")]
+        [Range(0.05f, 0.5f)]
+        public float ionTailWidth = 0.2f;
+
+        [Tooltip("Ion tail falloff curve")]
+        [Range(1f, 5f)]
+        public float ionFalloff = 1.5f;
+
+        [Header("Tail Noise")]
+        [Tooltip("Scale of FBM noise on tail edges")]
+        public float tailNoiseScale = 50f;
+
+        [Tooltip("FBM octaves for tail edge noise")]
+        [Range(1, 5)]
+        public int tailNoiseOctaves = 3;
+
+        [Header("Core Animation")]
+        [Tooltip("Speed of nucleus brightness pulsing")]
         [Range(0.5f, 5f)]
-        public float brightness = 2f;
+        public float corePulseSpeed = 1.5f;
+
+        [Tooltip("Amount of nucleus size/brightness variation")]
+        [Range(0f, 0.5f)]
+        public float corePulseAmount = 0.15f;
+
+        [Header("Boiling Front")]
+        [Tooltip("Cell scale for boiling effect")]
+        [Range(2f, 12f)]
+        public float boilCellScale = 6f;
+
+        [Tooltip("Animation speed of boiling effect")]
+        [Range(0.5f, 5f)]
+        public float boilSpeed = 2f;
+
+        [Tooltip("Intensity of the boiling effect")]
+        [Range(0f, 1f)]
+        public float boilIntensity = 0.6f;
+
+        [Header("Sparkles")]
+        [Tooltip("Number of sparkle particles per comet")]
+        [Range(8, 32)]
+        public int sparkleCount = 16;
+
+        [Tooltip("Size of sparkle particles")]
+        [Range(0.005f, 0.03f)]
+        public float sparkleSize = 0.015f;
+
+        [Tooltip("Sparkle twinkle animation speed")]
+        [Range(2f, 15f)]
+        public float sparkleSpeed = 8f;
+
+        [Tooltip("Brightness of sparkle particles")]
+        [Range(0.5f, 3f)]
+        public float sparkleBrightness = 1.5f;
+
+        [Header("Seed")]
+        [Tooltip("Seed for deterministic noise patterns")]
+        [Range(1, 10)]
+        public int seed = 1;
 
         // Runtime state
         [System.NonSerialized] private List<CometData> _activeComets = new List<CometData>();
@@ -100,11 +190,12 @@ namespace Starfire.Core.Background.Layers
         [System.NonSerialized] private Camera _camera;
         [System.NonSerialized] private int _seedCounter = 0;
 
-        // Shader property IDs
+        // Shader property IDs - existing
         private static readonly int ActiveCometCountID = Shader.PropertyToID("_ActiveCometCount");
         private static readonly int CometPositionsID = Shader.PropertyToID("_CometPositions");
         private static readonly int CometParams1ID = Shader.PropertyToID("_CometParams1");
         private static readonly int CometParams2ID = Shader.PropertyToID("_CometParams2");
+        private static readonly int CometParams3ID = Shader.PropertyToID("_CometParams3");
         private static readonly int CometColorID = Shader.PropertyToID("_CometColor");
         private static readonly int BrightnessID = Shader.PropertyToID("_Brightness");
         private static readonly int ParallaxFactorID = Shader.PropertyToID("_ParallaxFactor");
@@ -118,10 +209,34 @@ namespace Starfire.Core.Background.Layers
         private static readonly int ParticleSpreadID = Shader.PropertyToID("_ParticleSpread");
         private static readonly int ParticleFadeRateID = Shader.PropertyToID("_ParticleFadeRate");
 
+        // Shader property IDs - new enhanced features
+        private static readonly int PixelsID = Shader.PropertyToID("_Pixels");
+        private static readonly int GradientTexID = Shader.PropertyToID("_GradientTex");
+        private static readonly int SunDirectionID = Shader.PropertyToID("_SunDirection");
+        private static readonly int DustTailWidthID = Shader.PropertyToID("_DustTailWidth");
+        private static readonly int DustTailCurveID = Shader.PropertyToID("_DustTailCurve");
+        private static readonly int DustFalloffID = Shader.PropertyToID("_DustFalloff");
+        private static readonly int IonTailWidthID = Shader.PropertyToID("_IonTailWidth");
+        private static readonly int IonTailLengthID = Shader.PropertyToID("_IonTailLength");
+        private static readonly int IonFalloffID = Shader.PropertyToID("_IonFalloff");
+        private static readonly int TailNoiseScaleID = Shader.PropertyToID("_TailNoiseScale");
+        private static readonly int TailNoiseOctavesID = Shader.PropertyToID("_TailNoiseOctaves");
+        private static readonly int CorePulseSpeedID = Shader.PropertyToID("_CorePulseSpeed");
+        private static readonly int CorePulseAmountID = Shader.PropertyToID("_CorePulseAmount");
+        private static readonly int BoilCellScaleID = Shader.PropertyToID("_BoilCellScale");
+        private static readonly int BoilSpeedID = Shader.PropertyToID("_BoilSpeed");
+        private static readonly int BoilIntensityID = Shader.PropertyToID("_BoilIntensity");
+        private static readonly int SparkleCountID = Shader.PropertyToID("_SparkleCount");
+        private static readonly int SparkleSizeID = Shader.PropertyToID("_SparkleSize");
+        private static readonly int SparkleSpeedID = Shader.PropertyToID("_SparkleSpeed");
+        private static readonly int SparkleBrightnessID = Shader.PropertyToID("_SparkleBrightness");
+        private static readonly int SeedID = Shader.PropertyToID("_Seed");
+
         // Arrays for passing to shader
         private Vector4[] _positionArray = new Vector4[MAX_COMETS];
         private Vector4[] _params1Array = new Vector4[MAX_COMETS];
         private Vector4[] _params2Array = new Vector4[MAX_COMETS];
+        private Vector4[] _params3Array = new Vector4[MAX_COMETS];
 
         public override Shader GetShader()
         {
@@ -158,8 +273,13 @@ namespace Starfire.Core.Background.Layers
                 comet.UpdatePosition();
                 _activeComets[i] = comet;
 
-                // Remove completed comets
-                if (comet.IsComplete)
+                // Calculate apparent position (where the comet APPEARS on screen after parallax)
+                Vector2 apparentPos = GetApparentPosition(comet.position, comet.spawnCameraPosition);
+
+                // Remove comets that are complete OR outside the kill zone
+                // Use apparent position to match where the comet is visually rendered
+                bool outsideKillZone = IsOutsideKillZone(apparentPos);
+                if (comet.IsComplete || outsideKillZone)
                 {
                     _activeComets.RemoveAt(i);
                 }
@@ -171,6 +291,7 @@ namespace Starfire.Core.Background.Layers
 
         public override void ConfigureMaterial(Material material)
         {
+            // Basic appearance
             material.SetColor(CometColorID, cometColor);
             material.SetFloat(BrightnessID, brightness);
             material.SetFloat(ParallaxFactorID, parallaxDepth);
@@ -182,6 +303,49 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(ParticleSizeMaxID, particleSizeMax);
             material.SetFloat(ParticleSpreadID, particleSpread);
             material.SetFloat(ParticleFadeRateID, particleFadeRate);
+
+            // Pixelization
+            material.SetFloat(PixelsID, pixels);
+
+            // Gradient texture
+            if (gradientTexture != null)
+            {
+                material.SetTexture(GradientTexID, gradientTexture);
+            }
+
+            // Sun direction for ion tail
+            Vector2 normalizedSunDir = sunDirection.normalized;
+            material.SetVector(SunDirectionID, new Vector4(normalizedSunDir.x, normalizedSunDir.y, 0, 0));
+
+            // Dual tails
+            material.SetFloat(DustTailWidthID, dustTailWidth);
+            material.SetFloat(DustTailCurveID, dustTailCurve);
+            material.SetFloat(DustFalloffID, dustFalloff);
+            material.SetFloat(IonTailWidthID, ionTailWidth);
+            material.SetFloat(IonTailLengthID, ionTailLengthMultiplier);
+            material.SetFloat(IonFalloffID, ionFalloff);
+
+            // Tail noise
+            material.SetFloat(TailNoiseScaleID, tailNoiseScale);
+            material.SetInt(TailNoiseOctavesID, tailNoiseOctaves);
+
+            // Core animation
+            material.SetFloat(CorePulseSpeedID, corePulseSpeed);
+            material.SetFloat(CorePulseAmountID, corePulseAmount);
+
+            // Boiling front
+            material.SetFloat(BoilCellScaleID, boilCellScale);
+            material.SetFloat(BoilSpeedID, boilSpeed);
+            material.SetFloat(BoilIntensityID, boilIntensity);
+
+            // Sparkles
+            material.SetInt(SparkleCountID, sparkleCount);
+            material.SetFloat(SparkleSizeID, sparkleSize);
+            material.SetFloat(SparkleSpeedID, sparkleSpeed);
+            material.SetFloat(SparkleBrightnessID, sparkleBrightness);
+
+            // Seed
+            material.SetFloat(SeedID, seed);
 
             if (_camera != null)
             {
@@ -201,20 +365,57 @@ namespace Starfire.Core.Background.Layers
                     _positionArray[i] = new Vector4(comet.position.x, comet.position.y, comet.TailPosition.x, comet.TailPosition.y);
                     // x = brightness, y = progress, z = nucleusSize, w = comaSize
                     _params1Array[i] = new Vector4(comet.brightness, comet.Progress, comet.nucleusSize, comet.comaSize);
-                    // x = particleSeed, y = speed (for particle spread scaling), z = unused, w = unused
+                    // x = particleSeed, y = speed, z = sunOverrideX, w = sunOverrideY (0,0 = use global)
                     _params2Array[i] = new Vector4(comet.particleSeed, comet.speed, 0, 0);
+                    // x = pulsePhase, y = dustCurveAmount, z = ionLengthMult, w = unused
+                    _params3Array[i] = new Vector4(comet.pulsePhase, comet.dustCurveAmount, comet.ionLengthMult, 0);
                 }
                 else
                 {
                     _positionArray[i] = Vector4.zero;
                     _params1Array[i] = Vector4.zero;
                     _params2Array[i] = Vector4.zero;
+                    _params3Array[i] = Vector4.zero;
                 }
             }
 
             material.SetVectorArray(CometPositionsID, _positionArray);
             material.SetVectorArray(CometParams1ID, _params1Array);
             material.SetVectorArray(CometParams2ID, _params2Array);
+            material.SetVectorArray(CometParams3ID, _params3Array);
+        }
+
+        /// <summary>
+        /// Calculate the apparent (parallax-adjusted) position of a comet.
+        /// This is where the comet appears on screen, accounting for camera movement since spawn.
+        /// </summary>
+        private Vector2 GetApparentPosition(Vector2 worldPos, Vector2 spawnCameraPosition)
+        {
+            if (_camera == null) return worldPos;
+
+            Vector2 currentCamPos = _camera.transform.position;
+            Vector2 cameraDelta = currentCamPos - spawnCameraPosition;
+            Vector2 parallaxOffset = cameraDelta * (1f - parallaxDepth);
+            return worldPos + parallaxOffset;
+        }
+
+        /// <summary>
+        /// Check if a position is outside the kill zone boundary.
+        /// Comets outside this zone are forcibly removed regardless of lifetime.
+        /// </summary>
+        private bool IsOutsideKillZone(Vector2 worldPos)
+        {
+            if (_camera == null) return false;
+
+            Vector2 camPos = _camera.transform.position;
+            // Use the same effective area calculation as spawning, with extra margin
+            float effectiveHalfHeight = _camera.orthographicSize / parallaxDepth;
+            float effectiveHalfWidth = effectiveHalfHeight * _camera.aspect;
+            // Kill zone is 2x the spawn margin to allow comets to fully traverse
+            float killZoneMargin = 2.5f;
+
+            return Mathf.Abs(worldPos.x - camPos.x) > effectiveHalfWidth * killZoneMargin ||
+                   Mathf.Abs(worldPos.y - camPos.y) > effectiveHalfHeight * killZoneMargin;
         }
 
         private void TrySpawnComet()
@@ -273,7 +474,8 @@ namespace Starfire.Core.Background.Layers
                 dynamicTrailLength,
                 nucleusSize,
                 comaSize,
-                particleSeed
+                particleSeed,
+                camPos
             );
 
             _activeComets.Add(comet);
@@ -343,7 +545,8 @@ namespace Starfire.Core.Background.Layers
                 dynamicTrailLength,
                 nucleusSize,
                 comaSize,
-                particleSeed
+                particleSeed,
+                camPos
             );
 
             _activeComets.Add(comet);
@@ -360,5 +563,103 @@ namespace Starfire.Core.Background.Layers
             _activeComets?.Clear();
             base.Cleanup();
         }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            if (_activeComets == null || _activeComets.Count == 0)
+                return;
+
+            Camera cam = Camera.main;
+            if (cam == null)
+                return;
+
+            Vector2 camPos = cam.transform.position;
+
+            // Draw spawn/kill zone boundaries
+            float effectiveHalfHeight = cam.orthographicSize * (1f / parallaxDepth);
+            float effectiveHalfWidth = effectiveHalfHeight * cam.aspect;
+            float margin = Mathf.Max(effectiveHalfWidth, effectiveHalfHeight) * 1.2f;
+            float spawnRadius = Mathf.Sqrt(effectiveHalfWidth * effectiveHalfWidth + effectiveHalfHeight * effectiveHalfHeight) + margin;
+            float killRadius = spawnRadius + 50f;
+
+            // Spawn zone (white)
+            Gizmos.color = new Color(1f, 1f, 1f, 0.3f);
+            DrawGizmoCircle(camPos, spawnRadius, 32);
+
+            // Kill zone (red)
+            Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+            DrawGizmoCircle(camPos, killRadius, 32);
+
+            // Draw each comet
+            foreach (var comet in _activeComets)
+            {
+                // Comet head position (yellow sphere)
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(comet.position, 2f);
+                Gizmos.DrawSphere(comet.position, 0.5f);
+
+                // Comet tail position (orange sphere)
+                Gizmos.color = new Color(1f, 0.5f, 0f);
+                Vector2 tailPos = comet.TailPosition;
+                Gizmos.DrawWireSphere(tailPos, 1f);
+
+                // Trail path (yellow line)
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawLine(comet.position, tailPos);
+
+                // Ion tail direction (blue line - opposite of sun direction)
+                Gizmos.color = Color.cyan;
+                Vector2 ionDir = -sunDirection.normalized;
+                Gizmos.DrawLine(comet.position, (Vector2)comet.position + ionDir * comet.trailLength * 1.5f);
+
+                // Movement direction (green arrow)
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(comet.position, (Vector2)comet.position + comet.direction * 5f);
+
+                // Start position (magenta - where comet spawned)
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawWireSphere(comet.startPosition, 1f);
+
+                // Line from start to current (magenta dashed concept)
+                Gizmos.color = new Color(1f, 0f, 1f, 0.3f);
+                Gizmos.DrawLine(comet.startPosition, comet.position);
+
+                // Draw label with debug info
+                UnityEditor.Handles.Label(comet.position + Vector2.up * 3f,
+                    $"Progress: {comet.Progress:F2}\n" +
+                    $"Pos: ({comet.position.x:F1}, {comet.position.y:F1})\n" +
+                    $"Speed: {comet.speed:F1}\n" +
+                    $"Trail: {comet.trailLength:F1}");
+            }
+
+            // Draw camera view bounds for reference
+            Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
+            float viewHalfHeight = cam.orthographicSize;
+            float viewHalfWidth = viewHalfHeight * cam.aspect;
+            Vector3 topLeft = new Vector3(camPos.x - viewHalfWidth, camPos.y + viewHalfHeight, 0);
+            Vector3 topRight = new Vector3(camPos.x + viewHalfWidth, camPos.y + viewHalfHeight, 0);
+            Vector3 bottomLeft = new Vector3(camPos.x - viewHalfWidth, camPos.y - viewHalfHeight, 0);
+            Vector3 bottomRight = new Vector3(camPos.x + viewHalfWidth, camPos.y - viewHalfHeight, 0);
+            Gizmos.DrawLine(topLeft, topRight);
+            Gizmos.DrawLine(topRight, bottomRight);
+            Gizmos.DrawLine(bottomRight, bottomLeft);
+            Gizmos.DrawLine(bottomLeft, topLeft);
+        }
+
+        private void DrawGizmoCircle(Vector2 center, float radius, int segments)
+        {
+            float angleStep = 360f / segments;
+            Vector3 prevPoint = center + new Vector2(radius, 0);
+
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = i * angleStep * Mathf.Deg2Rad;
+                Vector3 newPoint = center + new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius);
+                Gizmos.DrawLine(prevPoint, newPoint);
+                prevPoint = newPoint;
+            }
+        }
+#endif
     }
 }

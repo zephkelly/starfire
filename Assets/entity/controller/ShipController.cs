@@ -25,11 +25,21 @@ namespace Starfire.Entity
 
         protected override void ProcessMovement(IControllerDriver driver)
         {
-            var moveDirection = driver.GetMovementDirection();
+            // Check for physics-based acceleration mode first (AI steering)
+            var acceleration = driver.GetDesiredAcceleration();
+            if (acceleration.sqrMagnitude > 0.001f)
+            {
+                ApplyAcceleration(acceleration);
+                return;
+            }
 
+            // Standard direction/throttle mode (player input)
+            var moveDirection = driver.GetMovementDirection();
             if (moveDirection.sqrMagnitude > 0.01f)
             {
-                float speed = _shipSystems.Propulsion?.Module?.MaxSpeed ?? 10f;
+                float throttle = driver.GetThrottle();
+                float maxSpeed = _shipSystems.Propulsion?.Module?.MaxSpeed ?? 10f;
+                float speed = maxSpeed * Mathf.Clamp01(throttle);
                 Move(moveDirection, speed);
             }
         }
@@ -38,12 +48,14 @@ namespace Starfire.Entity
         {
             if (_shipSystems.Rotation == null || !_shipSystems.Rotation.HasModule) return;
 
-            Vector2 mouseWorld = ScreenToWorldPosition(driver.GetAimDirection());
+            Vector2 aimWorld = driver.IsWorldSpaceAim
+                ? driver.GetAimDirection()
+                : ScreenToWorldPosition(driver.GetAimDirection());
 
             var input = new RotationInputData
             {
                 KeyboardInput = driver.GetRotationInput(),
-                MouseWorldPosition = mouseWorld,
+                MouseWorldPosition = aimWorld,
                 EntityPosition = transform.position,
                 CurrentRotation = Rigidbody != null ? Rigidbody.rotation : transform.eulerAngles.z
             };

@@ -4,9 +4,8 @@ namespace Starfire.Entity.Modules.Shield
     {
         Destroyed,
         Inactive,
-        Charging,
-        Recharging,
-        Overloading,
+        Charging,    // Has not taken damage in X window
+        Recharging,  // Recently took damage
         Active,
     }
 

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c1ee868c38a8274e96c2918a1ddf9df, type: 3}
+  m_Name: AICorePatrollerBasic
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.Modules.AICore.BasicAICoreConfig
+  moduleId: aicore_module
+  displayName: AI Core Module
+  tier: 1
+  processingPower: 1
+  behaviorTree: {fileID: 11400000, guid: 7bad47b57c92ade4ea245dd3c98aea6b, type: 2}
+  behaviorTreeRoot: {fileID: 0}

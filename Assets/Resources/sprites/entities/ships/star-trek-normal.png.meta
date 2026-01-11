@@ -1,0 +1,650 @@
+fileFormatVersion: 2
+guid: dcf1f364469146b40869f51b5167a88b
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7759234463180130135
+    second: star-trek-normal_0
+  - first:
+      213: 5975921779214844589
+    second: star-trek-normal_1
+  - first:
+      213: 9141402665396647931
+    second: star-trek-normal_2
+  - first:
+      213: -4448413729901643169
+    second: star-trek-normal_3
+  - first:
+      213: 1597189242926994682
+    second: star-trek-normal_4
+  - first:
+      213: -7880427166050195661
+    second: star-trek-normal_5
+  - first:
+      213: 7457568741282335835
+    second: star-trek-normal_6
+  - first:
+      213: -4718731269987959512
+    second: star-trek-normal_7
+  - first:
+      213: -4154519512532209710
+    second: star-trek-normal_8
+  - first:
+      213: 7962313990759870195
+    second: star-trek-normal_9
+  - first:
+      213: 3888485581594488868
+    second: star-trek-normal_10
+  - first:
+      213: 6247249476473760915
+    second: star-trek-normal_11
+  - first:
+      213: -8848821406779956441
+    second: star-trek-normal_12
+  - first:
+      213: 7745922070838883325
+    second: star-trek-normal_13
+  - first:
+      213: 422563212876286219
+    second: star-trek-normal_14
+  - first:
+      213: -3236765098911307770
+    second: star-trek-normal_15
+  - first:
+      213: 7281030987491155244
+    second: star-trek-normal_16
+  - first:
+      213: -3668177628659957652
+    second: star-trek-normal_17
+  - first:
+      213: 7266334346007391531
+    second: star-trek-normal_18
+  - first:
+      213: 1462985889696762112
+    second: star-trek-normal_19
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 0
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 0
+  spriteTessellationDetail: -1
+  textureType: 1
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 1024
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: star-trek-normal_0
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 458
+        width: 142
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a8fd2dad59a15490800000000000000
+      internalID: -7759234463180130135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_1
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 431
+        width: 130
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da20f97423dbee250800000000000000
+      internalID: 5975921779214844589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_2
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 433
+        width: 130
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf7b6cb7a49ccde70800000000000000
+      internalID: 9141402665396647931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_3
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 437
+        width: 131
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5afd37084f0442c0800000000000000
+      internalID: -4448413729901643169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_4
+      rect:
+        serializedVersion: 2
+        x: 576
+        y: 437
+        width: 147
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af41db7772b5a2610800000000000000
+      internalID: 1597189242926994682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_5
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 458
+        width: 284
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3376d39ae3913a290800000000000000
+      internalID: -7880427166050195661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_6
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 315
+        width: 141
+        height: 93
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5cc030224b9e7760800000000000000
+      internalID: 7457568741282335835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_7
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 288
+        width: 124
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82df6dd29e2b38eb0800000000000000
+      internalID: -4718731269987959512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_8
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 321
+        width: 287
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2dfa613d38e2856c0800000000000000
+      internalID: -4154519512532209710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_9
+      rect:
+        serializedVersion: 2
+        x: 577
+        y: 312
+        width: 143
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fe6d517362df7e60800000000000000
+      internalID: 7962313990759870195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_10
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 320
+        width: 284
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 420fa2dc80da6f530800000000000000
+      internalID: 3888485581594488868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_11
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 163
+        width: 285
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39ca67cac40b2b650800000000000000
+      internalID: 6247249476473760915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_12
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 168
+        width: 146
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 723220840dba23580800000000000000
+      internalID: -8848821406779956441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_13
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 163
+        width: 291
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df3b532751b0f7b60800000000000000
+      internalID: 7745922070838883325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_14
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 165
+        width: 284
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0983a6d00f3dd500800000000000000
+      internalID: 422563212876286219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_15
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 1
+        width: 291
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 608620aaa43b413d0800000000000000
+      internalID: -3236765098911307770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_16
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 3
+        width: 150
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2d95084b1b6b0560800000000000000
+      internalID: 7281030987491155244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_17
+      rect:
+        serializedVersion: 2
+        x: 436
+        y: 22
+        width: 284
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6040bea1e3081dc0800000000000000
+      internalID: -3668177628659957652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_18
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 31
+        width: 147
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2dadf8c69437d460800000000000000
+      internalID: 7266334346007391531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek-normal_19
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 26
+        width: 140
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 009c8ca5ae19d4410800000000000000
+      internalID: 1462985889696762112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      star-trek-normal_0: -7759234463180130135
+      star-trek-normal_1: 5975921779214844589
+      star-trek-normal_10: 3888485581594488868
+      star-trek-normal_11: 6247249476473760915
+      star-trek-normal_12: -8848821406779956441
+      star-trek-normal_13: 7745922070838883325
+      star-trek-normal_14: 422563212876286219
+      star-trek-normal_15: -3236765098911307770
+      star-trek-normal_16: 7281030987491155244
+      star-trek-normal_17: -3668177628659957652
+      star-trek-normal_18: 7266334346007391531
+      star-trek-normal_19: 1462985889696762112
+      star-trek-normal_2: 9141402665396647931
+      star-trek-normal_3: -4448413729901643169
+      star-trek-normal_4: 1597189242926994682
+      star-trek-normal_5: -7880427166050195661
+      star-trek-normal_6: 7457568741282335835
+      star-trek-normal_7: -4718731269987959512
+      star-trek-normal_8: -4154519512532209710
+      star-trek-normal_9: 7962313990759870195
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

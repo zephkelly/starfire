@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
+  m_Name: PatrollerTree
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
+  nodes:
+  - id: 4b41dde9-2a5b-4477-9b80-98278ec3e80b
+    nodeType: 2
+    actionType: 
+    editorPosition: {x: 260, y: 138}
+    parameters:
+      rid: 2281391179805753431
+  - id: af7331c2-2455-4a6f-95b1-26e4b8644983
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 335, y: 292}
+    parameters:
+      rid: -2
+  connections:
+  - parentId: 4b41dde9-2a5b-4477-9b80-98278ec3e80b
+    childId: af7331c2-2455-4a6f-95b1-26e4b8644983
+    childIndex: 0
+  rootNodeId: 4b41dde9-2a5b-4477-9b80-98278ec3e80b
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2281391179805753431
+      type: {class: RepeaterParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        repeatCount: -1

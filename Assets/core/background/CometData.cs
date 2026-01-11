@@ -15,6 +15,11 @@ namespace Starfire.Core.Background
         public Vector2 startPosition;
 
         /// <summary>
+        /// Camera position when this comet was spawned (for parallax calculation).
+        /// </summary>
+        public Vector2 spawnCameraPosition;
+
+        /// <summary>
         /// Current position in world space (nucleus position).
         /// </summary>
         public Vector2 position;
@@ -65,6 +70,21 @@ namespace Starfire.Core.Background
         public int particleSeed;
 
         /// <summary>
+        /// Random phase offset for core pulsing animation.
+        /// </summary>
+        public float pulsePhase;
+
+        /// <summary>
+        /// Per-comet dust tail curve amount (can vary per comet).
+        /// </summary>
+        public float dustCurveAmount;
+
+        /// <summary>
+        /// Per-comet ion tail length multiplier.
+        /// </summary>
+        public float ionLengthMult;
+
+        /// <summary>
         /// Progress through lifetime (0 = just spawned, 1 = should be removed).
         /// </summary>
         public float Progress => (Time.time - spawnTime) / lifetime;
@@ -100,12 +120,22 @@ namespace Starfire.Core.Background
             float trailLength,
             float nucleusSize,
             float comaSize,
-            int particleSeed)
+            int particleSeed,
+            Vector2 cameraPosition,
+            float pulsePhase = -1f,
+            float dustCurveAmount = -1f,
+            float ionLengthMult = -1f)
         {
+            // Generate random values for optional parameters
+            if (pulsePhase < 0f) pulsePhase = Random.Range(0f, Mathf.PI * 2f);
+            if (dustCurveAmount < 0f) dustCurveAmount = Random.Range(0.7f, 1.3f);
+            if (ionLengthMult < 0f) ionLengthMult = Random.Range(0.8f, 1.2f);
+
             return new CometData
             {
                 startPosition = startPos,
                 position = startPos,
+                spawnCameraPosition = cameraPosition,
                 direction = direction.normalized,
                 speed = speed,
                 spawnTime = Time.time,
@@ -114,7 +144,10 @@ namespace Starfire.Core.Background
                 trailLength = trailLength,
                 nucleusSize = nucleusSize,
                 comaSize = comaSize,
-                particleSeed = particleSeed
+                particleSeed = particleSeed,
+                pulsePhase = pulsePhase,
+                dustCurveAmount = dustCurveAmount,
+                ionLengthMult = ionLengthMult
             };
         }
     }
