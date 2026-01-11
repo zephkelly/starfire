@@ -160,6 +160,9 @@ namespace Starfire.Entity.AI.BT.Editor
             // Decorators
             evt.menu.AppendAction("Add Decorator/Repeater", _ => CreateNode(BTNodeType.Repeater, mousePosition));
 
+            // Subtree
+            evt.menu.AppendAction("Add Subtree", _ => CreateNode(BTNodeType.Subtree, mousePosition));
+
             // Actions
             evt.menu.AppendSeparator();
             foreach (var actionType in BTActionRegistry.GetActionTypes())

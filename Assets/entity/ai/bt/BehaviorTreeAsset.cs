@@ -92,6 +92,7 @@ namespace Starfire.Entity.AI.BT
                 BTNodeType.Parallel => new BTParallel(new List<IBTNode>()),
                 BTNodeType.Repeater => CreateRepeater(data.parameters as RepeaterParameters),
                 BTNodeType.Action => CreateAction(data),
+                BTNodeType.Subtree => CreateSubtree(data),
                 _ => null
             };
         }
@@ -121,6 +122,18 @@ namespace Starfire.Entity.AI.BT
                 Debug.LogError($"Failed to create action '{data.actionType}': {e.Message}");
                 return null;
             }
+        }
+
+        private IBTNode CreateSubtree(BTNodeData data)
+        {
+            var parameters = data.parameters as SubtreeParameters;
+            if (parameters?.subtreeAsset == null)
+            {
+                Debug.LogWarning($"Subtree node '{data.id}' has no subtree asset assigned.");
+                return null;
+            }
+
+            return new BTSubtree(parameters.subtreeAsset);
         }
 
         private void SetChildren(IBTNode parent, List<IBTNode> children)
@@ -153,6 +166,10 @@ namespace Starfire.Entity.AI.BT
             if (type == BTNodeType.Repeater)
             {
                 node.parameters = new RepeaterParameters();
+            }
+            else if (type == BTNodeType.Subtree)
+            {
+                node.parameters = new SubtreeParameters();
             }
 
             nodes.Add(node);
@@ -233,6 +250,43 @@ namespace Starfire.Entity.AI.BT
                 connA.childIndex = indexB;
                 connB.childIndex = indexA;
             }
+        }
+
+        /// <summary>
+        /// Checks if adding a subtree reference would create a cycle.
+        /// </summary>
+        /// <param name="potentialSubtree">The subtree asset to check.</param>
+        /// <returns>True if adding this subtree would create a cycle.</returns>
+        public bool WouldCreateCycle(BehaviorTreeAsset potentialSubtree)
+        {
+            if (potentialSubtree == null) return false;
+            if (potentialSubtree == this) return true;
+
+            return WouldCreateCycleRecursive(potentialSubtree, new HashSet<BehaviorTreeAsset> { this });
+        }
+
+        private bool WouldCreateCycleRecursive(BehaviorTreeAsset asset, HashSet<BehaviorTreeAsset> visited)
+        {
+            if (asset == null) return false;
+            if (visited.Contains(asset)) return true;
+
+            visited.Add(asset);
+
+            // Check all subtree nodes in this asset
+            foreach (var node in asset.Nodes)
+            {
+                if (node.nodeType == BTNodeType.Subtree &&
+                    node.parameters is SubtreeParameters subtreeParams &&
+                    subtreeParams.subtreeAsset != null)
+                {
+                    if (WouldCreateCycleRecursive(subtreeParams.subtreeAsset, visited))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

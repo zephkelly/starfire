@@ -47,6 +47,15 @@ GridBackground {
     background-color: rgba(50, 110, 50, 1);
 }
 
+/* Subtree nodes - Purple */
+.subtree-node {
+    background-color: rgba(80, 40, 100, 0.9);
+}
+
+.subtree-node #title {
+    background-color: rgba(110, 50, 140, 1);
+}
+
 /* Root node indicator */
 .root-node {
     border-width: 3px;

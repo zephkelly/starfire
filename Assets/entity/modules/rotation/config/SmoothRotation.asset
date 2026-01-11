@@ -15,8 +15,8 @@ MonoBehaviour:
   moduleId: rotation_module
   displayName: Rotation Module
   tier: 1
-  rotationSpeed: 180
-  spriteOffset: -90
+  rotationSpeed: 280
+  spriteOffset: 0
   smoothingFactor: 8
   deadzone: 0.5
   useSmoothDamp: 1

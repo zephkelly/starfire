@@ -39,6 +39,11 @@ namespace Starfire.Entity.AI.BT.Editor
             {
                 return NodeData.actionType;
             }
+            if (NodeData.nodeType == BTNodeType.Subtree)
+            {
+                var sp = NodeData.parameters as SubtreeParameters;
+                return sp?.subtreeAsset != null ? $"Subtree: {sp.subtreeAsset.name}" : "Subtree (unassigned)";
+            }
             return NodeData.nodeType.ToString();
         }
 
@@ -65,6 +70,12 @@ namespace Starfire.Entity.AI.BT.Editor
                     // Green tint for actions
                     style.backgroundColor = new Color(0.2f, 0.4f, 0.2f, 0.8f);
                     break;
+
+                case BTNodeType.Subtree:
+                    AddToClassList("subtree-node");
+                    // Purple tint for subtrees
+                    style.backgroundColor = new Color(0.4f, 0.2f, 0.5f, 0.8f);
+                    break;
             }
 
             // Minimum width
@@ -79,8 +90,8 @@ namespace Starfire.Entity.AI.BT.Editor
             InputPort.style.flexDirection = FlexDirection.Column;
             inputContainer.Add(InputPort);
 
-            // Output port for composites and decorators
-            if (NodeData.nodeType != BTNodeType.Action)
+            // Output port for composites and decorators (not for Action or Subtree)
+            if (NodeData.nodeType != BTNodeType.Action && NodeData.nodeType != BTNodeType.Subtree)
             {
                 var capacity = NodeData.nodeType == BTNodeType.Repeater
                     ? Port.Capacity.Single
@@ -117,6 +128,11 @@ namespace Starfire.Entity.AI.BT.Editor
                     break;
                 case BTNodeType.Action:
                     descLabel.text = GetActionDescription();
+                    break;
+
+                case BTNodeType.Subtree:
+                    var sp = NodeData.parameters as SubtreeParameters;
+                    descLabel.text = sp?.subtreeAsset != null ? "External tree" : "No tree assigned";
                     break;
             }
 
@@ -164,6 +180,10 @@ namespace Starfire.Entity.AI.BT.Editor
                         break;
                     case BTNodeType.Action:
                         descLabel.text = GetActionDescription();
+                        break;
+                    case BTNodeType.Subtree:
+                        var sp = NodeData.parameters as SubtreeParameters;
+                        descLabel.text = sp?.subtreeAsset != null ? "External tree" : "No tree assigned";
                         break;
                 }
             }

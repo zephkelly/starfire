@@ -316,6 +316,47 @@ namespace Starfire.Entity.AI.BT.Editor
                     changed = EditorGUI.EndChangeCheck();
                     break;
 
+                case SubtreeParameters sp:
+                    EditorGUI.BeginChangeCheck();
+                    var window = EditorWindow.GetWindow<BehaviorTreeEditorWindow>();
+                    var newAsset = (BehaviorTreeAsset)EditorGUILayout.ObjectField(
+                        "Subtree Asset",
+                        sp.subtreeAsset,
+                        typeof(BehaviorTreeAsset),
+                        false);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        // Validate for cycles before allowing assignment
+                        if (newAsset != null && window.TreeAsset.WouldCreateCycle(newAsset))
+                        {
+                            EditorUtility.DisplayDialog(
+                                "Cycle Detected",
+                                $"Cannot assign '{newAsset.name}' as a subtree because it would create a circular reference.",
+                                "OK");
+                        }
+                        else
+                        {
+                            sp.subtreeAsset = newAsset;
+                            changed = true;
+                            _selectedNode?.UpdateVisuals();
+                        }
+                    }
+
+                    // Show info about the referenced tree
+                    if (sp.subtreeAsset != null)
+                    {
+                        EditorGUILayout.Space();
+                        EditorGUILayout.LabelField("Subtree Info", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField("Nodes", sp.subtreeAsset.Nodes.Count.ToString());
+
+                        if (GUILayout.Button("Open Subtree in Editor"))
+                        {
+                            Selection.activeObject = sp.subtreeAsset;
+                        }
+                    }
+                    break;
+
                 default:
                     EditorGUILayout.LabelField("No configurable parameters.");
                     break;

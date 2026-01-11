@@ -64,7 +64,6 @@ namespace Starfire.Entity.AI.BT
             }
 
             Context.Set(_indexKey, nextIndex);
-            Debug.Log($"[AdvanceWaypoint] {_traversalMode}: {currentIndex} → {nextIndex} (total: {waypoints.Count})");
 
             return BTNodeStatus.Success;
         }

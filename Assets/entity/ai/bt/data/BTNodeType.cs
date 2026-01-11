@@ -14,6 +14,9 @@ namespace Starfire.Entity.AI.BT
         Repeater,
 
         // Actions (actual type determined by actionType field)
-        Action
+        Action,
+
+        // Subtree reference (executes another BehaviorTreeAsset)
+        Subtree
     }
 }

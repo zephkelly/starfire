@@ -10,32 +10,34 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
-  m_Name: PatrollerTree
+  m_Name: ScoutTreeBasic
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
   nodes:
-  - id: 4b41dde9-2a5b-4477-9b80-98278ec3e80b
-    nodeType: 2
+  - id: 95b8e930-640b-4bed-a98c-3e54aa20a96a
+    nodeType: 3
     actionType: 
-    editorPosition: {x: 260, y: 138}
+    editorPosition: {x: 216, y: 59}
     parameters:
-      rid: 2281391179805753431
-  - id: af7331c2-2455-4a6f-95b1-26e4b8644983
-    nodeType: 1
+      rid: 2281391222234021987
+  - id: fefcd8f6-e272-45bf-a16e-522e4b4bd71c
+    nodeType: 5
     actionType: 
-    editorPosition: {x: 335, y: 292}
+    editorPosition: {x: 387, y: 213}
     parameters:
-      rid: -2
+      rid: 2281391222234021988
   connections:
-  - parentId: 4b41dde9-2a5b-4477-9b80-98278ec3e80b
-    childId: af7331c2-2455-4a6f-95b1-26e4b8644983
+  - parentId: 95b8e930-640b-4bed-a98c-3e54aa20a96a
+    childId: fefcd8f6-e272-45bf-a16e-522e4b4bd71c
     childIndex: 0
-  rootNodeId: 4b41dde9-2a5b-4477-9b80-98278ec3e80b
+  rootNodeId: 95b8e930-640b-4bed-a98c-3e54aa20a96a
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
-    - rid: 2281391179805753431
+    - rid: 2281391222234021987
       type: {class: RepeaterParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
         repeatCount: -1
+    - rid: 2281391222234021988
+      type: {class: SubtreeParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: c566aa99cf7838549b91e8ac3bc3faab, type: 2}

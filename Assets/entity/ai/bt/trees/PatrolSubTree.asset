@@ -1,0 +1,143 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
+  m_Name: PatrolSubTree
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
+  nodes:
+  - id: a719c9d6-12d8-4286-bf05-1eb52d8df43b
+    nodeType: 4
+    actionType: SetWaypointTarget
+    editorPosition: {x: 424, y: 238}
+    parameters:
+      rid: 2281391222234021980
+  - id: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
+    nodeType: 2
+    actionType: 
+    editorPosition: {x: 428, y: 351}
+    parameters:
+      rid: -2
+  - id: 5a24e185-43d5-4608-be2f-619473b64f7d
+    nodeType: 4
+    actionType: CalculateSteering
+    editorPosition: {x: 551, y: 467}
+    parameters:
+      rid: 2281391222234021981
+  - id: 106a61a7-c68d-4fc6-b49c-2289577fe7b8
+    nodeType: 4
+    actionType: ApplyMovement
+    editorPosition: {x: 551, y: 583}
+    parameters:
+      rid: 2281391222234021982
+  - id: 16af1da2-b2c9-421f-a381-8e599199c8bf
+    nodeType: 4
+    actionType: IsAtTarget
+    editorPosition: {x: 551, y: 982}
+    parameters:
+      rid: 2281391222234021984
+  - id: 3ac3b87c-3756-45ce-ad0e-9c48e243995e
+    nodeType: 4
+    actionType: AdvanceWaypoint
+    editorPosition: {x: 551, y: 1086}
+    parameters:
+      rid: 2281391222234021985
+  - id: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 455, y: 845}
+    parameters:
+      rid: -2
+  - id: f7c21fee-7830-4fa4-9ca2-0ac79c160570
+    nodeType: 4
+    actionType: AimAtTarget
+    editorPosition: {x: 551, y: 699}
+    parameters:
+      rid: 2281391222234021986
+  - id: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 230, y: 48}
+    parameters:
+      rid: -2
+  connections:
+  - parentId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
+    childId: 5a24e185-43d5-4608-be2f-619473b64f7d
+    childIndex: 0
+  - parentId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
+    childId: 106a61a7-c68d-4fc6-b49c-2289577fe7b8
+    childIndex: 1
+  - parentId: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
+    childId: 3ac3b87c-3756-45ce-ad0e-9c48e243995e
+    childIndex: 0
+  - parentId: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
+    childId: 16af1da2-b2c9-421f-a381-8e599199c8bf
+    childIndex: 1
+  - parentId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
+    childId: f7c21fee-7830-4fa4-9ca2-0ac79c160570
+    childIndex: 2
+  - parentId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
+    childId: a719c9d6-12d8-4286-bf05-1eb52d8df43b
+    childIndex: 0
+  - parentId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
+    childId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
+    childIndex: 1
+  - parentId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
+    childId: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
+    childIndex: 2
+  rootNodeId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2281391222234021980
+      type: {class: SetWaypointTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        waypointsKey: patrol_waypoints
+        targetKey: move_target
+        indexKey: waypoint_index
+    - rid: 2281391222234021981
+      type: {class: CalculateSteeringParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: move_target
+        directionOutputKey: steering_direction
+        throttleOutputKey: steering_throttle
+        arrivedOutputKey: steering_arrived
+        steeringForceOutputKey: steering_force
+        arrivalThreshold: 4
+        velocityThreshold: 4
+        slowingRadiusMultiplier: 5
+        arrivalDistanceMultiplier: 2
+        arrivalVelocityMultiplier: 3
+        defaultStrategy: 0
+        strategyKey: approach_strategy
+        nextWaypointKey: next_waypoint
+    - rid: 2281391222234021982
+      type: {class: ApplyMovementParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        directionKey: steering_direction
+        throttleKey: steering_throttle
+    - rid: 2281391222234021984
+      type: {class: IsAtTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: move_target
+        threshold: 4
+    - rid: 2281391222234021985
+      type: {class: AdvanceWaypointParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        waypointsKey: patrol_waypoints
+        indexKey: waypoint_index
+        traversalMode: 0
+        directionKey: waypoint_direction
+    - rid: 2281391222234021986
+      type: {class: AimAtTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: move_target
