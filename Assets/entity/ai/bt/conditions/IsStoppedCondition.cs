@@ -25,8 +25,6 @@ namespace Starfire.Entity.AI.BT
             float speed = Context.Controller.Rigidbody.linearVelocity.magnitude;
             bool result = speed <= _threshold;
 
-            Debug.Log($"[IsStopped] speed={speed:F2}, threshold={_threshold}, result={result}");
-
             return result;
         }
     }

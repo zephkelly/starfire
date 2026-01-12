@@ -40,6 +40,7 @@ namespace Starfire.Entity.AI.BT
             Register("SetTargetPosition", typeof(SetTargetPositionParameters), CreateSetTargetPositionAction);
             Register("SetTargetFromEntity", typeof(SetTargetFromEntityParameters), CreateSetTargetFromEntityAction);
             Register("SetTargetFromWaypoints", typeof(SetTargetFromWaypointsParameters), CreateSetTargetFromWaypointsAction);
+            Register("SetTargetFromWaypointsDynamic", typeof(SetTargetFromWaypointsDynamicParameters), CreateSetTargetFromWaypointsDynamicAction);
 
             // Steering Calculation
             Register("CalculateSeek", typeof(CalculateSeekParameters), CreateCalculateSeekAction);
@@ -55,13 +56,26 @@ namespace Starfire.Entity.AI.BT
 
             // Waypoint Management
             Register("AdvanceWaypointIndex", typeof(AdvanceWaypointIndexParameters), CreateAdvanceWaypointIndexAction);
+            Register("InitWaypointStack", typeof(InitWaypointStackParameters), CreateInitWaypointStackAction);
+            Register("GenerateRandomSubWaypoints", typeof(GenerateRandomSubWaypointsParameters), CreateGenerateRandomSubWaypointsAction);
+            Register("PushWaypoints", typeof(PushWaypointsParameters), CreatePushWaypointsAction);
+            Register("PopWaypoints", typeof(PopWaypointsParameters), CreatePopWaypointsAction);
+
+            // Conditions - Waypoint Stack
+            Register("IsStackDepth", typeof(IsStackDepthParameters), CreateIsStackDepthCondition);
+            Register("IsSequenceComplete", typeof(IsSequenceCompleteParameters), CreateIsSequenceCompleteCondition);
 
             // Conditions - Position
             Register("IsNearPosition", typeof(IsNearPositionParameters), CreateIsNearPositionCondition);
             Register("IsStopped", typeof(IsStoppedParameters), CreateIsStoppedCondition);
 
-            // Conditions - Module
+            // Conditions - Module (Legacy)
             Register("HasModule", typeof(HasModuleParameters), CreateHasModuleCondition);
+
+            // Conditions - Module (Hierarchical System)
+            Register("HasModuleType", typeof(HasModuleTypeParameters), CreateHasModuleTypeCondition);
+            Register("HasModuleCategory", typeof(HasModuleCategoryParameters), CreateHasModuleCategoryCondition);
+            Register("HasModuleSubCategory", typeof(HasModuleSubCategoryParameters), CreateHasModuleSubCategoryCondition);
 
             // Conditions - Target
             Register("HasTarget", typeof(HasTargetParameters), CreateHasTargetCondition);
@@ -87,6 +101,10 @@ namespace Starfire.Entity.AI.BT
 
             // Random Conditions
             Register("RandomChance", typeof(RandomChanceParameters), CreateRandomChanceCondition);
+
+            // High-Angle Redirect
+            Register("IsHighApproachAngle", typeof(IsHighApproachAngleParameters), CreateIsHighApproachAngleCondition);
+            Register("CalculateBrakeAndTurn", typeof(CalculateBrakeAndTurnParameters), CreateCalculateBrakeAndTurnAction);
         }
 
         /// <summary>
@@ -154,7 +172,13 @@ namespace Starfire.Entity.AI.BT
         private static IBTNode CreateSetTargetFromWaypointsAction(IBTNodeParameters parameters)
         {
             var p = parameters as SetTargetFromWaypointsParameters ?? new SetTargetFromWaypointsParameters();
-            return new SetTargetFromWaypointsAction(p.waypointsKey, p.indexKey, p.targetKey);
+            return new SetTargetFromWaypointsAction(p.waypointsKey, p.indexKey, p.targetKey, p.stackKey);
+        }
+
+        private static IBTNode CreateSetTargetFromWaypointsDynamicAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetTargetFromWaypointsDynamicParameters ?? new SetTargetFromWaypointsDynamicParameters();
+            return new SetTargetFromWaypointsDynamicAction(p.waypointsKey, p.indexKey, p.targetKey);
         }
 
         // Factory methods for steering calculation actions
@@ -204,7 +228,49 @@ namespace Starfire.Entity.AI.BT
         private static IBTNode CreateAdvanceWaypointIndexAction(IBTNodeParameters parameters)
         {
             var p = parameters as AdvanceWaypointIndexParameters ?? new AdvanceWaypointIndexParameters();
-            return new AdvanceWaypointIndexAction(p.waypointsKey, p.indexKey, p.mode, p.directionKey);
+            return new AdvanceWaypointIndexAction(p.waypointsKey, p.indexKey, p.mode, p.directionKey, p.stackKey, p.transformsKey);
+        }
+
+        private static IBTNode CreateInitWaypointStackAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as InitWaypointStackParameters ?? new InitWaypointStackParameters();
+            return new InitWaypointStackAction(p.waypointsKey, p.stackKey, p.mode, p.maxDepth, p.transformsKey);
+        }
+
+        private static IBTNode CreateGenerateRandomSubWaypointsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as GenerateRandomSubWaypointsParameters ?? new GenerateRandomSubWaypointsParameters();
+            return new GenerateRandomSubWaypointsAction(
+                p.centerKey,
+                p.outputKey,
+                p.count,
+                p.minRadius,
+                p.maxRadius,
+                p.avoidCenter);
+        }
+
+        private static IBTNode CreatePushWaypointsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as PushWaypointsParameters ?? new PushWaypointsParameters();
+            return new PushWaypointsAction(p.stackKey, p.waypointsKey, p.mode, p.label);
+        }
+
+        private static IBTNode CreatePopWaypointsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as PopWaypointsParameters ?? new PopWaypointsParameters();
+            return new PopWaypointsAction(p.stackKey);
+        }
+
+        private static IBTNode CreateIsStackDepthCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsStackDepthParameters ?? new IsStackDepthParameters();
+            return new IsStackDepthCondition(p.stackKey, p.depth, p.comparison);
+        }
+
+        private static IBTNode CreateIsSequenceCompleteCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsSequenceCompleteParameters ?? new IsSequenceCompleteParameters();
+            return new IsSequenceCompleteCondition(p.stackKey);
         }
 
         // Factory methods for conditions
@@ -258,7 +324,9 @@ namespace Starfire.Entity.AI.BT
                 p.outputKey,
                 p.arrivalThreshold,
                 p.angleStiffness,
-                p.lateralBrakingFactor);
+                p.lateralBrakingFactor,
+                p.closeRangeThreshold,
+                p.alignmentAngle);
         }
 
         private static IBTNode CreateCalculateRecoveryAction(IBTNodeParameters parameters)
@@ -318,6 +386,40 @@ namespace Starfire.Entity.AI.BT
         {
             var p = parameters as RandomChanceParameters ?? new RandomChanceParameters();
             return new RandomChanceCondition(p.chance, p.evaluateOnce, p.resultKey, p.resetTriggerKey);
+        }
+
+        // Factory methods for high-angle redirect
+
+        private static IBTNode CreateIsHighApproachAngleCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsHighApproachAngleParameters ?? new IsHighApproachAngleParameters();
+            return new IsHighApproachAngleCondition(p.predictionKey, p.angleThreshold);
+        }
+
+        private static IBTNode CreateCalculateBrakeAndTurnAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as CalculateBrakeAndTurnParameters ?? new CalculateBrakeAndTurnParameters();
+            return new CalculateBrakeAndTurnAction(p.targetKey, p.outputKey, p.brakeFactor, p.minSpeedThreshold);
+        }
+
+        // Factory methods for hierarchical module conditions
+
+        private static IBTNode CreateHasModuleTypeCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasModuleTypeParameters ?? new HasModuleTypeParameters();
+            return new HasModuleTypeCondition(p.moduleType);
+        }
+
+        private static IBTNode CreateHasModuleCategoryCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasModuleCategoryParameters ?? new HasModuleCategoryParameters();
+            return new HasModuleCategoryCondition(p.category, p.minimumCount);
+        }
+
+        private static IBTNode CreateHasModuleSubCategoryCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasModuleSubCategoryParameters ?? new HasModuleSubCategoryParameters();
+            return new HasModuleSubCategoryCondition(p.subCategory, p.minimumCount);
         }
     }
 }

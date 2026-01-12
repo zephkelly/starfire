@@ -23,5 +23,11 @@ namespace Starfire.Entity.AI.BT
         /// Blackboard key to write the current waypoint position.
         /// </summary>
         public string targetKey = "steering_target";
+
+        /// <summary>
+        /// Blackboard key for the WaypointStackState (stack-based waypoints).
+        /// If present, stack-based waypoints take priority over legacy list.
+        /// </summary>
+        public string stackKey = "waypoint_stack";
     }
 }

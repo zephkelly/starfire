@@ -1,0 +1,676 @@
+fileFormatVersion: 2
+guid: 993c7b9aa5dd40540bd46a0a71117f35
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -429577217802992570
+    second: star-trek_specular_0
+  - first:
+      213: -3744862404022277763
+    second: star-trek_specular_1
+  - first:
+      213: -3026732800496770508
+    second: star-trek_specular_2
+  - first:
+      213: 7599850849489373693
+    second: star-trek_specular_3
+  - first:
+      213: -3161781722088037286
+    second: star-trek_specular_4
+  - first:
+      213: 427305704490579739
+    second: star-trek_specular_5
+  - first:
+      213: -3647560365306268785
+    second: star-trek_specular_6
+  - first:
+      213: 8890593155553159729
+    second: star-trek_specular_7
+  - first:
+      213: 2411792210577325371
+    second: star-trek_specular_8
+  - first:
+      213: 5914090645018864389
+    second: star-trek_specular_9
+  - first:
+      213: -3018021064932819296
+    second: star-trek_specular_10
+  - first:
+      213: 1197148944912871004
+    second: star-trek_specular_11
+  - first:
+      213: -2549050293186037221
+    second: star-trek_specular_12
+  - first:
+      213: -6549069342318745840
+    second: star-trek_specular_13
+  - first:
+      213: -2150333298836932008
+    second: star-trek_specular_14
+  - first:
+      213: 8098296838205926995
+    second: star-trek_specular_15
+  - first:
+      213: -2696827737535096468
+    second: star-trek_specular_16
+  - first:
+      213: -3198882571671989775
+    second: star-trek_specular_17
+  - first:
+      213: -5283106460833579470
+    second: star-trek_specular_18
+  - first:
+      213: 7134793092196229162
+    second: star-trek_specular_19
+  - first:
+      213: -3015527085123146908
+    second: star-trek_specular_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: star-trek_specular_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 458
+        width: 145
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6448041ebc5d90af0800000000000000
+      internalID: -429577217802992570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_1
+      rect:
+        serializedVersion: 2
+        x: 152
+        y: 431
+        width: 128
+        height: 145
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7969831c73970cc0800000000000000
+      internalID: -3744862404022277763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_2
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 434
+        width: 131
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 432ed54ed82eef5d0800000000000000
+      internalID: -3026732800496770508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_3
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 437
+        width: 131
+        height: 137
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df9c3c5f418187960800000000000000
+      internalID: 7599850849489373693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_4
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 437
+        width: 146
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a54ae9d86481f14d0800000000000000
+      internalID: -3161781722088037286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_5
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 458
+        width: 289
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b17b8a636481ee500800000000000000
+      internalID: 427305704490579739
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 317
+        width: 145
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8330216c23416dc0800000000000000
+      internalID: -3647560365306268785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_7
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 287
+        width: 122
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13ae34fde5bb16b70800000000000000
+      internalID: 8890593155553159729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_8
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 320
+        width: 287
+        height: 83
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3df38fbc38687120800000000000000
+      internalID: 2411792210577325371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_9
+      rect:
+        serializedVersion: 2
+        x: 575
+        y: 311
+        width: 143
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50b6fc18b12131250800000000000000
+      internalID: 5914090645018864389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_10
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 320
+        width: 289
+        height: 83
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ae7804e4d5dd16d0800000000000000
+      internalID: -3018021064932819296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 164
+        width: 145
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5ee3c46f902d9010800000000000000
+      internalID: 1197148944912871004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_12
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 167
+        width: 146
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1a7a088344ff9cd0800000000000000
+      internalID: -2549050293186037221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_13
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 167
+        width: 146
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 017a0b1b1280d15a0800000000000000
+      internalID: -6549069342318745840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_14
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 161
+        width: 290
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85a7126f14b7822e0800000000000000
+      internalID: -2150333298836932008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_15
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 164
+        width: 289
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35eeee6511ee26070800000000000000
+      internalID: 8098296838205926995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 20
+        width: 289
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c69dccb0671f29ad0800000000000000
+      internalID: -2696827737535096468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_17
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 29
+        width: 146
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f19d4ddf394b93d0800000000000000
+      internalID: -3198882571671989775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_18
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 20
+        width: 284
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23e717b3aa2aea6b0800000000000000
+      internalID: -5283106460833579470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_19
+      rect:
+        serializedVersion: 2
+        x: 719
+        y: 29
+        width: 146
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a20644ef380e30360800000000000000
+      internalID: 7134793092196229162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star-trek_specular_20
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 35
+        width: 143
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46b6aa0d712b626d0800000000000000
+      internalID: -3015527085123146908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      star-trek_specular_0: -429577217802992570
+      star-trek_specular_1: -3744862404022277763
+      star-trek_specular_10: -3018021064932819296
+      star-trek_specular_11: 1197148944912871004
+      star-trek_specular_12: -2549050293186037221
+      star-trek_specular_13: -6549069342318745840
+      star-trek_specular_14: -2150333298836932008
+      star-trek_specular_15: 8098296838205926995
+      star-trek_specular_16: -2696827737535096468
+      star-trek_specular_17: -3198882571671989775
+      star-trek_specular_18: -5283106460833579470
+      star-trek_specular_19: 7134793092196229162
+      star-trek_specular_2: -3026732800496770508
+      star-trek_specular_20: -3015527085123146908
+      star-trek_specular_3: 7599850849489373693
+      star-trek_specular_4: -3161781722088037286
+      star-trek_specular_5: 427305704490579739
+      star-trek_specular_6: -3647560365306268785
+      star-trek_specular_7: 8890593155553159729
+      star-trek_specular_8: 2411792210577325371
+      star-trek_specular_9: 5914090645018864389
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

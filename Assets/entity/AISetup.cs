@@ -47,12 +47,19 @@ namespace Starfire.Entity
             // Store waypoints in blackboard for behavior tree to use
             if (waypoints.Count > 0)
             {
-                var positions = waypoints
+                var validTransforms = waypoints
                     .Where(w => w != null)
+                    .ToList();
+
+                // Static positions (snapshot at init time) for SetTargetFromWaypointsAction
+                var positions = validTransforms
                     .Select(w => (Vector2)w.position)
                     .ToList();
 
                 aiCore.Context?.Set("waypoint_list", positions);
+
+                // Transform references (live tracking) for SetTargetFromWaypointsDynamicAction
+                aiCore.Context?.Set("waypoint_transforms", validTransforms);
             }
         }
 

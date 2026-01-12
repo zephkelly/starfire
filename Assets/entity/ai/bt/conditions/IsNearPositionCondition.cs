@@ -30,8 +30,6 @@ namespace Starfire.Entity.AI.BT
             float distance = Vector2.Distance(position, target);
             bool result = distance <= _threshold;
 
-            Debug.Log($"[IsNearPosition] pos={position}, target={target}, dist={distance:F1}, threshold={_threshold}, result={result}");
-
             return result;
         }
     }

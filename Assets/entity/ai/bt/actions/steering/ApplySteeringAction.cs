@@ -27,8 +27,6 @@ namespace Starfire.Entity.AI.BT
             // Apply via AIDriver's DesiredAcceleration
             Context.Driver.DesiredAcceleration = force;
 
-            Debug.Log($"[ApplySteering] Applied DesiredAcceleration = {force}");
-
             return BTNodeStatus.Success;
         }
     }

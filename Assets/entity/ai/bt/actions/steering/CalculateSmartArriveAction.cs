@@ -17,6 +17,8 @@ namespace Starfire.Entity.AI.BT
         private readonly float _arrivalThreshold;
         private readonly float _angleStiffness;
         private readonly float _lateralBrakingFactor;
+        private readonly float _closeRangeThreshold;
+        private readonly float _alignmentAngle;
         private readonly string _cruiseSpeedKey;
         private readonly string _cruiseAccelKey;
 
@@ -27,6 +29,8 @@ namespace Starfire.Entity.AI.BT
             float arrivalThreshold = 1.0f,
             float angleStiffness = 1.5f,
             float lateralBrakingFactor = 2.0f,
+            float closeRangeThreshold = 10f,
+            float alignmentAngle = 30f,
             string cruiseSpeedKey = "cruise_speed",
             string cruiseAccelKey = "cruise_acceleration")
         {
@@ -36,6 +40,8 @@ namespace Starfire.Entity.AI.BT
             _arrivalThreshold = arrivalThreshold;
             _angleStiffness = angleStiffness;
             _lateralBrakingFactor = lateralBrakingFactor;
+            _closeRangeThreshold = closeRangeThreshold;
+            _alignmentAngle = alignmentAngle;
             _cruiseSpeedKey = cruiseSpeedKey;
             _cruiseAccelKey = cruiseAccelKey;
         }
@@ -106,7 +112,45 @@ namespace Starfire.Entity.AI.BT
             }
 
             // Use optimal arrival thrust for all approach scenarios
-            return CalculateOptimalArrivalThrust(ctx, target, prediction);
+            Vector2 steeringForce = CalculateOptimalArrivalThrust(ctx, target, prediction);
+
+            // Apply turn-then-burn thrust reduction when close to target
+            steeringForce = ApplyTurnThenBurnReduction(steeringForce, distance, prediction.ApproachAngle);
+
+            return steeringForce;
+        }
+
+        /// <summary>
+        /// Reduces thrust when close to target and not facing it.
+        /// This allows the ship to rotate toward the target before applying full thrust.
+        /// </summary>
+        private Vector2 ApplyTurnThenBurnReduction(Vector2 steeringForce, float distance, float approachAngle)
+        {
+            // Skip if turn-then-burn is disabled
+            if (_closeRangeThreshold <= 0f)
+            {
+                return steeringForce;
+            }
+
+            // Only apply when within close range threshold
+            if (distance >= _closeRangeThreshold)
+            {
+                return steeringForce;
+            }
+
+            // Full thrust if well-aligned
+            if (approachAngle <= _alignmentAngle)
+            {
+                return steeringForce;
+            }
+
+            // Calculate thrust multiplier based on alignment angle
+            // Proportional: alignmentAngle° = 100% thrust, 180° = 0% thrust
+            float normalizedAngle = (approachAngle - _alignmentAngle) / (180f - _alignmentAngle);
+            float thrustMultiplier = 1f - normalizedAngle;
+            thrustMultiplier = Mathf.Clamp01(thrustMultiplier);
+
+            return steeringForce * thrustMultiplier;
         }
 
         /// <summary>

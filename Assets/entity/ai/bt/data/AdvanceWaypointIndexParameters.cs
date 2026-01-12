@@ -10,9 +10,15 @@ namespace Starfire.Entity.AI.BT
     public class AdvanceWaypointIndexParameters : IBTNodeParameters
     {
         /// <summary>
-        /// Blackboard key containing the List of Vector2 waypoints.
+        /// Blackboard key containing the List of Vector2 waypoints (static).
         /// </summary>
         public string waypointsKey = "waypoint_list";
+
+        /// <summary>
+        /// Blackboard key containing the List of Transform waypoints (dynamic).
+        /// Used for count in legacy mode if waypointsKey not found.
+        /// </summary>
+        public string transformsKey = "waypoint_transforms";
 
         /// <summary>
         /// Blackboard key containing the current waypoint index (int).
@@ -29,6 +35,12 @@ namespace Starfire.Entity.AI.BT
         /// Only used in PingPong mode.
         /// </summary>
         public string directionKey = "waypoint_direction";
+
+        /// <summary>
+        /// Blackboard key for the WaypointStackState (stack-based waypoints).
+        /// If present, stack-based waypoints take priority over legacy list.
+        /// </summary>
+        public string stackKey = "waypoint_stack";
     }
 
     /// <summary>

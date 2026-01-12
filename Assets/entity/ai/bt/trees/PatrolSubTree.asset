@@ -15,158 +15,317 @@ MonoBehaviour:
   nodes:
   - id: root-sequence
     nodeType: 1
-    actionType:
+    actionType: 
     editorPosition: {x: 400, y: 50}
     parameters:
-      rid: -2
+      rid: 1022
+    tickInterval: 1
+  - id: init-waypoint-stack
+    nodeType: 4
+    actionType: InitWaypointStack
+    editorPosition: {x: 0, y: 150}
+    parameters:
+      rid: 1014
+    tickInterval: 1
   - id: set-cruise-speed
     nodeType: 4
     actionType: SetCruiseSpeed
-    editorPosition: {x: 50, y: 150}
+    editorPosition: {x: 100, y: 150}
     parameters:
       rid: 1000
+    tickInterval: 1
   - id: set-target-waypoints
     nodeType: 4
     actionType: SetTargetFromWaypoints
-    editorPosition: {x: 150, y: 150}
+    editorPosition: {x: 200, y: 150}
     parameters:
       rid: 1001
+    tickInterval: 1
   - id: calc-prediction
     nodeType: 4
     actionType: CalculateTrajectoryPrediction
-    editorPosition: {x: 300, y: 150}
+    editorPosition: {x: 350, y: 150}
     parameters:
       rid: 1002
+    tickInterval: 1
   - id: approach-selector
     nodeType: 0
-    actionType:
-    editorPosition: {x: 450, y: 150}
+    actionType: 
+    editorPosition: {x: 500, y: 150}
     parameters:
-      rid: -2
+      rid: 1023
+    tickInterval: 1
   - id: recovery-sequence
     nodeType: 1
-    actionType:
-    editorPosition: {x: 350, y: 250}
+    actionType: 
+    editorPosition: {x: 400, y: 250}
     parameters:
-      rid: -2
+      rid: 1024
+    tickInterval: 1
   - id: has-overshot
     nodeType: 4
     actionType: HasOvershot
-    editorPosition: {x: 300, y: 350}
+    editorPosition: {x: 350, y: 350}
     parameters:
       rid: 1003
+    tickInterval: 1
   - id: calc-recovery
     nodeType: 4
     actionType: CalculateRecovery
-    editorPosition: {x: 400, y: 350}
+    editorPosition: {x: 450, y: 350}
     parameters:
       rid: 1004
+    tickInterval: 1
   - id: calc-smart-arrive
     nodeType: 4
     actionType: CalculateSmartArrive
-    editorPosition: {x: 550, y: 250}
+    editorPosition: {x: 600, y: 250}
     parameters:
       rid: 1005
+    tickInterval: 1
   - id: apply-steering
     nodeType: 4
     actionType: ApplySteering
-    editorPosition: {x: 600, y: 150}
+    editorPosition: {x: 650, y: 150}
     parameters:
       rid: 1006
+    tickInterval: 1
   - id: rotate-velocity
     nodeType: 4
     actionType: RotateTowardVelocity
-    editorPosition: {x: 750, y: 150}
+    editorPosition: {x: 800, y: 150}
     parameters:
       rid: 1007
+    tickInterval: 1
   - id: arrival-sequence
     nodeType: 1
-    actionType:
-    editorPosition: {x: 900, y: 150}
+    actionType: 
+    editorPosition: {x: 950, y: 150}
     parameters:
       rid: -2
+    tickInterval: 1
   - id: is-near-position
     nodeType: 4
     actionType: IsNearPosition
-    editorPosition: {x: 850, y: 250}
+    editorPosition: {x: 900, y: 250}
     parameters:
       rid: 1008
+    tickInterval: 1
   - id: is-stopped
     nodeType: 4
     actionType: IsStopped
-    editorPosition: {x: 950, y: 250}
+    editorPosition: {x: 1000, y: 250}
     parameters:
       rid: 1009
+    tickInterval: 1
   - id: waypoint-behavior-selector
     nodeType: 0
-    actionType:
-    editorPosition: {x: 1050, y: 150}
+    actionType: 
+    editorPosition: {x: 1100, y: 150}
     parameters:
       rid: -2
+    tickInterval: 1
   - id: extended-stop-sequence
     nodeType: 1
-    actionType:
+    actionType: 
     editorPosition: {x: 1000, y: 250}
     parameters:
       rid: -2
+    tickInterval: 1
   - id: random-chance
     nodeType: 4
     actionType: RandomChance
     editorPosition: {x: 950, y: 350}
     parameters:
       rid: 1010
-  - id: wait-at-waypoint
-    nodeType: 4
-    actionType: Wait
+    tickInterval: 1
+  - id: exploration-type-selector
+    nodeType: 0
+    actionType: 
     editorPosition: {x: 1050, y: 350}
     parameters:
+      rid: -2
+    tickInterval: 1
+  - id: exploration-sequence
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 1000, y: 450}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: random-exploration-chance
+    nodeType: 4
+    actionType: RandomChance
+    editorPosition: {x: 950, y: 550}
+    parameters:
+      rid: 1015
+    tickInterval: 1
+  - id: generate-subwaypoints
+    nodeType: 4
+    actionType: GenerateRandomSubWaypoints
+    editorPosition: {x: 1050, y: 550}
+    parameters:
+      rid: 1016
+    tickInterval: 1
+  - id: push-waypoints
+    nodeType: 4
+    actionType: PushWaypoints
+    editorPosition: {x: 1150, y: 550}
+    parameters:
+      rid: 1017
+    tickInterval: 1
+  - id: just-wait
+    nodeType: 4
+    actionType: Wait
+    editorPosition: {x: 1100, y: 450}
+    parameters:
       rid: 1011
+    tickInterval: 1
   - id: skip-stop
     nodeType: 4
     actionType: SetTargetPosition
-    editorPosition: {x: 1100, y: 250}
+    editorPosition: {x: 1200, y: 250}
     parameters:
       rid: 1012
+    tickInterval: 1
+  - id: sequence-completion-selector
+    nodeType: 0
+    actionType: 
+    editorPosition: {x: 1250, y: 150}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: pop-complete-sequence
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 1200, y: 250}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: is-stack-depth
+    nodeType: 4
+    actionType: IsStackDepth
+    editorPosition: {x: 1150, y: 350}
+    parameters:
+      rid: 1018
+    tickInterval: 1
+  - id: is-sequence-complete
+    nodeType: 4
+    actionType: IsSequenceComplete
+    editorPosition: {x: 1250, y: 350}
+    parameters:
+      rid: 1019
+    tickInterval: 1
+  - id: pop-waypoints
+    nodeType: 4
+    actionType: PopWaypoints
+    editorPosition: {x: 1350, y: 350}
+    parameters:
+      rid: 1020
+    tickInterval: 1
   - id: advance-waypoint
     nodeType: 4
     actionType: AdvanceWaypointIndex
-    editorPosition: {x: 1200, y: 150}
+    editorPosition: {x: 1400, y: 250}
     parameters:
       rid: 1013
+    tickInterval: 1
+  - id: advance-after-pop
+    nodeType: 4
+    actionType: AdvanceWaypointIndex
+    editorPosition: {x: 1450, y: 350}
+    parameters:
+      rid: 1021
+    tickInterval: 1
+  - id: high-angle-redirect-sequence
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 500, y: 250}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: is-high-angle
+    nodeType: 4
+    actionType: IsHighApproachAngle
+    editorPosition: {x: 450, y: 350}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: calc-brake-turn
+    nodeType: 4
+    actionType: CalculateBrakeAndTurn
+    editorPosition: {x: 550, y: 350}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: rotation-selector
+    nodeType: 0
+    actionType: 
+    editorPosition: {x: 800, y: 150}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: high-angle-rotate-sequence
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 750, y: 250}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: is-high-angle-rotate
+    nodeType: 4
+    actionType: IsHighApproachAngle
+    editorPosition: {x: 700, y: 350}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: rotate-target
+    nodeType: 4
+    actionType: RotateTowardTarget
+    editorPosition: {x: 800, y: 350}
+    parameters:
+      rid: 1025
+    tickInterval: 1
   connections:
   - parentId: root-sequence
-    childId: set-cruise-speed
+    childId: init-waypoint-stack
     childIndex: 0
   - parentId: root-sequence
-    childId: set-target-waypoints
+    childId: set-cruise-speed
     childIndex: 1
   - parentId: root-sequence
-    childId: calc-prediction
+    childId: set-target-waypoints
     childIndex: 2
   - parentId: root-sequence
-    childId: approach-selector
+    childId: calc-prediction
     childIndex: 3
   - parentId: root-sequence
-    childId: apply-steering
+    childId: approach-selector
     childIndex: 4
   - parentId: root-sequence
-    childId: rotate-velocity
+    childId: apply-steering
     childIndex: 5
   - parentId: root-sequence
-    childId: arrival-sequence
+    childId: rotation-selector
     childIndex: 6
   - parentId: root-sequence
-    childId: waypoint-behavior-selector
+    childId: arrival-sequence
     childIndex: 7
   - parentId: root-sequence
-    childId: advance-waypoint
+    childId: waypoint-behavior-selector
     childIndex: 8
+  - parentId: root-sequence
+    childId: sequence-completion-selector
+    childIndex: 9
   - parentId: approach-selector
     childId: recovery-sequence
     childIndex: 0
   - parentId: approach-selector
-    childId: calc-smart-arrive
+    childId: high-angle-redirect-sequence
     childIndex: 1
+  - parentId: approach-selector
+    childId: calc-smart-arrive
+    childIndex: 2
   - parentId: recovery-sequence
     childId: has-overshot
     childIndex: 0
@@ -189,7 +348,58 @@ MonoBehaviour:
     childId: random-chance
     childIndex: 0
   - parentId: extended-stop-sequence
-    childId: wait-at-waypoint
+    childId: exploration-type-selector
+    childIndex: 1
+  - parentId: exploration-type-selector
+    childId: exploration-sequence
+    childIndex: 0
+  - parentId: exploration-type-selector
+    childId: just-wait
+    childIndex: 1
+  - parentId: exploration-sequence
+    childId: random-exploration-chance
+    childIndex: 0
+  - parentId: exploration-sequence
+    childId: generate-subwaypoints
+    childIndex: 1
+  - parentId: exploration-sequence
+    childId: push-waypoints
+    childIndex: 2
+  - parentId: sequence-completion-selector
+    childId: pop-complete-sequence
+    childIndex: 0
+  - parentId: sequence-completion-selector
+    childId: advance-waypoint
+    childIndex: 1
+  - parentId: pop-complete-sequence
+    childId: is-stack-depth
+    childIndex: 0
+  - parentId: pop-complete-sequence
+    childId: is-sequence-complete
+    childIndex: 1
+  - parentId: pop-complete-sequence
+    childId: pop-waypoints
+    childIndex: 2
+  - parentId: pop-complete-sequence
+    childId: advance-after-pop
+    childIndex: 3
+  - parentId: high-angle-redirect-sequence
+    childId: is-high-angle
+    childIndex: 0
+  - parentId: high-angle-redirect-sequence
+    childId: calc-brake-turn
+    childIndex: 1
+  - parentId: rotation-selector
+    childId: high-angle-rotate-sequence
+    childIndex: 0
+  - parentId: rotation-selector
+    childId: rotate-velocity
+    childIndex: 1
+  - parentId: high-angle-rotate-sequence
+    childId: is-high-angle-rotate
+    childIndex: 0
+  - parentId: high-angle-rotate-sequence
+    childId: rotate-target
     childIndex: 1
   rootNodeId: root-sequence
   references:
@@ -200,7 +410,7 @@ MonoBehaviour:
     - rid: 1000
       type: {class: SetCruiseSpeedParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        speed: 15
+        speed: 30
         acceleration: -1
         speedKey: cruise_speed
         accelKey: cruise_acceleration
@@ -210,6 +420,7 @@ MonoBehaviour:
         waypointsKey: waypoint_list
         indexKey: waypoint_index
         targetKey: steering_target
+        stackKey: waypoint_stack
     - rid: 1002
       type: {class: CalculateTrajectoryPredictionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
@@ -238,6 +449,8 @@ MonoBehaviour:
         arrivalThreshold: 1
         angleStiffness: 1.5
         lateralBrakingFactor: 2
+        closeRangeThreshold: 10
+        alignmentAngle: 30
     - rid: 1006
       type: {class: ApplySteeringParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
@@ -259,13 +472,13 @@ MonoBehaviour:
       type: {class: RandomChanceParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
         chance: 0.3
-        evaluateOnce: true
+        evaluateOnce: 0
         resultKey: waypoint_stop_decision
         resetTriggerKey: waypoint_index
     - rid: 1011
       type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        duration: 2.0
+        duration: 2
         elapsedKey: waypoint_wait_elapsed
     - rid: 1012
       type: {class: SetTargetPositionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
@@ -276,6 +489,83 @@ MonoBehaviour:
       type: {class: AdvanceWaypointIndexParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
         waypointsKey: waypoint_list
+        transformsKey: waypoint_transforms
         indexKey: waypoint_index
         mode: 0
         directionKey: waypoint_direction
+        stackKey: waypoint_stack
+    - rid: 1014
+      type: {class: InitWaypointStackParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        waypointsKey: waypoint_list
+        transformsKey: waypoint_transforms
+        stackKey: waypoint_stack
+        mode: 0
+        maxDepth: 5
+    - rid: 1015
+      type: {class: RandomChanceParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        chance: 0.5
+        evaluateOnce: 0
+        resultKey: exploration_decision
+        resetTriggerKey: waypoint_index
+    - rid: 1016
+      type: {class: GenerateRandomSubWaypointsParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        centerKey: steering_target
+        outputKey: generated_subwaypoints
+        count: 3
+        minRadius: 5
+        maxRadius: 15
+        avoidCenter: 0
+    - rid: 1017
+      type: {class: PushWaypointsParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        stackKey: waypoint_stack
+        waypointsKey: generated_subwaypoints
+        mode: 2
+        label: exploration
+    - rid: 1018
+      type: {class: IsStackDepthParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        stackKey: waypoint_stack
+        depth: 1
+        comparison: 1
+    - rid: 1019
+      type: {class: IsSequenceCompleteParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        stackKey: waypoint_stack
+    - rid: 1020
+      type: {class: PopWaypointsParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        stackKey: waypoint_stack
+    - rid: 1021
+      type: {class: AdvanceWaypointIndexParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        waypointsKey: waypoint_list
+        transformsKey: waypoint_transforms
+        indexKey: waypoint_index
+        mode: 0
+        directionKey: waypoint_direction
+        stackKey: waypoint_stack
+    - rid: 1022
+      type: {class: IsHighApproachAngleParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        predictionKey: trajectory_prediction
+        angleThreshold: 90
+    - rid: 1023
+      type: {class: CalculateBrakeAndTurnParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: steering_target
+        outputKey: steering_force
+        brakeFactor: 0.8
+        minSpeedThreshold: 2
+    - rid: 1024
+      type: {class: IsHighApproachAngleParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        predictionKey: trajectory_prediction
+        angleThreshold: 90
+    - rid: 1025
+      type: {class: RotateTowardTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: steering_target
