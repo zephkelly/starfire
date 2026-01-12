@@ -92,6 +92,7 @@ namespace Starfire.Entity.AI.BT
 
             // Cruise Speed Control
             Register("SetCruiseSpeed", typeof(SetCruiseSpeedParameters), CreateSetCruiseSpeedAction);
+            Register("SetDynamicCruiseSpeed", typeof(SetDynamicCruiseSpeedParameters), CreateSetDynamicCruiseSpeedAction);
 
             // Utility Actions
             Register("Wait", typeof(WaitParameters), CreateWaitAction);
@@ -362,6 +363,24 @@ namespace Starfire.Entity.AI.BT
         {
             var p = parameters as SetCruiseSpeedParameters ?? new SetCruiseSpeedParameters();
             return new SetCruiseSpeedAction(p.speed, p.acceleration, p.speedKey, p.accelKey);
+        }
+
+        private static IBTNode CreateSetDynamicCruiseSpeedAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetDynamicCruiseSpeedParameters ?? new SetDynamicCruiseSpeedParameters();
+            return new SetDynamicCruiseSpeedAction(
+                p.minSpeedPercent,
+                p.maxSpeedPercent,
+                p.minDistance,
+                p.maxDistance,
+                p.segmentInfluence,
+                p.scaleAcceleration,
+                p.minAccelPercent,
+                p.maxAccelPercent,
+                p.targetKey,
+                p.stackKey,
+                p.speedKey,
+                p.accelKey);
         }
 
         // Factory methods for utility actions
