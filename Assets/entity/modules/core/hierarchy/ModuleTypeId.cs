@@ -16,6 +16,7 @@ namespace Starfire.Entity.Modules
 
         // === Propulsion > Maneuvering (100-109) ===
         ManeuveringThruster = 100,
+        RotationThruster = 101,
 
         // === Propulsion > Impulse (110-119) ===
         ImpulseEngine = 110,

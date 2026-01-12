@@ -10,29 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de9f279aa6a4eb94faf5d0f9922c86a0, type: 3}
-  m_Name: Scout
+  m_Name: FrigateBasic
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.ShipClassDefinition
-  classId: ship-scout
-  className: Scout
+  classId: 
+  className: 
   description: 
   classIcon: {fileID: 0}
-  moduleSlots:
-  - slotType: 11
+  moduleSlots: []
+  multiSlots:
+  - slotId: maneuvering_thruster
+    moduleType: 100
     isRequired: 0
-    defaultModule: {fileID: 11400000, guid: 1323e1a6ad05ccd4ca4c7a284bee4e41, type: 2}
-  - slotType: 4
-    isRequired: 1
-    defaultModule: {fileID: 11400000, guid: 063a795809be8434da9b0d917ecb14e6, type: 2}
-  - slotType: 3
-    isRequired: 1
     defaultModule: {fileID: 11400000, guid: fbdf787fd9de2bb4eac849355b708829, type: 2}
-  multiSlots: []
-  categoryLimits:
-  - scope: 0
-    category: 2
-    subCategory: 0
-    moduleType: 0
-    maxCount: 2
-  capabilities: 0000000001000000
+    displayNameOverride: 
+  - slotId: phaser
+    moduleType: 200
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: fdbf823ead882594d8636aadbff8b246, type: 2}
+    displayNameOverride: 
+  - slotId: rotation_thruster
+    moduleType: 101
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: d97580a0ad8ce0941a6dd017d7fc2902, type: 2}
+    displayNameOverride: 
+  categoryLimits: []
+  capabilities: 00000000010000000400000005000000
   prefabOverride: {fileID: 0}
   spriteScale: 1

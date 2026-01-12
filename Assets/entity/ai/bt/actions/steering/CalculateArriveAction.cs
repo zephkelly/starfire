@@ -27,10 +27,10 @@ namespace Starfire.Entity.AI.BT
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
             // Validate we have propulsion capability
-            var propulsion = Context.Systems?.Propulsion?.Module;
+            var propulsion = Context.Systems?.PrimaryImpulse;
             if (propulsion == null)
             {
-                Debug.LogWarning($"[CalculateArrive] FAILURE: No propulsion module found. Systems={Context.Systems != null}, Propulsion={Context.Systems?.Propulsion != null}");
+                Debug.LogWarning($"[CalculateArrive] FAILURE: No propulsion module found. Systems={Context.Systems != null}, PrimaryImpulse={Context.Systems?.PrimaryImpulse != null}");
                 return BTNodeStatus.Failure;
             }
 

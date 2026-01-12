@@ -17,12 +17,29 @@ namespace Starfire.Entity.Modules.Weapon
         [SerializeField] protected float fireRate = 1f;
         [SerializeField] protected float range = 20f;
 
+        [Header("Visual")]
+        [Tooltip("Prefab instantiated at the hardpoint when weapon is equipped")]
+        [SerializeField] protected GameObject weaponVisualPrefab;
+
+        [Header("Projectile")]
+        [Tooltip("Prefab spawned when firing")]
+        [SerializeField] protected GameObject projectilePrefab;
+        [SerializeField] protected ProjectileConfig projectileConfig = new();
+
+        [Header("Turret")]
+        [SerializeField] protected TurretSettings turretSettings = new();
+
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
         public ModuleTier Tier => tier;
         public float Damage => damage * GetTierMultiplier();
         public float FireRate => fireRate * GetTierMultiplier();
         public float Range => range;
+
+        public GameObject WeaponVisualPrefab => weaponVisualPrefab;
+        public GameObject ProjectilePrefab => projectilePrefab;
+        public ProjectileConfig ProjectileConfig => projectileConfig;
+        public TurretSettings TurretSettings => turretSettings;
 
         public abstract IWeaponModule CreateModule();
 

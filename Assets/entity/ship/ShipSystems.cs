@@ -20,26 +20,8 @@ namespace Starfire.Entity
 {
     public class ShipSystems : EntitySystemsBase
     {
-        // Legacy single-slot factories (backwards compatible)
-        private static readonly Dictionary<ModuleSlotType, Func<EntityControllerBase, IModuleSlot>> ShipSlotFactories = new()
-        {
-            { ModuleSlotType.Hull, c => new ModuleSlot<IHullModule>(c) },
-            { ModuleSlotType.Shield, c => new ModuleSlot<IShieldModule>(c) },
-            { ModuleSlotType.Deflector, c => new ModuleSlot<IDeflectorModule>(c) },
-            { ModuleSlotType.Propulsion, c => new ModuleSlot<IPropulsionModule>(c) },
-            { ModuleSlotType.Rotation, c => new ModuleSlot<IRotationModule>(c) },
-            { ModuleSlotType.WarpDrive, c => new ModuleSlot<IWarpDriveModule>(c) },
-            { ModuleSlotType.Hyperdrive, c => new ModuleSlot<IHyperdriveModule>(c) },
-            { ModuleSlotType.Weapon, c => new ModuleSlot<IWeaponModule>(c) },
-            { ModuleSlotType.Sensor, c => new ModuleSlot<ISensorModule>(c) },
-            { ModuleSlotType.Transponder, c => new ModuleSlot<ITransponderModule>(c) },
-            { ModuleSlotType.CargoBay, c => new ModuleSlot<ICargoBayModule>(c) },
-            { ModuleSlotType.AICore, c => new ModuleSlot<IAICoreModule>(c) },
-            { ModuleSlotType.LifeSupport, c => new ModuleSlot<ILifeSupportModule>(c) }
-        };
-
-        // Multi-slot factories for the new hierarchy system
-        private static readonly Dictionary<ModuleTypeId, Func<EntityControllerBase, IModuleSlot>> ShipMultiSlotFactories = new()
+        // Slot factories for the module type hierarchy
+        private static readonly Dictionary<ModuleTypeId, Func<EntityControllerBase, IModuleSlot>> SlotFactories = new()
         {
             // Core > Structure
             { ModuleTypeId.Hull, c => new ModuleSlot<IHullModule>(c) },
@@ -49,7 +31,8 @@ namespace Starfire.Entity
             { ModuleTypeId.Deflector, c => new ModuleSlot<IDeflectorModule>(c) },
 
             // Propulsion > Maneuvering
-            { ModuleTypeId.ManeuveringThruster, c => new ModuleSlot<IRotationModule>(c) },
+            { ModuleTypeId.ManeuveringThruster, c => new ModuleSlot<IPropulsionModule>(c) },
+            { ModuleTypeId.RotationThruster, c => new ModuleSlot<IRotationModule>(c) },
 
             // Propulsion > Impulse
             { ModuleTypeId.ImpulseEngine, c => new ModuleSlot<IPropulsionModule>(c) },
@@ -82,25 +65,10 @@ namespace Starfire.Entity
             { ModuleTypeId.LifeSupport, c => new ModuleSlot<ILifeSupportModule>(c) }
         };
 
-        // === Legacy typed accessors (backwards compatible) ===
-        public ModuleSlot<IHullModule> Hull => GetTypedSlot<IHullModule>(ModuleSlotType.Hull);
-        public ModuleSlot<IShieldModule> Shield => GetTypedSlot<IShieldModule>(ModuleSlotType.Shield);
-        public ModuleSlot<IDeflectorModule> Deflector => GetTypedSlot<IDeflectorModule>(ModuleSlotType.Deflector);
-        public ModuleSlot<IPropulsionModule> Propulsion => GetTypedSlot<IPropulsionModule>(ModuleSlotType.Propulsion);
-        public ModuleSlot<IRotationModule> Rotation => GetTypedSlot<IRotationModule>(ModuleSlotType.Rotation);
-        public ModuleSlot<IWarpDriveModule> WarpDrive => GetTypedSlot<IWarpDriveModule>(ModuleSlotType.WarpDrive);
-        public ModuleSlot<IHyperdriveModule> Hyperdrive => GetTypedSlot<IHyperdriveModule>(ModuleSlotType.Hyperdrive);
-        public ModuleSlot<IWeaponModule> Weapon => GetTypedSlot<IWeaponModule>(ModuleSlotType.Weapon);
-        public ModuleSlot<ISensorModule> Sensor => GetTypedSlot<ISensorModule>(ModuleSlotType.Sensor);
-        public ModuleSlot<ITransponderModule> Transponder => GetTypedSlot<ITransponderModule>(ModuleSlotType.Transponder);
-        public ModuleSlot<ICargoBayModule> CargoBay => GetTypedSlot<ICargoBayModule>(ModuleSlotType.CargoBay);
-        public ModuleSlot<IAICoreModule> AICore => GetTypedSlot<IAICoreModule>(ModuleSlotType.AICore);
-        public ModuleSlot<ILifeSupportModule> LifeSupport => GetTypedSlot<ILifeSupportModule>(ModuleSlotType.LifeSupport);
-
-        // === Multi-slot typed accessors ===
+        // === Typed accessors ===
 
         /// <summary>
-        /// Gets all equipped weapon modules (from both legacy and multi-slot systems).
+        /// Gets all equipped weapon modules.
         /// </summary>
         public IEnumerable<IWeaponModule> AllWeapons => GetAllModulesOfType<IWeaponModule>();
 
@@ -150,35 +118,60 @@ namespace Starfire.Entity
         public IPropulsionModule FastestPropulsion =>
             AllPropulsion.OrderByDescending(p => p.MaxSpeed).FirstOrDefault();
 
-        // === Constructors ===
+        // === Multi-slot primary accessors ===
 
         /// <summary>
-        /// Legacy constructor for backwards compatibility.
+        /// Gets all equipped rotation/maneuvering modules.
         /// </summary>
-        public ShipSystems(EntityControllerBase controller, SlotConfiguration[] configurations)
+        public IEnumerable<IRotationModule> AllRotation => GetAllModulesOfType<IRotationModule>();
+
+        /// <summary>
+        /// Gets the primary (first) rotation module, or null if none equipped.
+        /// </summary>
+        public IRotationModule PrimaryRotation => AllRotation.FirstOrDefault();
+
+        /// <summary>
+        /// Gets all maneuvering thruster slots.
+        /// </summary>
+        public IReadOnlyList<IModuleSlot> ManeuveringThrusters =>
+            GetSlotsBySubCategory(ModuleSubCategory.Maneuvering).ToList();
+
+        /// <summary>
+        /// Gets all rotation thruster slots specifically.
+        /// </summary>
+        public IReadOnlyList<IModuleSlot> RotationThrusters =>
+            GetSlotsByType(ModuleTypeId.RotationThruster).ToList();
+
+        /// <summary>
+        /// Gets the primary hull module.
+        /// </summary>
+        public IHullModule PrimaryHull => GetAllModulesOfType<IHullModule>().FirstOrDefault();
+
+        /// <summary>
+        /// Gets the primary shield module.
+        /// </summary>
+        public IShieldModule PrimaryShield => GetAllModulesOfType<IShieldModule>().FirstOrDefault();
+
+        /// <summary>
+        /// Gets the primary impulse propulsion module.
+        /// </summary>
+        public IPropulsionModule PrimaryImpulse => GetAllModulesOfType<IPropulsionModule>().FirstOrDefault();
+
+        /// <summary>
+        /// Gets the primary AI core module.
+        /// </summary>
+        public IAICoreModule PrimaryAICore => GetAllModulesOfType<IAICoreModule>().FirstOrDefault();
+
+        // === Constructor ===
+
+        public ShipSystems(EntityControllerBase controller, MultiSlotConfiguration[] configurations)
             : base(controller, configurations)
         {
         }
 
-        /// <summary>
-        /// New constructor with multi-slot support.
-        /// </summary>
-        public ShipSystems(
-            EntityControllerBase controller,
-            SlotConfiguration[] legacyConfigurations,
-            MultiSlotConfiguration[] multiConfigurations)
-            : base(controller, legacyConfigurations, multiConfigurations)
+        protected override Dictionary<ModuleTypeId, Func<EntityControllerBase, IModuleSlot>> GetSlotFactories()
         {
-        }
-
-        protected override Dictionary<ModuleSlotType, Func<EntityControllerBase, IModuleSlot>> GetSlotFactories()
-        {
-            return ShipSlotFactories;
-        }
-
-        protected override Dictionary<ModuleTypeId, Func<EntityControllerBase, IModuleSlot>> GetMultiSlotFactories()
-        {
-            return ShipMultiSlotFactories;
+            return SlotFactories;
         }
 
         // === Utility methods ===
@@ -187,16 +180,12 @@ namespace Starfire.Entity
         /// Checks if the ship has any FTL capability (warp or hyperdrive).
         /// </summary>
         public bool HasFTLCapability =>
-            HasModule(ModuleSlotType.WarpDrive) ||
-            HasModule(ModuleSlotType.Hyperdrive) ||
             HasModuleOfType(ModuleTypeId.WarpDrive) ||
             HasModuleOfType(ModuleTypeId.Hyperdrive);
 
         /// <summary>
         /// Gets the total weapon count (offensive + defensive).
         /// </summary>
-        public int TotalWeaponCount =>
-            CountModulesInCategory(ModuleCategory.Weapons) +
-            (HasModule(ModuleSlotType.Weapon) ? 1 : 0);
+        public int TotalWeaponCount => CountModulesInCategory(ModuleCategory.Weapons);
     }
 }

@@ -14,13 +14,23 @@ namespace Starfire.Entity
         public void Initialize(ShipClassDefinition definition)
         {
             Entity = definition.CreateShip();
-            _shipSystems = new ShipSystems(this, definition.BuildSlotConfigurations());
+            _shipSystems = new ShipSystems(this, definition.BuildMultiSlotConfigurations());
         }
 
-        public void Initialize(Entity entity, SlotConfiguration[] slotConfigurations)
+        public void Initialize(Entity entity, MultiSlotConfiguration[] configurations)
         {
             Entity = entity;
-            _shipSystems = new ShipSystems(this, slotConfigurations);
+            _shipSystems = new ShipSystems(this, configurations);
+        }
+
+        protected override void Update()
+        {
+            var driver = DriverStack.GetActiveDriver();
+            if (driver == null || Entity == null || Systems == null) return;
+
+            ProcessRotation(driver);
+            ProcessWeapons(driver);
+            Systems.UpdateAll(Time.deltaTime);
         }
 
         protected override void ProcessMovement(IControllerDriver driver)
@@ -38,7 +48,7 @@ namespace Starfire.Entity
             if (moveDirection.sqrMagnitude > 0.01f)
             {
                 float throttle = driver.GetThrottle();
-                float maxSpeed = _shipSystems.Propulsion?.Module?.MaxSpeed ?? 10f;
+                float maxSpeed = _shipSystems.PrimaryImpulse?.MaxSpeed ?? 10f;
                 float speed = maxSpeed * Mathf.Clamp01(throttle);
                 Move(moveDirection, speed);
             }
@@ -46,7 +56,8 @@ namespace Starfire.Entity
 
         protected override void ProcessRotation(IControllerDriver driver)
         {
-            if (_shipSystems.Rotation == null || !_shipSystems.Rotation.HasModule) return;
+            var rotationModule = _shipSystems.PrimaryRotation;
+            if (rotationModule == null) return;
 
             Vector2 aimWorld = driver.IsWorldSpaceAim
                 ? driver.GetAimDirection()
@@ -60,7 +71,28 @@ namespace Starfire.Entity
                 CurrentRotation = Rigidbody != null ? Rigidbody.rotation : transform.eulerAngles.z
             };
 
-            _shipSystems.Rotation.Module.ProcessRotation(input, Time.deltaTime);
+            rotationModule.ProcessRotation(input, Time.deltaTime);
+        }
+
+        protected virtual void ProcessWeapons(IControllerDriver driver)
+        {
+            // Calculate aim direction in world space
+            Vector2 aimWorld = driver.IsWorldSpaceAim
+                ? driver.GetAimDirection()
+                : ScreenToWorldPosition(driver.GetAimDirection());
+
+            Vector2 aimDirection = (aimWorld - (Vector2)transform.position).normalized;
+
+            // Update all weapons with aim direction and fire if requested
+            foreach (var weapon in _shipSystems.AllWeapons)
+            {
+                weapon.SetAimDirection(aimDirection);
+
+                if (driver.IsFirePressed())
+                {
+                    weapon.Fire();
+                }
+            }
         }
     }
 }

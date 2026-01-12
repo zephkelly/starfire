@@ -22,7 +22,7 @@ namespace Starfire.Entity.AI.BT
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
             // Validate we have propulsion capability
-            var propulsion = Context.Systems?.Propulsion?.Module;
+            var propulsion = Context.Systems?.PrimaryImpulse;
             if (propulsion == null)
             {
                 return BTNodeStatus.Failure;

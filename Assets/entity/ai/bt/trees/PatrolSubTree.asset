@@ -16,126 +16,126 @@ MonoBehaviour:
   - id: root-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 400, y: 50}
+    editorPosition: {x: 125, y: -235}
     parameters:
       rid: 1022
     tickInterval: 1
   - id: init-waypoint-stack
     nodeType: 4
     actionType: InitWaypointStack
-    editorPosition: {x: 0, y: 150}
+    editorPosition: {x: 250, y: -132}
     parameters:
       rid: 1014
     tickInterval: 1
   - id: set-cruise-speed
     nodeType: 4
     actionType: SetCruiseSpeed
-    editorPosition: {x: 100, y: 150}
+    editorPosition: {x: 250, y: -14}
     parameters:
       rid: 1000
     tickInterval: 1
   - id: set-target-waypoints
     nodeType: 4
     actionType: SetTargetFromWaypoints
-    editorPosition: {x: 200, y: 150}
+    editorPosition: {x: 250, y: 103}
     parameters:
       rid: 1001
     tickInterval: 1
   - id: calc-prediction
     nodeType: 4
     actionType: CalculateTrajectoryPrediction
-    editorPosition: {x: 350, y: 150}
+    editorPosition: {x: 250, y: 231}
     parameters:
       rid: 1002
     tickInterval: 1
   - id: approach-selector
     nodeType: 0
     actionType: 
-    editorPosition: {x: 500, y: 150}
+    editorPosition: {x: 250, y: 367}
     parameters:
       rid: 1023
     tickInterval: 1
   - id: recovery-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 400, y: 250}
+    editorPosition: {x: 316, y: 544}
     parameters:
       rid: 1024
     tickInterval: 1
   - id: has-overshot
     nodeType: 4
     actionType: HasOvershot
-    editorPosition: {x: 350, y: 350}
+    editorPosition: {x: 460, y: 677}
     parameters:
       rid: 1003
     tickInterval: 1
   - id: calc-recovery
     nodeType: 4
     actionType: CalculateRecovery
-    editorPosition: {x: 450, y: 350}
+    editorPosition: {x: 460, y: 803}
     parameters:
       rid: 1004
     tickInterval: 1
   - id: calc-smart-arrive
     nodeType: 4
     actionType: CalculateSmartArrive
-    editorPosition: {x: 600, y: 250}
+    editorPosition: {x: 320, y: 1309}
     parameters:
       rid: 1005
     tickInterval: 1
   - id: apply-steering
     nodeType: 4
     actionType: ApplySteering
-    editorPosition: {x: 650, y: 150}
+    editorPosition: {x: 250, y: 1517}
     parameters:
       rid: 1006
     tickInterval: 1
   - id: rotate-velocity
     nodeType: 4
     actionType: RotateTowardVelocity
-    editorPosition: {x: 800, y: 150}
+    editorPosition: {x: 325, y: 2329}
     parameters:
       rid: 1007
     tickInterval: 1
   - id: arrival-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 950, y: 150}
+    editorPosition: {x: 640, y: 197}
     parameters:
       rid: -2
     tickInterval: 1
   - id: is-near-position
     nodeType: 4
     actionType: IsNearPosition
-    editorPosition: {x: 900, y: 250}
+    editorPosition: {x: 715, y: 367}
     parameters:
       rid: 1008
     tickInterval: 1
   - id: is-stopped
     nodeType: 4
     actionType: IsStopped
-    editorPosition: {x: 1000, y: 250}
+    editorPosition: {x: 1109, y: -95}
     parameters:
       rid: 1009
     tickInterval: 1
   - id: waypoint-behavior-selector
     nodeType: 0
     actionType: 
-    editorPosition: {x: 1100, y: 150}
+    editorPosition: {x: 715, y: 644}
     parameters:
       rid: -2
     tickInterval: 1
   - id: extended-stop-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 1000, y: 250}
+    editorPosition: {x: 715, y: 503}
     parameters:
       rid: -2
     tickInterval: 1
   - id: random-chance
     nodeType: 4
     actionType: RandomChance
-    editorPosition: {x: 950, y: 350}
+    editorPosition: {x: 825, y: 771}
     parameters:
       rid: 1010
     tickInterval: 1
@@ -240,49 +240,49 @@ MonoBehaviour:
   - id: high-angle-redirect-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 500, y: 250}
+    editorPosition: {x: 320, y: 951}
     parameters:
       rid: -2
     tickInterval: 1
   - id: is-high-angle
     nodeType: 4
     actionType: IsHighApproachAngle
-    editorPosition: {x: 450, y: 350}
+    editorPosition: {x: 470, y: 1070}
     parameters:
       rid: -2
     tickInterval: 1
   - id: calc-brake-turn
     nodeType: 4
     actionType: CalculateBrakeAndTurn
-    editorPosition: {x: 550, y: 350}
+    editorPosition: {x: 470, y: 1197}
     parameters:
       rid: -2
     tickInterval: 1
   - id: rotation-selector
     nodeType: 0
     actionType: 
-    editorPosition: {x: 800, y: 150}
+    editorPosition: {x: 245, y: 1688}
     parameters:
       rid: -2
     tickInterval: 1
   - id: high-angle-rotate-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 750, y: 250}
+    editorPosition: {x: 325, y: 1860}
     parameters:
       rid: -2
     tickInterval: 1
   - id: is-high-angle-rotate
     nodeType: 4
     actionType: IsHighApproachAngle
-    editorPosition: {x: 700, y: 350}
+    editorPosition: {x: 480, y: 2009}
     parameters:
       rid: -2
     tickInterval: 1
   - id: rotate-target
     nodeType: 4
     actionType: RotateTowardTarget
-    editorPosition: {x: 800, y: 350}
+    editorPosition: {x: 479, y: 2155}
     parameters:
       rid: 1025
     tickInterval: 1

@@ -15,10 +15,7 @@ namespace Starfire.Entity
         [SerializeField] private string description;
         [SerializeField] private Sprite classIcon;
 
-        [Header("Module Slots (Legacy)")]
-        [SerializeField] private List<ModuleSlotEntry> moduleSlots = new();
-
-        [Header("Module Slots (Multi-Slot System)")]
+        [Header("Module Slots")]
         [SerializeField] private List<MultiSlotEntry> multiSlots = new();
 
         [Header("Category Limits")]
@@ -32,40 +29,18 @@ namespace Starfire.Entity
         [SerializeField] private GameObject prefabOverride;
         [SerializeField] private float spriteScale = 1f;
 
-        // === Legacy accessors ===
+        // === Accessors ===
         public string ClassId => classId;
         public string ClassName => className;
         public string Description => description;
         public Sprite ClassIcon => classIcon;
-        public IReadOnlyList<ModuleSlotEntry> ModuleSlots => moduleSlots;
         public EntityCapabilities[] Capabilities => capabilities;
         public GameObject PrefabOverride => prefabOverride;
         public float SpriteScale => spriteScale;
-
-        // === Multi-slot accessors ===
         public IReadOnlyList<MultiSlotEntry> MultiSlots => multiSlots;
         public IReadOnlyList<CategoryLimit> CategoryLimits => categoryLimits;
 
-        // === Legacy methods ===
-
-        public bool HasSlot(ModuleSlotType type)
-            => moduleSlots.Any(s => s.slotType == type);
-
-        public ModuleSlotEntry GetSlot(ModuleSlotType type)
-            => moduleSlots.FirstOrDefault(s => s.slotType == type);
-
-        public SlotConfiguration[] BuildSlotConfigurations()
-        {
-            return moduleSlots.Select(entry => new SlotConfiguration
-            {
-                slotType = entry.slotType,
-                isAvailable = true,
-                isRequired = entry.isRequired,
-                defaultModule = entry.defaultModule
-            }).ToArray();
-        }
-
-        // === Multi-slot methods ===
+        // === Slot Methods ===
 
         /// <summary>
         /// Checks if a slot with the given ID exists.
@@ -174,19 +149,6 @@ namespace Starfire.Entity
 
         private void OnValidate()
         {
-            // Validate legacy slots
-            foreach (var slot in moduleSlots)
-            {
-                if (slot.defaultModule != null &&
-                    !ModuleTypeRegistry.IsValidConfigForSlot(slot.slotType, slot.defaultModule))
-                {
-                    var expectedType = ModuleTypeRegistry.GetConfigTypeForSlot(slot.slotType);
-                    Debug.LogWarning(
-                        $"[{name}] Invalid module config for {slot.slotType} slot. " +
-                        $"Expected {expectedType?.Name}, got {slot.defaultModule.GetType().Name}");
-                }
-            }
-
             // Validate multi-slot unique IDs
             var duplicateIds = multiSlots
                 .GroupBy(s => s.slotId)

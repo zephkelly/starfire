@@ -1,4 +1,5 @@
 using UnityEngine;
+using Starfire.Entity.Modules.Weapon;
 
 namespace Starfire.Entity
 {
@@ -21,6 +22,10 @@ namespace Starfire.Entity
                 Debug.LogError("PlayerSetup: No ShipClassDefinition assigned!");
                 return;
             }
+
+            // Initialize hardpoint registry before ship systems (so weapons can find their hardpoints)
+            var hardpointRegistry = GetComponent<HardpointRegistry>();
+            hardpointRegistry?.Initialize();
 
             shipController.Initialize(shipClass);
 

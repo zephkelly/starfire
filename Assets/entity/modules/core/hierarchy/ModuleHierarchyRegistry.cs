@@ -20,6 +20,7 @@ namespace Starfire.Entity.Modules
 
             // Propulsion > Maneuvering
             { ModuleTypeId.ManeuveringThruster, (ModuleCategory.Propulsion, ModuleSubCategory.Maneuvering) },
+            { ModuleTypeId.RotationThruster, (ModuleCategory.Propulsion, ModuleSubCategory.Maneuvering) },
 
             // Propulsion > Impulse
             { ModuleTypeId.ImpulseEngine, (ModuleCategory.Propulsion, ModuleSubCategory.Impulse) },
@@ -58,6 +59,7 @@ namespace Starfire.Entity.Modules
             { ModuleTypeId.Shield, "Shield" },
             { ModuleTypeId.Deflector, "Deflector" },
             { ModuleTypeId.ManeuveringThruster, "Maneuvering Thruster" },
+            { ModuleTypeId.RotationThruster, "Rotation Thruster" },
             { ModuleTypeId.ImpulseEngine, "Impulse Engine" },
             { ModuleTypeId.WarpDrive, "Warp Drive" },
             { ModuleTypeId.Hyperdrive, "Hyperdrive" },

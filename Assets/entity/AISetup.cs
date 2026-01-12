@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Starfire.Entity.Modules.AICore;
+using Starfire.Entity.Modules.Weapon;
 using UnityEngine;
 
 namespace Starfire.Entity
@@ -33,9 +34,13 @@ namespace Starfire.Entity
                 return;
             }
 
+            // Initialize hardpoint registry before ship systems (so weapons can find their hardpoints)
+            var hardpointRegistry = GetComponent<HardpointRegistry>();
+            hardpointRegistry?.Initialize();
+
             shipController.Initialize(shipClass);
 
-            var aiCore = shipController.ShipSystems.AICore?.Module;
+            var aiCore = shipController.ShipSystems.PrimaryAICore;
             if (aiCore == null)
             {
                 Debug.LogWarning("AISetup: Ship has no AICore module equipped!");

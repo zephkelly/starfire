@@ -5,15 +5,7 @@ namespace Starfire.Entity
 {
     public interface IEntitySystems
     {
-        // === Legacy single-slot methods (backwards compatible) ===
-
-        bool IsSlotAvailable(ModuleSlotType type);
-        bool HasModule(ModuleSlotType type);
-        IModuleSlot GetSlot(ModuleSlotType type);
-        T GetModule<T>(ModuleSlotType type) where T : class, IEntityModule;
         void UpdateAll(float deltaTime);
-
-        // === Multi-slot methods ===
 
         /// <summary>
         /// Gets a slot by its unique string ID.

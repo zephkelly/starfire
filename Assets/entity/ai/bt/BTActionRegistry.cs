@@ -69,10 +69,7 @@ namespace Starfire.Entity.AI.BT
             Register("IsNearPosition", typeof(IsNearPositionParameters), CreateIsNearPositionCondition);
             Register("IsStopped", typeof(IsStoppedParameters), CreateIsStoppedCondition);
 
-            // Conditions - Module (Legacy)
-            Register("HasModule", typeof(HasModuleParameters), CreateHasModuleCondition);
-
-            // Conditions - Module (Hierarchical System)
+            // Conditions - Module
             Register("HasModuleType", typeof(HasModuleTypeParameters), CreateHasModuleTypeCondition);
             Register("HasModuleCategory", typeof(HasModuleCategoryParameters), CreateHasModuleCategoryCondition);
             Register("HasModuleSubCategory", typeof(HasModuleSubCategoryParameters), CreateHasModuleSubCategoryCondition);
@@ -287,11 +284,6 @@ namespace Starfire.Entity.AI.BT
             return new IsStoppedCondition(p.threshold);
         }
 
-        private static IBTNode CreateHasModuleCondition(IBTNodeParameters parameters)
-        {
-            var p = parameters as HasModuleParameters ?? new HasModuleParameters();
-            return new HasModuleCondition(p.moduleType);
-        }
 
         private static IBTNode CreateHasTargetCondition(IBTNodeParameters parameters)
         {

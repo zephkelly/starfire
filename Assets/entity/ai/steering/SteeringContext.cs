@@ -52,8 +52,8 @@ namespace Starfire.Entity.AI.Steering
         /// </summary>
         public static SteeringContext FromShip(ShipController controller, float? cruiseSpeed, float? cruiseAccel)
         {
-            var propulsion = controller.ShipSystems.Propulsion.Module;
-            var rotation = controller.ShipSystems.Rotation.Module;
+            var propulsion = controller.ShipSystems.PrimaryImpulse;
+            var rotation = controller.ShipSystems.PrimaryRotation;
 
             float shipMaxSpeed = propulsion?.MaxSpeed ?? 10f;
             float shipMaxAccel = propulsion?.Acceleration ?? 5f;
