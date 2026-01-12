@@ -41,9 +41,11 @@ Shader "Starfire/EdgeLightingOverlay"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             #define MAX_EDGE_LIGHTS 8
+            #define PI 3.14159265359
 
-            float4 _EdgeLightPositions[MAX_EDGE_LIGHTS];
-            float4 _EdgeLightColors[MAX_EDGE_LIGHTS];
+            float4 _EdgeLightPositions[MAX_EDGE_LIGHTS];  // xyz = position, w = range
+            float4 _EdgeLightColors[MAX_EDGE_LIGHTS];     // rgb = color, a = intensity
+            float4 _EdgeLightParams[MAX_EDGE_LIGHTS];     // xy = direction, z = inner angle, w = outer angle
             int _EdgeLightCount;
 
             TEXTURE2D(_MainTex);
@@ -136,6 +138,11 @@ Shader "Starfire/EdgeLightingOverlay"
                     float3 lightColor = _EdgeLightColors[i].rgb;
                     float lightIntensity = _EdgeLightColors[i].a;
 
+                    // Light direction and angle parameters
+                    float2 lightDir = _EdgeLightParams[i].xy;
+                    float innerAngle = _EdgeLightParams[i].z;
+                    float outerAngle = _EdgeLightParams[i].w;
+
                     if (lightRange <= 0.001 || lightIntensity <= 0.001)
                     {
                         continue;
@@ -145,9 +152,30 @@ Shader "Starfire/EdgeLightingOverlay"
                     float dist = length(toLight);
                     float2 toLightDir = dist > 0.001 ? toLight / dist : float2(0, 1);
 
+                    // Distance attenuation
                     float normalizedDist = saturate(dist / lightRange);
                     float attenuation = pow(1.0 - normalizedDist, _FalloffExponent);
 
+                    // Apply spot light angle falloff (if not omnidirectional)
+                    // outerAngle >= 360 means omnidirectional (point light)
+                    if (outerAngle < 359.0)
+                    {
+                        // Direction from light to pixel (opposite of toLightDir)
+                        float2 toPixelDir = -toLightDir;
+
+                        // Angle between light's forward direction and direction to pixel
+                        float cosAngle = dot(lightDir, toPixelDir);
+                        float angle = acos(clamp(cosAngle, -1.0, 1.0)) * (180.0 / PI);
+
+                        // Smooth falloff between inner and outer angle
+                        float halfInner = innerAngle * 0.5;
+                        float halfOuter = outerAngle * 0.5;
+                        float angleFalloff = 1.0 - saturate((angle - halfInner) / max(halfOuter - halfInner, 0.001));
+
+                        attenuation *= angleFalloff;
+                    }
+
+                    // Edge normal directional factor
                     float directional = saturate(dot(edgeNormal, toLightDir));
                     directional = lerp(_MinEdgeGlow, 1.0, directional);
 

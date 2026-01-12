@@ -21,13 +21,15 @@ namespace Starfire.Core.Lighting
         private readonly List<EdgeLitSprite> _sprites = new();
 
         // Cached shader property arrays (pre-allocated to avoid GC)
-        private Vector4[] _lightPositions;
-        private Vector4[] _lightColors;
+        private Vector4[] _lightPositions;  // xyz = world pos, w = range
+        private Vector4[] _lightColors;     // rgb = color, a = intensity
+        private Vector4[] _lightParams;     // xy = direction, z = inner angle, w = outer angle
         private int _activeLightCount;
 
         // Cached shader property IDs
         private static readonly int LightPositionsID = Shader.PropertyToID("_EdgeLightPositions");
         private static readonly int LightColorsID = Shader.PropertyToID("_EdgeLightColors");
+        private static readonly int LightParamsID = Shader.PropertyToID("_EdgeLightParams");
         private static readonly int LightCountID = Shader.PropertyToID("_EdgeLightCount");
 
         private void Awake()
@@ -71,6 +73,7 @@ namespace Starfire.Core.Lighting
         {
             _lightPositions = new Vector4[_maxLights];
             _lightColors = new Vector4[_maxLights];
+            _lightParams = new Vector4[_maxLights];
         }
 
         /// <summary>
@@ -133,9 +136,13 @@ namespace Starfire.Core.Lighting
                 float range = source.Range;
                 Color color = source.LightColor;
                 float intensity = source.Intensity;
+                Vector2 direction = source.LightDirection;
+                float innerAngle = source.InnerAngle;
+                float outerAngle = source.OuterAngle;
 
                 _lightPositions[_activeLightCount] = new Vector4(pos.x, pos.y, pos.z, range);
                 _lightColors[_activeLightCount] = new Vector4(color.r, color.g, color.b, intensity);
+                _lightParams[_activeLightCount] = new Vector4(direction.x, direction.y, innerAngle, outerAngle);
                 _activeLightCount++;
             }
 
@@ -144,6 +151,7 @@ namespace Starfire.Core.Lighting
             {
                 _lightPositions[i] = Vector4.zero;
                 _lightColors[i] = Vector4.zero;
+                _lightParams[i] = new Vector4(0f, 1f, 0f, 360f);  // Default: up direction, omnidirectional
             }
         }
 
@@ -158,7 +166,7 @@ namespace Starfire.Core.Lighting
                     continue;
                 }
 
-                sprite.UpdateLightData(_lightPositions, _lightColors, _activeLightCount);
+                sprite.UpdateLightData(_lightPositions, _lightColors, _lightParams, _activeLightCount);
             }
         }
 
@@ -180,6 +188,7 @@ namespace Starfire.Core.Lighting
         // Expose property IDs for EdgeLitSprite to use
         internal static int GetLightPositionsID() => LightPositionsID;
         internal static int GetLightColorsID() => LightColorsID;
+        internal static int GetLightParamsID() => LightParamsID;
         internal static int GetLightCountID() => LightCountID;
     }
 }

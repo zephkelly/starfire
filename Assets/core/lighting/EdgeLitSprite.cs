@@ -52,6 +52,7 @@ namespace Starfire.Core.Lighting
         private static readonly int FalloffExponentID = Shader.PropertyToID("_FalloffExponent");
         private static readonly int LightPositionsID = Shader.PropertyToID("_EdgeLightPositions");
         private static readonly int LightColorsID = Shader.PropertyToID("_EdgeLightColors");
+        private static readonly int LightParamsID = Shader.PropertyToID("_EdgeLightParams");
         private static readonly int LightCountID = Shader.PropertyToID("_EdgeLightCount");
 
         private void Awake()
@@ -210,7 +211,11 @@ namespace Starfire.Core.Lighting
         /// <summary>
         /// Called by EdgeLightManager each frame to update light data.
         /// </summary>
-        public void UpdateLightData(Vector4[] positions, Vector4[] colors, int count)
+        /// <param name="positions">Light positions (xyz) and range (w)</param>
+        /// <param name="colors">Light colors (rgb) and intensity (a)</param>
+        /// <param name="lightParams">Light direction (xy), inner angle (z), outer angle (w)</param>
+        /// <param name="count">Number of active lights</param>
+        public void UpdateLightData(Vector4[] positions, Vector4[] colors, Vector4[] lightParams, int count)
         {
             if (!_initialized)
             {
@@ -233,6 +238,7 @@ namespace Starfire.Core.Lighting
             // Set light data from manager
             _propertyBlock.SetVectorArray(LightPositionsID, positions);
             _propertyBlock.SetVectorArray(LightColorsID, colors);
+            _propertyBlock.SetVectorArray(LightParamsID, lightParams);
             _propertyBlock.SetInt(LightCountID, count);
 
             // Apply to overlay renderer

@@ -64,6 +64,45 @@ namespace Starfire.Core.Lighting
         /// </summary>
         public bool IsEnabled => enabled && _light2D != null && _light2D.enabled;
 
+        /// <summary>
+        /// Direction the light is facing (transform.up for 2D lights).
+        /// </summary>
+        public Vector2 LightDirection => (Vector2)transform.up;
+
+        /// <summary>
+        /// Inner angle of the light cone (degrees). Full intensity within this angle.
+        /// Returns 0 for point lights (omnidirectional).
+        /// </summary>
+        public float InnerAngle => _light2D != null ? _light2D.pointLightInnerAngle : 0f;
+
+        /// <summary>
+        /// Outer angle of the light cone (degrees). No light beyond this angle.
+        /// Returns 360 for point lights (omnidirectional).
+        /// </summary>
+        public float OuterAngle
+        {
+            get
+            {
+                if (_light2D == null)
+                {
+                    return 360f;
+                }
+
+                // Global lights are omnidirectional
+                if (_light2D.lightType == Light2D.LightType.Global)
+                {
+                    return 360f;
+                }
+
+                return _light2D.pointLightOuterAngle;
+            }
+        }
+
+        /// <summary>
+        /// Whether this light is directional (has angle constraints).
+        /// </summary>
+        public bool IsDirectional => OuterAngle < 360f;
+
         private void Awake()
         {
             _light2D = GetComponent<Light2D>();
