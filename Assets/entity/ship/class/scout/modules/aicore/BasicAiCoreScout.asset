@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: AI Core Module
   tier: 1
   processingPower: 1
-  behaviorTree: {fileID: 0}
+  behaviorTree: {fileID: 11400000, guid: 48ff7f03d6b2a0243b7d8fe8c4d22318, type: 2}
   behaviorTreeRoot: {fileID: 0}

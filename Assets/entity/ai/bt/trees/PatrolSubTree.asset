@@ -13,131 +13,269 @@ MonoBehaviour:
   m_Name: PatrolSubTree
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
   nodes:
-  - id: a719c9d6-12d8-4286-bf05-1eb52d8df43b
-    nodeType: 4
-    actionType: SetWaypointTarget
-    editorPosition: {x: 424, y: 238}
-    parameters:
-      rid: 2281391222234021980
-  - id: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
-    nodeType: 2
-    actionType: 
-    editorPosition: {x: 428, y: 351}
-    parameters:
-      rid: -2
-  - id: 5a24e185-43d5-4608-be2f-619473b64f7d
-    nodeType: 4
-    actionType: CalculateSteering
-    editorPosition: {x: 551, y: 467}
-    parameters:
-      rid: 2281391222234021981
-  - id: 106a61a7-c68d-4fc6-b49c-2289577fe7b8
-    nodeType: 4
-    actionType: ApplyMovement
-    editorPosition: {x: 551, y: 583}
-    parameters:
-      rid: 2281391222234021982
-  - id: 16af1da2-b2c9-421f-a381-8e599199c8bf
-    nodeType: 4
-    actionType: IsAtTarget
-    editorPosition: {x: 551, y: 982}
-    parameters:
-      rid: 2281391222234021984
-  - id: 3ac3b87c-3756-45ce-ad0e-9c48e243995e
-    nodeType: 4
-    actionType: AdvanceWaypoint
-    editorPosition: {x: 551, y: 1086}
-    parameters:
-      rid: 2281391222234021985
-  - id: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
+  - id: root-sequence
     nodeType: 1
-    actionType: 
-    editorPosition: {x: 455, y: 845}
+    actionType:
+    editorPosition: {x: 400, y: 50}
     parameters:
       rid: -2
-  - id: f7c21fee-7830-4fa4-9ca2-0ac79c160570
+  - id: set-cruise-speed
     nodeType: 4
-    actionType: AimAtTarget
-    editorPosition: {x: 551, y: 699}
+    actionType: SetCruiseSpeed
+    editorPosition: {x: 50, y: 150}
     parameters:
-      rid: 2281391222234021986
-  - id: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
-    nodeType: 1
-    actionType: 
-    editorPosition: {x: 230, y: 48}
+      rid: 1000
+  - id: set-target-waypoints
+    nodeType: 4
+    actionType: SetTargetFromWaypoints
+    editorPosition: {x: 150, y: 150}
+    parameters:
+      rid: 1001
+  - id: calc-prediction
+    nodeType: 4
+    actionType: CalculateTrajectoryPrediction
+    editorPosition: {x: 300, y: 150}
+    parameters:
+      rid: 1002
+  - id: approach-selector
+    nodeType: 0
+    actionType:
+    editorPosition: {x: 450, y: 150}
     parameters:
       rid: -2
+  - id: recovery-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 350, y: 250}
+    parameters:
+      rid: -2
+  - id: has-overshot
+    nodeType: 4
+    actionType: HasOvershot
+    editorPosition: {x: 300, y: 350}
+    parameters:
+      rid: 1003
+  - id: calc-recovery
+    nodeType: 4
+    actionType: CalculateRecovery
+    editorPosition: {x: 400, y: 350}
+    parameters:
+      rid: 1004
+  - id: calc-smart-arrive
+    nodeType: 4
+    actionType: CalculateSmartArrive
+    editorPosition: {x: 550, y: 250}
+    parameters:
+      rid: 1005
+  - id: apply-steering
+    nodeType: 4
+    actionType: ApplySteering
+    editorPosition: {x: 600, y: 150}
+    parameters:
+      rid: 1006
+  - id: rotate-velocity
+    nodeType: 4
+    actionType: RotateTowardVelocity
+    editorPosition: {x: 750, y: 150}
+    parameters:
+      rid: 1007
+  - id: arrival-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 900, y: 150}
+    parameters:
+      rid: -2
+  - id: is-near-position
+    nodeType: 4
+    actionType: IsNearPosition
+    editorPosition: {x: 850, y: 250}
+    parameters:
+      rid: 1008
+  - id: is-stopped
+    nodeType: 4
+    actionType: IsStopped
+    editorPosition: {x: 950, y: 250}
+    parameters:
+      rid: 1009
+  - id: waypoint-behavior-selector
+    nodeType: 0
+    actionType:
+    editorPosition: {x: 1050, y: 150}
+    parameters:
+      rid: -2
+  - id: extended-stop-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 1000, y: 250}
+    parameters:
+      rid: -2
+  - id: random-chance
+    nodeType: 4
+    actionType: RandomChance
+    editorPosition: {x: 950, y: 350}
+    parameters:
+      rid: 1010
+  - id: wait-at-waypoint
+    nodeType: 4
+    actionType: Wait
+    editorPosition: {x: 1050, y: 350}
+    parameters:
+      rid: 1011
+  - id: skip-stop
+    nodeType: 4
+    actionType: SetTargetPosition
+    editorPosition: {x: 1100, y: 250}
+    parameters:
+      rid: 1012
+  - id: advance-waypoint
+    nodeType: 4
+    actionType: AdvanceWaypointIndex
+    editorPosition: {x: 1200, y: 150}
+    parameters:
+      rid: 1013
   connections:
-  - parentId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
-    childId: 5a24e185-43d5-4608-be2f-619473b64f7d
+  - parentId: root-sequence
+    childId: set-cruise-speed
     childIndex: 0
-  - parentId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
-    childId: 106a61a7-c68d-4fc6-b49c-2289577fe7b8
+  - parentId: root-sequence
+    childId: set-target-waypoints
     childIndex: 1
-  - parentId: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
-    childId: 3ac3b87c-3756-45ce-ad0e-9c48e243995e
-    childIndex: 0
-  - parentId: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
-    childId: 16af1da2-b2c9-421f-a381-8e599199c8bf
-    childIndex: 1
-  - parentId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
-    childId: f7c21fee-7830-4fa4-9ca2-0ac79c160570
+  - parentId: root-sequence
+    childId: calc-prediction
     childIndex: 2
-  - parentId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
-    childId: a719c9d6-12d8-4286-bf05-1eb52d8df43b
+  - parentId: root-sequence
+    childId: approach-selector
+    childIndex: 3
+  - parentId: root-sequence
+    childId: apply-steering
+    childIndex: 4
+  - parentId: root-sequence
+    childId: rotate-velocity
+    childIndex: 5
+  - parentId: root-sequence
+    childId: arrival-sequence
+    childIndex: 6
+  - parentId: root-sequence
+    childId: waypoint-behavior-selector
+    childIndex: 7
+  - parentId: root-sequence
+    childId: advance-waypoint
+    childIndex: 8
+  - parentId: approach-selector
+    childId: recovery-sequence
     childIndex: 0
-  - parentId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
-    childId: b50d2ce9-86ed-4be3-b0d5-f9b368ecb89a
+  - parentId: approach-selector
+    childId: calc-smart-arrive
     childIndex: 1
-  - parentId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
-    childId: fbc5b0e4-f946-40f7-bbc5-9c5a5e1bed48
-    childIndex: 2
-  rootNodeId: 73f09f4e-1cc0-4177-8f40-f9d92514ad2d
+  - parentId: recovery-sequence
+    childId: has-overshot
+    childIndex: 0
+  - parentId: recovery-sequence
+    childId: calc-recovery
+    childIndex: 1
+  - parentId: arrival-sequence
+    childId: is-near-position
+    childIndex: 0
+  - parentId: arrival-sequence
+    childId: is-stopped
+    childIndex: 1
+  - parentId: waypoint-behavior-selector
+    childId: extended-stop-sequence
+    childIndex: 0
+  - parentId: waypoint-behavior-selector
+    childId: skip-stop
+    childIndex: 1
+  - parentId: extended-stop-sequence
+    childId: random-chance
+    childIndex: 0
+  - parentId: extended-stop-sequence
+    childId: wait-at-waypoint
+    childIndex: 1
+  rootNodeId: root-sequence
   references:
     version: 2
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 2281391222234021980
-      type: {class: SetWaypointTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+    - rid: 1000
+      type: {class: SetCruiseSpeedParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        waypointsKey: patrol_waypoints
-        targetKey: move_target
+        speed: 15
+        acceleration: -1
+        speedKey: cruise_speed
+        accelKey: cruise_acceleration
+    - rid: 1001
+      type: {class: SetTargetFromWaypointsParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        waypointsKey: waypoint_list
         indexKey: waypoint_index
-    - rid: 2281391222234021981
-      type: {class: CalculateSteeringParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+        targetKey: steering_target
+    - rid: 1002
+      type: {class: CalculateTrajectoryPredictionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        targetKey: move_target
-        directionOutputKey: steering_direction
-        throttleOutputKey: steering_throttle
-        arrivedOutputKey: steering_arrived
-        steeringForceOutputKey: steering_force
-        arrivalThreshold: 4
-        velocityThreshold: 4
-        slowingRadiusMultiplier: 5
-        arrivalDistanceMultiplier: 2
-        arrivalVelocityMultiplier: 3
-        defaultStrategy: 0
-        strategyKey: approach_strategy
-        nextWaypointKey: next_waypoint
-    - rid: 2281391222234021982
-      type: {class: ApplyMovementParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+        targetKey: steering_target
+        predictionKey: trajectory_prediction
+        missThreshold: 2
+    - rid: 1003
+      type: {class: HasOvershotParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        directionKey: steering_direction
-        throttleKey: steering_throttle
-    - rid: 2281391222234021984
-      type: {class: IsAtTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+        predictionKey: trajectory_prediction
+        minDistance: 0.5
+    - rid: 1004
+      type: {class: CalculateRecoveryParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        targetKey: move_target
-        threshold: 4
-    - rid: 2281391222234021985
-      type: {class: AdvanceWaypointParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+        targetKey: steering_target
+        predictionKey: trajectory_prediction
+        outputKey: steering_force
+        speedThreshold: 5
+        turnBrakeFactor: 0.7
+    - rid: 1005
+      type: {class: CalculateSmartArriveParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        waypointsKey: patrol_waypoints
+        targetKey: steering_target
+        predictionKey: trajectory_prediction
+        outputKey: steering_force
+        arrivalThreshold: 1
+        angleStiffness: 1.5
+        lateralBrakingFactor: 2
+    - rid: 1006
+      type: {class: ApplySteeringParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        forceKey: steering_force
+    - rid: 1007
+      type: {class: RotateTowardVelocityParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        minSpeedThreshold: 0.5
+    - rid: 1008
+      type: {class: IsNearPositionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: steering_target
+        threshold: 1.5
+    - rid: 1009
+      type: {class: IsStoppedParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        threshold: 0.5
+    - rid: 1010
+      type: {class: RandomChanceParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        chance: 0.3
+        evaluateOnce: true
+        resultKey: waypoint_stop_decision
+        resetTriggerKey: waypoint_index
+    - rid: 1011
+      type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        duration: 2.0
+        elapsedKey: waypoint_wait_elapsed
+    - rid: 1012
+      type: {class: SetTargetPositionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        position: {x: 0, y: 0}
+        targetKey: _dummy_always_succeed
+    - rid: 1013
+      type: {class: AdvanceWaypointIndexParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        waypointsKey: waypoint_list
         indexKey: waypoint_index
-        traversalMode: 0
+        mode: 0
         directionKey: waypoint_direction
-    - rid: 2281391222234021986
-      type: {class: AimAtTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
-      data:
-        targetKey: move_target

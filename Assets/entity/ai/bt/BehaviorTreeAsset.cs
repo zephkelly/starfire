@@ -115,7 +115,19 @@ namespace Starfire.Entity.AI.BT
 
             try
             {
-                return BTActionRegistry.CreateAction(data.actionType, data.parameters);
+                var node = BTActionRegistry.CreateAction(data.actionType, data.parameters);
+
+                // Apply tick interval if the node supports it
+                if (node is BTAction action)
+                {
+                    action.TickInterval = data.tickInterval;
+                }
+                else if (node is BTLeafCondition condition)
+                {
+                    condition.TickInterval = data.tickInterval;
+                }
+
+                return node;
             }
             catch (Exception e)
             {

@@ -15,4 +15,6 @@ MonoBehaviour:
   moduleId: propulsion_module
   displayName: Propulsion Module
   tier: 1
-  crewCapacity: 1148846080
+  maxSpeed: 1000
+  acceleration: 10
+  drag: 1

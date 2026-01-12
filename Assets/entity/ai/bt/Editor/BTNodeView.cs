@@ -16,6 +16,10 @@ namespace Starfire.Entity.AI.BT.Editor
         public Port OutputPort { get; private set; }
 
         public Action<BTNodeView> OnNodeSelected;
+        public Action<BTNodeView, Vector2> OnNodeDoubleClicked;
+
+        private double _lastClickTime;
+        private const double DoubleClickThreshold = 0.3;
 
         public BTNodeView(BTNodeData nodeData)
         {
@@ -31,6 +35,24 @@ namespace Starfire.Entity.AI.BT.Editor
 
             // Add description label
             AddDescriptionLabel();
+
+            // Register double-click handler
+            RegisterCallback<MouseDownEvent>(OnMouseDown);
+        }
+
+        private void OnMouseDown(MouseDownEvent evt)
+        {
+            if (evt.button != 0) return; // Only left click
+
+            double currentTime = UnityEditor.EditorApplication.timeSinceStartup;
+            if (currentTime - _lastClickTime < DoubleClickThreshold)
+            {
+                // Double-click detected - get screen position for popup
+                var screenPos = evt.mousePosition + this.GetPosition().position;
+                OnNodeDoubleClicked?.Invoke(this, screenPos);
+                evt.StopPropagation();
+            }
+            _lastClickTime = currentTime;
         }
 
         private string GetNodeTitle()
@@ -141,15 +163,41 @@ namespace Starfire.Entity.AI.BT.Editor
 
         private string GetActionDescription()
         {
-            switch (NodeData.parameters)
+            if (NodeData.parameters == null) return "";
+
+            // Use reflection to find a relevant key field for display
+            var type = NodeData.parameters.GetType();
+            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+            // Look for common key fields in priority order
+            string[] priorityFields = { "targetKey", "waypointsKey", "entityKey", "forceKey", "outputKey" };
+            foreach (var fieldName in priorityFields)
             {
-                case SetNextWaypointParameters sp:
-                    return $"waypoints: {sp.waypointsKey}";
-                case MoveToParameters mp:
-                    return $"target: {mp.targetKey}";
-                default:
-                    return "";
+                var field = System.Array.Find(fields, f => f.Name == fieldName);
+                if (field != null)
+                {
+                    var value = field.GetValue(NodeData.parameters);
+                    if (value != null)
+                    {
+                        return $"{fieldName}: {value}";
+                    }
+                }
             }
+
+            // Fallback: show first string field if any
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(string))
+                {
+                    var value = field.GetValue(NodeData.parameters) as string;
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        return $"{field.Name}: {value}";
+                    }
+                }
+            }
+
+            return "";
         }
 
         public void UpdateVisuals()

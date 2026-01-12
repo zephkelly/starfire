@@ -79,9 +79,26 @@ namespace Starfire.Entity.AI.BT.Editor
         {
             var nodeView = new BTNodeView(nodeData);
             nodeView.OnNodeSelected = OnNodeSelected;
+            nodeView.OnNodeDoubleClicked = OnNodeDoubleClicked;
             nodeView.SetPosition(new Rect(nodeData.editorPosition, Vector2.zero));
             AddElement(nodeView);
             return nodeView;
+        }
+
+        private void OnNodeDoubleClicked(BTNodeView nodeView, Vector2 graphPosition)
+        {
+            if (_treeAsset == null || nodeView?.NodeData?.parameters == null) return;
+
+            // Convert graph position to screen position
+            var windowPosition = _editorWindow.position;
+            var screenPos = new Rect(
+                windowPosition.x + graphPosition.x,
+                windowPosition.y + graphPosition.y + 50, // Offset below node
+                0, 0);
+
+            // Show popup
+            var popup = new BTNodePopup(nodeView, _treeAsset);
+            UnityEditor.PopupWindow.Show(screenPos, popup);
         }
 
         private GraphViewChange OnGraphViewChanged(GraphViewChange graphViewChange)

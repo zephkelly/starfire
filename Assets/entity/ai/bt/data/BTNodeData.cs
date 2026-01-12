@@ -35,6 +35,12 @@ namespace Starfire.Entity.AI.BT
         [SerializeReference]
         public IBTNodeParameters parameters;
 
+        /// <summary>
+        /// How often this node executes. 1 = every tick, 2 = every 2nd tick, etc.
+        /// Only applies to Action and Condition nodes.
+        /// </summary>
+        public int tickInterval = 1;
+
         public BTNodeData() { }
 
         public BTNodeData(BTNodeType type, Vector2 position)

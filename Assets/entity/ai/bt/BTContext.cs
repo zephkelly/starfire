@@ -8,7 +8,10 @@ namespace Starfire.Entity.AI.BT
         public Transform Transform { get; }
         public AIDriver Driver { get; }
         public ShipController Controller { get; }
-        public ShipSystems Systems { get; }
+
+        // Lazy property - ShipSystems may not be available during OnAttach
+        // because the AICore module is attached during ShipSystems construction
+        public ShipSystems Systems => Controller?.ShipSystems;
 
         private readonly Dictionary<string, object> _blackboard = new();
 
@@ -17,7 +20,6 @@ namespace Starfire.Entity.AI.BT
             Transform = controller.transform;
             Driver = driver;
             Controller = controller as ShipController;
-            Systems = Controller?.ShipSystems;
         }
 
         public void Set<T>(string key, T value)

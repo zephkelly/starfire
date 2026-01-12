@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -197,6 +198,27 @@ namespace Starfire.Entity.AI.BT.Editor
             if (data.nodeType == BTNodeType.Action)
             {
                 EditorGUILayout.LabelField("Action Type", data.actionType);
+
+                // Tick Interval for actions/conditions
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Execution", EditorStyles.boldLabel);
+
+                EditorGUI.BeginChangeCheck();
+                int newTickInterval = EditorGUILayout.IntSlider(
+                    new GUIContent("Tick Interval", "How often this node executes. 1 = every tick, 2 = every 2nd tick, etc."),
+                    data.tickInterval,
+                    1,
+                    10);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    data.tickInterval = newTickInterval;
+                    EditorUtility.SetDirty(_editorWindow.TreeAsset);
+                }
+
+                if (data.tickInterval > 1)
+                {
+                    EditorGUILayout.HelpBox($"This node will execute every {data.tickInterval} ticks. When skipped, it returns its cached result.", MessageType.Info);
+                }
             }
 
             EditorGUILayout.Space();
@@ -291,80 +313,131 @@ namespace Starfire.Entity.AI.BT.Editor
 
         private void DrawParameters(BTNodeData data)
         {
-            var changed = false;
-
-            switch (data.parameters)
+            var parameters = data.parameters;
+            if (parameters == null)
             {
-                case RepeaterParameters rp:
-                    EditorGUI.BeginChangeCheck();
-                    rp.repeatCount = EditorGUILayout.IntField("Repeat Count (-1 = forever)", rp.repeatCount);
-                    changed = EditorGUI.EndChangeCheck();
-                    break;
-
-                case SetNextWaypointParameters sp:
-                    EditorGUI.BeginChangeCheck();
-                    sp.waypointsKey = EditorGUILayout.TextField("Waypoints Key", sp.waypointsKey);
-                    sp.targetKey = EditorGUILayout.TextField("Target Key", sp.targetKey);
-                    sp.indexKey = EditorGUILayout.TextField("Index Key", sp.indexKey);
-                    changed = EditorGUI.EndChangeCheck();
-                    break;
-
-                case MoveToParameters mp:
-                    EditorGUI.BeginChangeCheck();
-                    mp.arrivalThreshold = EditorGUILayout.FloatField("Arrival Threshold", mp.arrivalThreshold);
-                    mp.slowingMultiplier = EditorGUILayout.FloatField("Slowing Multiplier", mp.slowingMultiplier);
-                    mp.targetKey = EditorGUILayout.TextField("Target Key", mp.targetKey);
-                    changed = EditorGUI.EndChangeCheck();
-                    break;
-
-                case SubtreeParameters sp:
-                    EditorGUI.BeginChangeCheck();
-                    var newAsset = (BehaviorTreeAsset)EditorGUILayout.ObjectField(
-                        "Subtree Asset",
-                        sp.subtreeAsset,
-                        typeof(BehaviorTreeAsset),
-                        false);
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        // Validate for cycles before allowing assignment
-                        if (newAsset != null && _editorWindow.TreeAsset.WouldCreateCycle(newAsset))
-                        {
-                            EditorUtility.DisplayDialog(
-                                "Cycle Detected",
-                                $"Cannot assign '{newAsset.name}' as a subtree because it would create a circular reference.",
-                                "OK");
-                        }
-                        else
-                        {
-                            sp.subtreeAsset = newAsset;
-                            changed = true;
-                            _selectedNode?.UpdateVisuals();
-                        }
-                    }
-
-                    // Show info about the referenced tree
-                    if (sp.subtreeAsset != null)
-                    {
-                        EditorGUILayout.Space();
-                        EditorGUILayout.LabelField("Subtree Info", EditorStyles.boldLabel);
-                        EditorGUILayout.LabelField("Nodes", sp.subtreeAsset.Nodes.Count.ToString());
-
-                        if (GUILayout.Button("Open Subtree in Editor"))
-                        {
-                            Selection.activeObject = sp.subtreeAsset;
-                        }
-                    }
-                    break;
-
-                default:
-                    EditorGUILayout.LabelField("No configurable parameters.");
-                    break;
+                EditorGUILayout.LabelField("No configurable parameters.");
+                return;
             }
 
-            if (changed)
+            // Special handling for SubtreeParameters (cycle detection)
+            if (parameters is SubtreeParameters sp)
+            {
+                DrawSubtreeParameters(sp);
+                return;
+            }
+
+            // Use reflection for all other parameter types
+            var type = parameters.GetType();
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            EditorGUI.BeginChangeCheck();
+
+            foreach (var field in fields)
+            {
+                DrawField(field, parameters);
+            }
+
+            if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(_editorWindow.TreeAsset);
+                _selectedNode?.UpdateVisuals();
+            }
+        }
+
+        private void DrawSubtreeParameters(SubtreeParameters sp)
+        {
+            EditorGUI.BeginChangeCheck();
+            var newAsset = (BehaviorTreeAsset)EditorGUILayout.ObjectField(
+                "Subtree Asset",
+                sp.subtreeAsset,
+                typeof(BehaviorTreeAsset),
+                false);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Validate for cycles before allowing assignment
+                if (newAsset != null && _editorWindow.TreeAsset.WouldCreateCycle(newAsset))
+                {
+                    EditorUtility.DisplayDialog(
+                        "Cycle Detected",
+                        $"Cannot assign '{newAsset.name}' as a subtree because it would create a circular reference.",
+                        "OK");
+                }
+                else
+                {
+                    sp.subtreeAsset = newAsset;
+                    EditorUtility.SetDirty(_editorWindow.TreeAsset);
+                    _selectedNode?.UpdateVisuals();
+                }
+            }
+
+            // Show info about the referenced tree
+            if (sp.subtreeAsset != null)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Subtree Info", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Nodes", sp.subtreeAsset.Nodes.Count.ToString());
+
+                if (GUILayout.Button("Open Subtree in Editor"))
+                {
+                    Selection.activeObject = sp.subtreeAsset;
+                }
+            }
+        }
+
+        private void DrawField(FieldInfo field, object target)
+        {
+            var fieldType = field.FieldType;
+            var fieldName = ObjectNames.NicifyVariableName(field.Name);
+            var currentValue = field.GetValue(target);
+
+            object newValue = currentValue;
+
+            // Handle different field types
+            if (fieldType == typeof(string))
+            {
+                newValue = EditorGUILayout.TextField(fieldName, (string)currentValue ?? "");
+            }
+            else if (fieldType == typeof(int))
+            {
+                newValue = EditorGUILayout.IntField(fieldName, (int)currentValue);
+            }
+            else if (fieldType == typeof(float))
+            {
+                newValue = EditorGUILayout.FloatField(fieldName, (float)currentValue);
+            }
+            else if (fieldType == typeof(bool))
+            {
+                newValue = EditorGUILayout.Toggle(fieldName, (bool)currentValue);
+            }
+            else if (fieldType == typeof(Vector2))
+            {
+                newValue = EditorGUILayout.Vector2Field(fieldName, (Vector2)currentValue);
+            }
+            else if (fieldType == typeof(Vector3))
+            {
+                newValue = EditorGUILayout.Vector3Field(fieldName, (Vector3)currentValue);
+            }
+            else if (fieldType.IsEnum)
+            {
+                newValue = EditorGUILayout.EnumPopup(fieldName, (System.Enum)currentValue);
+            }
+            else if (typeof(UnityEngine.Object).IsAssignableFrom(fieldType))
+            {
+                newValue = EditorGUILayout.ObjectField(fieldName, (UnityEngine.Object)currentValue, fieldType, false);
+            }
+            else
+            {
+                // Unsupported type - show as label
+                EditorGUILayout.LabelField(fieldName, currentValue?.ToString() ?? "(null)");
+                return;
+            }
+
+            // Update value if changed
+            if (!Equals(newValue, currentValue))
+            {
+                field.SetValue(target, newValue);
             }
         }
     }

@@ -12,11 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de9f279aa6a4eb94faf5d0f9922c86a0, type: 3}
   m_Name: Scout
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.ShipClassDefinition
-  classId: 
-  className: 
+  classId: ship-scout
+  className: Scout
   description: 
   classIcon: {fileID: 0}
-  moduleSlots: []
-  capabilities: 
+  moduleSlots:
+  - slotType: 11
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: 1323e1a6ad05ccd4ca4c7a284bee4e41, type: 2}
+  - slotType: 4
+    isRequired: 1
+    defaultModule: {fileID: 11400000, guid: 063a795809be8434da9b0d917ecb14e6, type: 2}
+  - slotType: 3
+    isRequired: 1
+    defaultModule: {fileID: 11400000, guid: 6a13aed576b92f5429106f4d5fb5f915, type: 2}
+  capabilities: 0000000001000000
   prefabOverride: {fileID: 0}
   spriteScale: 1

@@ -52,7 +52,7 @@ namespace Starfire.Entity
                     .Select(w => (Vector2)w.position)
                     .ToList();
 
-                aiCore.Context?.Set("patrol_waypoints", positions);
+                aiCore.Context?.Set("waypoint_list", positions);
             }
         }
 

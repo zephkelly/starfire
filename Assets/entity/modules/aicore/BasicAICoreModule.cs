@@ -1,9 +1,11 @@
 using Starfire.Entity.AI.BT;
+using UnityEngine;
 
 namespace Starfire.Entity.Modules.AICore
 {
     public class BasicAICoreModule : IAICoreModule
     {
+        private bool _hasLoggedOnce = false;
         private readonly BasicAICoreConfig _config;
         private EntityControllerBase _controller;
         private BTContext _btContext;
@@ -66,7 +68,17 @@ namespace Starfire.Entity.Modules.AICore
 
         public void OnUpdate(float deltaTime)
         {
-            if (!IsEnabled || !IsAutonomous) return;
+            if (!_hasLoggedOnce)
+            {
+                Debug.Log($"[BasicAICoreModule] OnUpdate check: IsEnabled={IsEnabled}, IsAutonomous={IsAutonomous}, BehaviorTree={(BehaviorTree != null ? "exists" : "NULL")}");
+                _hasLoggedOnce = true;
+            }
+
+            if (!IsEnabled || !IsAutonomous)
+            {
+                return;
+            }
+
             BehaviorTree?.Execute(deltaTime);
         }
 

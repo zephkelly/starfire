@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Starfire.Entity.Modules;
 
 namespace Starfire.Entity.AI.BT
 {
@@ -35,35 +36,57 @@ namespace Starfire.Entity.AI.BT
 
         static BTActionRegistry()
         {
-            // Register built-in actions
+            // Target Setting
+            Register("SetTargetPosition", typeof(SetTargetPositionParameters), CreateSetTargetPositionAction);
+            Register("SetTargetFromEntity", typeof(SetTargetFromEntityParameters), CreateSetTargetFromEntityAction);
+            Register("SetTargetFromWaypoints", typeof(SetTargetFromWaypointsParameters), CreateSetTargetFromWaypointsAction);
 
-            // New waypoint actions (composable design)
-            Register("SetWaypointTarget", typeof(SetWaypointTargetParameters), CreateSetWaypointTargetAction);
-            Register("AdvanceWaypoint", typeof(AdvanceWaypointParameters), CreateAdvanceWaypointAction);
+            // Steering Calculation
+            Register("CalculateSeek", typeof(CalculateSeekParameters), CreateCalculateSeekAction);
+            Register("CalculateArrive", typeof(CalculateArriveParameters), CreateCalculateArriveAction);
+            Register("CalculateFlee", typeof(CalculateFleeParameters), CreateCalculateFleeAction);
 
-            // Legacy alias for backward compatibility - maps to idempotent SetWaypointTargetAction
-            // Note: Existing behavior trees using SetNextWaypoint need to add AdvanceWaypoint node
-            Register("SetNextWaypoint", typeof(SetNextWaypointParameters), CreateSetWaypointTargetFromLegacy);
+            // Steering Application
+            Register("ApplySteering", typeof(ApplySteeringParameters), CreateApplySteeringAction);
 
-            // Movement actions
-            Register("MoveTo", typeof(MoveToParameters), CreateMoveToAction);
-            Register("CalculateSteering", typeof(CalculateSteeringParameters), CreateCalculateSteeringAction);
-            Register("ApplyMovement", typeof(ApplyMovementParameters), CreateApplyMovementAction);
+            // Rotation
+            Register("RotateTowardTarget", typeof(RotateTowardTargetParameters), CreateRotateTowardTargetAction);
+            Register("RotateTowardVelocity", typeof(RotateTowardVelocityParameters), CreateRotateTowardVelocityAction);
 
-            // Legacy alias - ApplySteering maps to ApplyMovement for backward compat
-            Register("ApplySteering", typeof(ApplySteeringParameters), CreateApplyMovementFromLegacy);
+            // Waypoint Management
+            Register("AdvanceWaypointIndex", typeof(AdvanceWaypointIndexParameters), CreateAdvanceWaypointIndexAction);
 
-            // Aim/Rotation actions (separate from movement)
-            Register("AimAtTarget", typeof(AimAtTargetParameters), CreateAimAtTargetAction);
-            Register("AimInMovementDirection", typeof(AimInMovementDirectionParameters), CreateAimInMovementDirectionAction);
+            // Conditions - Position
+            Register("IsNearPosition", typeof(IsNearPositionParameters), CreateIsNearPositionCondition);
+            Register("IsStopped", typeof(IsStoppedParameters), CreateIsStoppedCondition);
 
-            // Conditions
-            Register("IsAtTarget", typeof(IsAtTargetParameters), CreateIsAtTargetCondition);
+            // Conditions - Module
+            Register("HasModule", typeof(HasModuleParameters), CreateHasModuleCondition);
+
+            // Conditions - Target
             Register("HasTarget", typeof(HasTargetParameters), CreateHasTargetCondition);
-            Register("IsInRangeOfEntity", typeof(IsInRangeOfEntityParameters), CreateIsInRangeOfEntityCondition);
+            Register("IsInRange", typeof(IsInRangeParameters), CreateIsInRangeCondition);
 
-            // Entity targeting
-            Register("SetEntityAsTarget", typeof(SetEntityAsTargetParameters), CreateSetEntityAsTargetAction);
+            // Trajectory Prediction
+            Register("CalculateTrajectoryPrediction", typeof(CalculateTrajectoryPredictionParameters), CreateCalculateTrajectoryPredictionAction);
+
+            // Smart Steering
+            Register("CalculateSmartArrive", typeof(CalculateSmartArriveParameters), CreateCalculateSmartArriveAction);
+            Register("CalculateRecovery", typeof(CalculateRecoveryParameters), CreateCalculateRecoveryAction);
+            Register("CalculateFlyThrough", typeof(CalculateFlyThroughParameters), CreateCalculateFlyThroughAction);
+
+            // Trajectory Conditions
+            Register("WillMissTarget", typeof(WillMissTargetParameters), CreateWillMissTargetCondition);
+            Register("HasOvershot", typeof(HasOvershotParameters), CreateHasOvershotCondition);
+
+            // Cruise Speed Control
+            Register("SetCruiseSpeed", typeof(SetCruiseSpeedParameters), CreateSetCruiseSpeedAction);
+
+            // Utility Actions
+            Register("Wait", typeof(WaitParameters), CreateWaitAction);
+
+            // Random Conditions
+            Register("RandomChance", typeof(RandomChanceParameters), CreateRandomChanceCondition);
         }
 
         /// <summary>
@@ -114,80 +137,94 @@ namespace Starfire.Entity.AI.BT
             return (IBTNodeParameters)Activator.CreateInstance(info.ParameterType);
         }
 
-        // Factory methods for built-in actions
+        // Factory methods for target setting actions
 
-        private static IBTNode CreateSetWaypointTargetAction(IBTNodeParameters parameters)
+        private static IBTNode CreateSetTargetPositionAction(IBTNodeParameters parameters)
         {
-            var p = parameters as SetWaypointTargetParameters ?? new SetWaypointTargetParameters();
-            return new SetWaypointTargetAction(p.waypointsKey, p.targetKey, p.indexKey);
+            var p = parameters as SetTargetPositionParameters ?? new SetTargetPositionParameters();
+            return new SetTargetPositionAction(p.position, p.targetKey);
         }
 
-        private static IBTNode CreateAdvanceWaypointAction(IBTNodeParameters parameters)
+        private static IBTNode CreateSetTargetFromEntityAction(IBTNodeParameters parameters)
         {
-            var p = parameters as AdvanceWaypointParameters ?? new AdvanceWaypointParameters();
-            return new AdvanceWaypointAction(p.waypointsKey, p.indexKey, p.traversalMode, p.directionKey);
+            var p = parameters as SetTargetFromEntityParameters ?? new SetTargetFromEntityParameters();
+            return new SetTargetFromEntityAction(p.entityKey, p.targetKey);
         }
 
-        /// <summary>
-        /// Legacy factory - maps old SetNextWaypoint to new SetWaypointTarget.
-        /// Existing behavior trees using SetNextWaypoint will get the idempotent version.
-        /// They should be updated to use the new Sequence pattern for proper patrol behavior.
-        /// </summary>
-        private static IBTNode CreateSetWaypointTargetFromLegacy(IBTNodeParameters parameters)
+        private static IBTNode CreateSetTargetFromWaypointsAction(IBTNodeParameters parameters)
         {
-            var p = parameters as SetNextWaypointParameters ?? new SetNextWaypointParameters();
-            return new SetWaypointTargetAction(p.waypointsKey, p.targetKey, p.indexKey);
+            var p = parameters as SetTargetFromWaypointsParameters ?? new SetTargetFromWaypointsParameters();
+            return new SetTargetFromWaypointsAction(p.waypointsKey, p.indexKey, p.targetKey);
         }
 
-        private static IBTNode CreateMoveToAction(IBTNodeParameters parameters)
+        // Factory methods for steering calculation actions
+
+        private static IBTNode CreateCalculateSeekAction(IBTNodeParameters parameters)
         {
-            var p = parameters as MoveToParameters ?? new MoveToParameters();
-            return new MoveToAction(p.arrivalThreshold, p.slowingMultiplier, p.targetKey);
+            var p = parameters as CalculateSeekParameters ?? new CalculateSeekParameters();
+            return new CalculateSeekAction(p.targetKey, p.outputKey);
         }
 
-        private static IBTNode CreateCalculateSteeringAction(IBTNodeParameters parameters)
+        private static IBTNode CreateCalculateArriveAction(IBTNodeParameters parameters)
         {
-            var p = parameters as CalculateSteeringParameters ?? new CalculateSteeringParameters();
-            return new CalculateSteeringAction(p);
+            var p = parameters as CalculateArriveParameters ?? new CalculateArriveParameters();
+            return new CalculateArriveAction(p.targetKey, p.outputKey, p.arrivalThreshold);
         }
 
-        private static IBTNode CreateApplyMovementAction(IBTNodeParameters parameters)
+        private static IBTNode CreateCalculateFleeAction(IBTNodeParameters parameters)
         {
-            var p = parameters as ApplyMovementParameters ?? new ApplyMovementParameters();
-            return new ApplyMovementAction(p);
+            var p = parameters as CalculateFleeParameters ?? new CalculateFleeParameters();
+            return new CalculateFleeAction(p.targetKey, p.outputKey);
         }
 
-        /// <summary>
-        /// Legacy factory - maps old ApplySteering to new ApplyMovement.
-        /// </summary>
-        private static IBTNode CreateApplyMovementFromLegacy(IBTNodeParameters parameters)
+        // Factory method for steering application
+
+        private static IBTNode CreateApplySteeringAction(IBTNodeParameters parameters)
         {
-            // Convert old parameters to new format
-            var legacy = parameters as ApplySteeringParameters;
-            var p = new ApplyMovementParameters
-            {
-                directionKey = legacy?.directionKey ?? "steering_direction",
-                throttleKey = legacy?.throttleKey ?? "steering_throttle"
-            };
-            return new ApplyMovementAction(p);
+            var p = parameters as ApplySteeringParameters ?? new ApplySteeringParameters();
+            return new ApplySteeringAction(p.forceKey);
         }
 
-        private static IBTNode CreateAimAtTargetAction(IBTNodeParameters parameters)
+        // Factory methods for rotation actions
+
+        private static IBTNode CreateRotateTowardTargetAction(IBTNodeParameters parameters)
         {
-            var p = parameters as AimAtTargetParameters ?? new AimAtTargetParameters();
-            return new AimAtTargetAction(p.targetKey);
+            var p = parameters as RotateTowardTargetParameters ?? new RotateTowardTargetParameters();
+            return new RotateTowardTargetAction(p.targetKey);
         }
 
-        private static IBTNode CreateAimInMovementDirectionAction(IBTNodeParameters parameters)
+        private static IBTNode CreateRotateTowardVelocityAction(IBTNodeParameters parameters)
         {
-            var p = parameters as AimInMovementDirectionParameters ?? new AimInMovementDirectionParameters();
-            return new AimInMovementDirectionAction(p.lookAheadDistance);
+            var p = parameters as RotateTowardVelocityParameters ?? new RotateTowardVelocityParameters();
+            return new RotateTowardVelocityAction(p.minSpeedThreshold);
         }
 
-        private static IBTNode CreateIsAtTargetCondition(IBTNodeParameters parameters)
+        // Factory methods for waypoint management
+
+        private static IBTNode CreateAdvanceWaypointIndexAction(IBTNodeParameters parameters)
         {
-            var p = parameters as IsAtTargetParameters ?? new IsAtTargetParameters();
-            return new IsAtTargetCondition(p.targetKey, p.threshold);
+            var p = parameters as AdvanceWaypointIndexParameters ?? new AdvanceWaypointIndexParameters();
+            return new AdvanceWaypointIndexAction(p.waypointsKey, p.indexKey, p.mode, p.directionKey);
+        }
+
+        // Factory methods for conditions
+
+        private static IBTNode CreateIsNearPositionCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsNearPositionParameters ?? new IsNearPositionParameters();
+            return new IsNearPositionCondition(p.targetKey, p.threshold);
+        }
+
+        private static IBTNode CreateIsStoppedCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsStoppedParameters ?? new IsStoppedParameters();
+            return new IsStoppedCondition(p.threshold);
+        }
+
+        private static IBTNode CreateHasModuleCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasModuleParameters ?? new HasModuleParameters();
+            return new HasModuleCondition(p.moduleType);
         }
 
         private static IBTNode CreateHasTargetCondition(IBTNodeParameters parameters)
@@ -196,16 +233,91 @@ namespace Starfire.Entity.AI.BT
             return new HasTargetCondition(p.targetKey);
         }
 
-        private static IBTNode CreateIsInRangeOfEntityCondition(IBTNodeParameters parameters)
+        private static IBTNode CreateIsInRangeCondition(IBTNodeParameters parameters)
         {
-            var p = parameters as IsInRangeOfEntityParameters ?? new IsInRangeOfEntityParameters();
-            return new IsInRangeOfEntityCondition(p.entityKey, p.minRange, p.maxRange);
+            var p = parameters as IsInRangeParameters ?? new IsInRangeParameters();
+            return new IsInRangeCondition(p.targetKey, p.minRange, p.maxRange);
         }
 
-        private static IBTNode CreateSetEntityAsTargetAction(IBTNodeParameters parameters)
+        // Factory methods for trajectory prediction
+
+        private static IBTNode CreateCalculateTrajectoryPredictionAction(IBTNodeParameters parameters)
         {
-            var p = parameters as SetEntityAsTargetParameters ?? new SetEntityAsTargetParameters();
-            return new SetEntityAsTargetAction(p.entityKey, p.targetKey);
+            var p = parameters as CalculateTrajectoryPredictionParameters ?? new CalculateTrajectoryPredictionParameters();
+            return new CalculateTrajectoryPredictionAction(p.targetKey, p.predictionKey, p.missThreshold);
+        }
+
+        // Factory methods for smart steering
+
+        private static IBTNode CreateCalculateSmartArriveAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as CalculateSmartArriveParameters ?? new CalculateSmartArriveParameters();
+            return new CalculateSmartArriveAction(
+                p.targetKey,
+                p.predictionKey,
+                p.outputKey,
+                p.arrivalThreshold,
+                p.angleStiffness,
+                p.lateralBrakingFactor);
+        }
+
+        private static IBTNode CreateCalculateRecoveryAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as CalculateRecoveryParameters ?? new CalculateRecoveryParameters();
+            return new CalculateRecoveryAction(
+                p.targetKey,
+                p.predictionKey,
+                p.outputKey,
+                p.speedThreshold,
+                p.turnBrakeFactor);
+        }
+
+        private static IBTNode CreateCalculateFlyThroughAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as CalculateFlyThroughParameters ?? new CalculateFlyThroughParameters();
+            return new CalculateFlyThroughAction(
+                p.targetKey,
+                p.predictionKey,
+                p.outputKey,
+                p.passRadius);
+        }
+
+        // Factory methods for trajectory conditions
+
+        private static IBTNode CreateWillMissTargetCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as WillMissTargetParameters ?? new WillMissTargetParameters();
+            return new WillMissTargetCondition(p.predictionKey, p.missThreshold);
+        }
+
+        private static IBTNode CreateHasOvershotCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasOvershotParameters ?? new HasOvershotParameters();
+            return new HasOvershotCondition(p.predictionKey, p.minDistance);
+        }
+
+        // Factory methods for cruise speed control
+
+        private static IBTNode CreateSetCruiseSpeedAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetCruiseSpeedParameters ?? new SetCruiseSpeedParameters();
+            return new SetCruiseSpeedAction(p.speed, p.acceleration, p.speedKey, p.accelKey);
+        }
+
+        // Factory methods for utility actions
+
+        private static IBTNode CreateWaitAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as WaitParameters ?? new WaitParameters();
+            return new WaitAction(p.duration, p.elapsedKey);
+        }
+
+        // Factory methods for random conditions
+
+        private static IBTNode CreateRandomChanceCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as RandomChanceParameters ?? new RandomChanceParameters();
+            return new RandomChanceCondition(p.chance, p.evaluateOnce, p.resultKey, p.resetTriggerKey);
         }
     }
 }
