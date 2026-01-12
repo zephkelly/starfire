@@ -210,7 +210,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 441ac45d9c9627f479438e41468eecde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.PlayerSetup
-  shipClass: {fileID: 11400000, guid: 3dddaeb44ab0a2046a8ef75df03abc54, type: 2}
+  moduleId: weapon_module
+  displayName: Weapon Module
+  tier: 1
+  damage: 10
+  fireRate: 1
+  range: 20
 --- !u!114 &426350012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1034,8 +1039,6 @@ GameObject:
   m_Component:
   - component: {fileID: 982980075}
   - component: {fileID: 982980074}
-  - component: {fileID: 982980073}
-  - component: {fileID: 982980072}
   m_Layer: 0
   m_Name: Patroller
   m_TagString: Untagged
@@ -1043,37 +1046,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &982980072
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 982980071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1a6bf14065ee8340a0681f22fb98cca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AISetup
-  shipClass: {fileID: 11400000, guid: 3dddaeb44ab0a2046a8ef75df03abc54, type: 2}
-  waypoints:
-  - {fileID: 1310948273}
-  - {fileID: 772721850}
-  - {fileID: 336122089}
-  arrivalRadius: 4
-  showArrivalBoundary: 1
---- !u!114 &982980073
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 982980071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cf6393dab527b2f45b6c21bbb97914d8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.ShipController
 --- !u!50 &982980074
 Rigidbody2D:
   serializedVersion: 5

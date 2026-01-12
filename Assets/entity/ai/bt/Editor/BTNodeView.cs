@@ -157,8 +157,8 @@ namespace Starfire.Entity.AI.BT.Editor
             // Update title
             title = GetNodeTitle();
 
-            // Update root node indicator
-            var window = UnityEditor.EditorWindow.GetWindow<BehaviorTreeEditorWindow>();
+            // Update root node indicator (use false to avoid stealing focus from popups)
+            var window = UnityEditor.EditorWindow.GetWindow<BehaviorTreeEditorWindow>(false);
             bool isRoot = window.TreeAsset?.RootNodeId == NodeData.id;
 
             RemoveFromClassList("root-node");

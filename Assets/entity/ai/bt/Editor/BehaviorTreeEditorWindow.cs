@@ -65,7 +65,7 @@ namespace Starfire.Entity.AI.BT.Editor
             rootVisualElement.Add(_graphView);
 
             // Create inspector panel
-            _inspectorView = new InspectorView();
+            _inspectorView = new InspectorView(this);
             _inspectorView.style.position = Position.Absolute;
             _inspectorView.style.right = 0;
             _inspectorView.style.top = 0;
@@ -143,9 +143,11 @@ namespace Starfire.Entity.AI.BT.Editor
         private UnityEditor.Editor _editor;
         private BTNodeView _selectedNode;
         private IMGUIContainer _container;
+        private BehaviorTreeEditorWindow _editorWindow;
 
-        public InspectorView()
+        public InspectorView(BehaviorTreeEditorWindow editorWindow)
         {
+            _editorWindow = editorWindow;
             style.paddingTop = 30;
             style.paddingLeft = 10;
             style.paddingRight = 10;
@@ -209,8 +211,7 @@ namespace Starfire.Entity.AI.BT.Editor
             EditorGUILayout.Space();
 
             // Root node toggle
-            var window = EditorWindow.GetWindow<BehaviorTreeEditorWindow>();
-            bool isRoot = window.TreeAsset?.RootNodeId == data.id;
+            bool isRoot = _editorWindow.TreeAsset?.RootNodeId == data.id;
 
             EditorGUI.BeginChangeCheck();
             bool newIsRoot = EditorGUILayout.Toggle("Is Root Node", isRoot);
@@ -218,13 +219,13 @@ namespace Starfire.Entity.AI.BT.Editor
             {
                 if (newIsRoot)
                 {
-                    window.TreeAsset.RootNodeId = data.id;
+                    _editorWindow.TreeAsset.RootNodeId = data.id;
                 }
                 else
                 {
-                    window.TreeAsset.RootNodeId = null;
+                    _editorWindow.TreeAsset.RootNodeId = null;
                 }
-                EditorUtility.SetDirty(window.TreeAsset);
+                EditorUtility.SetDirty(_editorWindow.TreeAsset);
                 _selectedNode.UpdateVisuals();
             }
 
@@ -232,7 +233,7 @@ namespace Starfire.Entity.AI.BT.Editor
             if (data.nodeType == BTNodeType.Selector || data.nodeType == BTNodeType.Sequence)
             {
                 EditorGUILayout.Space();
-                DrawChildrenOrder(data, window.TreeAsset);
+                DrawChildrenOrder(data, _editorWindow.TreeAsset);
             }
         }
 
@@ -318,7 +319,6 @@ namespace Starfire.Entity.AI.BT.Editor
 
                 case SubtreeParameters sp:
                     EditorGUI.BeginChangeCheck();
-                    var window = EditorWindow.GetWindow<BehaviorTreeEditorWindow>();
                     var newAsset = (BehaviorTreeAsset)EditorGUILayout.ObjectField(
                         "Subtree Asset",
                         sp.subtreeAsset,
@@ -328,7 +328,7 @@ namespace Starfire.Entity.AI.BT.Editor
                     if (EditorGUI.EndChangeCheck())
                     {
                         // Validate for cycles before allowing assignment
-                        if (newAsset != null && window.TreeAsset.WouldCreateCycle(newAsset))
+                        if (newAsset != null && _editorWindow.TreeAsset.WouldCreateCycle(newAsset))
                         {
                             EditorUtility.DisplayDialog(
                                 "Cycle Detected",
@@ -364,8 +364,7 @@ namespace Starfire.Entity.AI.BT.Editor
 
             if (changed)
             {
-                var window = EditorWindow.GetWindow<BehaviorTreeEditorWindow>();
-                EditorUtility.SetDirty(window.TreeAsset);
+                EditorUtility.SetDirty(_editorWindow.TreeAsset);
             }
         }
     }

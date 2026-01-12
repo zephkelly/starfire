@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8c1ee868c38a8274e96c2918a1ddf9df, type: 3}
-  m_Name: ScoutAICoreBasic
+  m_Name: BasicAiCoreScout
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.Modules.AICore.BasicAICoreConfig
   moduleId: aicore_module
   displayName: AI Core Module
   tier: 1
   processingPower: 1
-  behaviorTree: {fileID: 11400000, guid: c566aa99cf7838549b91e8ac3bc3faab, type: 2}
+  behaviorTree: {fileID: 0}
   behaviorTreeRoot: {fileID: 0}

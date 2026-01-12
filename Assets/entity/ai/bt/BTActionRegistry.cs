@@ -59,6 +59,11 @@ namespace Starfire.Entity.AI.BT
 
             // Conditions
             Register("IsAtTarget", typeof(IsAtTargetParameters), CreateIsAtTargetCondition);
+            Register("HasTarget", typeof(HasTargetParameters), CreateHasTargetCondition);
+            Register("IsInRangeOfEntity", typeof(IsInRangeOfEntityParameters), CreateIsInRangeOfEntityCondition);
+
+            // Entity targeting
+            Register("SetEntityAsTarget", typeof(SetEntityAsTargetParameters), CreateSetEntityAsTargetAction);
         }
 
         /// <summary>
@@ -183,6 +188,24 @@ namespace Starfire.Entity.AI.BT
         {
             var p = parameters as IsAtTargetParameters ?? new IsAtTargetParameters();
             return new IsAtTargetCondition(p.targetKey, p.threshold);
+        }
+
+        private static IBTNode CreateHasTargetCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasTargetParameters ?? new HasTargetParameters();
+            return new HasTargetCondition(p.targetKey);
+        }
+
+        private static IBTNode CreateIsInRangeOfEntityCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsInRangeOfEntityParameters ?? new IsInRangeOfEntityParameters();
+            return new IsInRangeOfEntityCondition(p.entityKey, p.minRange, p.maxRange);
+        }
+
+        private static IBTNode CreateSetEntityAsTargetAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetEntityAsTargetParameters ?? new SetEntityAsTargetParameters();
+            return new SetEntityAsTargetAction(p.entityKey, p.targetKey);
         }
     }
 }

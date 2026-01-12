@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 608439a7b1104e94f99d2a53ddbde3e5, type: 3}
-  m_Name: BasicPropulsion
+  m_Name: FastBasicPropulsion 1
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.Modules.Propulsion.BasicPropulsionConfig
   moduleId: propulsion_module
   displayName: Propulsion Module
   tier: 1
-  crewCapacity: 1148846080
+  maxSpeed: 10
+  acceleration: 5
+  drag: 1

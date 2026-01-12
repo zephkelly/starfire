@@ -13,10 +13,6 @@ namespace Starfire.Entity.AI.Steering
         private string _lastState = "";
         private int _frameCount = 0;
 
-        // Physics doesn't achieve full MaxAcceleration due to Update/FixedUpdate timing
-        // Empirically measured: actual decel is ~30% of commanded acceleration
-        private const float DECEL_EFFICIENCY = 0.35f;
-
         public SteeringOutput Calculate(ApproachContext ctx)
         {
             Vector2 toTarget = ctx.TargetWaypoint - ctx.Position;
@@ -26,9 +22,8 @@ namespace Starfire.Entity.AI.Steering
             float forwardSpeed = Vector2.Dot(ctx.Velocity, targetDir);
             float speed = ctx.Velocity.magnitude;
 
-            // Use effective deceleration to account for physics timing issues
-            float effectiveDecel = ctx.MaxAcceleration * DECEL_EFFICIENCY;
-            float stoppingDistance = (forwardSpeed * forwardSpeed) / (2f * effectiveDecel);
+            // Pure physics stopping distance: v² / (2a)
+            float stoppingDistance = (forwardSpeed * forwardSpeed) / (2f * ctx.MaxAcceleration);
             float brakeDistance = distance - ctx.ArrivalThreshold;
 
             _frameCount++;
@@ -51,7 +46,9 @@ namespace Starfire.Entity.AI.Steering
             if (speed < ctx.EffectiveVelocityThreshold * 1.5f && distance < ctx.EffectiveArrivalDistance * 2f)
             {
                 // Counter-velocity force (damping) to stop the ship
-                Vector2 dampingForce = -ctx.Velocity * (ctx.MaxAcceleration / ctx.VelocityThreshold);
+                // Use bounded coefficient that scales reasonably with acceleration
+                float dampingCoefficient = Mathf.Min(ctx.MaxAcceleration * 0.15f, 15f);
+                Vector2 dampingForce = -ctx.Velocity * dampingCoefficient;
 
                 // Small correction toward target if not quite there
                 Vector2 seekForce = targetDir * Mathf.Min(distance, ctx.MaxAcceleration * 0.3f);
@@ -74,7 +71,7 @@ namespace Starfire.Entity.AI.Steering
             // STATE 3: Braking - need to slow down (approaching or overshooting)
             // Brake if: stopping distance exceeds available distance OR moving away from target
             bool movingTowardTarget = forwardSpeed > 0.01f;
-            bool needsToStop = stoppingDistance >= brakeDistance * 0.9f;
+            bool needsToStop = stoppingDistance >= brakeDistance - 0.5f;
             bool movingAwayFromTarget = forwardSpeed < -0.01f;
 
             if ((needsToStop && movingTowardTarget) || movingAwayFromTarget)
