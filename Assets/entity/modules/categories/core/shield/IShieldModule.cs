@@ -1,5 +1,6 @@
 using System;
 using Starfire.Entity.Modules.Damage;
+using UnityEngine;
 
 namespace Starfire.Entity.Modules.Shield
 {
@@ -21,6 +22,13 @@ namespace Starfire.Entity.Modules.Shield
         float RechargeDelay { get; }
         ShieldState State { get; }
         DamageResistances Resistances { get; }
+
+        // Shield boundary properties
+        bool EnableBoundary { get; }
+        Vector2 BoundarySize { get; }
+        Vector2 BoundaryOffset { get; }
+        int BoundaryResolution { get; }
+        ShieldImpactConfig ShieldImpactConfig { get; }
 
         /// <summary>
         /// Process incoming damage to the shield.

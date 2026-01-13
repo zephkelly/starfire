@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Starfire.Core;
+using Starfire.Entity.Modules;
 using Starfire.Entity.Modules.AICore;
+using Starfire.Entity.Modules.Shield;
 using Starfire.Entity.Modules.Weapon;
 using UnityEngine;
 
@@ -74,6 +76,10 @@ namespace Starfire.Entity
 
         private void OnDrawGizmosSelected()
         {
+            // Draw shield boundary
+            DrawShieldBoundaryGizmo();
+
+            // Draw waypoints
             if (waypoints == null || waypoints.Count == 0)
                 return;
 
@@ -99,6 +105,57 @@ namespace Starfire.Entity
                     Gizmos.DrawLine(waypoints[i].position, waypoints[nextIndex].position);
                 }
             }
+        }
+
+        private void DrawShieldBoundaryGizmo()
+        {
+            if (shipClass == null) return;
+
+            // Find shield module config in the ship class
+            ShieldModuleConfig shieldConfig = null;
+            foreach (var slot in shipClass.MultiSlots)
+            {
+                if (slot.defaultModule is ShieldModuleConfig config)
+                {
+                    shieldConfig = config;
+                    break;
+                }
+            }
+
+            if (shieldConfig == null || !shieldConfig.EnableBoundary) return;
+
+            // Draw the ellipse boundary
+            Vector2 size = shieldConfig.BoundarySize;
+            Vector2 offset = shieldConfig.BoundaryOffset;
+
+            Gizmos.color = new Color(0f, 0.8f, 1f, 0.6f);
+
+            int segments = 32;
+            Vector3 prevPoint = Vector3.zero;
+
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = (i / (float)segments) * Mathf.PI * 2f;
+                Vector3 localPoint = new Vector3(
+                    Mathf.Cos(angle) * size.x + offset.x,
+                    Mathf.Sin(angle) * size.y + offset.y,
+                    0f
+                );
+                Vector3 worldPoint = transform.TransformPoint(localPoint);
+
+                if (i > 0)
+                {
+                    Gizmos.DrawLine(prevPoint, worldPoint);
+                }
+                prevPoint = worldPoint;
+            }
+
+            // Draw center cross
+            Gizmos.color = Color.cyan;
+            Vector3 center = transform.TransformPoint(new Vector3(offset.x, offset.y, 0f));
+            float markerSize = 0.15f;
+            Gizmos.DrawLine(center - Vector3.right * markerSize, center + Vector3.right * markerSize);
+            Gizmos.DrawLine(center - Vector3.up * markerSize, center + Vector3.up * markerSize);
         }
     }
 }

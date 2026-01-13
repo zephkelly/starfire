@@ -11,10 +11,12 @@ namespace Starfire.Core
         public const string Player = "Player";
         public const string Enemy = "Enemy";
         public const string Projectile = "Projectile";
+        public const string Shield = "Shield";
 
         // Layer indices (must match Unity's layer configuration)
         public const int PlayerIndex = 8;
         public const int EnemyIndex = 9;
         public const int ProjectileIndex = 10;
+        public const int ShieldIndex = 11;
     }
 }

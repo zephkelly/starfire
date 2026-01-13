@@ -25,6 +25,22 @@ namespace Starfire.Entity.Modules.Shield
         [Tooltip("Optional: Per-damage-type resistances for this shield")]
         [SerializeField] protected DamageResistances damageResistances;
 
+        [Header("Shield Boundary")]
+        [Tooltip("Enable a physical boundary collider for the shield")]
+        [SerializeField] protected bool enableBoundary = true;
+
+        [Tooltip("Size of the elliptical boundary (x = horizontal radius, y = vertical radius)")]
+        [SerializeField] protected Vector2 boundarySize = new Vector2(2f, 1.5f);
+
+        [Tooltip("Offset of the boundary center from the entity origin")]
+        [SerializeField] protected Vector2 boundaryOffset = Vector2.zero;
+
+        [Tooltip("Number of vertices used to approximate the ellipse (higher = smoother)")]
+        [SerializeField, Range(8, 64)] protected int boundaryResolution = 24;
+
+        [Tooltip("Impact effect configuration for shield hits")]
+        [SerializeField] protected ShieldImpactConfig shieldImpactConfig;
+
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
         public ModuleTier Tier => tier;
@@ -32,6 +48,11 @@ namespace Starfire.Entity.Modules.Shield
         public float RegenRate => regenRate * GetTierMultiplier();
         public float RechargeDelay => rechargeDelay;
         public DamageResistances DamageResistances => damageResistances;
+        public bool EnableBoundary => enableBoundary;
+        public Vector2 BoundarySize => boundarySize;
+        public Vector2 BoundaryOffset => boundaryOffset;
+        public int BoundaryResolution => boundaryResolution;
+        public ShieldImpactConfig ShieldImpactConfig => shieldImpactConfig;
 
         public abstract IShieldModule CreateModule();
 

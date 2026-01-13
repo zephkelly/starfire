@@ -23,6 +23,13 @@ namespace Starfire.Entity.Modules.Shield
         public ShieldState State => _state;
         public DamageResistances Resistances => _config.DamageResistances;
 
+        // Boundary properties
+        public bool EnableBoundary => _config.EnableBoundary;
+        public Vector2 BoundarySize => _config.BoundarySize;
+        public Vector2 BoundaryOffset => _config.BoundaryOffset;
+        public int BoundaryResolution => _config.BoundaryResolution;
+        public ShieldImpactConfig ShieldImpactConfig => _config.ShieldImpactConfig;
+
         public event Action OnShieldDestroyed;
         public event Action OnShieldRestored;
 

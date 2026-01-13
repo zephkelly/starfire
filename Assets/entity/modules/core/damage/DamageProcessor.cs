@@ -16,6 +16,7 @@ namespace Starfire.Entity.Modules.Damage
         // Cached module references (updated when modules change)
         private IShieldModule _shield;
         private IHullModule _hull;
+        private ShieldBoundary _shieldBoundary;
 
         [Header("Settings")]
         [SerializeField] private bool _invulnerable = false;
@@ -70,6 +71,39 @@ namespace Starfire.Entity.Modules.Damage
             if (_hull != null)
             {
                 _hull.OnHullDestroyed += HandleHullDestroyed;
+            }
+
+            // Create shield boundary if shield has it enabled
+            CreateShieldBoundary();
+        }
+
+        /// <summary>
+        /// Creates a shield boundary collider if the shield module has boundary enabled.
+        /// </summary>
+        private void CreateShieldBoundary()
+        {
+            // Clean up existing boundary
+            if (_shieldBoundary != null)
+            {
+                Destroy(_shieldBoundary.gameObject);
+                _shieldBoundary = null;
+            }
+
+            // Create new boundary if shield exists and has boundary enabled
+            if (_shield != null && _shield.EnableBoundary)
+            {
+                var boundaryObj = new GameObject("ShieldBoundary");
+                boundaryObj.transform.SetParent(transform);
+                boundaryObj.transform.localPosition = Vector3.zero;
+                boundaryObj.transform.localRotation = Quaternion.identity;
+                boundaryObj.transform.localScale = Vector3.one;
+
+                // Add required components
+                boundaryObj.AddComponent<PolygonCollider2D>();
+                _shieldBoundary = boundaryObj.AddComponent<ShieldBoundary>();
+                _shieldBoundary.Initialize(_shield, _controller);
+
+                Debug.Log($"[DamageProcessor] {gameObject.name} created ShieldBoundary with size {_shield.BoundarySize}");
             }
         }
 
@@ -176,6 +210,13 @@ namespace Starfire.Entity.Modules.Damage
             if (_hull != null)
             {
                 _hull.OnHullDestroyed -= HandleHullDestroyed;
+            }
+
+            // Clean up shield boundary
+            if (_shieldBoundary != null)
+            {
+                Destroy(_shieldBoundary.gameObject);
+                _shieldBoundary = null;
             }
         }
     }
