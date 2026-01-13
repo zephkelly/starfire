@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Starfire.Core;
 using Starfire.Entity.Modules.AICore;
 using Starfire.Entity.Modules.Weapon;
 using UnityEngine;
@@ -26,6 +27,9 @@ namespace Starfire.Entity
 
         private void Start()
         {
+            // Assign to Enemy layer for collision filtering
+            gameObject.layer = LayerMask.NameToLayer(GameLayers.Enemy);
+
             var shipController = GetComponent<ShipController>();
 
             if (shipClass == null)

@@ -191,7 +191,9 @@ namespace Starfire.Entity.Modules.Weapon
                     lifetime: projConfig.lifetime,
                     destroyOnHit: projConfig.destroyOnHit,
                     hitLayers: projConfig.hitLayers,
-                    inheritedVelocity: inheritedVelocity
+                    inheritedVelocity: inheritedVelocity,
+                    damageConfig: _config.DamageConfig,
+                    impactConfig: projConfig.impactConfig
                 );
 
                 // Apply visual config

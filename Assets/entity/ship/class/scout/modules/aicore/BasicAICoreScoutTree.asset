@@ -19,12 +19,14 @@ MonoBehaviour:
     editorPosition: {x: 341, y: 124}
     parameters:
       rid: 2281391246486011971
+    tickInterval: 1
   - id: 9d2155a1-7397-4ae2-8696-5121adacabf9
     nodeType: 5
     actionType: 
-    editorPosition: {x: 407, y: 272}
+    editorPosition: {x: 438, y: 281}
     parameters:
       rid: 2281391246486011972
+    tickInterval: 1
   connections:
   - parentId: c9a085d8-e103-4bf4-9f5c-0a79a160eb23
     childId: 9d2155a1-7397-4ae2-8696-5121adacabf9

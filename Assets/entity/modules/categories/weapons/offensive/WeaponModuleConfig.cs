@@ -17,6 +17,10 @@ namespace Starfire.Entity.Modules.Weapon
         [SerializeField] protected float fireRate = 1f;
         [SerializeField] protected float range = 20f;
 
+        [Header("Damage Configuration")]
+        [Tooltip("Configures damage type and shield/hull multipliers")]
+        [SerializeField] protected WeaponDamageConfig damageConfig = new();
+
         [Header("Visual")]
         [Tooltip("Prefab instantiated at the hardpoint when weapon is equipped")]
         [SerializeField] protected GameObject weaponVisualPrefab;
@@ -40,6 +44,7 @@ namespace Starfire.Entity.Modules.Weapon
         public GameObject ProjectilePrefab => projectilePrefab;
         public ProjectileConfig ProjectileConfig => projectileConfig;
         public TurretSettings TurretSettings => turretSettings;
+        public WeaponDamageConfig DamageConfig => damageConfig;
 
         public abstract IWeaponModule CreateModule();
 

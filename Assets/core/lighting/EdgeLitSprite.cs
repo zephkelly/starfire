@@ -100,7 +100,7 @@ namespace Starfire.Core.Lighting
 
         private void Initialize()
         {
-            if (_initialized) return;
+            if (_initialized && _propertyBlock != null) return;
 
             _baseSpriteRenderer = GetComponent<SpriteRenderer>();
             _propertyBlock = new MaterialPropertyBlock();
@@ -217,7 +217,7 @@ namespace Starfire.Core.Lighting
         /// <param name="count">Number of active lights</param>
         public void UpdateLightData(Vector4[] positions, Vector4[] colors, Vector4[] lightParams, int count)
         {
-            if (!_initialized)
+            if (!_initialized || _propertyBlock == null)
             {
                 Initialize();
             }

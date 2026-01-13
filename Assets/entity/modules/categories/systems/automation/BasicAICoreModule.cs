@@ -70,7 +70,6 @@ namespace Starfire.Entity.Modules.AICore
         {
             if (!_hasLoggedOnce)
             {
-                Debug.Log($"[BasicAICoreModule] OnUpdate check: IsEnabled={IsEnabled}, IsAutonomous={IsAutonomous}, BehaviorTree={(BehaviorTree != null ? "exists" : "NULL")}");
                 _hasLoggedOnce = true;
             }
 

@@ -16,7 +16,6 @@ MonoBehaviour:
   className: 
   description: 
   classIcon: {fileID: 0}
-  moduleSlots: []
   multiSlots:
   - slotId: maneuvering_thruster
     moduleType: 100
@@ -32,6 +31,16 @@ MonoBehaviour:
     moduleType: 101
     isRequired: 0
     defaultModule: {fileID: 11400000, guid: d97580a0ad8ce0941a6dd017d7fc2902, type: 2}
+    displayNameOverride: 
+  - slotId: shield
+    moduleType: 10
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: 7e4cc62c5f51c3741b10b7add90dd148, type: 2}
+    displayNameOverride: 
+  - slotId: hull
+    moduleType: 0
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: 145405cd63a122446b6c62d0bdb97d9d, type: 2}
     displayNameOverride: 
   categoryLimits: []
   capabilities: 00000000010000000400000005000000

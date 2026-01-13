@@ -100,140 +100,140 @@ MonoBehaviour:
   - id: arrival-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 640, y: 197}
+    editorPosition: {x: 250, y: 2644}
     parameters:
       rid: -2
     tickInterval: 1
   - id: is-near-position
     nodeType: 4
     actionType: IsNearPosition
-    editorPosition: {x: 715, y: 367}
+    editorPosition: {x: 345, y: 2837}
     parameters:
       rid: 1008
     tickInterval: 1
   - id: is-stopped
     nodeType: 4
     actionType: IsStopped
-    editorPosition: {x: 1109, y: -95}
+    editorPosition: {x: 345, y: 2981}
     parameters:
       rid: 1009
     tickInterval: 1
   - id: waypoint-behavior-selector
     nodeType: 0
     actionType: 
-    editorPosition: {x: 715, y: 644}
+    editorPosition: {x: 692, y: 662}
     parameters:
       rid: -2
     tickInterval: 1
   - id: extended-stop-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 715, y: 503}
+    editorPosition: {x: 767, y: 803}
     parameters:
       rid: -2
     tickInterval: 1
   - id: random-chance
     nodeType: 4
     actionType: RandomChance
-    editorPosition: {x: 825, y: 771}
+    editorPosition: {x: 812, y: 951}
     parameters:
       rid: 1010
     tickInterval: 1
   - id: exploration-type-selector
     nodeType: 0
     actionType: 
-    editorPosition: {x: 1050, y: 350}
+    editorPosition: {x: 837, y: 1103}
     parameters:
       rid: -2
     tickInterval: 1
   - id: exploration-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 1000, y: 450}
+    editorPosition: {x: 922, y: 1231}
     parameters:
       rid: -2
     tickInterval: 1
   - id: random-exploration-chance
     nodeType: 4
     actionType: RandomChance
-    editorPosition: {x: 950, y: 550}
+    editorPosition: {x: 1009, y: 1372}
     parameters:
       rid: 1015
     tickInterval: 1
   - id: generate-subwaypoints
     nodeType: 4
     actionType: GenerateRandomSubWaypoints
-    editorPosition: {x: 1050, y: 550}
+    editorPosition: {x: 1023, y: 1517}
     parameters:
       rid: 1016
     tickInterval: 1
   - id: push-waypoints
     nodeType: 4
     actionType: PushWaypoints
-    editorPosition: {x: 1150, y: 550}
+    editorPosition: {x: 1023, y: 1641}
     parameters:
       rid: 1017
     tickInterval: 1
   - id: just-wait
     nodeType: 4
     actionType: Wait
-    editorPosition: {x: 1100, y: 450}
+    editorPosition: {x: 899, y: 1813}
     parameters:
       rid: 1011
     tickInterval: 1
   - id: skip-stop
     nodeType: 4
     actionType: SetTargetPosition
-    editorPosition: {x: 1200, y: 250}
+    editorPosition: {x: 767, y: 2043}
     parameters:
       rid: 1012
     tickInterval: 1
   - id: sequence-completion-selector
     nodeType: 0
     actionType: 
-    editorPosition: {x: 1250, y: 150}
+    editorPosition: {x: 241, y: 3183}
     parameters:
       rid: -2
     tickInterval: 1
   - id: pop-complete-sequence
     nodeType: 1
     actionType: 
-    editorPosition: {x: 1200, y: 250}
+    editorPosition: {x: 325, y: 3545}
     parameters:
       rid: -2
     tickInterval: 1
   - id: is-stack-depth
     nodeType: 4
     actionType: IsStackDepth
-    editorPosition: {x: 1150, y: 350}
+    editorPosition: {x: 413, y: 3741}
     parameters:
       rid: 1018
     tickInterval: 1
   - id: is-sequence-complete
     nodeType: 4
     actionType: IsSequenceComplete
-    editorPosition: {x: 1250, y: 350}
+    editorPosition: {x: 413, y: 3894}
     parameters:
       rid: 1019
     tickInterval: 1
   - id: pop-waypoints
     nodeType: 4
     actionType: PopWaypoints
-    editorPosition: {x: 1350, y: 350}
+    editorPosition: {x: 430, y: 4055}
     parameters:
       rid: 1020
     tickInterval: 1
   - id: advance-waypoint
     nodeType: 4
     actionType: AdvanceWaypointIndex
-    editorPosition: {x: 1400, y: 250}
+    editorPosition: {x: 308, y: 3356}
     parameters:
       rid: 1013
     tickInterval: 1
   - id: advance-after-pop
     nodeType: 4
     actionType: AdvanceWaypointIndex
-    editorPosition: {x: 1450, y: 350}
+    editorPosition: {x: 430, y: 4230}
     parameters:
       rid: 1021
     tickInterval: 1

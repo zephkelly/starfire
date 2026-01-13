@@ -16,7 +16,6 @@ MonoBehaviour:
   className: Scout
   description: 
   classIcon: {fileID: 0}
-  moduleSlots: []
   multiSlots:
   - slotId: maneuvering_thruster
     moduleType: 100
@@ -38,12 +37,22 @@ MonoBehaviour:
     isRequired: 0
     defaultModule: {fileID: 11400000, guid: 063a795809be8434da9b0d917ecb14e6, type: 2}
     displayNameOverride: 
+  - slotId: shield
+    moduleType: 10
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: 7e4cc62c5f51c3741b10b7add90dd148, type: 2}
+    displayNameOverride: 
+  - slotId: hull
+    moduleType: 0
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: 145405cd63a122446b6c62d0bdb97d9d, type: 2}
+    displayNameOverride: 
   categoryLimits:
   - scope: 1
     category: 2
     subCategory: 2
     moduleType: 0
     maxCount: 2
-  capabilities: 00000000010000000400000005000000
+  capabilities: 0000000001000000040000000500000005000000
   prefabOverride: {fileID: 0}
   spriteScale: 1

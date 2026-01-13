@@ -1,3 +1,5 @@
+using System;
+using Starfire.Entity.Modules.Damage;
 using UnityEngine;
 
 namespace Starfire.Entity.Modules.Shield
@@ -7,6 +9,7 @@ namespace Starfire.Entity.Modules.Shield
         private readonly BasicShieldConfig _config;
         private EntityControllerBase _controller;
         private ShieldState _state = ShieldState.Inactive;
+        private float _rechargeDelayTimer;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -16,7 +19,12 @@ namespace Starfire.Entity.Modules.Shield
         public int MaxShield => _config.MaxShield;
         public int CurrentShield { get; set; }
         public float RegenRate => _config.RegenRate;
+        public float RechargeDelay => _config.RechargeDelay;
         public ShieldState State => _state;
+        public DamageResistances Resistances => _config.DamageResistances;
+
+        public event Action OnShieldDestroyed;
+        public event Action OnShieldRestored;
 
         public BasicShieldModule(BasicShieldConfig config)
         {
@@ -39,26 +47,85 @@ namespace Starfire.Entity.Modules.Shield
         {
             if (!IsEnabled) return;
 
-            if (_state == ShieldState.Active && CurrentShield < MaxShield)
+            switch (_state)
             {
-                CurrentShield = Mathf.Min(MaxShield, CurrentShield + Mathf.RoundToInt(RegenRate * deltaTime));
-            }
-            else if (_state == ShieldState.Destroyed && CurrentShield >= MaxShield)
-            {
-                _state = ShieldState.Active;
+                case ShieldState.RechargeDelay:
+                    _rechargeDelayTimer -= deltaTime;
+                    if (_rechargeDelayTimer <= 0f)
+                    {
+                        _state = ShieldState.Recharging;
+                    }
+                    break;
+
+                case ShieldState.Recharging:
+                case ShieldState.Active:
+                    if (CurrentShield < MaxShield)
+                    {
+                        float regenAmount = RegenRate * deltaTime;
+                        CurrentShield = Mathf.Min(MaxShield, CurrentShield + Mathf.RoundToInt(regenAmount));
+
+                        if (CurrentShield >= MaxShield)
+                        {
+                            _state = ShieldState.Active;
+                            OnShieldRestored?.Invoke();
+                        }
+                        else if (_state == ShieldState.Active)
+                        {
+                            _state = ShieldState.Recharging;
+                        }
+                    }
+                    break;
+
+                case ShieldState.Destroyed:
+                    // Shield stays destroyed until externally restored
+                    break;
             }
         }
 
-        public void TakeDamage(int amount)
+        public float AbsorbDamage(DamageInfo damageInfo)
         {
-            if (!IsEnabled || _state == ShieldState.Destroyed) return;
-
-            CurrentShield = Mathf.Max(0, CurrentShield - amount);
-
-            if (CurrentShield <= 0)
+            // If shield can't absorb, all damage bleeds through
+            if (!IsEnabled || _state == ShieldState.Destroyed || _state == ShieldState.Inactive)
             {
-                _state = ShieldState.Destroyed;
+                return damageInfo.BaseDamage * damageInfo.ShieldDamageMultiplier;
             }
+
+            // Calculate effective damage with resistances and multipliers
+            float resistanceMultiplier = Resistances?.GetDamageMultiplier(damageInfo.Type) ?? 1f;
+            float effectiveDamage = damageInfo.BaseDamage * damageInfo.ShieldDamageMultiplier * resistanceMultiplier;
+
+            // Reset recharge delay timer
+            _rechargeDelayTimer = RechargeDelay;
+            if (_state != ShieldState.Destroyed)
+            {
+                _state = ShieldState.RechargeDelay;
+            }
+
+            // Calculate bleedthrough
+            float bleedthrough = 0f;
+            if (effectiveDamage >= CurrentShield)
+            {
+                bleedthrough = effectiveDamage - CurrentShield;
+                CurrentShield = 0;
+                _state = ShieldState.Destroyed;
+                OnShieldDestroyed?.Invoke();
+            }
+            else
+            {
+                CurrentShield -= Mathf.RoundToInt(effectiveDamage);
+            }
+
+            return bleedthrough;
+        }
+
+        /// <summary>
+        /// Restore shields to full (e.g., from repair station).
+        /// </summary>
+        public void RestoreShields()
+        {
+            CurrentShield = MaxShield;
+            _state = ShieldState.Active;
+            OnShieldRestored?.Invoke();
         }
     }
 }

@@ -48,9 +48,9 @@ MonoBehaviour:
     m_RotationOrder: 4
   maxLookAheadDistance: 10
   minZoom: 15
-  maxZoom: 35
-  defaultZoom: 25
-  zoomSpeed: 10
+  maxZoom: 50
+  defaultZoom: 35
+  zoomSpeed: 15
   enableSpeedZoom: 0
   speedZoomMinSpeed: 10
   speedZoomMaxSpeed: 20

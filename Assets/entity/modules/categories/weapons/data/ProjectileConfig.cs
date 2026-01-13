@@ -29,5 +29,9 @@ namespace Starfire.Entity.Modules.Weapon
 
         [Tooltip("Color tint for the projectile")]
         public Color color = Color.white;
+
+        [Header("Impact Effects")]
+        [Tooltip("Configuration for visual/audio effects on impact")]
+        public ImpactConfig impactConfig;
     }
 }

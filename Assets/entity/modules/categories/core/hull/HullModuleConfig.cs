@@ -1,3 +1,4 @@
+using Starfire.Entity.Modules.Damage;
 using UnityEngine;
 
 namespace Starfire.Entity.Modules.Hull
@@ -16,11 +17,16 @@ namespace Starfire.Entity.Modules.Hull
         [SerializeField] protected int maxHealth = 100;
         [SerializeField] protected float damageResistance = 0f;
 
+        [Header("Damage Resistances")]
+        [Tooltip("Optional: Per-damage-type resistances for this hull")]
+        [SerializeField] protected DamageResistances damageResistances;
+
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
         public ModuleTier Tier => tier;
         public int MaxHealth => Mathf.RoundToInt(maxHealth * GetTierMultiplier());
         public float DamageResistance => damageResistance;
+        public DamageResistances DamageResistances => damageResistances;
 
         public abstract IHullModule CreateModule();
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Starfire.Core;
 using Starfire.Entity.Modules.Weapon;
 
 namespace Starfire.Entity
@@ -14,6 +15,9 @@ namespace Starfire.Entity
 
         private void Start()
         {
+            // Assign to Player layer for collision filtering
+            gameObject.layer = LayerMask.NameToLayer(GameLayers.Player);
+
             var shipController = GetComponent<ShipController>();
             var inputProvider = GetComponent<OldInputProvider>();
 

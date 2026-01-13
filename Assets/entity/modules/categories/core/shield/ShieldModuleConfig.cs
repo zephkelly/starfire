@@ -1,3 +1,4 @@
+using Starfire.Entity.Modules.Damage;
 using UnityEngine;
 
 namespace Starfire.Entity.Modules.Shield
@@ -16,11 +17,21 @@ namespace Starfire.Entity.Modules.Shield
         [SerializeField] protected int maxShield = 50;
         [SerializeField] protected float regenRate = 5f;
 
+        [Header("Recharge Settings")]
+        [Tooltip("Seconds to wait after taking damage before regeneration starts")]
+        [SerializeField] protected float rechargeDelay = 3f;
+
+        [Header("Damage Resistances")]
+        [Tooltip("Optional: Per-damage-type resistances for this shield")]
+        [SerializeField] protected DamageResistances damageResistances;
+
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
         public ModuleTier Tier => tier;
         public int MaxShield => Mathf.RoundToInt(maxShield * GetTierMultiplier());
         public float RegenRate => regenRate * GetTierMultiplier();
+        public float RechargeDelay => rechargeDelay;
+        public DamageResistances DamageResistances => damageResistances;
 
         public abstract IShieldModule CreateModule();
 

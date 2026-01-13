@@ -18,18 +18,24 @@ MonoBehaviour:
   damage: 10
   fireRate: 4
   range: 100
+  damageConfig:
+    damageType: 1
+    shieldDamageMultiplier: 1
+    hullDamageMultiplier: 1
+    bypassesShield: 0
   weaponVisualPrefab: {fileID: 0}
   projectilePrefab: {fileID: 4886334230931569842, guid: ed9dd1d09849057488e9bd728ce5b6f1, type: 3}
   projectileConfig:
-    speed: 20
+    speed: 200
     lifetime: 3
     inheritVelocity: 1
     hitLayers:
       serializedVersion: 2
       m_Bits: 0
     destroyOnHit: 1
-    scale: 1
+    scale: 0.3
     color: {r: 1, g: 1, b: 1, a: 1}
+    impactConfig: {fileID: 0}
   turretSettings:
     isTurret: 0
     rotationSpeed: 180
