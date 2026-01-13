@@ -1,4 +1,5 @@
 using Starfire.Entity.Modules.Damage;
+using Starfire.Entity.Modules.Shield;
 using UnityEngine;
 
 namespace Starfire.Entity.Modules.Weapon
@@ -23,6 +24,7 @@ namespace Starfire.Entity.Modules.Weapon
 
         public EntityControllerBase Owner => _owner;
         public float Damage => _damage;
+        public ImpactConfig ImpactConfig => _impactConfig;
 
         private void Awake()
         {
@@ -92,8 +94,6 @@ namespace Starfire.Entity.Modules.Weapon
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            Debug.Log($"[Projectile] Hit: {other.gameObject.name} (Layer: {LayerMask.LayerToName(other.gameObject.layer)}, hitLayers: {_hitLayers.value})");
-
             // Check if we should interact with this layer
             if (_hitLayers != 0 && (_hitLayers & (1 << other.gameObject.layer)) == 0)
             {
@@ -105,9 +105,18 @@ namespace Starfire.Entity.Modules.Weapon
             var otherController = other.GetComponentInParent<EntityControllerBase>();
             if (otherController != null && otherController == _owner)
             {
-                Debug.Log($"[Projectile] Hit owner - ignoring");
                 return;
             }
+
+            // Let ShieldBoundary handle shield collisions
+            var shieldBoundary = other.GetComponent<ShieldBoundary>();
+            if (shieldBoundary != null)
+            {
+                return;
+            }
+
+            // Calculate actual surface impact point
+            Vector2 hitPoint = other.ClosestPoint(transform.position);
 
             // Apply damage if target has a damage receiver
             var damageReceiver = other.GetComponentInParent<IDamageReceiver>();
@@ -127,13 +136,12 @@ namespace Starfire.Entity.Modules.Weapon
                     shieldMultiplier: _damageConfig.shieldDamageMultiplier,
                     hullMultiplier: _damageConfig.hullDamageMultiplier,
                     source: _owner,
-                    sourcePosition: transform.position,
+                    sourcePosition: hitPoint,
                     direction: _rigidbody.linearVelocity.normalized,
                     bypassesShield: _damageConfig.bypassesShield
                 );
 
                 var result = damageReceiver.ReceiveDamage(damageInfo);
-                Debug.Log($"[Projectile] Damage applied: {_damage} -> Shield: {result.ShieldDamageDealt}, Hull: {result.HullDamageDealt}");
             }
 
             if (_destroyOnHit)
@@ -141,7 +149,7 @@ namespace Starfire.Entity.Modules.Weapon
                 // Spawn impact effect before destroying
                 if (_impactConfig != null)
                 {
-                    ImpactEffect.Spawn(_impactConfig, transform.position, _rigidbody.linearVelocity.normalized);
+                    ImpactEffect.Spawn(_impactConfig, hitPoint, _rigidbody.linearVelocity.normalized);
                 }
 
                 Destroy(gameObject);

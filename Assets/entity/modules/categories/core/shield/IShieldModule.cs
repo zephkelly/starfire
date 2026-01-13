@@ -29,6 +29,7 @@ namespace Starfire.Entity.Modules.Shield
         Vector2 BoundaryOffset { get; }
         int BoundaryResolution { get; }
         ShieldImpactConfig ShieldImpactConfig { get; }
+        ShieldVisualConfig VisualConfig { get; }
 
         /// <summary>
         /// Process incoming damage to the shield.

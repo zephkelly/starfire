@@ -1264,10 +1264,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AISetup
   shipClass: {fileID: 11400000, guid: 7fa63de2202ea2c45954580249ce2f15, type: 2}
-  waypoints:
-  - {fileID: 1310948273}
-  - {fileID: 772721850}
-  - {fileID: 336122089}
+  waypoints: []
   arrivalRadius: 4
   showArrivalBoundary: 1
 --- !u!114 &982980077

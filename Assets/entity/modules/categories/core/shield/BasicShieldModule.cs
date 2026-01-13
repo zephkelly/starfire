@@ -29,6 +29,7 @@ namespace Starfire.Entity.Modules.Shield
         public Vector2 BoundaryOffset => _config.BoundaryOffset;
         public int BoundaryResolution => _config.BoundaryResolution;
         public ShieldImpactConfig ShieldImpactConfig => _config.ShieldImpactConfig;
+        public ShieldVisualConfig VisualConfig => _config.VisualConfig;
 
         public event Action OnShieldDestroyed;
         public event Action OnShieldRestored;

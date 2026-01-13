@@ -17,6 +17,7 @@ namespace Starfire.Entity.Modules.Shield
         private PolygonCollider2D _collider;
         private EntityControllerBase _ownerController;
         private IDamageReceiver _damageReceiver;
+        private ShieldVisual _shieldVisual;
 
         [Header("Debug")]
         [SerializeField] private Color _gizmoColorActive = new Color(0f, 0.8f, 1f, 0.5f);
@@ -26,11 +27,12 @@ namespace Starfire.Entity.Modules.Shield
         /// <summary>
         /// Initialize the shield boundary with the shield module data.
         /// </summary>
-        public void Initialize(IShieldModule shield, EntityControllerBase owner)
+        public void Initialize(IShieldModule shield, EntityControllerBase owner, ShieldVisual shieldVisual = null)
         {
             _shield = shield;
             _ownerController = owner;
             _damageReceiver = owner.GetComponent<IDamageReceiver>();
+            _shieldVisual = shieldVisual;
 
             _collider = GetComponent<PolygonCollider2D>();
             _collider.isTrigger = true;
@@ -129,14 +131,14 @@ namespace Starfire.Entity.Modules.Shield
                 return;
             }
 
-            Debug.Log($"[ShieldBoundary] {_ownerController?.name} shield hit by projectile from {projectile.Owner?.name}");
+            // Calculate hit point on the SHIELD surface (not the projectile)
+            // We want the point on our collider closest to the projectile's position
+            Vector2 hitPoint = _collider.ClosestPoint(other.transform.position);
+            Vector2 normal = (hitPoint - (Vector2)transform.position).normalized;
 
             // Apply damage through the damage receiver
             if (_damageReceiver != null && _damageReceiver.CanReceiveDamage)
             {
-                Vector2 hitPoint = other.ClosestPoint(transform.position);
-                Vector2 direction = (hitPoint - (Vector2)transform.position).normalized;
-
                 var damageInfo = new DamageInfo(
                     baseDamage: projectile.Damage,
                     type: DamageType.Energy, // Default, could be extended to get from projectile
@@ -144,20 +146,31 @@ namespace Starfire.Entity.Modules.Shield
                     hullMultiplier: 1f,
                     source: projectile.Owner,
                     sourcePosition: projectile.transform.position,
-                    direction: direction,
+                    direction: normal,
                     bypassesShield: false
                 );
 
                 var result = _damageReceiver.ReceiveDamage(damageInfo);
-                Debug.Log($"[ShieldBoundary] Damage result: Shield={result.ShieldDamageDealt}, Hull={result.HullDamageDealt}");
             }
 
-            // Spawn shield impact effect
+            // Spawn shield impact effect with ship velocity so it moves with the ship
             if (_shield.ShieldImpactConfig != null)
             {
-                Vector2 hitPoint = other.ClosestPoint(transform.position);
-                Vector2 normal = (hitPoint - (Vector2)transform.position).normalized;
-                ShieldImpactEffect.Spawn(_shield.ShieldImpactConfig, hitPoint, normal);
+                Vector2 shipVelocity = _ownerController?.Rigidbody?.linearVelocity ?? Vector2.zero;
+                ShieldImpactEffect.Spawn(_shield.ShieldImpactConfig, hitPoint, normal, shipVelocity);
+            }
+
+            // Spawn projectile's impact effect at the shield surface
+            var projectileImpactConfig = projectile.ImpactConfig;
+            if (projectileImpactConfig != null)
+            {
+                ImpactEffect.Spawn(projectileImpactConfig, hitPoint, -normal);
+            }
+
+            // Notify shield visual for ripple effect
+            if (_shieldVisual != null)
+            {
+                _shieldVisual.RegisterImpact(hitPoint);
             }
 
             // Destroy the projectile

@@ -19,7 +19,11 @@ namespace Starfire.Entity.Modules.Shield
         /// <summary>
         /// Factory method to spawn a shield impact effect at a position.
         /// </summary>
-        public static ShieldImpactEffect Spawn(ShieldImpactConfig config, Vector2 position, Vector2 normal)
+        /// <param name="config">Impact effect configuration</param>
+        /// <param name="position">World position of impact</param>
+        /// <param name="normal">Normal direction of impact (pointing away from shield)</param>
+        /// <param name="inheritedVelocity">Velocity to inherit from the ship (so effect moves with ship)</param>
+        public static ShieldImpactEffect Spawn(ShieldImpactConfig config, Vector2 position, Vector2 normal, Vector2 inheritedVelocity = default)
         {
             if (config == null) return null;
 
@@ -31,6 +35,14 @@ namespace Starfire.Entity.Modules.Shield
             {
                 float angle = Mathf.Atan2(normal.y, normal.x) * Mathf.Rad2Deg;
                 go.transform.rotation = Quaternion.Euler(0, 0, angle);
+            }
+
+            // Add Rigidbody2D to move the effect with the ship's velocity
+            if (inheritedVelocity.sqrMagnitude > 0.01f)
+            {
+                var rb = go.AddComponent<Rigidbody2D>();
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                rb.linearVelocity = inheritedVelocity;
             }
 
             var effect = go.AddComponent<ShieldImpactEffect>();

@@ -41,6 +41,10 @@ namespace Starfire.Entity.Modules.Shield
         [Tooltip("Impact effect configuration for shield hits")]
         [SerializeField] protected ShieldImpactConfig shieldImpactConfig;
 
+        [Header("Shield Visual")]
+        [Tooltip("Visual appearance configuration for the shield barrier")]
+        [SerializeField] protected ShieldVisualConfig visualConfig;
+
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
         public ModuleTier Tier => tier;
@@ -53,6 +57,7 @@ namespace Starfire.Entity.Modules.Shield
         public Vector2 BoundaryOffset => boundaryOffset;
         public int BoundaryResolution => boundaryResolution;
         public ShieldImpactConfig ShieldImpactConfig => shieldImpactConfig;
+        public ShieldVisualConfig VisualConfig => visualConfig;
 
         public abstract IShieldModule CreateModule();
 

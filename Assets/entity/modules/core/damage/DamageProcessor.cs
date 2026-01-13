@@ -17,6 +17,7 @@ namespace Starfire.Entity.Modules.Damage
         private IShieldModule _shield;
         private IHullModule _hull;
         private ShieldBoundary _shieldBoundary;
+        private ShieldVisual _shieldVisual;
 
         [Header("Settings")]
         [SerializeField] private bool _invulnerable = false;
@@ -73,8 +74,9 @@ namespace Starfire.Entity.Modules.Damage
                 _hull.OnHullDestroyed += HandleHullDestroyed;
             }
 
-            // Create shield boundary if shield has it enabled
+            // Create shield boundary and visual if shield has it enabled
             CreateShieldBoundary();
+            CreateShieldVisual();
         }
 
         /// <summary>
@@ -101,9 +103,50 @@ namespace Starfire.Entity.Modules.Damage
                 // Add required components
                 boundaryObj.AddComponent<PolygonCollider2D>();
                 _shieldBoundary = boundaryObj.AddComponent<ShieldBoundary>();
-                _shieldBoundary.Initialize(_shield, _controller);
 
                 Debug.Log($"[DamageProcessor] {gameObject.name} created ShieldBoundary with size {_shield.BoundarySize}");
+            }
+        }
+
+        /// <summary>
+        /// Creates the shield visual component if the shield has visual config.
+        /// </summary>
+        private void CreateShieldVisual()
+        {
+            // Clean up existing visual
+            if (_shieldVisual != null)
+            {
+                Destroy(_shieldVisual.gameObject);
+                _shieldVisual = null;
+            }
+
+            // Create new visual if shield exists, has boundary enabled, and has visual config
+            if (_shield != null && _shield.EnableBoundary && _shield.VisualConfig != null)
+            {
+                var visualObj = new GameObject("ShieldVisual");
+                visualObj.transform.SetParent(transform);
+                visualObj.transform.localPosition = Vector3.zero;
+                visualObj.transform.localRotation = Quaternion.identity;
+                visualObj.transform.localScale = Vector3.one;
+
+                // Add required components
+                visualObj.AddComponent<MeshFilter>();
+                visualObj.AddComponent<MeshRenderer>();
+                _shieldVisual = visualObj.AddComponent<ShieldVisual>();
+                _shieldVisual.Initialize(_shield, _controller);
+
+                // Connect boundary to visual for impact notifications
+                if (_shieldBoundary != null)
+                {
+                    _shieldBoundary.Initialize(_shield, _controller, _shieldVisual);
+                }
+
+                Debug.Log($"[DamageProcessor] {gameObject.name} created ShieldVisual with config {_shield.VisualConfig.name}");
+            }
+            else if (_shieldBoundary != null)
+            {
+                // Initialize boundary without visual
+                _shieldBoundary.Initialize(_shield, _controller, null);
             }
         }
 
@@ -217,6 +260,13 @@ namespace Starfire.Entity.Modules.Damage
             {
                 Destroy(_shieldBoundary.gameObject);
                 _shieldBoundary = null;
+            }
+
+            // Clean up shield visual
+            if (_shieldVisual != null)
+            {
+                Destroy(_shieldVisual.gameObject);
+                _shieldVisual = null;
             }
         }
     }
