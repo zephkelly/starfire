@@ -13,14 +13,27 @@ namespace Starfire.Entity.Modules.Sensor
         [SerializeField] protected ModuleTier tier = ModuleTier.Standard;
 
         [Header("Sensor Stats")]
-        [SerializeField] protected float detectionRange = 50f;
         [SerializeField] protected float targetingAccuracy = 1f;
+
+        [Header("Detection Ranges")]
+        [SerializeField] protected DetectionRangeConfig rangeConfig = new();
+
+        [Header("Scanning")]
+        [Tooltip("How often sensors update detection (seconds)")]
+        [SerializeField] protected float pollingInterval = 0.25f;
+
+        [Header("Filtering")]
+        [SerializeField] protected SensorFilterConfig filterConfig = new();
 
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
         public ModuleTier Tier => tier;
-        public float DetectionRange => detectionRange * GetTierMultiplier();
+        public float DetectionRange => rangeConfig.maxRange * GetTierMultiplier();
         public float TargetingAccuracy => targetingAccuracy * GetTierMultiplier();
+        public float PollingInterval => pollingInterval;
+        public float EffectivePollingRate => pollingInterval / GetTierMultiplier();
+        public DetectionRangeConfig RangeConfig => rangeConfig;
+        public SensorFilterConfig FilterConfig => filterConfig;
 
         public abstract ISensorModule CreateModule();
 
