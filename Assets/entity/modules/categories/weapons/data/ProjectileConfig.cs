@@ -33,5 +33,13 @@ namespace Starfire.Entity.Modules.Weapon
         [Header("Impact Effects")]
         [Tooltip("Configuration for visual/audio effects on impact")]
         public ImpactConfig impactConfig;
+
+        [Header("Collision Mode")]
+        [Tooltip("How collision detection is handled. Physics uses Rigidbody2D, RaycastBacked uses fire-time raycast, Hitscan is instant.")]
+        public ProjectileMode projectileMode = ProjectileMode.Physics;
+
+        [Header("Hitscan Settings")]
+        [Tooltip("Visual configuration for hitscan mode. Only used when projectileMode is Hitscan.")]
+        public HitscanVisualConfig hitscanConfig;
     }
 }

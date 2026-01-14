@@ -132,9 +132,12 @@ namespace Starfire.Entity.Modules.Weapon
 
         private void SpawnProjectile()
         {
-            if (_config.ProjectilePrefab == null)
+            var projConfig = _config.ProjectileConfig;
+
+            // Physics mode requires a prefab
+            if (projConfig.projectileMode == ProjectileMode.Physics && _config.ProjectilePrefab == null)
             {
-                Debug.LogWarning($"Weapon '{DisplayName}' has no projectile prefab assigned");
+                Debug.LogWarning($"Weapon '{DisplayName}' has no projectile prefab assigned for Physics mode");
                 return;
             }
 
@@ -164,45 +167,27 @@ namespace Starfire.Entity.Modules.Weapon
                 return;
             }
 
-            // Instantiate projectile
-            var projectileGO = Object.Instantiate(
-                _config.ProjectilePrefab,
-                spawnPos,
-                Quaternion.identity
-            );
-
-            var projectile = projectileGO.GetComponent<Projectile>();
-            if (projectile != null)
+            // Calculate inherited velocity if enabled
+            Vector2 inheritedVelocity = Vector2.zero;
+            if (projConfig.inheritVelocity && _controller?.Rigidbody != null)
             {
-                var projConfig = _config.ProjectileConfig;
-
-                // Calculate inherited velocity if enabled
-                Vector2 inheritedVelocity = Vector2.zero;
-                if (projConfig.inheritVelocity && _controller?.Rigidbody != null)
-                {
-                    inheritedVelocity = _controller.Rigidbody.linearVelocity;
-                }
-
-                projectile.Initialize(
-                    owner: _controller,
-                    direction: direction,
-                    speed: projConfig.speed,
-                    damage: Damage,
-                    lifetime: projConfig.lifetime,
-                    destroyOnHit: projConfig.destroyOnHit,
-                    hitLayers: projConfig.hitLayers,
-                    inheritedVelocity: inheritedVelocity,
-                    damageConfig: _config.DamageConfig,
-                    impactConfig: projConfig.impactConfig
-                );
-
-                // Apply visual config
-                projectile.ApplyVisualConfig(projConfig.scale, projConfig.color);
+                inheritedVelocity = _controller.Rigidbody.linearVelocity;
             }
-            else
+
+            // Build spawn context and delegate to spawner
+            var context = new ProjectileSpawnContext
             {
-                Debug.LogWarning($"Projectile prefab '{_config.ProjectilePrefab.name}' is missing Projectile component");
-            }
+                Owner = _controller,
+                SpawnPosition = spawnPos,
+                Direction = direction,
+                InheritedVelocity = inheritedVelocity,
+                Damage = Damage,
+                DamageConfig = _config.DamageConfig,
+                ProjectileConfig = projConfig,
+                ProjectilePrefab = _config.ProjectilePrefab
+            };
+
+            ProjectileSpawner.Spawn(context);
         }
     }
 }

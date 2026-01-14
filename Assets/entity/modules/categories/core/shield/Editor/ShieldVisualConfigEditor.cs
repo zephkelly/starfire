@@ -180,7 +180,7 @@ namespace Starfire.Entity.Modules.Shield.Editor
             _previewMaterial.SetFloat(ImpactVisibilitySpeedId, config.impactVisibilitySpeed);
         }
 
-        private void DrawPreview(Rect rect)
+        private new void DrawPreview(Rect rect)
         {
             if (_previewUtility == null || _previewMesh == null || _previewMaterial == null)
                 return;

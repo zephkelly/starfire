@@ -19,6 +19,28 @@ namespace Starfire.Entity.Modules.Shield
         private IDamageReceiver _damageReceiver;
         private ShieldVisual _shieldVisual;
 
+        /// <summary>
+        /// The entity controller that owns this shield boundary.
+        /// Used by raycast-based projectiles to find the damage receiver.
+        /// </summary>
+        public EntityControllerBase OwnerController => _ownerController;
+
+        /// <summary>
+        /// The damage receiver for applying damage to this entity.
+        /// Used by raycast-based projectiles to apply damage directly.
+        /// </summary>
+        public IDamageReceiver DamageReceiver => _damageReceiver;
+
+        /// <summary>
+        /// The shield visual component for ripple effects.
+        /// </summary>
+        public ShieldVisual ShieldVisual => _shieldVisual;
+
+        /// <summary>
+        /// The shield module for accessing shield configuration.
+        /// </summary>
+        public IShieldModule ShieldModule => _shield;
+
         [Header("Debug")]
         [SerializeField] private Color _gizmoColorActive = new Color(0f, 0.8f, 1f, 0.5f);
         [SerializeField] private Color _gizmoColorDestroyed = new Color(1f, 0.2f, 0.2f, 0.3f);
