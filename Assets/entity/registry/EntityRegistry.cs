@@ -30,6 +30,7 @@ namespace Starfire.Entity
             }
 
             Instance = this;
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
 

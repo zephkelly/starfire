@@ -37,6 +37,9 @@ namespace Starfire.Entity.Editor
         private readonly Dictionary<ModuleCategory, bool> _categoryExpanded = new();
         private readonly Dictionary<ModuleSubCategory, bool> _subCategoryExpanded = new();
 
+        // Deferred deletion tracking (to avoid stale indices during draw pass)
+        private readonly List<int> _multiSlotIndicesToRemove = new();
+
         private void OnEnable()
         {
             _classId = serializedObject.FindProperty("classId");
@@ -163,6 +166,9 @@ namespace Starfire.Entity.Editor
         {
             EditorGUI.indentLevel++;
 
+            // Clear deferred deletions at start of draw pass
+            _multiSlotIndicesToRemove.Clear();
+
             int slotCount = _multiSlots.arraySize;
             EditorGUILayout.LabelField($"Configured Multi-Slots: {slotCount}", EditorStyles.miniLabel);
 
@@ -196,6 +202,12 @@ namespace Starfire.Entity.Editor
                     continue;
 
                 DrawCategoryGroup(category, slotsByCategory[category]);
+            }
+
+            // Apply all deferred deletions at the end (in reverse order to maintain indices)
+            foreach (int idx in _multiSlotIndicesToRemove.OrderByDescending(i => i))
+            {
+                _multiSlots.DeleteArrayElementAtIndex(idx);
             }
 
             EditorGUILayout.Space(10);
@@ -301,20 +313,13 @@ namespace Starfire.Entity.Editor
             {
                 EditorGUI.indentLevel++;
 
-                // Draw each slot
-                var indicesToRemove = new List<int>();
+                // Draw each slot and collect deletion requests
                 foreach (int idx in slotIndices)
                 {
                     if (DrawMultiSlotEntry(idx))
                     {
-                        indicesToRemove.Add(idx);
+                        _multiSlotIndicesToRemove.Add(idx);
                     }
-                }
-
-                // Remove deleted slots (in reverse order to maintain indices)
-                foreach (int idx in indicesToRemove.OrderByDescending(i => i))
-                {
-                    _multiSlots.DeleteArrayElementAtIndex(idx);
                 }
 
                 EditorGUI.indentLevel--;

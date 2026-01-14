@@ -80,7 +80,13 @@ namespace Starfire.Entity.Modules.Sensor
 
         public void RefreshNow()
         {
-            if (_controller == null || EntityRegistry.Instance == null) return;
+            if (_controller == null || EntityRegistry.Instance == null)
+            {
+#if UNITY_EDITOR
+                Debug.Log($"[Sensor] RefreshNow early exit - controller: {_controller != null}, registry: {EntityRegistry.Instance != null}");
+#endif
+                return;
+            }
 
             Vector2 position = _controller.transform.position;
             float effectiveRange = _config.RangeConfig.maxRange * _tierMultiplier;
@@ -99,10 +105,21 @@ namespace Starfire.Entity.Modules.Sensor
 
             _detectedEntities.Clear();
 
+#if UNITY_EDITOR
+            int registryCount = EntityRegistry.Instance.EntityCount;
+#endif
+
             var candidates = EntityRegistry.Instance.GetInRangeWithTransponder(position, effectiveRange);
+
+#if UNITY_EDITOR
+            int candidateCount = 0;
+#endif
 
             foreach (var entity in candidates)
             {
+#if UNITY_EDITOR
+                candidateCount++;
+#endif
                 if (entity == _controller) continue;
 
                 float distance = Vector2.Distance(position, entity.transform.position);
@@ -134,6 +151,13 @@ namespace Starfire.Entity.Modules.Sensor
 
                 _previousEntityIds.Remove(instanceId);
             }
+
+#if UNITY_EDITOR
+            if (_detectedEntities.Count > 0 || candidateCount > 0)
+            {
+                Debug.Log($"[Sensor] Poll: registry={registryCount}, candidates={candidateCount}, detected={_detectedEntities.Count}, range={effectiveRange}");
+            }
+#endif
 
             foreach (int lostId in _previousEntityIds)
             {

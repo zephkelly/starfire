@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0da77da4e4c1e438e432d9b3424080, type: 3}
+  m_Name: MinimapStyleConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.UI.Minimap.MinimapStyleConfig
+  radius: 100
+  screenPosition: {x: 0.95, y: 0.95}
+  screenOffset: {x: -10, y: -10}
+  backgroundSprite: {fileID: 0}
+  backgroundColor: {r: 0, g: 0.1, b: 0.15, a: 0.8}
+  borderSprite: {fileID: 0}
+  borderColor: {r: 0.2, g: 0.6, b: 0.8, a: 1}
+  borderWidth: 0
+  showRangeRings: 1
+  rangeRingCount: 2
+  rangeRingColor: {r: 0.3, g: 0.5, b: 0.6, a: 0.3}
+  rangeRingWidth: 1
+  playerIcon: {fileID: 0}
+  playerColor: {r: 1, g: 1, b: 1, a: 1}
+  playerIconSize: 16
+  showPlayerDirectionIndicator: 1
+  showCardinalMarkers: 0
+  cardinalMarkerColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+  showSweepEffect: 1
+  sweepColor: {r: 0.3, g: 0.8, b: 1, a: 0.2}
+  syncSweepToSensor: 1
+  sweepSpeed: 0.5
+  showStaleDataIndicator: 1
+  staleIndicatorColor: {r: 1, g: 0.5, b: 0, a: 0.8}
+  staleThresholdMultiplier: 2

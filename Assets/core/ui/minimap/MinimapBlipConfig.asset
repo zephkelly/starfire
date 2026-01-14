@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da455f88e6cdabc48a05cfe2c15d3f87, type: 3}
+  m_Name: MinimapBlipConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.UI.Minimap.MinimapBlipConfig
+  presenceStyle:
+    defaultIcon: {fileID: 0}
+    size: 6
+    useFactionColor: 0
+    useFactionIcon: 0
+    useShipClassIcon: 0
+    alphaMultiplier: 0.7
+  silhouetteStyle:
+    defaultIcon: {fileID: 0}
+    size: 8
+    useFactionColor: 1
+    useFactionIcon: 0
+    useShipClassIcon: 0
+    alphaMultiplier: 0.85
+  fullStyle:
+    defaultIcon: {fileID: 0}
+    size: 10
+    useFactionColor: 1
+    useFactionIcon: 1
+    useShipClassIcon: 1
+    alphaMultiplier: 1
+  hostileColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  unfriendlyColor: {r: 1, g: 0.5, b: 0.2, a: 1}
+  neutralColor: {r: 1, g: 1, b: 0.2, a: 1}
+  friendlyColor: {r: 0.2, g: 1, b: 0.5, a: 1}
+  alliedColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+  unknownColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  pulseNewContacts: 1
+  pulseDuration: 0.5
+  pulseScale: 1.5
+  fadeOnLoss: 1
+  fadeOutDuration: 0.3
+  edgeIndicatorSprite: {fileID: 0}
+  edgeIndicatorSize: 12
