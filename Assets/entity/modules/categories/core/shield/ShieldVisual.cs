@@ -268,13 +268,13 @@ namespace Starfire.Entity.Modules.Shield
                     if (isRecentlyHit)
                     {
                         targetOpacity = _config.activeOpacity;
-                        _meshRenderer.enabled = true;
                     }
                     else
                     {
                         targetOpacity = 0f;
-                        _meshRenderer.enabled = false;
                     }
+                    // Keep renderer enabled until opacity fades out completely
+                    _meshRenderer.enabled = _currentOpacity > 0.01f || isRecentlyHit;
                     break;
 
                 case ShieldVisibilityMode.Both:
