@@ -32,6 +32,9 @@ namespace Starfire.Entity.Modules.Damage
         /// <summary>If true, this damage bypasses shields entirely.</summary>
         public readonly bool BypassesShield;
 
+        /// <summary>Percentage of damage that pierces through shields (0-1).</summary>
+        public readonly float ShieldPenetration;
+
         public DamageInfo(
             float baseDamage,
             DamageType type,
@@ -40,7 +43,8 @@ namespace Starfire.Entity.Modules.Damage
             EntityControllerBase source = null,
             Vector2 sourcePosition = default,
             Vector2 direction = default,
-            bool bypassesShield = false)
+            bool bypassesShield = false,
+            float shieldPenetration = 0f)
         {
             BaseDamage = baseDamage;
             Type = type;
@@ -50,6 +54,7 @@ namespace Starfire.Entity.Modules.Damage
             SourcePosition = sourcePosition;
             Direction = direction;
             BypassesShield = bypassesShield;
+            ShieldPenetration = shieldPenetration;
         }
 
         /// <summary>
@@ -74,7 +79,8 @@ namespace Starfire.Entity.Modules.Damage
                 Source,
                 SourcePosition,
                 Direction,
-                BypassesShield
+                BypassesShield,
+                ShieldPenetration
             );
         }
     }

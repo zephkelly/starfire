@@ -21,10 +21,22 @@ namespace Starfire.Entity.Modules.Weapon
         private LayerMask _hitLayers;
         private WeaponDamageConfig _damageConfig;
         private ImpactConfig _impactConfig;
+        private bool _isConsumed;
 
         public EntityControllerBase Owner => _owner;
         public float Damage => _damage;
         public ImpactConfig ImpactConfig => _impactConfig;
+        public WeaponDamageConfig DamageConfig => _damageConfig;
+
+        /// <summary>
+        /// Marks this projectile as consumed (already processed by shield).
+        /// Prevents double-damage from queued collision events.
+        /// </summary>
+        public bool IsConsumed
+        {
+            get => _isConsumed;
+            set => _isConsumed = value;
+        }
 
         private void Awake()
         {
@@ -94,6 +106,10 @@ namespace Starfire.Entity.Modules.Weapon
 
         private void OnTriggerEnter2D(Collider2D other)
         {
+            // Already consumed by shield - don't process further
+            if (_isConsumed) return;
+
+            Debug.Log("Projectile OnTriggerEnter2D with " + other.gameObject.name);
             // Check if we should interact with this layer
             if (_hitLayers != 0 && (_hitLayers & (1 << other.gameObject.layer)) == 0)
             {
@@ -112,6 +128,7 @@ namespace Starfire.Entity.Modules.Weapon
             var shieldBoundary = other.GetComponent<ShieldBoundary>();
             if (shieldBoundary != null)
             {
+                Debug.Log($"[Projectile] Collided with ShieldBoundary of {otherController?.name}");
                 return;
             }
 
@@ -140,6 +157,8 @@ namespace Starfire.Entity.Modules.Weapon
                     direction: _rigidbody.linearVelocity.normalized,
                     bypassesShield: _damageConfig.bypassesShield
                 );
+
+                Debug.Log($"[Projectile] Applying {_damage} {_damageConfig.damageType} damage to {other.gameObject.name}");
 
                 var result = damageReceiver.ReceiveDamage(damageInfo);
             }

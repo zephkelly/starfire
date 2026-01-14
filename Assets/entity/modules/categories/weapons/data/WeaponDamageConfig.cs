@@ -28,6 +28,11 @@ namespace Starfire.Entity.Modules.Weapon
         [Tooltip("If true, damage bypasses shields entirely and hits hull directly")]
         public bool bypassesShield = false;
 
+        [Header("Penetration")]
+        [Tooltip("Percentage of damage that pierces through shields (0 = none, 1 = all). Unlike bypassesShield, shields still take damage from the non-penetrating portion.")]
+        [Range(0f, 1f)]
+        public float shieldPenetration = 0f;
+
         /// <summary>
         /// Creates a default damage config with Energy type and normal multipliers.
         /// </summary>
@@ -53,6 +58,19 @@ namespace Starfire.Entity.Modules.Weapon
             shieldDamageMultiplier = 0.5f,
             hullDamageMultiplier = 1.5f,
             bypassesShield = false
+        };
+
+        /// <summary>
+        /// Creates a penetrating rounds config (damages both shield and hull simultaneously).
+        /// 30% of damage bypasses shields to hit hull directly.
+        /// </summary>
+        public static WeaponDamageConfig Penetrating => new WeaponDamageConfig
+        {
+            damageType = DamageType.Kinetic,
+            shieldDamageMultiplier = 0.7f,
+            hullDamageMultiplier = 1f,
+            bypassesShield = false,
+            shieldPenetration = 0.3f
         };
     }
 }

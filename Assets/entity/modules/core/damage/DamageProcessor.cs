@@ -174,25 +174,36 @@ namespace Starfire.Entity.Modules.Damage
             bool shieldsDestroyed = false;
             bool entityDestroyed = false;
 
+            // Calculate penetrating damage (bypasses shields, goes directly to hull)
+            float penetratingDamage = scaledDamage.BaseDamage * scaledDamage.ShieldPenetration;
+            float shieldableDamage = scaledDamage.BaseDamage * (1f - scaledDamage.ShieldPenetration);
+
             // Step 1: Process shield damage (if not bypassed and shields available)
             if (!scaledDamage.BypassesShield && _shield != null && _shield.CurrentShield > 0)
             {
-                float damageToShield = scaledDamage.BaseDamage * scaledDamage.ShieldDamageMultiplier;
+                // Only the non-penetrating portion hits shields
+                var shieldDamageInfo = scaledDamage.WithBaseDamage(shieldableDamage);
+                float damageToShield = shieldableDamage * scaledDamage.ShieldDamageMultiplier;
                 shieldDamage = Mathf.Min(damageToShield, _shield.CurrentShield);
-                bleedthrough = _shield.AbsorbDamage(scaledDamage);
+                bleedthrough = _shield.AbsorbDamage(shieldDamageInfo);
                 shieldsDestroyed = _shield.State == ShieldState.Destroyed;
             }
             else
             {
-                // No shield or bypasses shield - all damage goes to hull
-                bleedthrough = scaledDamage.BaseDamage;
+                // No shield or bypasses shield - shieldable portion becomes bleedthrough
+                bleedthrough = shieldableDamage;
             }
 
-            // Step 2: Process hull damage (bleedthrough)
-            if (_hull != null && bleedthrough > 0)
+            // Combine bleedthrough with penetrating damage for total hull damage
+            float totalHullDamage = bleedthrough + penetratingDamage;
+
+            // Step 2: Process hull damage (bleedthrough + penetration)
+            if (_hull != null && totalHullDamage > 0)
             {
+                Debug.Log($"[DamageProcessor] {gameObject.name} applying {totalHullDamage} damage to hull (bleedthrough: {bleedthrough}, penetrating: {penetratingDamage})");
+
                 var hullDamageInfo = new DamageInfo(
-                    bleedthrough,
+                    totalHullDamage,
                     scaledDamage.Type,
                     1f, // Shield multiplier doesn't apply to hull
                     scaledDamage.HullDamageMultiplier,

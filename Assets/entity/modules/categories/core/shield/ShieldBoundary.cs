@@ -131,24 +131,35 @@ namespace Starfire.Entity.Modules.Shield
                 return;
             }
 
+            // Shield-bypassing projectiles pass through to hit hull directly
+            if (projectile.DamageConfig != null && projectile.DamageConfig.bypassesShield)
+            {
+                return;
+            }
+
             // Calculate hit point on the SHIELD surface (not the projectile)
             // We want the point on our collider closest to the projectile's position
             Vector2 hitPoint = _collider.ClosestPoint(other.transform.position);
             Vector2 normal = (hitPoint - (Vector2)transform.position).normalized;
 
-            // Apply damage through the damage receiver
+            // Apply damage through the damage receiver using projectile's full config
             if (_damageReceiver != null && _damageReceiver.CanReceiveDamage)
             {
+                var config = projectile.DamageConfig ?? WeaponDamageConfig.Default;
+
                 var damageInfo = new DamageInfo(
                     baseDamage: projectile.Damage,
-                    type: DamageType.Energy, // Default, could be extended to get from projectile
-                    shieldMultiplier: 1f,
-                    hullMultiplier: 1f,
+                    type: config.damageType,
+                    shieldMultiplier: config.shieldDamageMultiplier,
+                    hullMultiplier: config.hullDamageMultiplier,
                     source: projectile.Owner,
                     sourcePosition: projectile.transform.position,
                     direction: normal,
-                    bypassesShield: false
+                    bypassesShield: false,
+                    shieldPenetration: config.shieldPenetration
                 );
+
+                Debug.Log($"[ShieldBoundary] Applying {projectile.Damage} {config.damageType} damage to shield of {_ownerController?.name} (penetration: {config.shieldPenetration:P0})");
 
                 var result = _damageReceiver.ReceiveDamage(damageInfo);
             }
@@ -172,6 +183,10 @@ namespace Starfire.Entity.Modules.Shield
             {
                 _shieldVisual.RegisterImpact(hitPoint);
             }
+
+            // Mark projectile as consumed to prevent double-processing
+            // This prevents queued collision events from applying damage again
+            projectile.IsConsumed = true;
 
             // Destroy the projectile
             Destroy(other.gameObject);
