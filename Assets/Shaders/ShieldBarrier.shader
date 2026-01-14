@@ -25,6 +25,7 @@ Shader "Starfire/ShieldBarrier"
         _PulseSpeed ("Pulse Speed", Float) = 1
 
         [Header(Visibility)]
+        _VisibilityMode ("Visibility Mode (0=Always, 1=OnlyOnHit, 2=Both)", Int) = 0
         _IdleOpacity ("Idle Opacity", Range(0, 1)) = 0.4
         _ActiveOpacity ("Active Opacity", Range(0, 1)) = 1.0
         _CurrentOpacity ("Current Opacity", Range(0, 1)) = 0.4
@@ -103,6 +104,7 @@ Shader "Starfire/ShieldBarrier"
                 float _PatternIntensity;
                 float _PulseAmount;
                 float _PulseSpeed;
+                int _VisibilityMode;
                 float _IdleOpacity;
                 float _ActiveOpacity;
                 float _CurrentOpacity;
@@ -300,7 +302,7 @@ Shader "Starfire/ShieldBarrier"
             }
 
             // Calculate how visible this pixel should be based on proximity to active impacts
-            // Creates an expanding shockwave effect - bright at impact, expands and fades quickly
+            // Creates a localized bubble effect - fades in quickly, stays briefly, fades out
             float CalculateImpactProximity(float2 localPos, float time)
             {
                 float maxProximity = 0.0;
@@ -314,33 +316,21 @@ Shader "Starfire/ShieldBarrier"
                     if (elapsed < 0 || elapsed > _RippleDuration)
                         continue;
 
-                    // Speed multiplier affects how fast the effect progresses
-                    // >1 = faster fade, <1 = slower fade
-                    float normalizedTime = (elapsed / _RippleDuration) * _ImpactVisibilitySpeed;
-                    normalizedTime = saturate(normalizedTime); // Clamp to 0-1 range
+                    // Normalized time for fade calculation
+                    float normalizedTime = elapsed / _RippleDuration;
 
-                    // Expanding radius - starts at 0, expands to ImpactVisibilityRadius
-                    float expandingRadius = normalizedTime * _ImpactVisibilityRadius;
-
-                    // Distance from impact point
+                    // Distance from impact point (fixed radius, no expansion)
                     float dist = length(localPos - impactPos);
 
-                    // Visibility is high inside the expanding radius, fades at the edge
-                    // The "shockwave" expands outward from the impact point
-                    float insideWave = 1.0 - saturate((dist - expandingRadius * 0.3) / (expandingRadius * 0.7 + 0.01));
+                    // Visibility falls off with distance from impact
+                    float proximity = 1.0 - saturate(dist / _ImpactVisibilityRadius);
+                    proximity = pow(proximity, _ImpactVisibilityFalloff);
 
-                    // Leading edge boost - brighter at the expanding front
-                    float atLeadingEdge = 1.0 - saturate(abs(dist - expandingRadius) / (_RippleWidth * 2.0));
-
-                    // Combine: inside the wave + extra brightness at leading edge
-                    float proximity = max(insideWave * 0.5, atLeadingEdge);
-
-                    // Aggressive time-based fade - cubic falloff for quick dissipation
-                    float timeFade = 1.0 - normalizedTime;
-                    timeFade = timeFade * timeFade * timeFade; // Cubic falloff (faster than quadratic)
-
-                    // Apply falloff power for edge sharpness
-                    proximity = pow(saturate(proximity), _ImpactVisibilityFalloff * 0.5);
+                    // Quick fade in, then fade out
+                    // Peak at 10% of duration, then fade
+                    float fadeIn = saturate(normalizedTime * 10.0);
+                    float fadeOut = 1.0 - saturate((normalizedTime - 0.1) / 0.9);
+                    float timeFade = fadeIn * fadeOut * fadeOut; // Quadratic fadeout
 
                     maxProximity = max(maxProximity, proximity * timeFade);
                 }
@@ -467,26 +457,32 @@ Shader "Starfire/ShieldBarrier"
                 alpha = saturate(alpha);
 
                 // === LOCALIZED IMPACT VISIBILITY ===
-                // For OnlyOnHit/Both modes: localize visibility around impact points
-                // When idleOpacity is low, we want visibility mainly near impacts
-                // When idleOpacity is high, we want the shield always visible
-                float idleVisibility = alpha * saturate(_IdleOpacity * 2.5); // Base visibility from idle opacity
-                float impactVisibility = alpha * impactProximity; // Visibility near impacts
+                // Visibility mode behavior:
+                // Mode 0 (AlwaysSubtle): Full shield visible at idle opacity
+                // Mode 1 (OnlyOnHit): Only visible near impacts
+                // Mode 2 (Both): Subtle always + bright near impacts
 
-                // Blend: low idle opacity = more localized, high idle opacity = always visible
-                // isImpactDriven: 1 = OnlyOnHit (fully localized), 0 = AlwaysSubtle (always visible)
-                float isImpactDriven = 1.0 - saturate(_IdleOpacity * 2.5);
-                alpha = lerp(alpha, max(idleVisibility, impactVisibility), isImpactDriven);
-
-                // Ensure minimum visibility in edge region (for AlwaysSubtle mode)
-                float minAlpha = edgeVisibility * _IdleOpacity * 0.3;
-                alpha = max(alpha, minAlpha);
-
-                // Ripples can show through even in center area (impact effect)
-                alpha = max(alpha, ripples * 0.6 * impactProximity);
-
-                // Ripple rings always visible regardless of proximity
-                alpha = max(alpha, ripples * 0.4);
+                if (_VisibilityMode == 1) // OnlyOnHit
+                {
+                    // Only show shield where there's active impact proximity
+                    alpha = alpha * impactProximity;
+                    // Ripples only visible within impact area
+                    alpha = max(alpha, ripples * impactProximity);
+                }
+                else if (_VisibilityMode == 2) // Both
+                {
+                    // Idle visibility everywhere + enhanced near impacts
+                    float idleAlpha = alpha * _IdleOpacity;
+                    float impactAlpha = alpha * impactProximity * _CurrentOpacity;
+                    alpha = max(idleAlpha, impactAlpha);
+                    // Ripples visible but enhanced near impacts
+                    alpha = max(alpha, ripples * lerp(0.3, 1.0, impactProximity));
+                }
+                else // AlwaysSubtle (Mode 0)
+                {
+                    // Full visibility, ripples everywhere
+                    alpha = max(alpha, ripples * 0.4);
+                }
 
                 // Low health flicker
                 if (_ShieldHealth < 0.3)

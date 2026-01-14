@@ -45,6 +45,7 @@ namespace Starfire.Entity.Modules.Shield
         private static readonly int PatternIntensityId = Shader.PropertyToID("_PatternIntensity");
         private static readonly int PulseAmountId = Shader.PropertyToID("_PulseAmount");
         private static readonly int PulseSpeedId = Shader.PropertyToID("_PulseSpeed");
+        private static readonly int VisibilityModeId = Shader.PropertyToID("_VisibilityMode");
         private static readonly int IdleOpacityId = Shader.PropertyToID("_IdleOpacity");
         private static readonly int ActiveOpacityId = Shader.PropertyToID("_ActiveOpacity");
         private static readonly int CurrentOpacityId = Shader.PropertyToID("_CurrentOpacity");
@@ -195,6 +196,7 @@ namespace Starfire.Entity.Modules.Shield
             _material.SetFloat(PatternIntensityId, _config.patternIntensity);
             _material.SetFloat(PulseAmountId, _config.pulseAmount);
             _material.SetFloat(PulseSpeedId, _config.pulseSpeed);
+            _material.SetInt(VisibilityModeId, (int)_config.visibilityMode);
             _material.SetFloat(IdleOpacityId, _config.idleOpacity);
             _material.SetFloat(ActiveOpacityId, _config.activeOpacity);
             _material.SetFloat(RippleSpeedId, _config.rippleSpeed);
@@ -385,6 +387,7 @@ namespace Starfire.Entity.Modules.Shield
             _material.SetFloat(PatternIntensityId, _config.patternIntensity);
             _material.SetFloat(PulseAmountId, _config.pulseAmount);
             _material.SetFloat(PulseSpeedId, _config.pulseSpeed);
+            _material.SetInt(VisibilityModeId, (int)_config.visibilityMode);
             _material.SetFloat(IdleOpacityId, _config.idleOpacity);
             _material.SetFloat(ActiveOpacityId, _config.activeOpacity);
             _material.SetFloat(RippleSpeedId, _config.rippleSpeed);
