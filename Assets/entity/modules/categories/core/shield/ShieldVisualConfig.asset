@@ -31,4 +31,16 @@ MonoBehaviour:
   rippleDuration: 0.5
   rippleWidth: 0.1
   rippleIntensity: 2
+  rippleOpacity: 0.7
+  rippleSoftness: 0.5
+  ripplePerspective: 0.4
   maxSimultaneousImpacts: 8
+  damagedColor: {r: 1, g: 0.3, b: 0.1, a: 1}
+  edgeThickness: 0.12
+  edgeDither: 0
+  impactVisibilityRadius: 1
+  impactVisibilityFalloff: 2
+  impactVisibilitySpeed: 1
+  domeCurvature: 0.5
+  domeHighlight: 0.3
+  domeShadow: 0.2

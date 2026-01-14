@@ -124,5 +124,15 @@ namespace Starfire.Entity.Modules.Shield
 
         [Tooltip("How fast the impact visibility fades (1 = normal, 2 = twice as fast, 0.5 = half speed)")]
         [Range(0.2f, 5f)] public float impactVisibilitySpeed = 1.0f;
+
+        [Header("Dome Curvature (3D appearance)")]
+        [Tooltip("How curved/domed the shield appears (0 = flat, 1 = full hemisphere)")]
+        [Range(0f, 1f)] public float domeCurvature = 0.5f;
+
+        [Tooltip("Intensity of specular highlight on the dome surface")]
+        [Range(0f, 1f)] public float domeHighlight = 0.3f;
+
+        [Tooltip("How much the dome darkens on the side away from virtual light")]
+        [Range(0f, 1f)] public float domeShadow = 0.2f;
     }
 }

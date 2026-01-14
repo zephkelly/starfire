@@ -60,8 +60,10 @@ namespace Starfire.Entity.Modules.Shield
         private static readonly int ImpactVisibilityFalloffId = Shader.PropertyToID("_ImpactVisibilityFalloff");
         private static readonly int ImpactVisibilitySpeedId = Shader.PropertyToID("_ImpactVisibilitySpeed");
         private static readonly int ShieldHealthId = Shader.PropertyToID("_ShieldHealth");
+        private static readonly int DomeCurvatureId = Shader.PropertyToID("_DomeCurvature");
+        private static readonly int DomeHighlightId = Shader.PropertyToID("_DomeHighlight");
+        private static readonly int DomeShadowId = Shader.PropertyToID("_DomeShadow");
         private static readonly int ImpactPositionsId = Shader.PropertyToID("_ImpactPositions");
-        private static readonly int ImpactCountId = Shader.PropertyToID("_ImpactCount");
 
         /// <summary>
         /// Initialize the shield visual with shield module data.
@@ -209,6 +211,9 @@ namespace Starfire.Entity.Modules.Shield
             _material.SetFloat(ImpactVisibilityRadiusId, _config.impactVisibilityRadius);
             _material.SetFloat(ImpactVisibilityFalloffId, _config.impactVisibilityFalloff);
             _material.SetFloat(ImpactVisibilitySpeedId, _config.impactVisibilitySpeed);
+            _material.SetFloat(DomeCurvatureId, _config.domeCurvature);
+            _material.SetFloat(DomeHighlightId, _config.domeHighlight);
+            _material.SetFloat(DomeShadowId, _config.domeShadow);
 
             // Ensure proper render queue for transparency
             _material.renderQueue = 2990; // Transparent - 10
@@ -311,28 +316,11 @@ namespace Starfire.Entity.Modules.Shield
 
         private void UpdateImpactData()
         {
-            // Clean up expired impacts and update shader data
+            // Send all impact data to shader - shader handles timing checks internally
+            // Always iterate all 8 slots since impacts are stored in a circular buffer
             _meshRenderer.GetPropertyBlock(_propertyBlock);
             _propertyBlock.SetVectorArray(ImpactPositionsId, _impactData);
-            _propertyBlock.SetInt(ImpactCountId, GetActiveImpactCount());
             _meshRenderer.SetPropertyBlock(_propertyBlock);
-        }
-
-        private int GetActiveImpactCount()
-        {
-            int count = 0;
-            float currentTime = Time.time;
-
-            for (int i = 0; i < MaxImpacts; i++)
-            {
-                float impactTime = _impactData[i].z;
-                if (currentTime - impactTime < _config.rippleDuration)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         /// <summary>
@@ -345,9 +333,9 @@ namespace Starfire.Entity.Modules.Shield
             // Convert world position to local position
             Vector2 localPos = transform.InverseTransformPoint(worldPosition);
 
-            // Store impact data
+            // Store impact data (use MaxImpacts constant to match array size)
             _impactData[_currentImpactIndex] = new Vector4(localPos.x, localPos.y, Time.time, 0);
-            _currentImpactIndex = (_currentImpactIndex + 1) % _config.maxSimultaneousImpacts;
+            _currentImpactIndex = (_currentImpactIndex + 1) % MaxImpacts;
 
             // Mark as recently hit for visibility
             _lastHitTime = Time.time;
@@ -401,6 +389,9 @@ namespace Starfire.Entity.Modules.Shield
             _material.SetFloat(ImpactVisibilityRadiusId, _config.impactVisibilityRadius);
             _material.SetFloat(ImpactVisibilityFalloffId, _config.impactVisibilityFalloff);
             _material.SetFloat(ImpactVisibilitySpeedId, _config.impactVisibilitySpeed);
+            _material.SetFloat(DomeCurvatureId, _config.domeCurvature);
+            _material.SetFloat(DomeHighlightId, _config.domeHighlight);
+            _material.SetFloat(DomeShadowId, _config.domeShadow);
         }
     }
 }

@@ -46,6 +46,11 @@ Shader "Starfire/ShieldBarrier"
 
         [Header(Shield State)]
         _ShieldHealth ("Shield Health (0-1)", Range(0, 1)) = 1
+
+        [Header(Dome Curvature)]
+        _DomeCurvature ("Dome Curvature", Range(0, 1)) = 0.5
+        _DomeHighlight ("Dome Highlight", Range(0, 1)) = 0.3
+        _DomeShadow ("Dome Shadow", Range(0, 1)) = 0.2
     }
 
     SubShader
@@ -86,8 +91,9 @@ Shader "Starfire/ShieldBarrier"
             }
 
             // Impact data (set via MaterialPropertyBlock)
-            float4 _ImpactPositions[MAX_IMPACTS]; // xy = local position, z = start time, w = unused
-            int _ImpactCount;
+            // xy = local position, z = start time, w = unused
+            // All 8 slots are always checked - impacts use a circular buffer
+            float4 _ImpactPositions[MAX_IMPACTS];
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _ShieldColor;
@@ -119,6 +125,9 @@ Shader "Starfire/ShieldBarrier"
                 float _ImpactVisibilityFalloff;
                 float _ImpactVisibilitySpeed;
                 float _ShieldHealth;
+                float _DomeCurvature;
+                float _DomeHighlight;
+                float _DomeShadow;
             CBUFFER_END
 
             struct Attributes
@@ -172,12 +181,79 @@ Shader "Starfire/ShieldBarrier"
                 return 1.0 - smoothstep(0.02, 0.08, lines);
             }
 
+            // Hash function for pseudo-random values
+            float hash21(float2 p)
+            {
+                p = frac(p * float2(234.34, 435.345));
+                p += dot(p, p + 34.23);
+                return frac(p.x * p.y);
+            }
+
+            // Smooth value noise
+            float ValueNoise(float2 p)
+            {
+                float2 i = floor(p);
+                float2 f = frac(p);
+
+                // Smooth interpolation curve
+                float2 u = f * f * (3.0 - 2.0 * f);
+
+                // Four corners
+                float a = hash21(i);
+                float b = hash21(i + float2(1.0, 0.0));
+                float c = hash21(i + float2(0.0, 1.0));
+                float d = hash21(i + float2(1.0, 1.0));
+
+                // Bilinear interpolation
+                return lerp(lerp(a, b, u.x), lerp(c, d, u.x), u.y);
+            }
+
+            // Fractal Brownian Motion - layers of noise for organic look
+            float FBM(float2 p, float time)
+            {
+                float value = 0.0;
+                float amplitude = 0.5;
+                float frequency = 1.0;
+
+                // Add flowing motion
+                float2 flow = float2(time * 0.3, time * 0.2);
+
+                // 4 octaves of noise
+                for (int i = 0; i < 4; i++)
+                {
+                    value += amplitude * ValueNoise(p * frequency + flow);
+                    flow *= 1.3; // Different flow rate per octave
+                    amplitude *= 0.5;
+                    frequency *= 2.0;
+                }
+
+                return value;
+            }
+
             float NoisePattern(float2 uv, float scale, float time)
             {
-                float2 p = uv * scale + time * 0.1;
-                float n = sin(p.x * 10.0 + sin(p.y * 10.0 + time));
-                n += sin(p.y * 10.0 + sin(p.x * 10.0 - time * 0.7));
-                return saturate(n * 0.5 + 0.5);
+                float2 p = uv * scale;
+
+                // Layer 1: Base turbulent noise
+                float noise1 = FBM(p, time);
+
+                // Layer 2: Offset noise for more complexity
+                float noise2 = FBM(p + float2(5.2, 1.3) + noise1 * 0.5, time * 0.7);
+
+                // Layer 3: Fine detail with faster animation
+                float noise3 = ValueNoise(p * 3.0 + time * 0.5) * 0.3;
+
+                // Combine layers with domain warping effect
+                float result = noise1 * 0.5 + noise2 * 0.35 + noise3;
+
+                // Add electric crackling effect - sharp bright lines
+                float crackle = pow(ValueNoise(p * 8.0 + time * 2.0), 3.0);
+                result = max(result, crackle * 0.8);
+
+                // Enhance contrast for more striking appearance
+                result = smoothstep(0.2, 0.8, result);
+
+                return saturate(result);
             }
 
             float CellsPattern(float2 uv, float scale, float time)
@@ -251,7 +327,9 @@ Shader "Starfire/ShieldBarrier"
             {
                 float rippleContribution = 0.0;
 
-                for (int i = 0; i < _ImpactCount && i < MAX_IMPACTS; i++)
+                // Always iterate all slots - impacts are stored in circular buffer
+                // Each impact has its own timing check inside the loop
+                for (int i = 0; i < MAX_IMPACTS; i++)
                 {
                     float2 impactPos = _ImpactPositions[i].xy;
                     float impactTime = _ImpactPositions[i].z;
@@ -307,7 +385,8 @@ Shader "Starfire/ShieldBarrier"
             {
                 float maxProximity = 0.0;
 
-                for (int i = 0; i < _ImpactCount && i < MAX_IMPACTS; i++)
+                // Always iterate all slots - impacts are stored in circular buffer
+                for (int i = 0; i < MAX_IMPACTS; i++)
                 {
                     float2 impactPos = _ImpactPositions[i].xy;
                     float impactTime = _ImpactPositions[i].z;
@@ -433,6 +512,48 @@ Shader "Starfire/ShieldBarrier"
                 {
                     float3 damagedColorBlend = lerp(_DamagedColor.rgb, color, _ShieldHealth * 2.0);
                     color = damagedColorBlend;
+                }
+
+                // === DOME CURVATURE EFFECT ===
+                // Simulate a 3D dome/bubble by calculating fake depth and lighting
+                if (_DomeCurvature > 0.001)
+                {
+                    // Calculate position on a hemisphere (0,0 = center, 1 = edge)
+                    float2 domePos = (IN.uv - float2(0.5, 0.5)) * 2.0;
+                    float domeRadius = length(domePos);
+
+                    // Calculate simulated Z height on hemisphere (1 at center, 0 at edge)
+                    float domeZ = sqrt(max(0.0, 1.0 - domeRadius * domeRadius));
+
+                    // Calculate surface normal of the dome
+                    float3 domeNormal = normalize(float3(domePos.x, domePos.y, domeZ * _DomeCurvature));
+
+                    // Virtual light direction (coming from upper-left, slightly in front)
+                    float3 lightDir = normalize(float3(-0.4, 0.5, 0.7));
+
+                    // Lambertian diffuse lighting
+                    float NdotL = dot(domeNormal, lightDir);
+
+                    // Soften the lighting for energy shield look
+                    float diffuse = NdotL * 0.5 + 0.5; // Remap from [-1,1] to [0,1]
+                    diffuse = lerp(1.0, diffuse, _DomeCurvature);
+
+                    // Apply shadow (darken areas facing away from light)
+                    float shadow = lerp(1.0, diffuse, _DomeShadow);
+                    color *= shadow;
+
+                    // Calculate specular/highlight for shiny energy look
+                    float3 viewDir = float3(0, 0, 1); // Looking straight at shield
+                    float3 halfDir = normalize(lightDir + viewDir);
+                    float NdotH = max(0.0, dot(domeNormal, halfDir));
+                    float specular = pow(NdotH, 16.0) * _DomeHighlight;
+
+                    // Add rim lighting at edges (fresnel-like, enhanced by dome)
+                    float rimFresnel = 1.0 - domeZ;
+                    float rim = pow(rimFresnel, 2.0) * _DomeCurvature * 0.5;
+
+                    // Add highlights
+                    color += edgeColor * (specular + rim);
                 }
 
                 // === ALPHA CALCULATION ===
