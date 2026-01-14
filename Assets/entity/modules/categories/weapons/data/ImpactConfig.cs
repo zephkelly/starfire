@@ -45,5 +45,40 @@ namespace Starfire.Entity.Modules.Weapon
         [Tooltip("Volume of the impact sound")]
         [Range(0f, 1f)]
         public float soundVolume = 0.5f;
+
+        [Header("Shield Reflection")]
+        [Tooltip("Enable particle trails when projectile is reflected by shields")]
+        public bool enableReflection = true;
+
+        [Tooltip("Number of reflection trail particles to spawn")]
+        [Range(3, 20)]
+        public int reflectionParticleCount = 8;
+
+        [Tooltip("Base speed of reflection particles")]
+        public float reflectionSpeed = 15f;
+
+        [Tooltip("Random speed variation (0-1 multiplier range)")]
+        [Range(0f, 1f)]
+        public float reflectionSpeedVariation = 0.3f;
+
+        [Tooltip("Spread angle in degrees from reflected direction")]
+        [Range(0f, 90f)]
+        public float reflectionSpreadAngle = 25f;
+
+        [Tooltip("Color of reflection particles")]
+        public Color reflectionColor = new Color(1f, 0.8f, 0.2f, 1f);
+
+        [Tooltip("Lifetime of each reflection particle")]
+        public float reflectionLifetime = 0.3f;
+
+        [Tooltip("Width of the trail streak")]
+        public float reflectionTrailWidth = 0.08f;
+
+        [Tooltip("Length multiplier for trail (based on particle speed)")]
+        public float reflectionTrailLengthMultiplier = 0.4f;
+
+        [Tooltip("Overall intensity multiplier for the reflection effect")]
+        [Range(0f, 2f)]
+        public float reflectionIntensity = 1f;
     }
 }

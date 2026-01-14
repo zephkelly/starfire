@@ -137,10 +137,80 @@ namespace Starfire.Entity.Modules.Shield
                 return;
             }
 
-            // Calculate hit point on the SHIELD surface (not the projectile)
-            // We want the point on our collider closest to the projectile's position
-            Vector2 hitPoint = _collider.ClosestPoint(other.transform.position);
-            Vector2 normal = (hitPoint - (Vector2)transform.position).normalized;
+            // Calculate hit point using ray-ellipse intersection
+            // Trace backward along projectile velocity to find actual entry point
+            // This works correctly even at extreme speeds where the projectile has passed through the shield
+            Vector2 hitPoint;
+            Vector2 normal;
+
+            var projectileRb = other.GetComponent<Rigidbody2D>();
+            Vector2 velocity = projectileRb != null ? projectileRb.linearVelocity : Vector2.zero;
+            Vector2 projectileWorldPos = other.transform.position;
+
+            Vector2 ellipseCenter = _shield.BoundaryOffset; // Local space
+            Vector2 ellipseSize = _shield.BoundarySize;     // Semi-axes (a, b)
+
+            if (velocity.sqrMagnitude > 0.01f)
+            {
+                // Convert to local space for intersection math
+                Vector2 projectileLocalPos = transform.InverseTransformPoint(projectileWorldPos);
+                Vector2 localVelocity = transform.InverseTransformDirection(velocity);
+
+                // Ray from projectile position, going backward (reverse of velocity)
+                Vector2 rayOrigin = projectileLocalPos - ellipseCenter; // Relative to ellipse center
+                Vector2 rayDir = -localVelocity.normalized;
+
+                // Solve ray-ellipse intersection: ((Ox + t*Dx)/a)² + ((Oy + t*Dy)/b)² = 1
+                // This is a quadratic equation: At² + Bt + C = 0
+                float a = ellipseSize.x;
+                float b = ellipseSize.y;
+
+                float A = (rayDir.x * rayDir.x) / (a * a) + (rayDir.y * rayDir.y) / (b * b);
+                float B = 2f * ((rayOrigin.x * rayDir.x) / (a * a) + (rayOrigin.y * rayDir.y) / (b * b));
+                float C = (rayOrigin.x * rayOrigin.x) / (a * a) + (rayOrigin.y * rayOrigin.y) / (b * b) - 1f;
+
+                float discriminant = B * B - 4f * A * C;
+
+                if (discriminant >= 0f)
+                {
+                    float sqrtDisc = Mathf.Sqrt(discriminant);
+                    float t1 = (-B - sqrtDisc) / (2f * A);
+                    float t2 = (-B + sqrtDisc) / (2f * A);
+
+                    // We want the smallest positive t (first intersection going backward)
+                    float t = (t1 > 0f) ? t1 : t2;
+
+                    if (t > 0f)
+                    {
+                        // Calculate intersection point in local space
+                        Vector2 localHitPoint = rayOrigin + rayDir * t + ellipseCenter;
+                        hitPoint = transform.TransformPoint(localHitPoint);
+
+                        // Normal at ellipse point: gradient of (x/a)² + (y/b)² = 1
+                        // ∇ = (2x/a², 2y/b²), normalized
+                        Vector2 hitRelative = localHitPoint - ellipseCenter;
+                        Vector2 localNormal = new Vector2(hitRelative.x / (a * a), hitRelative.y / (b * b)).normalized;
+                        normal = ((Vector2)transform.TransformDirection(localNormal)).normalized;
+                    }
+                    else
+                    {
+                        // Fallback: project from center (shouldn't happen normally)
+                        CalculateFallbackHitPoint(projectileLocalPos, ellipseCenter, ellipseSize, out hitPoint, out normal);
+                    }
+                }
+                else
+                {
+                    // No intersection (shouldn't happen if trigger fired)
+                    Vector2 projectileLocalPos2 = transform.InverseTransformPoint(projectileWorldPos);
+                    CalculateFallbackHitPoint(projectileLocalPos2, ellipseCenter, ellipseSize, out hitPoint, out normal);
+                }
+            }
+            else
+            {
+                // No velocity - fall back to projection from center
+                Vector2 projectileLocalPos = transform.InverseTransformPoint(projectileWorldPos);
+                CalculateFallbackHitPoint(projectileLocalPos, ellipseCenter, ellipseSize, out hitPoint, out normal);
+            }
 
             // Apply damage through the damage receiver using projectile's full config
             if (_damageReceiver != null && _damageReceiver.CanReceiveDamage)
@@ -171,11 +241,13 @@ namespace Starfire.Entity.Modules.Shield
                 ShieldImpactEffect.Spawn(_shield.ShieldImpactConfig, hitPoint, normal, shipVelocity);
             }
 
-            // Spawn projectile's impact effect at the shield surface
+            // Spawn projectile's impact effect at the shield surface with reflection particles
             var projectileImpactConfig = projectile.ImpactConfig;
             if (projectileImpactConfig != null)
             {
-                ImpactEffect.Spawn(projectileImpactConfig, hitPoint, -normal);
+                // Use overload with velocity and normal for shield reflection particles
+                // (reuse velocity from earlier - already fetched from projectileRb)
+                ImpactEffect.Spawn(projectileImpactConfig, hitPoint, -normal, velocity, normal);
             }
 
             // Notify shield visual for ripple effect
@@ -190,6 +262,33 @@ namespace Starfire.Entity.Modules.Shield
 
             // Destroy the projectile
             Destroy(other.gameObject);
+        }
+
+        /// <summary>
+        /// Fallback hit point calculation when velocity-based ray intersection isn't available.
+        /// Projects from ellipse center through projectile position to find boundary point.
+        /// </summary>
+        private void CalculateFallbackHitPoint(Vector2 projectileLocalPos, Vector2 ellipseCenter,
+            Vector2 ellipseSize, out Vector2 hitPoint, out Vector2 normal)
+        {
+            Vector2 toProjectile = projectileLocalPos - ellipseCenter;
+            Vector2 normalizedDir = new Vector2(toProjectile.x / ellipseSize.x, toProjectile.y / ellipseSize.y);
+            float normalizedDist = normalizedDir.magnitude;
+
+            if (normalizedDist > 0.001f)
+            {
+                Vector2 unitDir = normalizedDir / normalizedDist;
+                Vector2 localHitPoint = ellipseCenter + new Vector2(unitDir.x * ellipseSize.x, unitDir.y * ellipseSize.y);
+                hitPoint = transform.TransformPoint(localHitPoint);
+                Vector2 worldCenter = transform.TransformPoint(ellipseCenter);
+                normal = (hitPoint - worldCenter).normalized;
+            }
+            else
+            {
+                // Projectile exactly at center - use top of ellipse as fallback
+                hitPoint = transform.TransformPoint(ellipseCenter + Vector2.up * ellipseSize.y);
+                normal = Vector2.up;
+            }
         }
 
         private void OnDestroy()

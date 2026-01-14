@@ -217,6 +217,11 @@ namespace Starfire.Entity.Modules.Shield
 
             // Ensure proper render queue for transparency
             _material.renderQueue = 2990; // Transparent - 10
+
+            // Ensure shield renders ABOVE the ship sprite
+            // Use same sorting layer as ship but higher order
+            _meshRenderer.sortingLayerName = "Default";
+            _meshRenderer.sortingOrder = 100;
         }
 
         private void UpdateInitialVisibility()
