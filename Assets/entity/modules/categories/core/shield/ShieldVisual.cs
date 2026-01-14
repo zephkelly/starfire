@@ -263,10 +263,11 @@ namespace Starfire.Entity.Modules.Shield
                     break;
 
                 case ShieldVisibilityMode.OnlyOnHit:
+                    // In OnlyOnHit mode, keep opacity at max and let shader handle
+                    // localized visibility via impactProximity
                     if (isRecentlyHit)
                     {
-                        float fadeProgress = timeSinceHit / _config.hitFadeDuration;
-                        targetOpacity = Mathf.Lerp(_config.activeOpacity, 0f, fadeProgress);
+                        targetOpacity = _config.activeOpacity;
                         _meshRenderer.enabled = true;
                     }
                     else

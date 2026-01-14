@@ -326,11 +326,10 @@ Shader "Starfire/ShieldBarrier"
                     float proximity = 1.0 - saturate(dist / _ImpactVisibilityRadius);
                     proximity = pow(proximity, _ImpactVisibilityFalloff);
 
-                    // Quick fade in, then fade out
-                    // Peak at 10% of duration, then fade
-                    float fadeIn = saturate(normalizedTime * 10.0);
-                    float fadeOut = 1.0 - saturate((normalizedTime - 0.1) / 0.9);
-                    float timeFade = fadeIn * fadeOut * fadeOut; // Quadratic fadeout
+                    // Fade out over time - no delay, immediately visible like ripples
+                    // Use _ImpactVisibilitySpeed to control fade rate
+                    float fadeOut = 1.0 - normalizedTime * _ImpactVisibilitySpeed;
+                    float timeFade = saturate(fadeOut * fadeOut); // Quadratic fadeout for natural decay
 
                     maxProximity = max(maxProximity, proximity * timeFade);
                 }
@@ -394,12 +393,10 @@ Shader "Starfire/ShieldBarrier"
                 // This makes patterns visible regardless of edge thickness
                 float patternRaw = GetPattern(IN.localPos, _PatternType, _PatternScale, _PatternSpeed, time);
 
-                // Pattern creates visible structure in the edge
-                // Pattern value 0 = gap/transparent, Pattern value 1 = solid/visible
-                // Use stronger contrast so pattern is clearly visible
-                float patternMin = 1.0 - _PatternIntensity * 2.0; // Stronger gaps
-                patternMin = max(0.0, patternMin); // Clamp to avoid negative
-                float patternEffect = lerp(patternMin, 1.0, patternRaw);
+                // Pattern modulates edge brightness, but doesn't make it invisible
+                // Base visibility is always present, pattern adds variation
+                float patternMin = 0.3; // Minimum visibility even in pattern gaps
+                float patternEffect = lerp(patternMin, 1.0, patternRaw * _PatternIntensity);
 
                 // Pulse animation
                 float pulse = sin(time * _PulseSpeed * 2.0 * PI) * 0.5 + 0.5;
@@ -464,19 +461,18 @@ Shader "Starfire/ShieldBarrier"
 
                 if (_VisibilityMode == 1) // OnlyOnHit
                 {
-                    // Only show shield where there's active impact proximity
+                    // Shield visual (edge, patterns) only visible near impact centers
                     alpha = alpha * impactProximity;
-                    // Ripples only visible within impact area
-                    alpha = max(alpha, ripples * impactProximity);
+                    // Ripples always visible - they expand outward and have their own fade
+                    alpha = max(alpha, ripples);
                 }
                 else if (_VisibilityMode == 2) // Both
                 {
-                    // Idle visibility everywhere + enhanced near impacts
-                    float idleAlpha = alpha * _IdleOpacity;
-                    float impactAlpha = alpha * impactProximity * _CurrentOpacity;
-                    alpha = max(idleAlpha, impactAlpha);
-                    // Ripples visible but enhanced near impacts
-                    alpha = max(alpha, ripples * lerp(0.3, 1.0, impactProximity));
+                    // alpha already includes _CurrentOpacity (idleOpacity normally, activeOpacity->idleOpacity on hit)
+                    // Enhance visibility near impacts
+                    alpha = alpha * (1.0 + impactProximity);
+                    // Ripples always visible, enhanced near impacts
+                    alpha = max(alpha, ripples * lerp(0.5, 1.0, impactProximity));
                 }
                 else // AlwaysSubtle (Mode 0)
                 {
