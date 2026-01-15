@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Sensor
 {
     public abstract class SensorModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Sensor;
+        public ModuleTypeId TypeId => ModuleTypeId.SensorArray;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

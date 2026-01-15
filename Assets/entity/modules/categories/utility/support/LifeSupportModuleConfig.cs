@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.LifeSupport
 {
     public abstract class LifeSupportModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.LifeSupport;
+        public ModuleTypeId TypeId => ModuleTypeId.LifeSupport;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

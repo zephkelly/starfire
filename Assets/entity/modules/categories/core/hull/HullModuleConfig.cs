@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Hull
 {
     public abstract class HullModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Hull;
+        public ModuleTypeId TypeId => ModuleTypeId.Hull;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

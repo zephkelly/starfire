@@ -59,10 +59,37 @@ namespace Starfire.Core.UI.Minimap
         {
             var style = _config.Style;
 
-            _container.anchorMin = style.ScreenPosition;
-            _container.anchorMax = style.ScreenPosition;
-            _container.pivot = new Vector2(0.5f, 0.5f);
-            _container.anchoredPosition = style.ScreenOffset;
+            Vector2 anchor, pivot, offset;
+
+            switch (style.AnchorPreset)
+            {
+                case MinimapAnchorPreset.TopRight:
+                    anchor = pivot = new Vector2(1f, 1f);
+                    offset = new Vector2(-style.Margin.x, -style.Margin.y);
+                    break;
+                case MinimapAnchorPreset.TopLeft:
+                    anchor = pivot = new Vector2(0f, 1f);
+                    offset = new Vector2(style.Margin.x, -style.Margin.y);
+                    break;
+                case MinimapAnchorPreset.BottomRight:
+                    anchor = pivot = new Vector2(1f, 0f);
+                    offset = new Vector2(-style.Margin.x, style.Margin.y);
+                    break;
+                case MinimapAnchorPreset.BottomLeft:
+                    anchor = pivot = new Vector2(0f, 0f);
+                    offset = new Vector2(style.Margin.x, style.Margin.y);
+                    break;
+                default: // Custom
+                    anchor = style.ScreenPosition;
+                    pivot = new Vector2(0.5f, 0.5f);
+                    offset = style.ScreenOffset;
+                    break;
+            }
+
+            _container.anchorMin = anchor;
+            _container.anchorMax = anchor;
+            _container.pivot = pivot;
+            _container.anchoredPosition = offset;
             _container.sizeDelta = new Vector2(_radius * 2, _radius * 2);
         }
 
@@ -148,7 +175,7 @@ namespace Starfire.Core.UI.Minimap
             _playerIconTransform.anchoredPosition = Vector2.zero;
 
             _playerIconImage = playerObj.AddComponent<Image>();
-            _playerIconImage.sprite = style.PlayerIcon ?? CreateTriangleSprite();
+            _playerIconImage.sprite = style.PlayerIcon ?? CreateCircleSprite();
             _playerIconImage.color = style.PlayerColor;
             _playerIconImage.raycastTarget = false;
         }
@@ -219,7 +246,6 @@ namespace Starfire.Core.UI.Minimap
 
         public void SetDisplayRange(float range)
         {
-            // Zoom is already applied in MinimapConfig.GetEffectiveRange()
             _displayRange = range;
         }
 

@@ -15,13 +15,13 @@ MonoBehaviour:
   configId: default
   displayName: Default Minimap
   orientationMode: 0
-  edgeBehavior: 0
+  edgeBehavior: 2
   useSensorPollingRate: 1
   customUpdateRate: 0.5
   interpolatePositions: 1
   interpolationSpeed: 10
   useSensorRange: 1
-  customRange: 100
+  customRange: 91
   zoomLevel: 1
   minimumDisplayLevel: 1
   showHostile: 1
@@ -30,5 +30,5 @@ MonoBehaviour:
   showFriendly: 1
   showAllied: 1
   showUnknown: 1
-  styleConfig: {fileID: 0}
-  blipConfig: {fileID: 0}
+  styleConfig: {fileID: 11400000, guid: d9e6794f746faf4429c1c715d5ceca44, type: 2}
+  blipConfig: {fileID: 11400000, guid: 32098343346b10344892730c3bd39b8f, type: 2}

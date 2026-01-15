@@ -3,20 +3,40 @@ using UnityEngine;
 namespace Starfire.Core.UI.Minimap
 {
     /// <summary>
+    /// Preset positions for minimap anchoring.
+    /// </summary>
+    public enum MinimapAnchorPreset
+    {
+        TopRight,
+        TopLeft,
+        BottomRight,
+        BottomLeft,
+        Custom
+    }
+
+    /// <summary>
     /// Visual styling configuration for the minimap display.
     /// </summary>
     [CreateAssetMenu(fileName = "MinimapStyleConfig", menuName = "Starfire/UI/Minimap Style Config")]
     public class MinimapStyleConfig : ScriptableObject
     {
-        [Header("Dimensions")]
-        [Tooltip("Radius of the circular minimap in pixels")]
-        [SerializeField] private float radius = 100f;
+        [Header("Position")]
+        [Tooltip("Quick preset for common corner positions")]
+        [SerializeField] private MinimapAnchorPreset anchorPreset = MinimapAnchorPreset.TopRight;
 
+        [Tooltip("Pixel margin from screen edge (positive = inward from corner)")]
+        [SerializeField] private Vector2 margin = new(20f, 20f);
+
+        [Header("Custom Position (only used when Anchor Preset = Custom)")]
         [Tooltip("Screen anchor position (0-1 range, where 1,1 is top-right)")]
         [SerializeField] private Vector2 screenPosition = new(0.95f, 0.95f);
 
         [Tooltip("Pixel offset from anchor position")]
         [SerializeField] private Vector2 screenOffset = new(-10f, -10f);
+
+        [Header("Dimensions")]
+        [Tooltip("Radius of the circular minimap in pixels")]
+        [SerializeField] private float radius = 100f;
 
         [Header("Background")]
         [Tooltip("Background sprite (if null, uses solid color)")]
@@ -70,6 +90,8 @@ namespace Starfire.Core.UI.Minimap
         [SerializeField] private float staleThresholdMultiplier = 2f;
 
         // Accessors
+        public MinimapAnchorPreset AnchorPreset => anchorPreset;
+        public Vector2 Margin => margin;
         public float Radius => radius;
         public Vector2 ScreenPosition => screenPosition;
         public Vector2 ScreenOffset => screenOffset;

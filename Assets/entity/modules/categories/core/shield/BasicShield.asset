@@ -15,7 +15,7 @@ MonoBehaviour:
   moduleId: shield_module
   displayName: Shield Module
   tier: 1
-  maxShield: 50000
+  maxShield: 1000
   regenRate: 5
   rechargeDelay: 3
   damageResistances: {fileID: 0}
@@ -24,4 +24,4 @@ MonoBehaviour:
   boundaryOffset: {x: 0, y: 0}
   boundaryResolution: 24
   shieldImpactConfig: {fileID: 11400000, guid: d544867a5f602dd47a9a91d0e96f36c4, type: 2}
-  visualConfig: {fileID: 11400000, guid: 00a5d5e8c7f02af4aa497547d6f5038d, type: 2}
+  visualConfig: {fileID: 11400000, guid: 1bd9a7f89bd1d7b4786d4a54a0af298f, type: 2}

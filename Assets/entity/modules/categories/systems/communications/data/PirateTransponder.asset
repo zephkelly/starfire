@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dffdcf68fc92acb449b7e7c44970e43e, type: 3}
   m_Name: PirateTransponder
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.Modules.Transponder.BasicTransponderConfig
-  moduleId: transponder_module
+  moduleId: transponder_pirate
   displayName: Transponder Module
   tier: 1
-  defaultFaction: {fileID: 0}
+  defaultFaction: {fileID: 11400000, guid: ed8de4f25be6de349a6f4f2cfdad9510, type: 2}
   shipClass: {fileID: 0}
   defaultActiveChannels: 67
   monitoredChannels: 79

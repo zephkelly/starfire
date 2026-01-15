@@ -13,21 +13,21 @@ MonoBehaviour:
   m_Name: MinimapBlipConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.UI.Minimap.MinimapBlipConfig
   presenceStyle:
-    defaultIcon: {fileID: 0}
+    defaultIcon: {fileID: 10917, guid: 0000000000000000f000000000000000, type: 0}
     size: 6
     useFactionColor: 0
     useFactionIcon: 0
     useShipClassIcon: 0
-    alphaMultiplier: 0.7
+    alphaMultiplier: 1
   silhouetteStyle:
-    defaultIcon: {fileID: 0}
+    defaultIcon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
     size: 8
     useFactionColor: 1
     useFactionIcon: 0
     useShipClassIcon: 0
-    alphaMultiplier: 0.85
+    alphaMultiplier: 1
   fullStyle:
-    defaultIcon: {fileID: 0}
+    defaultIcon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
     size: 10
     useFactionColor: 1
     useFactionIcon: 1

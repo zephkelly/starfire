@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.AICore
 {
     public abstract class AICoreModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.AICore;
+        public ModuleTypeId TypeId => ModuleTypeId.AICore;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

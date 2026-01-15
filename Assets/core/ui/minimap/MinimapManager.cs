@@ -111,7 +111,10 @@ namespace Starfire.Core.UI.Minimap
             // Initialize renderer
             _renderer = new CircularMinimapRenderer();
             _renderer.Initialize(config, _minimapContainer);
-            _renderer.SetDisplayRange(config.GetEffectiveRange(_playerSensor.DetectionRange));
+
+            float sensorRange = _playerSensor.DetectionRange;
+            float effectiveRange = config.GetEffectiveRange(sensorRange);
+            _renderer.SetDisplayRange(effectiveRange);
 
             // Initialize blip pool
             _blipPool = new MinimapBlipPool(_renderer.BlipContainer, initialSize: 20);
@@ -128,10 +131,6 @@ namespace Starfire.Core.UI.Minimap
 
             _isInitialized = true;
             _lastDataRefreshTime = Time.time;
-
-            Debug.Log($"MinimapManager: Initialized with sensor range {_playerSensor.DetectionRange}, " +
-                      $"detected entities: {_playerSensor.DetectedCount}, " +
-                      $"contacts: {_dataProvider.Contacts.Count}");
         }
 
         private void Update()
@@ -184,7 +183,9 @@ namespace Starfire.Core.UI.Minimap
                         sourceRotation,
                         config.OrientationMode);
 
-                    if (_renderer.IsInBounds(minimapPos))
+                    bool inBounds = _renderer.IsInBounds(minimapPos);
+
+                    if (inBounds)
                     {
                         blip.UpdatePosition(minimapPos, config.InterpolatePositions);
                         blip.ShowAsEdgeIndicator(false, Vector2.zero);
@@ -302,6 +303,16 @@ namespace Starfire.Core.UI.Minimap
             blip.Initialize(contact, config.Blips);
             blip.SetInterpolationSpeed(config.InterpolationSpeed);
             _activeBlips[contact.EntityId] = blip;
+
+            // Calculate initial position
+            float sourceRotation = targetEntity.transform.eulerAngles.z;
+            Vector2 minimapPos = _renderer.WorldToMinimapPosition(
+                contact.RelativePosition,
+                sourceRotation,
+                config.OrientationMode);
+
+            blip.UpdatePosition(minimapPos, false);
+            blip.SetVisible(true);
 
             if (config.Blips.PulseNewContacts)
             {

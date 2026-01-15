@@ -5,7 +5,7 @@ namespace Starfire.Entity.Modules.Shield
 {
     public abstract class ShieldModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Shield;
+        public ModuleTypeId TypeId => ModuleTypeId.Shield;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

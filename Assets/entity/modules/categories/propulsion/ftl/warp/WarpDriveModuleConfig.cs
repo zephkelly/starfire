@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.WarpDrive
 {
     public abstract class WarpDriveModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.WarpDrive;
+        public ModuleTypeId TypeId => ModuleTypeId.WarpDrive;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

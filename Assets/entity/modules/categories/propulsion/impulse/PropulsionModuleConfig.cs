@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Propulsion
 {
     public abstract class PropulsionModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Propulsion;
+        public ModuleTypeId TypeId => ModuleTypeId.ImpulseEngine;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

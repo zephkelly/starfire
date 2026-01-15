@@ -15,10 +15,10 @@ MonoBehaviour:
   particlePrefab: {fileID: 0}
   particleScale: 1
   enableLight: 1
-  lightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lightIntensity: 2
-  lightRadius: 3
-  duration: 0.5
+  lightColor: {r: 1, g: 1, b: 1, a: 1}
+  lightIntensity: 1
+  lightRadius: 14.86
+  duration: 2
   fadeStartTime: 0.1
   fadeCurve:
     serializedVersion: 2
@@ -46,3 +46,13 @@ MonoBehaviour:
     m_RotationOrder: 4
   impactSound: {fileID: 0}
   soundVolume: 0.5
+  enableReflection: 1
+  reflectionParticleCount: 10
+  reflectionSpeed: 12
+  reflectionSpeedVariation: 0.439
+  reflectionSpreadAngle: 66.7
+  reflectionColor: {r: 1, g: 1, b: 1, a: 1}
+  reflectionLifetime: 0.2
+  reflectionTrailWidth: 0.08
+  reflectionTrailLengthMultiplier: 0.2
+  reflectionIntensity: 0.764

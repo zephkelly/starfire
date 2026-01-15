@@ -23,19 +23,29 @@ MonoBehaviour:
     shieldDamageMultiplier: 1
     hullDamageMultiplier: 1
     bypassesShield: 0
+    shieldPenetration: 0
   weaponVisualPrefab: {fileID: 0}
   projectilePrefab: {fileID: 4886334230931569842, guid: ed9dd1d09849057488e9bd728ce5b6f1, type: 3}
   projectileConfig:
-    speed: 200
+    speed: 1000
     lifetime: 3
     inheritVelocity: 1
     hitLayers:
       serializedVersion: 2
-      m_Bits: 0
+      m_Bits: 2816
     destroyOnHit: 1
     scale: 0.3
     color: {r: 1, g: 1, b: 1, a: 1}
-    impactConfig: {fileID: 0}
+    impactConfig: {fileID: 11400000, guid: fad82d3d32aa8b14fa96b759ffe5c5f5, type: 2}
+    projectileMode: 1
+    hitscanConfig:
+      beamColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+      beamWidth: 0.1
+      endWidthRatio: 0.5
+      beamMaterial: {fileID: 0}
+      fadeDuration: 0.15
+      shrinkOnFade: 1
+      sortingOrder: 10
   turretSettings:
     isTurret: 0
     rotationSpeed: 180

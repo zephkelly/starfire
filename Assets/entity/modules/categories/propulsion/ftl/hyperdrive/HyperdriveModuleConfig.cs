@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Hyperdrive
 {
     public abstract class HyperdriveModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Hyperdrive;
+        public ModuleTypeId TypeId => ModuleTypeId.Hyperdrive;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

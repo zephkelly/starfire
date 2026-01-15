@@ -7,7 +7,7 @@ namespace Starfire.Entity.Modules
     public class ModuleSlotEntry
     {
         [Tooltip("The type of module this slot accepts")]
-        public ModuleSlotType slotType;
+        public ModuleTypeId moduleType;
 
         [Tooltip("Whether a module must be installed in this slot")]
         public bool isRequired;

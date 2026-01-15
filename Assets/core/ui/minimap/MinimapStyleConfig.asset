@@ -20,18 +20,18 @@ MonoBehaviour:
   borderSprite: {fileID: 0}
   borderColor: {r: 0.2, g: 0.6, b: 0.8, a: 1}
   borderWidth: 0
-  showRangeRings: 1
+  showRangeRings: 0
   rangeRingCount: 2
   rangeRingColor: {r: 0.3, g: 0.5, b: 0.6, a: 0.3}
   rangeRingWidth: 1
   playerIcon: {fileID: 0}
   playerColor: {r: 1, g: 1, b: 1, a: 1}
-  playerIconSize: 16
+  playerIconSize: 6
   showPlayerDirectionIndicator: 1
-  showCardinalMarkers: 0
+  showCardinalMarkers: 1
   cardinalMarkerColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-  showSweepEffect: 1
-  sweepColor: {r: 0.3, g: 0.8, b: 1, a: 0.2}
+  showSweepEffect: 0
+  sweepColor: {r: 0.3, g: 0.8, b: 1, a: 0.03529412}
   syncSweepToSensor: 1
   sweepSpeed: 0.5
   showStaleDataIndicator: 1

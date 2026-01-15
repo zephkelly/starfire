@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Weapon
 {
     public abstract class WeaponModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Weapon;
+        public abstract ModuleTypeId TypeId { get; }
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Deflector
 {
     public abstract class DeflectorModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Deflector;
+        public ModuleTypeId TypeId => ModuleTypeId.Deflector;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Transponder
 {
     public abstract class TransponderModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Transponder;
+        public ModuleTypeId TypeId => ModuleTypeId.Transponder;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

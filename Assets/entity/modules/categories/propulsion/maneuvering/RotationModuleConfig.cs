@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.Rotation
 {
     public abstract class RotationModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.Rotation;
+        public ModuleTypeId TypeId => ModuleTypeId.RotationThruster;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]

@@ -17,7 +17,7 @@ MonoBehaviour:
   tier: 1
   targetingAccuracy: 1
   rangeConfig:
-    maxRange: 100
+    maxRange: 1000
     silhouetteRangePercent: 0.6
     fullRangePercent: 0.3
   pollingInterval: 0.25

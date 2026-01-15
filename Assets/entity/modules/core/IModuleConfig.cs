@@ -2,7 +2,7 @@ namespace Starfire.Entity.Modules
 {
     public interface IModuleConfig
     {
-        ModuleSlotType SlotType { get; }
+        ModuleTypeId TypeId { get; }
         IEntityModule CreateModule();
     }
 }

@@ -12,21 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 257e9bad04ceaab4690f915201a75cd2, type: 3}
   m_Name: ShieldVisualConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.Modules.Shield.ShieldVisualConfig
-  visibilityMode: 0
-  idleOpacity: 0.4
+  visibilityMode: 1
+  idleOpacity: 0.149
   activeOpacity: 1
   hitFadeDuration: 0.5
   shieldColor: {r: 0.3, g: 0.6, b: 1, a: 0.7}
   edgeColor: {r: 0.5, g: 0.8, b: 1, a: 0.8}
   hitFlashColor: {r: 1, g: 1, b: 1, a: 1}
-  edgeIntensity: 2
-  fresnelPower: 2
-  patternType: 2
-  patternScale: 0.5
-  patternSpeed: 0.3
-  patternIntensity: 0.3
-  pulseAmount: 0.1
-  pulseSpeed: 1
+  damagedColor: {r: 1, g: 0.3, b: 0.1, a: 1}
+  edgeIntensity: 1.926
+  fresnelPower: 5
+  edgeThickness: 0.3343
+  edgeDither: 0.015
+  patternType: 4
+  patternScale: 10
+  patternSpeed: 1.132
+  patternIntensity: 0.275
+  pulseAmount: 0.692
+  pulseSpeed: 0.184
   rippleSpeed: 3
   rippleDuration: 0.5
   rippleWidth: 0.1
@@ -35,9 +38,6 @@ MonoBehaviour:
   rippleSoftness: 0.5
   ripplePerspective: 0.4
   maxSimultaneousImpacts: 8
-  damagedColor: {r: 1, g: 0.3, b: 0.1, a: 1}
-  edgeThickness: 0.12
-  edgeDither: 0
   impactVisibilityRadius: 1
   impactVisibilityFalloff: 2
   impactVisibilitySpeed: 1

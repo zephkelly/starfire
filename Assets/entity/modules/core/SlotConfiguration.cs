@@ -7,7 +7,7 @@ namespace Starfire.Entity.Modules
     public class SlotConfiguration
     {
         [Tooltip("The type of module slot")]
-        public ModuleSlotType slotType;
+        public ModuleTypeId moduleType;
 
         [Tooltip("Whether this slot is available on the ship")]
         public bool isAvailable = true;

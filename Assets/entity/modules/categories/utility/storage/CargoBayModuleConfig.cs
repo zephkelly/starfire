@@ -4,7 +4,7 @@ namespace Starfire.Entity.Modules.CargoBay
 {
     public abstract class CargoBayModuleConfig : ScriptableObject, IModuleConfig
     {
-        public ModuleSlotType SlotType => ModuleSlotType.CargoBay;
+        public ModuleTypeId TypeId => ModuleTypeId.CargoBay;
         IEntityModule IModuleConfig.CreateModule() => CreateModule();
 
         [Header("Module Identity")]
