@@ -231,6 +231,23 @@ namespace Starfire.Core.Background.Layers
         [Tooltip("Random seed for unique patterns")]
         public float seed = 0f;
 
+        // === Region Masking ===
+        [Header("Region Masking")]
+        [Tooltip("World-space center of the nebula region")]
+        public Vector2 regionCenter = Vector2.zero;
+
+        [Tooltip("Radius of the visible nebula region in world units")]
+        [Min(1f)]
+        public float regionRadius = 10000f;
+
+        [Tooltip("Distance over which the nebula fades at the boundary")]
+        [Min(0f)]
+        public float regionFalloff = 50f;
+
+        [Tooltip("How the region edges are rendered (0=Smooth, 1=Sharp, 2=Inverse)")]
+        [Range(0, 2)]
+        public int regionEdgeMode = 0;
+
         // Shader property IDs
         private static readonly int EnablePillarsID = Shader.PropertyToID("_EnablePillars");
         private static readonly int EnablePainterlyID = Shader.PropertyToID("_EnablePainterly");
@@ -284,6 +301,10 @@ namespace Starfire.Core.Background.Layers
         private static readonly int RenderBackgroundID = Shader.PropertyToID("_RenderBackground");
         private static readonly int BackgroundColorID = Shader.PropertyToID("_BackgroundColor");
         private static readonly int SeedID = Shader.PropertyToID("_Seed");
+        private static readonly int RegionCenterID = Shader.PropertyToID("_RegionCenter");
+        private static readonly int RegionRadiusID = Shader.PropertyToID("_RegionRadius");
+        private static readonly int RegionFalloffID = Shader.PropertyToID("_RegionFalloff");
+        private static readonly int RegionEdgeModeID = Shader.PropertyToID("_RegionEdgeMode");
 
         public override Shader GetShader()
         {
@@ -375,6 +396,12 @@ namespace Starfire.Core.Background.Layers
 
             // Seed
             material.SetFloat(SeedID, seed);
+
+            // Region Masking
+            material.SetVector(RegionCenterID, new Vector4(regionCenter.x, regionCenter.y, 0, 0));
+            material.SetFloat(RegionRadiusID, regionRadius);
+            material.SetFloat(RegionFalloffID, regionFalloff);
+            material.SetFloat(RegionEdgeModeID, regionEdgeMode);
         }
     }
 }

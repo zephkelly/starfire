@@ -40,6 +40,12 @@ Shader "Starfire/Nebula"
 
         [Header(Seed)]
         _Seed ("Random Seed", Float) = 0
+
+        [Header(Region Masking)]
+        _RegionCenter ("Region Center (World XY)", Vector) = (0, 0, 0, 0)
+        _RegionRadius ("Region Radius", Float) = 10000
+        _RegionFalloff ("Falloff Distance", Float) = 50
+        _RegionEdgeMode ("Edge Mode (0=Smooth, 1=Sharp, 2=Inverse)", Float) = 0
     }
 
     SubShader
@@ -102,6 +108,10 @@ Shader "Starfire/Nebula"
                 float _RenderBackground;
                 float4 _BackgroundColor;
                 float _Seed;
+                float4 _RegionCenter;
+                float _RegionRadius;
+                float _RegionFalloff;
+                float _RegionEdgeMode;
             CBUFFER_END
 
             // Global camera properties (set by StarfieldManager)
@@ -298,6 +308,31 @@ Shader "Starfire/Nebula"
             }
 
             // ============================================
+            // Region Masking
+            // ============================================
+
+            float calculateRegionMask(float2 worldPos, float2 regionCenter, float radius, float falloff, float edgeMode)
+            {
+                float distToCenter = distance(worldPos, regionCenter);
+                float regionMask = 1.0;
+
+                if (edgeMode < 0.5) // Smooth falloff
+                {
+                    regionMask = 1.0 - smoothstep(radius - falloff, radius, distToCenter);
+                }
+                else if (edgeMode < 1.5) // Sharp boundary
+                {
+                    regionMask = 1.0 - step(radius, distToCenter);
+                }
+                else // Inverse (clear zone - nebula outside, clear inside)
+                {
+                    regionMask = smoothstep(radius, radius + falloff, distToCenter);
+                }
+
+                return regionMask;
+            }
+
+            // ============================================
             // Vertex Shader
             // ============================================
 
@@ -331,6 +366,16 @@ Shader "Starfire/Nebula"
                 // Aspect ratio correction
                 float2 aspectCorrectedUV = float2(parallaxUV.x * _ScreenAspect, parallaxUV.y);
 
+                // Calculate world position for region masking
+                // Convert screen UV to world position based on camera parameters
+                float2 worldPos = _CameraWorldPos + (uv - 0.5) * _CameraOrthoSize * 2.0 * float2(_ScreenAspect, 1.0);
+
+                // Calculate region mask
+                float regionMask = calculateRegionMask(worldPos, _RegionCenter.xy, _RegionRadius, _RegionFalloff, _RegionEdgeMode);
+
+                // Apply region mask to density
+                float maskedDensity = _Density * regionMask;
+
                 // Generate nebula field
                 float noiseValue = nebulaField(
                     aspectCorrectedUV,
@@ -344,9 +389,9 @@ Shader "Starfire/Nebula"
                     _Seed
                 );
 
-                // Apply coloring
+                // Apply coloring with region-masked density
                 float3 nebulaColor = applyNebulaColor(
-                    noiseValue, _Density, _Threshold, _EdgeSoftness,
+                    noiseValue, maskedDensity, _Threshold, _EdgeSoftness,
                     _GradientBias, _GradientContrast,
                     _EmissionIntensity, _CoreEmissionBoost,
                     _ColorCount, _Color1, _Color2, _Color3, _Color4

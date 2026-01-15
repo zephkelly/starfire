@@ -84,6 +84,12 @@ Shader "Starfire/StylizedNebula"
 
         [Header(Seed)]
         _Seed ("Random Seed", Float) = 0
+
+        [Header(Region Masking)]
+        _RegionCenter ("Region Center (World XY)", Vector) = (0, 0, 0, 0)
+        _RegionRadius ("Region Radius", Float) = 10000
+        _RegionFalloff ("Falloff Distance", Float) = 50
+        _RegionEdgeMode ("Edge Mode (0=Smooth, 1=Sharp, 2=Inverse)", Float) = 0
     }
 
     SubShader
@@ -202,6 +208,12 @@ Shader "Starfire/StylizedNebula"
 
                 // Seed
                 float _Seed;
+
+                // Region Masking
+                float4 _RegionCenter;
+                float _RegionRadius;
+                float _RegionFalloff;
+                float _RegionEdgeMode;
             CBUFFER_END
 
             // Global camera properties
@@ -615,6 +627,31 @@ Shader "Starfire/StylizedNebula"
             }
 
             // ============================================
+            // Region Masking
+            // ============================================
+
+            float calculateRegionMask(float2 worldPos, float2 regionCenter, float radius, float falloff, float edgeMode)
+            {
+                float distToCenter = distance(worldPos, regionCenter);
+                float regionMask = 1.0;
+
+                if (edgeMode < 0.5) // Smooth falloff
+                {
+                    regionMask = 1.0 - smoothstep(radius - falloff, radius, distToCenter);
+                }
+                else if (edgeMode < 1.5) // Sharp boundary
+                {
+                    regionMask = 1.0 - step(radius, distToCenter);
+                }
+                else // Inverse (clear zone - nebula outside, clear inside)
+                {
+                    regionMask = smoothstep(radius, radius + falloff, distToCenter);
+                }
+
+                return regionMask;
+            }
+
+            // ============================================
             // Vertex Shader
             // ============================================
 
@@ -641,6 +678,11 @@ Shader "Starfire/StylizedNebula"
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
                 float2 parallaxUV = scaledUV + parallaxOffset;
                 float2 aspectCorrectedUV = float2(parallaxUV.x * _ScreenAspect, parallaxUV.y);
+
+                // === Region Masking ===
+                // Convert screen UV to world position based on camera parameters
+                float2 worldPos = _CameraWorldPos + (uv - 0.5) * _CameraOrthoSize * 2.0 * float2(_ScreenAspect, 1.0);
+                float regionMask = calculateRegionMask(worldPos, _RegionCenter.xy, _RegionRadius, _RegionFalloff, _RegionEdgeMode);
 
                 // === Style-Specific UV Warping ===
                 float2 styledUV = aspectCorrectedUV;
@@ -689,8 +731,9 @@ Shader "Starfire/StylizedNebula"
                     baseNoise = lerp(posterized, posterized * (0.85 + brushVar * 0.3), 0.5);
                 }
 
-                // Apply density
-                float scaledNoise = baseNoise * _Density;
+                // Apply density with region mask
+                float maskedDensity = _Density * regionMask;
+                float scaledNoise = baseNoise * maskedDensity;
 
                 // === Internal Structure Features ===
                 float structuredNoise = scaledNoise;
