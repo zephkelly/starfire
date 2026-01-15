@@ -1,4 +1,5 @@
 using UnityEngine;
+using Starfire.Core.Background.Presets;
 
 namespace Starfire.Core.Background.Layers
 {
@@ -8,6 +9,10 @@ namespace Starfire.Core.Background.Layers
     [System.Serializable]
     public class StarLayer : StarfieldLayer
     {
+        [Header("Preset")]
+        [Tooltip("Optional preset to override all settings")]
+        public StarLayerPreset preset;
+
         [Header("Star Field")]
         [Range(1, 100)]
         public float density = 20f;
@@ -102,6 +107,12 @@ namespace Starfire.Core.Background.Layers
 
         public override void ConfigureMaterial(Material material)
         {
+            // Apply preset if assigned
+            if (preset != null)
+            {
+                preset.ApplyTo(this);
+            }
+
             material.SetFloat(StarDensityID, density);
             material.SetFloat(SpawnChanceID, spawnChance);
             material.SetFloat(StarBrightnessMinID, brightnessMin);

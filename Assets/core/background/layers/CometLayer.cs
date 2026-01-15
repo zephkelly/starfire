@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Core.Noise;
+using Starfire.Core.Background.Presets;
 
 namespace Starfire.Core.Background.Layers
 {
@@ -11,6 +12,10 @@ namespace Starfire.Core.Background.Layers
     [System.Serializable]
     public class CometLayer : StarfieldLayer
     {
+        [Header("Preset")]
+        [Tooltip("Optional preset to override all settings")]
+        public CometLayerPreset preset;
+
         private const int MAX_COMETS = 4;
 
         [Header("Spawning")]
@@ -291,6 +296,12 @@ namespace Starfire.Core.Background.Layers
 
         public override void ConfigureMaterial(Material material)
         {
+            // Apply preset if assigned
+            if (preset != null)
+            {
+                preset.ApplyTo(this);
+            }
+
             // Basic appearance
             material.SetColor(CometColorID, cometColor);
             material.SetFloat(BrightnessID, brightness);

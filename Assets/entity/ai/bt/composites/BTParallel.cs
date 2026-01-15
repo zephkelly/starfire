@@ -10,11 +10,13 @@ namespace Starfire.Entity.AI.BT
     public class BTParallel : IBTNode
     {
         private readonly List<IBTNode> _children;
+        private readonly ParallelMode _mode;
         private BTContext _context;
 
-        public BTParallel(List<IBTNode> children)
+        public BTParallel(List<IBTNode> children, ParallelMode mode = ParallelMode.RequireAll)
         {
             _children = children ?? new List<IBTNode>();
+            _mode = mode;
         }
 
         public void Initialize(BTContext context)
@@ -44,6 +46,12 @@ namespace Starfire.Entity.AI.BT
 
                     case BTNodeStatus.Success:
                         successCount++;
+                        // Race mode: first success wins
+                        if (_mode == ParallelMode.RequireOne)
+                        {
+                            Reset();
+                            return BTNodeStatus.Success;
+                        }
                         break;
 
                     case BTNodeStatus.Running:

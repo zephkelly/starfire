@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Starfire.Core.Background.Presets;
 
 namespace Starfire.Core.Background.Layers
 {
@@ -56,6 +57,10 @@ namespace Starfire.Core.Background.Layers
     [System.Serializable]
     public class ShapedStarLayer : StarfieldLayer
     {
+        [Header("Preset")]
+        [Tooltip("Optional preset to override all settings")]
+        public ShapedStarLayerPreset preset;
+
         private const int MaxShapes = 4;
 
         [Header("Shape Configuration")]
@@ -173,6 +178,12 @@ namespace Starfire.Core.Background.Layers
 
         public override void ConfigureMaterial(Material material)
         {
+            // Apply preset if assigned
+            if (preset != null)
+            {
+                preset.ApplyTo(this);
+            }
+
             // Set shared settings
             material.SetFloat(StarDensityID, density);
             material.SetFloat(SpawnChanceID, spawnChance);

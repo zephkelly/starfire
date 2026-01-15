@@ -612,7 +612,7 @@ MonoBehaviour:
   backgroundDepth: 100
   scaleMultiplier: 1.1
   referenceZoom: 10
-  enableEditorPreview: 0
+  enableEditorPreview: 1
   layers:
   - rid: 2281391137234616388
   - rid: 2281391174049857604
@@ -621,6 +621,8 @@ MonoBehaviour:
   - rid: 2281391174049857606
   - rid: 2281391137234616387
   - rid: 2281391179805753435
+  - rid: 2281391315433291843
+  - rid: 2281391315433291844
   references:
     version: 2
     RefIds:
@@ -630,6 +632,7 @@ MonoBehaviour:
         enabled: 1
         layerName: Stars 1
         parallaxDepth: 0.001
+        preset: {fileID: 0}
         density: 80
         spawnChance: 0.001
         brightnessMin: 0.1
@@ -655,6 +658,7 @@ MonoBehaviour:
         enabled: 1
         layerName: Stars 2
         parallaxDepth: 0.0001
+        preset: {fileID: 0}
         density: 9.5
         spawnChance: 0.087
         brightnessMin: 0.3
@@ -680,6 +684,7 @@ MonoBehaviour:
         enabled: 1
         layerName: Stars 4
         parallaxDepth: 0.0004
+        preset: {fileID: 0}
         density: 11.3
         spawnChance: 0.047
         brightnessMin: 0.3
@@ -765,6 +770,7 @@ MonoBehaviour:
         enabled: 1
         layerName: Stars 5
         parallaxDepth: 0.0006
+        preset: {fileID: 0}
         density: 7.6
         spawnChance: 0.088
         brightnessMin: 0.3
@@ -897,6 +903,93 @@ MonoBehaviour:
         layerSeed: 6
         clusterAmount: 0.3
         clusterScale: 0.05
+    - rid: 2281391315433291843
+      type: {class: NebulaLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Nebula 8
+        parallaxDepth: 0.0011
+        preset: {fileID: 0}
+        noiseScale: 1.92
+        octaves: 5
+        persistence: 0.5428
+        lacunarity: 2
+        warpStrength: 0.201
+        warpScale: 0.883
+        colorCount: 3
+        color1: {r: 0.2, g: 0.05098039, b: 0.05526974, a: 1}
+        color2: {r: 0.4, g: 0.1, b: 0.3, a: 1}
+        color3: {r: 0.8, g: 0.3, b: 0.4, a: 1}
+        color4: {r: 1, g: 0.8, b: 0.6, a: 1}
+        gradientBias: 2.212
+        gradientContrast: 1.231
+        emissionIntensity: 1
+        coreEmissionBoost: 2
+        density: 0.873
+        edgeSoftness: 0.673
+        threshold: 0.1108
+        detailFrequency: 1.243
+        renderBackground: 0
+        backgroundColor: {r: 0, g: 0, b: 0, a: 1}
+        seed: 0.37
+    - rid: 2281391315433291844
+      type: {class: StylizedNebulaLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Stylized Nebula 9
+        parallaxDepth: 0.001
+        preset: {fileID: 0}
+        enablePillars: 1
+        enablePainterly: 0
+        enableTendrils: 1
+        enableCellular: 1
+        pillarStretch: 1.142
+        pillarAngle: -93.5
+        pillarWarpBias: 1.818
+        posterizeLevels: 12
+        brushStrokeScale: 2.896
+        brushWarpAmount: 0.202
+        curlStrength: 0.835
+        curlScale: 1.152
+        tendrilLength: 1.809
+        voronoiScale: 2.04
+        cellEdgeWidth: 0.5
+        bubbleInvert: 1
+        enableDenseCores: 1
+        coreIntensity: 0.098
+        haloSize: 0.0735
+        enableEdgeLit: 1
+        rimLightStrength: 0.262
+        rimLightColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+        enableDepthBands: 1
+        bandCount: 4
+        bandContrast: 0
+        enableBrightSpots: 0
+        spotDensity: 20.33
+        spotIntensity: 0.492
+        edgeMode: 0
+        silhouetteSharpness: 0.054
+        internalSoftness: 1
+        noiseScale: 0.37
+        octaves: 1
+        persistence: 0.3983
+        lacunarity: 3
+        warpStrength: 0.168
+        warpScale: 0.913
+        colorCount: 3
+        color1: {r: 0.0493351, g: 0.030838383, b: 0.084905684, a: 0.38431373}
+        color2: {r: 0.31966385, g: 0.26922393, b: 0.4716981, a: 0.39607844}
+        color3: {r: 0.7075472, g: 0.1702118, b: 0.2562725, a: 0.41960785}
+        color4: {r: 1, g: 0.7779928, b: 0.6, a: 1}
+        gradientBias: 0.521
+        gradientContrast: 3
+        emissionIntensity: 1.33
+        coreEmissionBoost: 1.775
+        density: 0.54
+        threshold: 0.3436
+        renderBackground: 0
+        backgroundColor: {r: 0, g: 0, b: 0, a: 1}
+        seed: 0
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0

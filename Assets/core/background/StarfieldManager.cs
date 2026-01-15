@@ -361,6 +361,18 @@ namespace Starfire.Core.Background
             UnityEditor.EditorUtility.SetDirty(this);
         }
 
+        [ContextMenu("Add Nebula Layer")]
+        private void AddNebulaLayer()
+        {
+            var layer = new NebulaLayer
+            {
+                layerName = $"Nebula {layers.Count + 1}",
+                renderBackground = false // Nebula typically layers on top
+            };
+            layers.Add(layer);
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+
         [ContextMenu("Refresh All Layers")]
         private void EditorRefreshLayers()
         {

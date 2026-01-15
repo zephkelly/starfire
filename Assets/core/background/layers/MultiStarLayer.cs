@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Core;
+using Starfire.Core.Background.Presets;
 
 namespace Starfire.Core.Background.Layers
 {
@@ -12,6 +13,10 @@ namespace Starfire.Core.Background.Layers
     [System.Serializable]
     public class MultiStarLayer : StarfieldLayer
     {
+        [Header("Preset")]
+        [Tooltip("Optional preset to override all settings")]
+        public MultiStarLayerPreset preset;
+
         /// <summary>
         /// Configuration for a single depth level within the multi-layer.
         /// </summary>
@@ -150,6 +155,12 @@ namespace Starfire.Core.Background.Layers
 
         public override void ConfigureMaterial(Material material)
         {
+            // Apply preset if assigned
+            if (preset != null)
+            {
+                preset.ApplyTo(this);
+            }
+
             // Set depth count (clamped to max 8)
             int depthCount = Mathf.Min(depths.Count, 8);
             material.SetInt(DepthCountID, depthCount);

@@ -1,0 +1,108 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
+  m_Name: HoldPosition
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
+  nodes:
+  - id: root-parallel
+    nodeType: 2
+    actionType: 
+    editorPosition: {x: 300, y: 50}
+    parameters:
+      rid: 1004
+    tickInterval: 1
+  - id: brake-repeater
+    nodeType: 3
+    actionType: 
+    editorPosition: {x: 150, y: 200}
+    parameters:
+      rid: 1000
+    tickInterval: 1
+  - id: brake-sequence
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 150, y: 350}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: calc-smart-arrive
+    nodeType: 4
+    actionType: CalculateSmartArrive
+    editorPosition: {x: 150, y: 500}
+    parameters:
+      rid: 1001
+    tickInterval: 1
+  - id: apply-steering
+    nodeType: 4
+    actionType: ApplySteering
+    editorPosition: {x: 150, y: 650}
+    parameters:
+      rid: 1002
+    tickInterval: 1
+  - id: hold-wait
+    nodeType: 4
+    actionType: Wait
+    editorPosition: {x: 450, y: 200}
+    parameters:
+      rid: 1003
+    tickInterval: 1
+  connections:
+  - parentId: root-parallel
+    childId: brake-repeater
+    childIndex: 0
+  - parentId: root-parallel
+    childId: hold-wait
+    childIndex: 1
+  - parentId: brake-repeater
+    childId: brake-sequence
+    childIndex: 0
+  - parentId: brake-sequence
+    childId: calc-smart-arrive
+    childIndex: 0
+  - parentId: brake-sequence
+    childId: apply-steering
+    childIndex: 1
+  rootNodeId: root-parallel
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 1000
+      type: {class: RepeaterParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        repeatCount: -1
+    - rid: 1001
+      type: {class: CalculateSmartArriveParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: steering_target
+        predictionKey: trajectory_prediction
+        outputKey: steering_force
+        arrivalThreshold: 1
+        angleStiffness: 1.5
+        lateralBrakingFactor: 2
+        closeRangeThreshold: 10
+        alignmentAngle: 30
+    - rid: 1002
+      type: {class: ApplySteeringParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        forceKey: steering_force
+    - rid: 1003
+      type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        duration: 6
+        randomDelay: 4
+        elapsedKey: hold_position_elapsed
+    - rid: 1004
+      type: {class: ParallelParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        mode: 1

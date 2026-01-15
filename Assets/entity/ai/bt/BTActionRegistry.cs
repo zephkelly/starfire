@@ -414,7 +414,7 @@ namespace Starfire.Entity.AI.BT
         private static IBTNode CreateWaitAction(IBTNodeParameters parameters)
         {
             var p = parameters as WaitParameters ?? new WaitParameters();
-            return new WaitAction(p.duration, p.elapsedKey);
+            return new WaitAction(p.duration, p.randomDelay, p.elapsedKey);
         }
 
         // Factory methods for random conditions

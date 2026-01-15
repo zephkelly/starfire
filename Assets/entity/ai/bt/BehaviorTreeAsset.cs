@@ -89,13 +89,19 @@ namespace Starfire.Entity.AI.BT
             {
                 BTNodeType.Selector => new BTSelector(new List<IBTNode>()),
                 BTNodeType.Sequence => new BTSequence(new List<IBTNode>()),
-                BTNodeType.Parallel => new BTParallel(new List<IBTNode>()),
+                BTNodeType.Parallel => CreateParallel(data.parameters as ParallelParameters),
                 BTNodeType.Repeater => CreateRepeater(data.parameters as RepeaterParameters),
                 BTNodeType.GuardedRepeater => CreateGuardedRepeater(data.parameters as GuardedRepeaterParameters),
                 BTNodeType.Action => CreateAction(data),
                 BTNodeType.Subtree => CreateSubtree(data),
                 _ => null
             };
+        }
+
+        private IBTNode CreateParallel(ParallelParameters parameters)
+        {
+            var mode = parameters?.mode ?? ParallelMode.RequireAll;
+            return new BTParallel(new List<IBTNode>(), mode);
         }
 
         private IBTNode CreateRepeater(RepeaterParameters parameters)
@@ -189,7 +195,11 @@ namespace Starfire.Entity.AI.BT
             var node = new BTNodeData(type, position);
 
             // Add default parameters for nodes that need them
-            if (type == BTNodeType.Repeater)
+            if (type == BTNodeType.Parallel)
+            {
+                node.parameters = new ParallelParameters();
+            }
+            else if (type == BTNodeType.Repeater)
             {
                 node.parameters = new RepeaterParameters();
             }

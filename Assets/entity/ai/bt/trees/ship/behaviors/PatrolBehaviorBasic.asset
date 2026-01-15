@@ -111,9 +111,9 @@ MonoBehaviour:
     parameters:
       rid: 1009
     tickInterval: 1
-  - id: just-wait
-    nodeType: 4
-    actionType: Wait
+  - id: subtree-hold-position
+    nodeType: 5
+    actionType:
     editorPosition: {x: 933, y: 2205}
     parameters:
       rid: 1010
@@ -179,7 +179,7 @@ MonoBehaviour:
     childId: subtree-random-exploration
     childIndex: 0
   - parentId: exploration-type-selector
-    childId: just-wait
+    childId: subtree-hold-position
     childIndex: 1
   rootNodeId: root-sequence
   references:
@@ -243,10 +243,9 @@ MonoBehaviour:
       data:
         subtreeAsset: {fileID: 11400000, guid: fa9ba32639a11bb4d98078960a1c8080, type: 2}
     - rid: 1010
-      type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      type: {class: SubtreeParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        duration: 2
-        elapsedKey: waypoint_wait_elapsed
+        subtreeAsset: {fileID: 11400000, guid: a95a21a06aac63c4eac59b66a825cbc8, type: 2}
     - rid: 1011
       type: {class: SetTargetPositionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:

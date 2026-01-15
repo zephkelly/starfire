@@ -70,6 +70,18 @@ namespace Starfire.Core.Background.Editor
             {
                 AddShapedStarLayer();
             }
+            if (GUILayout.Button("+ Nebula Layer", GUILayout.Height(25)))
+            {
+                AddNebulaLayer();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // Add layer buttons - fourth row (nebula variants)
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+ Stylized Nebula", GUILayout.Height(25)))
+            {
+                AddStylizedNebulaLayer();
+            }
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space();
@@ -333,6 +345,42 @@ namespace Starfire.Core.Background.Editor
                 layerName = $"Shaped Stars {_layers.arraySize + 1}",
                 renderBackground = _layers.arraySize == 0,
                 layerSeed = _layers.arraySize
+            };
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
+        private void AddNebulaLayer()
+        {
+            // Create a new NebulaLayer instance
+            var newLayer = new NebulaLayer
+            {
+                layerName = $"Nebula {_layers.arraySize + 1}",
+                parallaxDepth = 0.02f
+            };
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
+        private void AddStylizedNebulaLayer()
+        {
+            // Create a new StylizedNebulaLayer instance
+            var newLayer = new StylizedNebulaLayer
+            {
+                layerName = $"Stylized Nebula {_layers.arraySize + 1}",
+                parallaxDepth = 0.02f
             };
 
             // Add to array using SerializeReference

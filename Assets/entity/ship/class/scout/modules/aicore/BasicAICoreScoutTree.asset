@@ -16,20 +16,20 @@ MonoBehaviour:
   - id: c9a085d8-e103-4bf4-9f5c-0a79a160eb23
     nodeType: 3
     actionType: 
-    editorPosition: {x: 341, y: 124}
+    editorPosition: {x: 327, y: 94}
     parameters:
       rid: 2281391246486011971
     tickInterval: 1
-  - id: 9d2155a1-7397-4ae2-8696-5121adacabf9
+  - id: 815f77d5-55c2-494f-af8d-465fbf0b28ff
     nodeType: 5
     actionType: 
-    editorPosition: {x: 438, y: 281}
+    editorPosition: {x: 387, y: 272}
     parameters:
-      rid: 2281391246486011972
+      rid: 2281391314766397440
     tickInterval: 1
   connections:
   - parentId: c9a085d8-e103-4bf4-9f5c-0a79a160eb23
-    childId: 9d2155a1-7397-4ae2-8696-5121adacabf9
+    childId: 815f77d5-55c2-494f-af8d-465fbf0b28ff
     childIndex: 0
   rootNodeId: c9a085d8-e103-4bf4-9f5c-0a79a160eb23
   references:
@@ -39,7 +39,7 @@ MonoBehaviour:
       type: {class: RepeaterParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
         repeatCount: -1
-    - rid: 2281391246486011972
+    - rid: 2281391314766397440
       type: {class: SubtreeParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        subtreeAsset: {fileID: 11400000, guid: c566aa99cf7838549b91e8ac3bc3faab, type: 2}
+        subtreeAsset: {fileID: 11400000, guid: 7804e3eb84f722648bc8c3ba704a59a6, type: 2}

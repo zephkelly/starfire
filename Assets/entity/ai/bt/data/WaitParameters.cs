@@ -15,6 +15,12 @@ namespace Starfire.Entity.AI.BT
         public float duration = 1.0f;
 
         /// <summary>
+        /// Random variance added to duration. Actual wait = duration + Random(0, randomDelay).
+        /// Set to 0 for exact timing.
+        /// </summary>
+        public float randomDelay = 0f;
+
+        /// <summary>
         /// Blackboard key to track elapsed wait time.
         /// </summary>
         public string elapsedKey = "wait_elapsed";
