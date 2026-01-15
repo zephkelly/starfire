@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.WarpDrive
 {
-    public interface IWarpDriveModule : IEntityModule
+    public interface IWarpDriveShipModule : IShipModule
     {
         float WarpSpeed { get; }
         float ChargeTime { get; }

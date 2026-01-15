@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Weapon
 {
-    public class BasicWeaponModule : IWeaponModule
+    public class BasicWeaponModule : IWeaponShipModule
     {
         private readonly BasicWeaponConfig _config;
         private EntityControllerBase _controller;
@@ -19,12 +19,12 @@ namespace Starfire.Entity.Modules.Weapon
         public ModuleTier Tier => _config.Tier;
         public bool IsEnabled { get; set; } = true;
 
-        // IWeaponModule stats
+        // IWeaponShipModule stats
         public float Damage => _config.Damage;
         public float FireRate => _config.FireRate;
         public float Range => _config.Range;
 
-        // IWeaponModule state
+        // IWeaponShipModule state
         public bool IsTurret => _config.TurretSettings?.isTurret ?? false;
 
         public bool CanFire

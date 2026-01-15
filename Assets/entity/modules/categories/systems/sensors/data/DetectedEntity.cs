@@ -51,9 +51,9 @@ namespace Starfire.Entity.Modules.Sensor
             }
         }
 
-        private ITransponderModule GetTransponder()
+        private ITransponderShipModule GetTransponder()
         {
-            return Controller?.Systems?.GetAllModulesOfType<ITransponderModule>().FirstOrDefault();
+            return Controller?.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
         }
     }
 }

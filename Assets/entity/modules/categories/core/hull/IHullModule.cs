@@ -3,7 +3,7 @@ using Starfire.Entity.Modules.Damage;
 
 namespace Starfire.Entity.Modules.Hull
 {
-    public interface IHullModule : IEntityModule
+    public interface IHullShipModule : IShipModule
     {
         int MaxHealth { get; }
         int CurrentHealth { get; set; }

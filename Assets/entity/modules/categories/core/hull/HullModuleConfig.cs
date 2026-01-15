@@ -28,7 +28,7 @@ namespace Starfire.Entity.Modules.Hull
         public float DamageResistance => damageResistance;
         public DamageResistances DamageResistances => damageResistances;
 
-        public abstract IHullModule CreateModule();
+        public abstract IHullShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

@@ -48,6 +48,6 @@ namespace Starfire.Entity.Modules.Transponder
             };
         }
 
-        public abstract ITransponderModule CreateModule();
+        public abstract ITransponderShipModule CreateModule();
     }
 }

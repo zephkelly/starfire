@@ -20,7 +20,7 @@ namespace Starfire.Entity.Modules.LifeSupport
         public ModuleTier Tier => tier;
         public int CrewCapacity => Mathf.RoundToInt(crewCapacity * GetTierMultiplier());
 
-        public abstract ILifeSupportModule CreateModule();
+        public abstract ILifeSupportShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

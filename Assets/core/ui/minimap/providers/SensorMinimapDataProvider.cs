@@ -12,7 +12,7 @@ namespace Starfire.Core.UI.Minimap
     /// </summary>
     public class SensorMinimapDataProvider : IMinimapDataProvider
     {
-        private readonly ISensorModule _sensor;
+        private readonly ISensorShipModule _sensor;
         private readonly EntityControllerBase _source;
         private readonly FactionData _sourceFaction;
 
@@ -30,7 +30,7 @@ namespace Starfire.Core.UI.Minimap
         public event Action OnDataUpdated;
 
         public SensorMinimapDataProvider(
-            ISensorModule sensor,
+            ISensorShipModule sensor,
             EntityControllerBase source,
             FactionData sourceFaction)
         {

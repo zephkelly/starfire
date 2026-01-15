@@ -22,7 +22,7 @@ namespace Starfire.Entity.Modules.Deflector
         public float DeflectionStrength => deflectionStrength * GetTierMultiplier();
         public float BeamFocusMultiplier => beamFocusMultiplier * GetTierMultiplier();
 
-        public abstract IDeflectorModule CreateModule();
+        public abstract IDeflectorShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

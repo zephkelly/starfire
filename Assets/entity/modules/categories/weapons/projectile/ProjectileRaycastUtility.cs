@@ -40,7 +40,7 @@ namespace Starfire.Entity.Modules.Weapon
             public ShieldVisual ShieldVisual;
 
             /// <summary>The shield module for accessing shield config. May be null.</summary>
-            public IShieldModule ShieldModule;
+            public IShieldShipModule ShieldModule;
 
             /// <summary>The entity controller that owns the hit target.</summary>
             public EntityControllerBase TargetController;

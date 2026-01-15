@@ -2,7 +2,7 @@ using Starfire.Entity.AI.BT;
 
 namespace Starfire.Entity.Modules.AICore
 {
-    public interface IAICoreModule : IEntityModule
+    public interface IAICoreShipModule : IShipModule
     {
         float ProcessingPower { get; }
         bool IsAutonomous { get; set; }

@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.LifeSupport
 {
-    public interface ILifeSupportModule : IEntityModule
+    public interface ILifeSupportShipModule : IShipModule
     {
         int CrewCapacity { get; }
     }

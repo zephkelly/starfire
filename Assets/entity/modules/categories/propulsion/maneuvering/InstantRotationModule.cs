@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Rotation
 {
-    public class InstantRotationModule : IRotationModule
+    public class InstantRotationModule : IRotationShipModule
     {
         private readonly InstantRotationConfig _config;
         private EntityControllerBase _controller;

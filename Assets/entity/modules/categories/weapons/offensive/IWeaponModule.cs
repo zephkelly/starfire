@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Weapon
 {
-    public interface IWeaponModule : IEntityModule
+    public interface IWeaponShipModule : IShipModule
     {
         float Damage { get; }
         float FireRate { get; }

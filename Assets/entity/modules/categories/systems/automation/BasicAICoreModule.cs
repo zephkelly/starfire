@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.AICore
 {
-    public class BasicAICoreModule : IAICoreModule
+    public class BasicAICoreModule : IAICoreShipModule
     {
         private bool _hasLoggedOnce = false;
         private readonly BasicAICoreConfig _config;

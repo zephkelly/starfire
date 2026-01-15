@@ -91,6 +91,7 @@ namespace Starfire.Entity.AI.BT
                 BTNodeType.Sequence => new BTSequence(new List<IBTNode>()),
                 BTNodeType.Parallel => new BTParallel(new List<IBTNode>()),
                 BTNodeType.Repeater => CreateRepeater(data.parameters as RepeaterParameters),
+                BTNodeType.GuardedRepeater => CreateGuardedRepeater(data.parameters as GuardedRepeaterParameters),
                 BTNodeType.Action => CreateAction(data),
                 BTNodeType.Subtree => CreateSubtree(data),
                 _ => null
@@ -103,6 +104,13 @@ namespace Starfire.Entity.AI.BT
             // For now, create with a placeholder that will be replaced
             int repeatCount = parameters?.repeatCount ?? -1;
             return new BTRepeaterBuilder(repeatCount);
+        }
+
+        private IBTNode CreateGuardedRepeater(GuardedRepeaterParameters parameters)
+        {
+            // GuardedRepeater needs two children (guard and body), set via SetChildren
+            int repeatCount = parameters?.repeatCount ?? -1;
+            return new BTGuardedRepeaterBuilder(repeatCount);
         }
 
         private IBTNode CreateAction(BTNodeData data)
@@ -165,6 +173,12 @@ namespace Starfire.Entity.AI.BT
                     if (children.Count > 0)
                         repeaterBuilder.SetChild(children[0]);
                     break;
+                case BTGuardedRepeaterBuilder guardedBuilder:
+                    // First child is guard, second is body
+                    var guard = children.Count > 0 ? children[0] : null;
+                    var body = children.Count > 1 ? children[1] : null;
+                    guardedBuilder.SetChildren(guard, body);
+                    break;
             }
         }
 
@@ -178,6 +192,10 @@ namespace Starfire.Entity.AI.BT
             if (type == BTNodeType.Repeater)
             {
                 node.parameters = new RepeaterParameters();
+            }
+            else if (type == BTNodeType.GuardedRepeater)
+            {
+                node.parameters = new GuardedRepeaterParameters();
             }
             else if (type == BTNodeType.Subtree)
             {
@@ -322,6 +340,40 @@ namespace Starfire.Entity.AI.BT
         {
             _child = child;
             _actualRepeater = new BTRepeater(child, _repeatCount);
+        }
+
+        public void Initialize(BTContext context)
+        {
+            _actualRepeater?.Initialize(context);
+        }
+
+        public BTNodeStatus Execute(float deltaTime)
+        {
+            return _actualRepeater?.Execute(deltaTime) ?? BTNodeStatus.Failure;
+        }
+
+        public void Reset()
+        {
+            _actualRepeater?.Reset();
+        }
+    }
+
+    /// <summary>
+    /// Builder class for BTGuardedRepeater that allows setting children after construction.
+    /// </summary>
+    internal class BTGuardedRepeaterBuilder : IBTNode
+    {
+        private readonly int _repeatCount;
+        private BTGuardedRepeater _actualRepeater;
+
+        public BTGuardedRepeaterBuilder(int repeatCount)
+        {
+            _repeatCount = repeatCount;
+        }
+
+        public void SetChildren(IBTNode guard, IBTNode body)
+        {
+            _actualRepeater = new BTGuardedRepeater(guard, body, _repeatCount);
         }
 
         public void Initialize(BTContext context)

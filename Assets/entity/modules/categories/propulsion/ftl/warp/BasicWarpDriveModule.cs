@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.WarpDrive
 {
-    public class BasicWarpDriveModule : IWarpDriveModule
+    public class BasicWarpDriveModule : IWarpDriveShipModule
     {
         private readonly BasicWarpDriveConfig _config;
         private EntityControllerBase _controller;

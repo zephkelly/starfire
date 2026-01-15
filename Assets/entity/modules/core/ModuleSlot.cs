@@ -41,7 +41,7 @@ namespace Starfire.Entity.Modules
                 _module.OnAttach(_controller);
 
                 // If this is a weapon module, try to assign hardpoint
-                if (_module is IWeaponModule weaponModule && !string.IsNullOrEmpty(_slotId))
+                if (_module is IWeaponShipModule weaponModule && !string.IsNullOrEmpty(_slotId))
                 {
                     TryAssignHardpoint(weaponModule);
                 }
@@ -50,7 +50,7 @@ namespace Starfire.Entity.Modules
             OnModuleChanged?.Invoke(_module);
         }
 
-        private void TryAssignHardpoint(IWeaponModule weaponModule)
+        private void TryAssignHardpoint(IWeaponShipModule weaponModule)
         {
             var registry = _controller.GetComponent<HardpointRegistry>();
             if (registry == null)

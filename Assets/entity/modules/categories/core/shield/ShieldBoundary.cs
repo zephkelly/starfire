@@ -13,7 +13,7 @@ namespace Starfire.Entity.Modules.Shield
     [RequireComponent(typeof(PolygonCollider2D))]
     public class ShieldBoundary : MonoBehaviour
     {
-        private IShieldModule _shield;
+        private IShieldShipModule _shield;
         private PolygonCollider2D _collider;
         private EntityControllerBase _ownerController;
         private IDamageReceiver _damageReceiver;
@@ -39,7 +39,7 @@ namespace Starfire.Entity.Modules.Shield
         /// <summary>
         /// The shield module for accessing shield configuration.
         /// </summary>
-        public IShieldModule ShieldModule => _shield;
+        public IShieldShipModule ShieldModule => _shield;
 
         [Header("Debug")]
         [SerializeField] private Color _gizmoColorActive = new Color(0f, 0.8f, 1f, 0.5f);
@@ -49,7 +49,7 @@ namespace Starfire.Entity.Modules.Shield
         /// <summary>
         /// Initialize the shield boundary with the shield module data.
         /// </summary>
-        public void Initialize(IShieldModule shield, EntityControllerBase owner, ShieldVisual shieldVisual = null)
+        public void Initialize(IShieldShipModule shield, EntityControllerBase owner, ShieldVisual shieldVisual = null)
         {
             _shield = shield;
             _ownerController = owner;

@@ -2,7 +2,7 @@ using System;
 
 namespace Starfire.Entity.Modules.Transponder
 {
-    public class BasicTransponderModule : ITransponderModule
+    public class BasicTransponderModule : ITransponderShipModule
     {
         private readonly BasicTransponderConfig _config;
         private EntityControllerBase _controller;

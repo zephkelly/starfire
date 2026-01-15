@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Hyperdrive
 {
-    public class BasicHyperdriveModule : IHyperdriveModule
+    public class BasicHyperdriveModule : IHyperdriveShipModule
     {
         private readonly BasicHyperdriveConfig _config;
         private EntityControllerBase _controller;

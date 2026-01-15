@@ -20,7 +20,7 @@ namespace Starfire.Entity.Modules.CargoBay
         public ModuleTier Tier => tier;
         public int Capacity => Mathf.RoundToInt(capacity * GetTierMultiplier());
 
-        public abstract ICargoBayModule CreateModule();
+        public abstract ICargoBayShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

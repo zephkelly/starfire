@@ -4,7 +4,7 @@ using Starfire.Entity.Modules.Transponder;
 
 namespace Starfire.Entity.Modules.Sensor
 {
-    public interface ISensorModule : IEntityModule
+    public interface ISensorShipModule : IShipModule
     {
         float DetectionRange { get; }
         float TargetingAccuracy { get; }

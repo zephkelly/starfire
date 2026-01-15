@@ -26,7 +26,7 @@ namespace Starfire.Entity.Modules.AICore
         [Obsolete("Use BehaviorTree instead")]
         public BTNodeConfig BehaviorTreeRoot => behaviorTreeRoot;
 
-        public override IAICoreModule CreateModule()
+        public override IAICoreShipModule CreateModule()
         {
             return new BasicAICoreModule(this);
         }

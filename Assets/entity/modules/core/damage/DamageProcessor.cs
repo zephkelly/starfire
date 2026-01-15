@@ -14,8 +14,8 @@ namespace Starfire.Entity.Modules.Damage
         private EntityControllerBase _controller;
 
         // Cached module references (updated when modules change)
-        private IShieldModule _shield;
-        private IHullModule _hull;
+        private IShieldShipModule _shield;
+        private IHullShipModule _hull;
         private ShieldBoundary _shieldBoundary;
         private ShieldVisual _shieldVisual;
 

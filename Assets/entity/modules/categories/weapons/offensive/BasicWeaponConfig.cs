@@ -7,7 +7,7 @@ namespace Starfire.Entity.Modules.Weapon
     {
         public override ModuleTypeId TypeId => ModuleTypeId.Laser;
 
-        public override IWeaponModule CreateModule()
+        public override IWeaponShipModule CreateModule()
         {
             return new BasicWeaponModule(this);
         }

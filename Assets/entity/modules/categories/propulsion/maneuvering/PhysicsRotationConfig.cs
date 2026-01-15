@@ -30,7 +30,7 @@ namespace Starfire.Entity.Modules.Rotation
         public float ProportionalGain => proportionalGain;
         public float DerivativeGain => derivativeGain;
 
-        public override IRotationModule CreateModule()
+        public override IRotationShipModule CreateModule()
         {
             return new PhysicsRotationModule(this);
         }

@@ -20,7 +20,7 @@ namespace Starfire.Entity.Modules.AICore
         public ModuleTier Tier => tier;
         public float ProcessingPower => processingPower * GetTierMultiplier();
 
-        public abstract IAICoreModule CreateModule();
+        public abstract IAICoreShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

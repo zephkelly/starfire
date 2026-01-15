@@ -14,7 +14,7 @@ namespace Starfire.Entity.Modules.Shield
         Active,         // Normal operational state
     }
 
-    public interface IShieldModule : IEntityModule
+    public interface IShieldShipModule : IShipModule
     {
         int MaxShield { get; }
         int CurrentShield { get; set; }

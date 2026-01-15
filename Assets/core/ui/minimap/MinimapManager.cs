@@ -35,8 +35,8 @@ namespace Starfire.Core.UI.Minimap
         private RectTransform _minimapContainer;
         private bool _isInitialized;
         private bool _initializationAttempted;
-        private ISensorModule _playerSensor;
-        private ITransponderModule _playerTransponder;
+        private ISensorShipModule _playerSensor;
+        private ITransponderShipModule _playerTransponder;
         private float _lastDataRefreshTime;
 
         public bool IsInitialized => _isInitialized;
@@ -85,8 +85,8 @@ namespace Starfire.Core.UI.Minimap
             }
 
             // Get sensor and transponder
-            _playerSensor = targetEntity.Systems?.GetAllModulesOfType<ISensorModule>().FirstOrDefault();
-            _playerTransponder = targetEntity.Systems?.GetAllModulesOfType<ITransponderModule>().FirstOrDefault();
+            _playerSensor = targetEntity.Systems?.GetAllModulesOfType<ISensorShipModule>().FirstOrDefault();
+            _playerTransponder = targetEntity.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
 
             if (_playerSensor == null)
             {

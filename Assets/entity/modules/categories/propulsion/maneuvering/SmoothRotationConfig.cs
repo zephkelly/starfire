@@ -20,7 +20,7 @@ namespace Starfire.Entity.Modules.Rotation
         public float Deadzone => deadzone;
         public bool UseSmoothDamp => useSmoothDamp;
 
-        public override IRotationModule CreateModule()
+        public override IRotationShipModule CreateModule()
         {
             return new SmoothRotationModule(this);
         }

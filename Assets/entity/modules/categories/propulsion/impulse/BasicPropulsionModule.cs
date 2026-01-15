@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Propulsion
 {
-    public class BasicPropulsionModule : IPropulsionModule
+    public class BasicPropulsionModule : IPropulsionShipModule
     {
         private readonly BasicPropulsionConfig _config;
         private EntityControllerBase _controller;

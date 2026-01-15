@@ -5,7 +5,7 @@ namespace Starfire.Entity.AI.BT
     /// Unlike BTCondition (decorator), this has no child node.
     /// Supports tick intervals for optimization - expensive conditions can run every N ticks.
     /// </summary>
-    public abstract class BTLeafCondition : IBTNode
+    public abstract class BTLeafCondition : IShipBTNode
     {
         protected BTContext Context { get; private set; }
 

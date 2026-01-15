@@ -14,7 +14,7 @@ namespace Starfire.Entity.Modules.Shield
         private const int MaxImpacts = 8;
         private const string ShaderName = "Starfire/ShieldBarrier";
 
-        private IShieldModule _shield;
+        private IShieldShipModule _shield;
         private ShieldVisualConfig _config;
         private EntityControllerBase _controller;
 
@@ -68,7 +68,7 @@ namespace Starfire.Entity.Modules.Shield
         /// <summary>
         /// Initialize the shield visual with shield module data.
         /// </summary>
-        public void Initialize(IShieldModule shield, EntityControllerBase controller)
+        public void Initialize(IShieldShipModule shield, EntityControllerBase controller)
         {
             _shield = shield;
             _config = shield.VisualConfig;

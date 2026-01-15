@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Deflector
 {
-    public class BasicDeflectorModule : IDeflectorModule
+    public class BasicDeflectorModule : IDeflectorShipModule
     {
         private readonly BasicDeflectorConfig _config;
         private EntityControllerBase _controller;

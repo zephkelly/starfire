@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Rotation
 {
-    public interface IRotationModule : IEntityModule
+    public interface IRotationShipModule : IShipModule
     {
         float RotationSpeed { get; }
         void ProcessRotation(RotationInputData input, float deltaTime);

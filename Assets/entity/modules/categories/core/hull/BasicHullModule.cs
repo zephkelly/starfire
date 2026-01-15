@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Hull
 {
-    public class BasicHullModule : IHullModule
+    public class BasicHullModule : IHullShipModule
     {
         private readonly BasicHullConfig _config;
         private EntityControllerBase _controller;

@@ -59,7 +59,7 @@ namespace Starfire.Entity.Modules.Shield
         public ShieldImpactConfig ShieldImpactConfig => shieldImpactConfig;
         public ShieldVisualConfig VisualConfig => visualConfig;
 
-        public abstract IShieldModule CreateModule();
+        public abstract IShieldShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

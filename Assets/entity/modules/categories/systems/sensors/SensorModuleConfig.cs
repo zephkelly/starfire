@@ -35,7 +35,7 @@ namespace Starfire.Entity.Modules.Sensor
         public DetectionRangeConfig RangeConfig => rangeConfig;
         public SensorFilterConfig FilterConfig => filterConfig;
 
-        public abstract ISensorModule CreateModule();
+        public abstract ISensorShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

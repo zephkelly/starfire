@@ -24,7 +24,7 @@ namespace Starfire.Entity.Modules.Propulsion
         public float Acceleration => acceleration * GetTierMultiplier();
         public float Drag => drag;
 
-        public abstract IPropulsionModule CreateModule();
+        public abstract IPropulsionShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

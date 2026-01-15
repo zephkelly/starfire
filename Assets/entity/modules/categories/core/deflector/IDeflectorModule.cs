@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.Deflector
 {
-    public interface IDeflectorModule : IEntityModule
+    public interface IDeflectorShipModule : IShipModule
     {
         float DeflectionStrength { get; }
         float BeamFocusMultiplier { get; }

@@ -158,9 +158,9 @@ namespace Starfire.Entity
             OnTransponderDataChanged?.Invoke(entity, data);
         }
 
-        private static ITransponderModule GetTransponder(EntityControllerBase entity)
+        private static ITransponderShipModule GetTransponder(EntityControllerBase entity)
         {
-            return entity.Systems?.GetAllModulesOfType<ITransponderModule>().FirstOrDefault();
+            return entity.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
         }
     }
 }

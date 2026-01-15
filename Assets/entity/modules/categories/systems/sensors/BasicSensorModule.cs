@@ -6,11 +6,11 @@ using Starfire.Entity.Modules.Transponder;
 
 namespace Starfire.Entity.Modules.Sensor
 {
-    public class BasicSensorModule : ISensorModule
+    public class BasicSensorModule : ISensorShipModule
     {
         private readonly BasicSensorConfig _config;
         private EntityControllerBase _controller;
-        private ITransponderModule _ownTransponder;
+        private ITransponderShipModule _ownTransponder;
 
         private readonly List<DetectedEntity> _detectedEntities = new();
         private readonly HashSet<int> _previousEntityIds = new();
@@ -127,7 +127,7 @@ namespace Starfire.Entity.Modules.Sensor
 
                 if (level == DetectionLevel.None) continue;
 
-                var transponder = entity.Systems?.GetAllModulesOfType<ITransponderModule>().FirstOrDefault();
+                var transponder = entity.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
                 if (transponder == null) continue;
 
                 if (!_config.FilterConfig.PassesFilter(transponder.Faction, transponder.ShipClass, ownFaction))
@@ -151,13 +151,6 @@ namespace Starfire.Entity.Modules.Sensor
 
                 _previousEntityIds.Remove(instanceId);
             }
-
-#if UNITY_EDITOR
-            if (_detectedEntities.Count > 0 || candidateCount > 0)
-            {
-                Debug.Log($"[Sensor] Poll: registry={registryCount}, candidates={candidateCount}, detected={_detectedEntities.Count}, range={effectiveRange}");
-            }
-#endif
 
             foreach (int lostId in _previousEntityIds)
             {
@@ -218,9 +211,9 @@ namespace Starfire.Entity.Modules.Sensor
             }
         }
 
-        private ITransponderModule GetOwnTransponder()
+        private ITransponderShipModule GetOwnTransponder()
         {
-            return _controller?.Systems?.GetAllModulesOfType<ITransponderModule>().FirstOrDefault();
+            return _controller?.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
         }
     }
 }

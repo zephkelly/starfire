@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Starfire.Entity.Modules.Shield
 {
-    public class BasicShieldModule : IShieldModule
+    public class BasicShieldModule : IShieldShipModule
     {
         private readonly BasicShieldConfig _config;
         private EntityControllerBase _controller;

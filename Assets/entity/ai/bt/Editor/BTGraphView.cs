@@ -176,16 +176,25 @@ namespace Starfire.Entity.AI.BT.Editor
 
             // Decorators
             evt.menu.AppendAction("Add Decorator/Repeater", _ => CreateNode(BTNodeType.Repeater, mousePosition));
+            evt.menu.AppendAction("Add Decorator/Guarded Repeater", _ => CreateNode(BTNodeType.GuardedRepeater, mousePosition));
 
             // Subtree
             evt.menu.AppendAction("Add Subtree", _ => CreateNode(BTNodeType.Subtree, mousePosition));
 
-            // Actions
+            // Actions - organized by entity type and category
             evt.menu.AppendSeparator();
-            foreach (var actionType in BTActionRegistry.GetActionTypes())
+            foreach (var entityType in BTActionRegistry.GetEntityTypes())
             {
-                var type = actionType; // Capture for closure
-                evt.menu.AppendAction($"Add Action/{type}", _ => CreateActionNode(type, mousePosition));
+                foreach (var categoryGroup in BTActionRegistry.GetActionsByEntityType(entityType))
+                {
+                    foreach (var actionInfo in categoryGroup.OrderBy(a => a.Name))
+                    {
+                        var actionName = actionInfo.Name; // Capture for closure
+                        evt.menu.AppendAction(
+                            $"Add Action/{entityType}/{categoryGroup.Key}/{actionName}",
+                            _ => CreateActionNode(actionName, mousePosition));
+                    }
+                }
             }
         }
 

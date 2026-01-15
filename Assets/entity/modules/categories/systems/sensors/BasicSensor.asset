@@ -18,8 +18,8 @@ MonoBehaviour:
   targetingAccuracy: 1
   rangeConfig:
     maxRange: 1000
-    silhouetteRangePercent: 0.6
-    fullRangePercent: 0.3
+    silhouetteRangePercent: 0.8
+    fullRangePercent: 0.5
   pollingInterval: 0.25
   filterConfig:
     factionFilterMode: 0

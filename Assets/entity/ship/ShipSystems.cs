@@ -24,45 +24,45 @@ namespace Starfire.Entity
         private static readonly Dictionary<ModuleTypeId, Func<EntityControllerBase, IModuleSlot>> SlotFactories = new()
         {
             // Core > Structure
-            { ModuleTypeId.Hull, c => new ModuleSlot<IHullModule>(c) },
+            { ModuleTypeId.Hull, c => new ModuleSlot<IHullShipModule>(c) },
 
             // Core > Defense
-            { ModuleTypeId.Shield, c => new ModuleSlot<IShieldModule>(c) },
-            { ModuleTypeId.Deflector, c => new ModuleSlot<IDeflectorModule>(c) },
+            { ModuleTypeId.Shield, c => new ModuleSlot<IShieldShipModule>(c) },
+            { ModuleTypeId.Deflector, c => new ModuleSlot<IDeflectorShipModule>(c) },
 
             // Propulsion > Maneuvering
-            { ModuleTypeId.ManeuveringThruster, c => new ModuleSlot<IPropulsionModule>(c) },
-            { ModuleTypeId.RotationThruster, c => new ModuleSlot<IRotationModule>(c) },
+            { ModuleTypeId.ManeuveringThruster, c => new ModuleSlot<IPropulsionShipModule>(c) },
+            { ModuleTypeId.RotationThruster, c => new ModuleSlot<IRotationShipModule>(c) },
 
             // Propulsion > Impulse
-            { ModuleTypeId.ImpulseEngine, c => new ModuleSlot<IPropulsionModule>(c) },
+            { ModuleTypeId.ImpulseEngine, c => new ModuleSlot<IPropulsionShipModule>(c) },
 
             // Propulsion > FTL
-            { ModuleTypeId.WarpDrive, c => new ModuleSlot<IWarpDriveModule>(c) },
-            { ModuleTypeId.Hyperdrive, c => new ModuleSlot<IHyperdriveModule>(c) },
+            { ModuleTypeId.WarpDrive, c => new ModuleSlot<IWarpDriveShipModule>(c) },
+            { ModuleTypeId.Hyperdrive, c => new ModuleSlot<IHyperdriveShipModule>(c) },
 
             // Weapons > Offensive
-            { ModuleTypeId.Laser, c => new ModuleSlot<IWeaponModule>(c) },
-            { ModuleTypeId.PlasmaCannon, c => new ModuleSlot<IWeaponModule>(c) },
-            { ModuleTypeId.MissileLauncher, c => new ModuleSlot<IWeaponModule>(c) },
+            { ModuleTypeId.Laser, c => new ModuleSlot<IWeaponShipModule>(c) },
+            { ModuleTypeId.PlasmaCannon, c => new ModuleSlot<IWeaponShipModule>(c) },
+            { ModuleTypeId.MissileLauncher, c => new ModuleSlot<IWeaponShipModule>(c) },
 
             // Weapons > Defensive
-            { ModuleTypeId.PointDefenseTurret, c => new ModuleSlot<IWeaponModule>(c) },
+            { ModuleTypeId.PointDefenseTurret, c => new ModuleSlot<IWeaponShipModule>(c) },
 
             // Systems > Sensors
-            { ModuleTypeId.SensorArray, c => new ModuleSlot<ISensorModule>(c) },
+            { ModuleTypeId.SensorArray, c => new ModuleSlot<ISensorShipModule>(c) },
 
             // Systems > Communications
-            { ModuleTypeId.Transponder, c => new ModuleSlot<ITransponderModule>(c) },
+            { ModuleTypeId.Transponder, c => new ModuleSlot<ITransponderShipModule>(c) },
 
             // Systems > Automation
-            { ModuleTypeId.AICore, c => new ModuleSlot<IAICoreModule>(c) },
+            { ModuleTypeId.AICore, c => new ModuleSlot<IAICoreShipModule>(c) },
 
             // Utility > Storage
-            { ModuleTypeId.CargoBay, c => new ModuleSlot<ICargoBayModule>(c) },
+            { ModuleTypeId.CargoBay, c => new ModuleSlot<ICargoBayShipModule>(c) },
 
             // Utility > Support
-            { ModuleTypeId.LifeSupport, c => new ModuleSlot<ILifeSupportModule>(c) }
+            { ModuleTypeId.LifeSupport, c => new ModuleSlot<ILifeSupportShipModule>(c) }
         };
 
         // === Typed accessors ===
@@ -70,12 +70,12 @@ namespace Starfire.Entity
         /// <summary>
         /// Gets all equipped weapon modules.
         /// </summary>
-        public IEnumerable<IWeaponModule> AllWeapons => GetAllModulesOfType<IWeaponModule>();
+        public IEnumerable<IWeaponShipModule> AllWeapons => GetAllModulesOfType<IWeaponShipModule>();
 
         /// <summary>
         /// Gets all equipped propulsion modules (impulse, warp, hyperdrive).
         /// </summary>
-        public IEnumerable<IPropulsionModule> AllPropulsion => GetAllModulesOfType<IPropulsionModule>();
+        public IEnumerable<IPropulsionShipModule> AllPropulsion => GetAllModulesOfType<IPropulsionShipModule>();
 
         /// <summary>
         /// Gets all slots containing offensive weapons.
@@ -110,12 +110,12 @@ namespace Starfire.Entity
         /// <summary>
         /// Gets the primary (first) weapon module, or null if none equipped.
         /// </summary>
-        public IWeaponModule PrimaryWeapon => AllWeapons.FirstOrDefault();
+        public IWeaponShipModule PrimaryWeapon => AllWeapons.FirstOrDefault();
 
         /// <summary>
         /// Gets the fastest propulsion module by max speed.
         /// </summary>
-        public IPropulsionModule FastestPropulsion =>
+        public IPropulsionShipModule FastestPropulsion =>
             AllPropulsion.OrderByDescending(p => p.MaxSpeed).FirstOrDefault();
 
         // === Multi-slot primary accessors ===
@@ -123,12 +123,12 @@ namespace Starfire.Entity
         /// <summary>
         /// Gets all equipped rotation/maneuvering modules.
         /// </summary>
-        public IEnumerable<IRotationModule> AllRotation => GetAllModulesOfType<IRotationModule>();
+        public IEnumerable<IRotationShipModule> AllRotation => GetAllModulesOfType<IRotationShipModule>();
 
         /// <summary>
         /// Gets the primary (first) rotation module, or null if none equipped.
         /// </summary>
-        public IRotationModule PrimaryRotation => AllRotation.FirstOrDefault();
+        public IRotationShipModule PrimaryRotation => AllRotation.FirstOrDefault();
 
         /// <summary>
         /// Gets all maneuvering thruster slots.
@@ -145,22 +145,22 @@ namespace Starfire.Entity
         /// <summary>
         /// Gets the primary hull module.
         /// </summary>
-        public IHullModule PrimaryHull => GetAllModulesOfType<IHullModule>().FirstOrDefault();
+        public IHullShipModule PrimaryHull => GetAllModulesOfType<IHullShipModule>().FirstOrDefault();
 
         /// <summary>
         /// Gets the primary shield module.
         /// </summary>
-        public IShieldModule PrimaryShield => GetAllModulesOfType<IShieldModule>().FirstOrDefault();
+        public IShieldShipModule PrimaryShield => GetAllModulesOfType<IShieldShipModule>().FirstOrDefault();
 
         /// <summary>
         /// Gets the primary impulse propulsion module.
         /// </summary>
-        public IPropulsionModule PrimaryImpulse => GetAllModulesOfType<IPropulsionModule>().FirstOrDefault();
+        public IPropulsionShipModule PrimaryImpulse => GetAllModulesOfType<IPropulsionShipModule>().FirstOrDefault();
 
         /// <summary>
         /// Gets the primary AI core module.
         /// </summary>
-        public IAICoreModule PrimaryAICore => GetAllModulesOfType<IAICoreModule>().FirstOrDefault();
+        public IAICoreShipModule PrimaryAICore => GetAllModulesOfType<IAICoreShipModule>().FirstOrDefault();
 
         // === Constructor ===
 

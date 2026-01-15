@@ -11,7 +11,7 @@ namespace Starfire.Entity.Modules.Rotation
 
         public bool RespectMaxSpeed => respectMaxSpeed;
 
-        public override IRotationModule CreateModule()
+        public override IRotationShipModule CreateModule()
         {
             return new InstantRotationModule(this);
         }

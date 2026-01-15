@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.LifeSupport
 {
-    public class BasicLifeSupportModule : ILifeSupportModule
+    public class BasicLifeSupportModule : ILifeSupportShipModule
     {
         private readonly BasicLifeSupportConfig _config;
         private EntityControllerBase _controller;

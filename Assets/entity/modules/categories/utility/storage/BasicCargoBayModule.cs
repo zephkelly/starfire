@@ -1,6 +1,6 @@
 namespace Starfire.Entity.Modules.CargoBay
 {
-    public class BasicCargoBayModule : ICargoBayModule
+    public class BasicCargoBayModule : ICargoBayShipModule
     {
         private readonly BasicCargoBayConfig _config;
         private EntityControllerBase _controller;

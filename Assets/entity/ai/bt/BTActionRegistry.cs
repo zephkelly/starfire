@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Starfire.Entity.Modules;
 
 namespace Starfire.Entity.AI.BT
@@ -23,12 +24,16 @@ namespace Starfire.Entity.AI.BT
             public string Name { get; }
             public Type ParameterType { get; }
             public ActionFactory Factory { get; }
+            public string EntityType { get; }
+            public string Category { get; }
 
-            public ActionInfo(string name, Type parameterType, ActionFactory factory)
+            public ActionInfo(string name, Type parameterType, ActionFactory factory, string entityType, string category)
             {
                 Name = name;
                 ParameterType = parameterType;
                 Factory = factory;
+                EntityType = entityType;
+                Category = category;
             }
         }
 
@@ -36,81 +41,75 @@ namespace Starfire.Entity.AI.BT
 
         static BTActionRegistry()
         {
-            // Target Setting
-            Register("SetTargetPosition", typeof(SetTargetPositionParameters), CreateSetTargetPositionAction);
-            Register("SetTargetFromEntity", typeof(SetTargetFromEntityParameters), CreateSetTargetFromEntityAction);
-            Register("SetTargetFromWaypoints", typeof(SetTargetFromWaypointsParameters), CreateSetTargetFromWaypointsAction);
-            Register("SetTargetFromWaypointsDynamic", typeof(SetTargetFromWaypointsDynamicParameters), CreateSetTargetFromWaypointsDynamicAction);
+            // Ship > Target Setting
+            Register("SetTargetPosition", typeof(SetTargetPositionParameters), CreateSetTargetPositionAction, "Ship", "Target");
+            Register("SetTargetFromEntity", typeof(SetTargetFromEntityParameters), CreateSetTargetFromEntityAction, "Ship", "Target");
+            Register("SetTargetFromWaypoints", typeof(SetTargetFromWaypointsParameters), CreateSetTargetFromWaypointsAction, "Ship", "Target");
+            Register("SetTargetFromWaypointsDynamic", typeof(SetTargetFromWaypointsDynamicParameters), CreateSetTargetFromWaypointsDynamicAction, "Ship", "Target");
 
-            // Steering Calculation
-            Register("CalculateSeek", typeof(CalculateSeekParameters), CreateCalculateSeekAction);
-            Register("CalculateArrive", typeof(CalculateArriveParameters), CreateCalculateArriveAction);
-            Register("CalculateFlee", typeof(CalculateFleeParameters), CreateCalculateFleeAction);
+            // Ship > Steering
+            Register("CalculateSeek", typeof(CalculateSeekParameters), CreateCalculateSeekAction, "Ship", "Steering");
+            Register("CalculateArrive", typeof(CalculateArriveParameters), CreateCalculateArriveAction, "Ship", "Steering");
+            Register("CalculateFlee", typeof(CalculateFleeParameters), CreateCalculateFleeAction, "Ship", "Steering");
+            Register("ApplySteering", typeof(ApplySteeringParameters), CreateApplySteeringAction, "Ship", "Steering");
+            Register("CalculateSmartArrive", typeof(CalculateSmartArriveParameters), CreateCalculateSmartArriveAction, "Ship", "Steering");
+            Register("CalculateRecovery", typeof(CalculateRecoveryParameters), CreateCalculateRecoveryAction, "Ship", "Steering");
+            Register("CalculateFlyThrough", typeof(CalculateFlyThroughParameters), CreateCalculateFlyThroughAction, "Ship", "Steering");
+            Register("CalculateBrakeAndTurn", typeof(CalculateBrakeAndTurnParameters), CreateCalculateBrakeAndTurnAction, "Ship", "Steering");
 
-            // Steering Application
-            Register("ApplySteering", typeof(ApplySteeringParameters), CreateApplySteeringAction);
+            // Ship > Rotation
+            Register("RotateTowardTarget", typeof(RotateTowardTargetParameters), CreateRotateTowardTargetAction, "Ship", "Rotation");
+            Register("RotateTowardVelocity", typeof(RotateTowardVelocityParameters), CreateRotateTowardVelocityAction, "Ship", "Rotation");
 
-            // Rotation
-            Register("RotateTowardTarget", typeof(RotateTowardTargetParameters), CreateRotateTowardTargetAction);
-            Register("RotateTowardVelocity", typeof(RotateTowardVelocityParameters), CreateRotateTowardVelocityAction);
+            // Ship > Waypoints
+            Register("AdvanceWaypointIndex", typeof(AdvanceWaypointIndexParameters), CreateAdvanceWaypointIndexAction, "Ship", "Waypoints");
+            Register("InitWaypointStack", typeof(InitWaypointStackParameters), CreateInitWaypointStackAction, "Ship", "Waypoints");
+            Register("GenerateRandomSubWaypoints", typeof(GenerateRandomSubWaypointsParameters), CreateGenerateRandomSubWaypointsAction, "Ship", "Waypoints");
+            Register("PushWaypoints", typeof(PushWaypointsParameters), CreatePushWaypointsAction, "Ship", "Waypoints");
+            Register("PopWaypoints", typeof(PopWaypointsParameters), CreatePopWaypointsAction, "Ship", "Waypoints");
 
-            // Waypoint Management
-            Register("AdvanceWaypointIndex", typeof(AdvanceWaypointIndexParameters), CreateAdvanceWaypointIndexAction);
-            Register("InitWaypointStack", typeof(InitWaypointStackParameters), CreateInitWaypointStackAction);
-            Register("GenerateRandomSubWaypoints", typeof(GenerateRandomSubWaypointsParameters), CreateGenerateRandomSubWaypointsAction);
-            Register("PushWaypoints", typeof(PushWaypointsParameters), CreatePushWaypointsAction);
-            Register("PopWaypoints", typeof(PopWaypointsParameters), CreatePopWaypointsAction);
+            // Ship > Speed
+            Register("SetCruiseSpeed", typeof(SetCruiseSpeedParameters), CreateSetCruiseSpeedAction, "Ship", "Speed");
+            Register("SetDynamicCruiseSpeed", typeof(SetDynamicCruiseSpeedParameters), CreateSetDynamicCruiseSpeedAction, "Ship", "Speed");
 
-            // Conditions - Waypoint Stack
-            Register("IsStackDepth", typeof(IsStackDepthParameters), CreateIsStackDepthCondition);
-            Register("IsSequenceComplete", typeof(IsSequenceCompleteParameters), CreateIsSequenceCompleteCondition);
+            // Ship > Trajectory
+            Register("CalculateTrajectoryPrediction", typeof(CalculateTrajectoryPredictionParameters), CreateCalculateTrajectoryPredictionAction, "Ship", "Trajectory");
 
-            // Conditions - Position
-            Register("IsNearPosition", typeof(IsNearPositionParameters), CreateIsNearPositionCondition);
-            Register("IsStopped", typeof(IsStoppedParameters), CreateIsStoppedCondition);
+            // Ship > Conditions > Waypoint
+            Register("IsStackDepth", typeof(IsStackDepthParameters), CreateIsStackDepthCondition, "Ship", "Conditions/Waypoint");
+            Register("IsSequenceComplete", typeof(IsSequenceCompleteParameters), CreateIsSequenceCompleteCondition, "Ship", "Conditions/Waypoint");
 
-            // Conditions - Module
-            Register("HasModuleType", typeof(HasModuleTypeParameters), CreateHasModuleTypeCondition);
-            Register("HasModuleCategory", typeof(HasModuleCategoryParameters), CreateHasModuleCategoryCondition);
-            Register("HasModuleSubCategory", typeof(HasModuleSubCategoryParameters), CreateHasModuleSubCategoryCondition);
+            // Ship > Conditions > Position
+            Register("IsNearPosition", typeof(IsNearPositionParameters), CreateIsNearPositionCondition, "Ship", "Conditions/Position");
+            Register("IsStopped", typeof(IsStoppedParameters), CreateIsStoppedCondition, "Ship", "Conditions/Position");
 
-            // Conditions - Target
-            Register("HasTarget", typeof(HasTargetParameters), CreateHasTargetCondition);
-            Register("IsInRange", typeof(IsInRangeParameters), CreateIsInRangeCondition);
+            // Ship > Conditions > Module
+            Register("HasModuleType", typeof(HasModuleTypeParameters), CreateHasModuleTypeCondition, "Ship", "Conditions/Module");
+            Register("HasModuleCategory", typeof(HasModuleCategoryParameters), CreateHasModuleCategoryCondition, "Ship", "Conditions/Module");
+            Register("HasModuleSubCategory", typeof(HasModuleSubCategoryParameters), CreateHasModuleSubCategoryCondition, "Ship", "Conditions/Module");
 
-            // Trajectory Prediction
-            Register("CalculateTrajectoryPrediction", typeof(CalculateTrajectoryPredictionParameters), CreateCalculateTrajectoryPredictionAction);
+            // Ship > Conditions > Target
+            Register("HasTarget", typeof(HasTargetParameters), CreateHasTargetCondition, "Ship", "Conditions/Target");
+            Register("IsInRange", typeof(IsInRangeParameters), CreateIsInRangeCondition, "Ship", "Conditions/Target");
 
-            // Smart Steering
-            Register("CalculateSmartArrive", typeof(CalculateSmartArriveParameters), CreateCalculateSmartArriveAction);
-            Register("CalculateRecovery", typeof(CalculateRecoveryParameters), CreateCalculateRecoveryAction);
-            Register("CalculateFlyThrough", typeof(CalculateFlyThroughParameters), CreateCalculateFlyThroughAction);
+            // Ship > Conditions > Trajectory
+            Register("WillMissTarget", typeof(WillMissTargetParameters), CreateWillMissTargetCondition, "Ship", "Conditions/Trajectory");
+            Register("HasOvershot", typeof(HasOvershotParameters), CreateHasOvershotCondition, "Ship", "Conditions/Trajectory");
+            Register("IsHighApproachAngle", typeof(IsHighApproachAngleParameters), CreateIsHighApproachAngleCondition, "Ship", "Conditions/Trajectory");
 
-            // Trajectory Conditions
-            Register("WillMissTarget", typeof(WillMissTargetParameters), CreateWillMissTargetCondition);
-            Register("HasOvershot", typeof(HasOvershotParameters), CreateHasOvershotCondition);
+            // Ship > Conditions > Random
+            Register("RandomChance", typeof(RandomChanceParameters), CreateRandomChanceCondition, "Ship", "Conditions/Random");
 
-            // Cruise Speed Control
-            Register("SetCruiseSpeed", typeof(SetCruiseSpeedParameters), CreateSetCruiseSpeedAction);
-            Register("SetDynamicCruiseSpeed", typeof(SetDynamicCruiseSpeedParameters), CreateSetDynamicCruiseSpeedAction);
-
-            // Utility Actions
-            Register("Wait", typeof(WaitParameters), CreateWaitAction);
-
-            // Random Conditions
-            Register("RandomChance", typeof(RandomChanceParameters), CreateRandomChanceCondition);
-
-            // High-Angle Redirect
-            Register("IsHighApproachAngle", typeof(IsHighApproachAngleParameters), CreateIsHighApproachAngleCondition);
-            Register("CalculateBrakeAndTurn", typeof(CalculateBrakeAndTurnParameters), CreateCalculateBrakeAndTurnAction);
+            // Ship > Utility
+            Register("Wait", typeof(WaitParameters), CreateWaitAction, "Ship", "Utility");
         }
 
         /// <summary>
-        /// Register a new action type.
+        /// Register a new action type with entity type and category.
         /// </summary>
-        public static void Register(string actionType, Type parameterType, ActionFactory factory)
+        public static void Register(string actionType, Type parameterType, ActionFactory factory, string entityType = "Ship", string category = "General")
         {
-            _actions[actionType] = new ActionInfo(actionType, parameterType, factory);
+            _actions[actionType] = new ActionInfo(actionType, parameterType, factory, entityType, category);
         }
 
         /// <summary>
@@ -151,6 +150,33 @@ namespace Starfire.Entity.AI.BT
             if (info == null) return null;
 
             return (IBTNodeParameters)Activator.CreateInstance(info.ParameterType);
+        }
+
+        /// <summary>
+        /// Get all registered action infos.
+        /// </summary>
+        public static IEnumerable<ActionInfo> GetAllActionInfos()
+        {
+            return _actions.Values;
+        }
+
+        /// <summary>
+        /// Get all unique entity types.
+        /// </summary>
+        public static IEnumerable<string> GetEntityTypes()
+        {
+            return _actions.Values.Select(a => a.EntityType).Distinct().OrderBy(e => e);
+        }
+
+        /// <summary>
+        /// Get all actions for a specific entity type, grouped by category.
+        /// </summary>
+        public static IEnumerable<IGrouping<string, ActionInfo>> GetActionsByEntityType(string entityType)
+        {
+            return _actions.Values
+                .Where(a => a.EntityType == entityType)
+                .GroupBy(a => a.Category)
+                .OrderBy(g => g.Key);
         }
 
         // Factory methods for target setting actions

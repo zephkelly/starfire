@@ -22,7 +22,7 @@ namespace Starfire.Entity.Modules.Hyperdrive
         public float HyperdriveRange => hyperdriveRange * GetTierMultiplier();
         public float ChargeTime => chargeTime / GetTierMultiplier();
 
-        public abstract IHyperdriveModule CreateModule();
+        public abstract IHyperdriveShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

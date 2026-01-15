@@ -46,7 +46,7 @@ namespace Starfire.Entity.Modules.Weapon
         public TurretSettings TurretSettings => turretSettings;
         public WeaponDamageConfig DamageConfig => damageConfig;
 
-        public abstract IWeaponModule CreateModule();
+        public abstract IWeaponShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

@@ -24,7 +24,7 @@ namespace Starfire.Entity.Modules.Rotation
         public float RotationSpeed => rotationSpeed;
         public float SpriteOffset => spriteOffset;
 
-        public abstract IRotationModule CreateModule();
+        public abstract IRotationShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {

@@ -87,6 +87,12 @@ namespace Starfire.Entity.AI.BT.Editor
                     style.backgroundColor = new Color(0.5f, 0.45f, 0.2f, 0.8f);
                     break;
 
+                case BTNodeType.GuardedRepeater:
+                    AddToClassList("decorator-node");
+                    // Orange tint for guarded repeater (interruptible)
+                    style.backgroundColor = new Color(0.6f, 0.35f, 0.15f, 0.8f);
+                    break;
+
                 case BTNodeType.Action:
                     AddToClassList("action-node");
                     // Green tint for actions
@@ -115,6 +121,7 @@ namespace Starfire.Entity.AI.BT.Editor
             // Output port for composites and decorators (not for Action or Subtree)
             if (NodeData.nodeType != BTNodeType.Action && NodeData.nodeType != BTNodeType.Subtree)
             {
+                // Repeater has single child, GuardedRepeater has 2 (guard + body), composites have multi
                 var capacity = NodeData.nodeType == BTNodeType.Repeater
                     ? Port.Capacity.Single
                     : Port.Capacity.Multi;
@@ -147,6 +154,11 @@ namespace Starfire.Entity.AI.BT.Editor
                     var repeatParams = NodeData.parameters as RepeaterParameters;
                     var count = repeatParams?.repeatCount ?? -1;
                     descLabel.text = count < 0 ? "Loop forever" : $"Repeat {count}x";
+                    break;
+                case BTNodeType.GuardedRepeater:
+                    var guardedParams = NodeData.parameters as GuardedRepeaterParameters;
+                    var guardedCount = guardedParams?.repeatCount ?? -1;
+                    descLabel.text = guardedCount < 0 ? "Guard→Body (infinite)" : $"Guard→Body ({guardedCount}x)";
                     break;
                 case BTNodeType.Action:
                     descLabel.text = GetActionDescription();
@@ -225,6 +237,11 @@ namespace Starfire.Entity.AI.BT.Editor
                         var repeatParams = NodeData.parameters as RepeaterParameters;
                         var count = repeatParams?.repeatCount ?? -1;
                         descLabel.text = count < 0 ? "Loop forever" : $"Repeat {count}x";
+                        break;
+                    case BTNodeType.GuardedRepeater:
+                        var guardedParams = NodeData.parameters as GuardedRepeaterParameters;
+                        var guardedCount = guardedParams?.repeatCount ?? -1;
+                        descLabel.text = guardedCount < 0 ? "Guard→Body (infinite)" : $"Guard→Body ({guardedCount}x)";
                         break;
                     case BTNodeType.Action:
                         descLabel.text = GetActionDescription();

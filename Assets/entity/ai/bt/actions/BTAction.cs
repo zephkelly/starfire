@@ -4,7 +4,7 @@ namespace Starfire.Entity.AI.BT
     /// Base class for behavior tree leaf nodes that perform actions.
     /// Supports tick intervals for optimization - expensive actions can run every N ticks.
     /// </summary>
-    public abstract class BTAction : IBTNode
+    public abstract class BTAction : IShipBTNode
     {
         protected BTContext Context { get; private set; }
 

@@ -272,13 +272,13 @@ namespace Starfire.Core.Debugging
             GL.PopMatrix();
         }
 
-        private IHullModule GetHull()
+        private IHullShipModule GetHull()
         {
             var shipController = _selectedEntity as ShipController;
             return shipController?.ShipSystems?.PrimaryHull;
         }
 
-        private IShieldModule GetShield()
+        private IShieldShipModule GetShield()
         {
             var shipController = _selectedEntity as ShipController;
             return shipController?.ShipSystems?.PrimaryShield;

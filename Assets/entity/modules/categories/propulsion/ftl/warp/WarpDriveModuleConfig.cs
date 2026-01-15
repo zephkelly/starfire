@@ -24,7 +24,7 @@ namespace Starfire.Entity.Modules.WarpDrive
         public float ChargeTime => chargeTime / GetTierMultiplier();
         public float Cooldown => cooldown / GetTierMultiplier();
 
-        public abstract IWarpDriveModule CreateModule();
+        public abstract IWarpDriveShipModule CreateModule();
 
         protected float GetTierMultiplier()
         {
