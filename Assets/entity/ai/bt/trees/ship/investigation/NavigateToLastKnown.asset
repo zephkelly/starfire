@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
+  m_Name: NavigateToLastKnown
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
+  nodes:
+  - id: root-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 400, y: 100}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: set-target-from-last-known
+    nodeType: 4
+    actionType: SetTargetFromLastKnown
+    editorPosition: {x: 100, y: 250}
+    parameters:
+      rid: 1000
+    tickInterval: 1
+  - id: set-cruise-speed
+    nodeType: 4
+    actionType: SetCruiseSpeed
+    editorPosition: {x: 200, y: 250}
+    parameters:
+      rid: 1001
+    tickInterval: 1
+  - id: approach-steering
+    nodeType: 5
+    actionType:
+    editorPosition: {x: 300, y: 250}
+    parameters:
+      rid: 1002
+    tickInterval: 1
+  - id: apply-steering
+    nodeType: 4
+    actionType: ApplySteering
+    editorPosition: {x: 400, y: 250}
+    parameters:
+      rid: 1003
+    tickInterval: 1
+  - id: rotation
+    nodeType: 5
+    actionType:
+    editorPosition: {x: 500, y: 250}
+    parameters:
+      rid: 1004
+    tickInterval: 1
+  - id: arrival-selector
+    nodeType: 0
+    actionType:
+    editorPosition: {x: 600, y: 250}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: arrived-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 550, y: 400}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: is-near-position
+    nodeType: 4
+    actionType: IsNearPosition
+    editorPosition: {x: 500, y: 550}
+    parameters:
+      rid: 1005
+    tickInterval: 1
+  - id: clear-last-known
+    nodeType: 4
+    actionType: ClearLastKnownPosition
+    editorPosition: {x: 600, y: 550}
+    parameters:
+      rid: 1006
+    tickInterval: 1
+  - id: continue-wait
+    nodeType: 4
+    actionType: Wait
+    editorPosition: {x: 650, y: 400}
+    parameters:
+      rid: 1007
+    tickInterval: 1
+  connections:
+  - parentId: root-sequence
+    childId: set-target-from-last-known
+    childIndex: 0
+  - parentId: root-sequence
+    childId: set-cruise-speed
+    childIndex: 1
+  - parentId: root-sequence
+    childId: approach-steering
+    childIndex: 2
+  - parentId: root-sequence
+    childId: apply-steering
+    childIndex: 3
+  - parentId: root-sequence
+    childId: rotation
+    childIndex: 4
+  - parentId: root-sequence
+    childId: arrival-selector
+    childIndex: 5
+  - parentId: arrival-selector
+    childId: arrived-sequence
+    childIndex: 0
+  - parentId: arrival-selector
+    childId: continue-wait
+    childIndex: 1
+  - parentId: arrived-sequence
+    childId: is-near-position
+    childIndex: 0
+  - parentId: arrived-sequence
+    childId: clear-last-known
+    childIndex: 1
+  rootNodeId: root-sequence
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 1000
+      type: {class: SetTargetFromLastKnownParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        lastPositionKey: last_known_position
+        steeringTargetKey: steering_target
+    - rid: 1001
+      type: {class: SetCruiseSpeedParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        speed: 20
+        acceleration: -1
+        speedKey: cruise_speed
+        accelKey: cruise_acceleration
+    - rid: 1002
+      type: {class: SubtreeParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: ce80fbe230a49274e965f777d42e43a0, type: 2}
+    - rid: 1003
+      type: {class: ApplySteeringParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        forceKey: steering_force
+    - rid: 1004
+      type: {class: SubtreeParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: f2b972c075158dc4e99d3985e1fa121e, type: 2}
+    - rid: 1005
+      type: {class: IsNearPositionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: steering_target
+        threshold: 5
+    - rid: 1006
+      type: {class: ClearLastKnownPositionParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        lastPositionKey: last_known_position
+    - rid: 1007
+      type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        duration: 0.1
+        randomDelay: 0
+        elapsedKey:

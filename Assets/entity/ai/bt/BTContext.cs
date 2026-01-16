@@ -13,6 +13,17 @@ namespace Starfire.Entity.AI.BT
         // because the AICore module is attached during ShipSystems construction
         public ShipSystems Systems => Controller?.ShipSystems;
 
+        /// <summary>
+        /// Enable debug logging for this entity's behavior tree execution.
+        /// Only active in UNITY_EDITOR builds.
+        /// </summary>
+        public bool DebugLogging { get; set; } = false;
+
+        /// <summary>
+        /// Entity name for log prefixing.
+        /// </summary>
+        public string EntityName => Controller?.name ?? "Unknown";
+
         private readonly Dictionary<string, object> _blackboard = new();
 
         public BTContext(EntityControllerBase controller, AIDriver driver)

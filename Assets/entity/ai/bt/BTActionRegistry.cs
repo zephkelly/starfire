@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Starfire.Entity.Modules;
+using Starfire.Entity.Modules.Sensor;
 
 namespace Starfire.Entity.AI.BT
 {
@@ -56,6 +57,9 @@ namespace Starfire.Entity.AI.BT
             Register("CalculateRecovery", typeof(CalculateRecoveryParameters), CreateCalculateRecoveryAction, "Ship", "Steering");
             Register("CalculateFlyThrough", typeof(CalculateFlyThroughParameters), CreateCalculateFlyThroughAction, "Ship", "Steering");
             Register("CalculateBrakeAndTurn", typeof(CalculateBrakeAndTurnParameters), CreateCalculateBrakeAndTurnAction, "Ship", "Steering");
+            Register("CalculateMaintainDistance", typeof(CalculateMaintainDistanceParameters), CreateCalculateMaintainDistanceAction, "Ship", "Steering");
+            Register("SetHoldingPosition", typeof(SetHoldingPositionParameters), CreateSetHoldingPositionAction, "Ship", "Steering");
+            Register("SetTargetPositionFromEntity", typeof(SetTargetPositionFromEntityParameters), CreateSetTargetPositionFromEntityAction, "Ship", "Steering");
 
             // Ship > Rotation
             Register("RotateTowardTarget", typeof(RotateTowardTargetParameters), CreateRotateTowardTargetAction, "Ship", "Rotation");
@@ -102,6 +106,23 @@ namespace Starfire.Entity.AI.BT
 
             // Ship > Utility
             Register("Wait", typeof(WaitParameters), CreateWaitAction, "Ship", "Utility");
+
+            // Ship > Sensors
+            Register("ScanForContacts", typeof(ScanForContactsParameters), CreateScanForContactsAction, "Ship", "Sensors");
+            Register("SelectClosestContact", typeof(SelectClosestContactParameters), CreateSelectClosestContactAction, "Ship", "Sensors");
+            Register("UpdateTargetDetection", typeof(UpdateTargetDetectionParameters), CreateUpdateTargetDetectionAction, "Ship", "Sensors");
+            Register("SetTargetFromInvestigation", typeof(SetTargetFromInvestigationParameters), CreateSetTargetFromInvestigationAction, "Ship", "Sensors");
+            Register("AddToIdentifiedList", typeof(AddToIdentifiedListParameters), CreateAddToIdentifiedListAction, "Ship", "Sensors");
+            Register("ClearInvestigationTarget", typeof(ClearInvestigationTargetParameters), CreateClearInvestigationTargetAction, "Ship", "Sensors");
+            Register("SetTargetFromLastKnown", typeof(SetTargetFromLastKnownParameters), CreateSetTargetFromLastKnownAction, "Ship", "Sensors");
+            Register("ClearLastKnownPosition", typeof(ClearLastKnownPositionParameters), CreateClearLastKnownPositionAction, "Ship", "Sensors");
+            Register("StoreMonitoredTarget", typeof(StoreMonitoredTargetParameters), CreateStoreMonitoredTargetAction, "Ship", "Sensors");
+
+            // Ship > Conditions > Sensors
+            Register("HasInvestigationTarget", typeof(HasInvestigationTargetParameters), CreateHasInvestigationTargetCondition, "Ship", "Conditions/Sensors");
+            Register("IsTargetDetectionLevel", typeof(IsTargetDetectionLevelParameters), CreateIsTargetDetectionLevelCondition, "Ship", "Conditions/Sensors");
+            Register("IsTargetHostile", typeof(IsTargetHostileParameters), CreateIsTargetHostileCondition, "Ship", "Conditions/Sensors");
+            Register("HasLastKnownPosition", typeof(HasLastKnownPositionParameters), CreateHasLastKnownPositionCondition, "Ship", "Conditions/Sensors");
         }
 
         /// <summary>
@@ -457,6 +478,113 @@ namespace Starfire.Entity.AI.BT
         {
             var p = parameters as HasModuleSubCategoryParameters ?? new HasModuleSubCategoryParameters();
             return new HasModuleSubCategoryCondition(p.subCategory, p.minimumCount);
+        }
+
+        // Factory methods for sensor actions
+
+        private static IBTNode CreateScanForContactsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as ScanForContactsParameters ?? new ScanForContactsParameters();
+            return new ScanForContactsAction(p.minDetectionLevel, p.maxResults, p.outputKey, p.excludeIdentifiedKey);
+        }
+
+        private static IBTNode CreateSelectClosestContactAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SelectClosestContactParameters ?? new SelectClosestContactParameters();
+            return new SelectClosestContactAction(p.inputKey, p.targetKey);
+        }
+
+        private static IBTNode CreateUpdateTargetDetectionAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as UpdateTargetDetectionParameters ?? new UpdateTargetDetectionParameters();
+            return new UpdateTargetDetectionAction(p.targetKey, p.levelKey, p.lastPositionKey);
+        }
+
+        private static IBTNode CreateSetTargetFromInvestigationAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetTargetFromInvestigationParameters ?? new SetTargetFromInvestigationParameters();
+            return new SetTargetFromInvestigationAction(p.targetKey, p.steeringTargetKey);
+        }
+
+        private static IBTNode CreateAddToIdentifiedListAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as AddToIdentifiedListParameters ?? new AddToIdentifiedListParameters();
+            return new AddToIdentifiedListAction(p.targetKey, p.listKey);
+        }
+
+        private static IBTNode CreateClearInvestigationTargetAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as ClearInvestigationTargetParameters ?? new ClearInvestigationTargetParameters();
+            return new ClearInvestigationTargetAction(p.targetKey);
+        }
+
+        private static IBTNode CreateSetTargetFromLastKnownAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetTargetFromLastKnownParameters ?? new SetTargetFromLastKnownParameters();
+            return new SetTargetFromLastKnownAction(p.lastPositionKey, p.steeringTargetKey);
+        }
+
+        private static IBTNode CreateClearLastKnownPositionAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as ClearLastKnownPositionParameters ?? new ClearLastKnownPositionParameters();
+            return new ClearLastKnownPositionAction(p.lastPositionKey);
+        }
+
+        // Factory methods for sensor conditions
+
+        private static IBTNode CreateHasInvestigationTargetCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasInvestigationTargetParameters ?? new HasInvestigationTargetParameters();
+            var condition = new HasInvestigationTargetCondition(p.targetKey);
+            condition.Invert = p.invert;
+            return condition;
+        }
+
+        private static IBTNode CreateIsTargetDetectionLevelCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsTargetDetectionLevelParameters ?? new IsTargetDetectionLevelParameters();
+            return new IsTargetDetectionLevelCondition(p.levelKey, p.minLevel);
+        }
+
+        private static IBTNode CreateIsTargetHostileCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsTargetHostileParameters ?? new IsTargetHostileParameters();
+            return new IsTargetHostileCondition(p.targetKey);
+        }
+
+        private static IBTNode CreateHasLastKnownPositionCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HasLastKnownPositionParameters ?? new HasLastKnownPositionParameters();
+            return new HasLastKnownPositionCondition(p.lastPositionKey);
+        }
+
+        private static IBTNode CreateCalculateMaintainDistanceAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as CalculateMaintainDistanceParameters ?? new CalculateMaintainDistanceParameters();
+            return new CalculateMaintainDistanceAction(
+                p.targetKey,
+                p.outputKey,
+                p.bufferDistance,
+                p.correctionFactor,
+                p.lateralBrakingFactor);
+        }
+
+        private static IBTNode CreateStoreMonitoredTargetAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as StoreMonitoredTargetParameters ?? new StoreMonitoredTargetParameters();
+            return new StoreMonitoredTargetAction(p.sourceKey, p.targetKey);
+        }
+
+        private static IBTNode CreateSetHoldingPositionAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetHoldingPositionParameters ?? new SetHoldingPositionParameters();
+            return new SetHoldingPositionAction(p.targetEntityKey, p.outputKey, p.bufferDistance);
+        }
+
+        private static IBTNode CreateSetTargetPositionFromEntityAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as SetTargetPositionFromEntityParameters ?? new SetTargetPositionFromEntityParameters();
+            return new SetTargetPositionFromEntityAction(p.sourceKey, p.outputKey);
         }
     }
 }

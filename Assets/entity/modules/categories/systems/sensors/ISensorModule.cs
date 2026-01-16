@@ -7,6 +7,7 @@ namespace Starfire.Entity.Modules.Sensor
     public interface ISensorShipModule : IShipModule
     {
         float DetectionRange { get; }
+        float SilhouetteRange { get; }
         float TargetingAccuracy { get; }
         float PollingRate { get; }
 

@@ -15,6 +15,11 @@ namespace Starfire.Entity.AI.BT
         /// </summary>
         public int TickInterval { get; set; } = 1;
 
+        /// <summary>
+        /// When true, inverts the condition result.
+        /// </summary>
+        public bool Invert { get; set; } = false;
+
         private int _tickCounter = 0;
         private BTNodeStatus _cachedStatus = BTNodeStatus.Failure;
 
@@ -35,7 +40,9 @@ namespace Starfire.Entity.AI.BT
             if (_tickCounter >= TickInterval)
             {
                 _tickCounter = 0;
-                _cachedStatus = CheckCondition() ? BTNodeStatus.Success : BTNodeStatus.Failure;
+                bool result = CheckCondition();
+                if (Invert) result = !result;
+                _cachedStatus = result ? BTNodeStatus.Success : BTNodeStatus.Failure;
             }
 
             return _cachedStatus;

@@ -305,12 +305,12 @@ namespace Starfire.Entity.AI.BT
             return WouldCreateCycleRecursive(potentialSubtree, new HashSet<BehaviorTreeAsset> { this });
         }
 
-        private bool WouldCreateCycleRecursive(BehaviorTreeAsset asset, HashSet<BehaviorTreeAsset> visited)
+        private bool WouldCreateCycleRecursive(BehaviorTreeAsset asset, HashSet<BehaviorTreeAsset> currentPath)
         {
             if (asset == null) return false;
-            if (visited.Contains(asset)) return true;
 
-            visited.Add(asset);
+            // If asset is already in the current path, we have a cycle
+            if (!currentPath.Add(asset)) return true;
 
             // Check all subtree nodes in this asset
             foreach (var node in asset.Nodes)
@@ -319,13 +319,15 @@ namespace Starfire.Entity.AI.BT
                     node.parameters is SubtreeParameters subtreeParams &&
                     subtreeParams.subtreeAsset != null)
                 {
-                    if (WouldCreateCycleRecursive(subtreeParams.subtreeAsset, visited))
+                    if (WouldCreateCycleRecursive(subtreeParams.subtreeAsset, currentPath))
                     {
                         return true;
                     }
                 }
             }
 
+            // Backtrack: remove from path when done with this branch
+            currentPath.Remove(asset);
             return false;
         }
 

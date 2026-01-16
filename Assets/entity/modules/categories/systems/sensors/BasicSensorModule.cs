@@ -23,6 +23,7 @@ namespace Starfire.Entity.Modules.Sensor
         public bool IsEnabled { get; set; } = true;
 
         public float DetectionRange => _config.DetectionRange;
+        public float SilhouetteRange => _config.RangeConfig.SilhouetteRange * _tierMultiplier;
         public float TargetingAccuracy => _config.TargetingAccuracy;
         public float PollingRate => _config.EffectivePollingRate;
 

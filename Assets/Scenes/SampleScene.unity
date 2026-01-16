@@ -189,7 +189,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 362931224}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 073797afb82c5a1438f328866b10b3f0, type: 3}
   m_Name: 
@@ -286,8 +286,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0.05
-  m_AngularDamping: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -710,6 +710,7 @@ MonoBehaviour:
         enabled: 1
         layerName: Shooting Stars 4
         parallaxDepth: 0.0001
+        preset: {fileID: 0}
         spawnInterval: 70
         spawnIntervalVariance: 28
         limitActiveStars: 1
@@ -796,6 +797,7 @@ MonoBehaviour:
         enabled: 1
         layerName: Shooting Stars 6
         parallaxDepth: 0.0001
+        preset: {fileID: 0}
         spawnInterval: 62
         spawnIntervalVariance: 18
         limitActiveStars: 1
@@ -855,6 +857,7 @@ MonoBehaviour:
         enabled: 0
         layerName: Shaped Stars 7
         parallaxDepth: 0.02
+        preset: {fileID: 0}
         shapes:
         - shape: 0
           spawnWeight: 0.4
@@ -910,86 +913,94 @@ MonoBehaviour:
         layerName: Nebula 8
         parallaxDepth: 0.0011
         preset: {fileID: 0}
-        noiseScale: 1.92
+        noiseScale: 1.96
         octaves: 5
-        persistence: 0.5428
-        lacunarity: 2
+        persistence: 0.5413
+        lacunarity: 1.779
         warpStrength: 0.201
         warpScale: 0.883
         colorCount: 3
-        color1: {r: 0.2, g: 0.05098039, b: 0.05526974, a: 1}
-        color2: {r: 0.4, g: 0.1, b: 0.3, a: 1}
-        color3: {r: 0.8, g: 0.3, b: 0.4, a: 1}
+        color1: {r: 0.2, g: 0.05098039, b: 0.10026045, a: 1}
+        color2: {r: 0.23720777, g: 0.10196078, b: 0.4, a: 1}
+        color3: {r: 0.8, g: 0.29803926, b: 0.5992475, a: 1}
         color4: {r: 1, g: 0.8, b: 0.6, a: 1}
         gradientBias: 2.212
         gradientContrast: 1.231
-        emissionIntensity: 1
-        coreEmissionBoost: 2
-        density: 0.873
+        emissionIntensity: 1.095
+        coreEmissionBoost: 2.06
+        density: 0.879
         edgeSoftness: 0.673
-        threshold: 0.1108
-        detailFrequency: 1.243
+        threshold: 0.135
+        detailFrequency: 1.041
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
         seed: 0.37
+        regionCenter: {x: 0, y: 0}
+        regionRadius: 10000
+        regionFalloff: 50
+        regionEdgeMode: 0
     - rid: 2281391315433291844
       type: {class: StylizedNebulaLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
       data:
         enabled: 1
         layerName: Stylized Nebula 9
-        parallaxDepth: 0.001
+        parallaxDepth: 0.0001
         preset: {fileID: 0}
         enablePillars: 1
         enablePainterly: 0
         enableTendrils: 1
         enableCellular: 1
-        pillarStretch: 1.142
-        pillarAngle: -93.5
+        pillarStretch: 1.03
+        pillarAngle: -96.2
         pillarWarpBias: 1.818
         posterizeLevels: 12
         brushStrokeScale: 2.896
-        brushWarpAmount: 0.202
+        brushWarpAmount: 0.193
         curlStrength: 0.835
         curlScale: 1.152
         tendrilLength: 1.809
-        voronoiScale: 2.04
+        voronoiScale: 2.44
         cellEdgeWidth: 0.5
         bubbleInvert: 1
         enableDenseCores: 1
-        coreIntensity: 0.098
-        haloSize: 0.0735
+        coreIntensity: 0.083
+        haloSize: 0.0633
         enableEdgeLit: 1
-        rimLightStrength: 0.262
-        rimLightColor: {r: 1, g: 0.9, b: 0.7, a: 1}
+        rimLightStrength: 0.093
+        rimLightColor: {r: 0.69803923, g: 0.81626004, b: 1, a: 1}
         enableDepthBands: 1
-        bandCount: 4
+        bandCount: 8
         bandContrast: 0
         enableBrightSpots: 0
         spotDensity: 20.33
         spotIntensity: 0.492
-        edgeMode: 0
-        silhouetteSharpness: 0.054
+        edgeMode: 2
+        silhouetteSharpness: 0.482
         internalSoftness: 1
-        noiseScale: 0.37
+        noiseScale: 0.44
         octaves: 1
         persistence: 0.3983
-        lacunarity: 3
-        warpStrength: 0.168
-        warpScale: 0.913
+        lacunarity: 2.994
+        warpStrength: 0.16
+        warpScale: 0.876
         colorCount: 3
         color1: {r: 0.0493351, g: 0.030838383, b: 0.084905684, a: 0.38431373}
-        color2: {r: 0.31966385, g: 0.26922393, b: 0.4716981, a: 0.39607844}
+        color2: {r: 0.2888769, g: 0.11863652, b: 0.5849056, a: 0.39607844}
         color3: {r: 0.7075472, g: 0.1702118, b: 0.2562725, a: 0.41960785}
         color4: {r: 1, g: 0.7779928, b: 0.6, a: 1}
-        gradientBias: 0.521
+        gradientBias: 0.527
         gradientContrast: 3
-        emissionIntensity: 1.33
+        emissionIntensity: 0.174
         coreEmissionBoost: 1.775
-        density: 0.54
-        threshold: 0.3436
+        density: 0.566
+        threshold: 0.3324
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
         seed: 0
+        regionCenter: {x: 0, y: 0}
+        regionRadius: 10000
+        regionFalloff: 400
+        regionEdgeMode: 1
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1100,6 +1111,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -967.525}
+--- !u!1 &760823828
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 760823829}
+  - component: {fileID: 760823830}
+  m_Layer: 0
+  m_Name: NebulaManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &760823829
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760823828}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 868108038}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &760823830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760823828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 290c65d8f38aa94458996307ee4daddb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.Regions.NebulaRegionManager
+  maxVisibleRegions: 8
+  frustumPadding: 50
+  backgroundDepth: 100
+  scaleMultiplier: 1.1
+  nebulaShader: {fileID: 4800000, guid: 491ad7d29bd137744b81182facc84d92, type: 3}
+  stylizedNebulaShader: {fileID: 4800000, guid: e7555eb9143c3d744be2aca70f4b46b2, type: 3}
+  showDebugGizmos: 0
 --- !u!1 &772721849
 GameObject:
   m_ObjectHideFlags: 0
@@ -1163,6 +1225,8 @@ Transform:
   - {fileID: 1079180905}
   - {fileID: 2143156586}
   - {fileID: 476317742}
+  - {fileID: 1633456115}
+  - {fileID: 760823829}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &940894957
@@ -1301,7 +1365,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 952515127}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 073797afb82c5a1438f328866b10b3f0, type: 3}
   m_Name: 
@@ -2071,12 +2135,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1633456112}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 868108038}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1646265250
 GameObject:
@@ -2200,7 +2264,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2070792260}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 073797afb82c5a1438f328866b10b3f0, type: 3}
   m_Name: 
@@ -2254,7 +2318,7 @@ Transform:
   m_GameObject: {fileID: 2070792260}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.12508224, w: 0.9921464}
-  m_LocalPosition: {x: 33.27, y: 27.02, z: 0}
+  m_LocalPosition: {x: 5.3, y: 3.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2320,4 +2384,3 @@ SceneRoots:
   - {fileID: 2070792263}
   - {fileID: 1331013793}
   - {fileID: 868108038}
-  - {fileID: 1633456115}

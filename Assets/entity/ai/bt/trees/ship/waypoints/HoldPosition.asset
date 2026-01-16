@@ -99,8 +99,8 @@ MonoBehaviour:
     - rid: 1003
       type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
-        duration: 6
-        randomDelay: 4
+        duration: 12
+        randomDelay: 6
         elapsedKey: hold_position_elapsed
     - rid: 1004
       type: {class: ParallelParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}

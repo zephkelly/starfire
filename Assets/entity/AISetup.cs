@@ -22,6 +22,10 @@ namespace Starfire.Entity
         [Header("Patrol Waypoints")]
         [SerializeField] private List<Transform> waypoints = new();
 
+        [Header("Debug")]
+        [Tooltip("Enable behavior tree debug logging in Console")]
+        [SerializeField] private bool debugBehaviorTree = false;
+
         [Header("Gizmo Settings")]
         [Tooltip("Effective arrival radius (arrivalThreshold * arrivalDistanceMultiplier from CalculateSteering node)")]
         [SerializeField] private float arrivalRadius = 2f;
@@ -54,6 +58,12 @@ namespace Starfire.Entity
             }
 
             aiCore.IsAutonomous = true;
+
+            // Enable debug logging if toggled
+            if (debugBehaviorTree && aiCore.Context != null)
+            {
+                aiCore.Context.DebugLogging = true;
+            }
 
             // Store waypoints in blackboard for behavior tree to use
             if (waypoints.Count > 0)

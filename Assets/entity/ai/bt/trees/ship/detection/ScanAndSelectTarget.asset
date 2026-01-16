@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
+  m_Name: ScanAndSelectTarget
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
+  nodes:
+  - id: root-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 300, y: 100}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: scan-for-contacts
+    nodeType: 4
+    actionType: ScanForContacts
+    editorPosition: {x: 250, y: 250}
+    parameters:
+      rid: 1000
+    tickInterval: 2
+  - id: select-closest-contact
+    nodeType: 4
+    actionType: SelectClosestContact
+    editorPosition: {x: 350, y: 250}
+    parameters:
+      rid: 1001
+    tickInterval: 1
+  connections:
+  - parentId: root-sequence
+    childId: scan-for-contacts
+    childIndex: 0
+  - parentId: root-sequence
+    childId: select-closest-contact
+    childIndex: 1
+  rootNodeId: root-sequence
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 1000
+      type: {class: ScanForContactsParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        minDetectionLevel: 1
+        maxResults: 10
+        outputKey: sensor_contacts
+        excludeIdentifiedKey: identified_entities
+    - rid: 1001
+      type: {class: SelectClosestContactParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        inputKey: sensor_contacts
+        targetKey: investigation_target

@@ -1,0 +1,202 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 606c582a4c121774dae7eb2d1541e435, type: 3}
+  m_Name: ClassifyTarget
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.AI.BT.BehaviorTreeAsset
+  nodes:
+  - id: root-selector
+    nodeType: 0
+    actionType:
+    editorPosition: {x: 400, y: 100}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: at-silhouette-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 300, y: 250}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: is-target-silhouette
+    nodeType: 4
+    actionType: IsTargetDetectionLevel
+    editorPosition: {x: 200, y: 400}
+    parameters:
+      rid: 1000
+    tickInterval: 1
+  - id: faction-check-selector
+    nodeType: 0
+    actionType:
+    editorPosition: {x: 400, y: 400}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: hostile-detected-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 300, y: 550}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: is-target-hostile
+    nodeType: 4
+    actionType: IsTargetHostile
+    editorPosition: {x: 200, y: 700}
+    parameters:
+      rid: 1001
+    tickInterval: 1
+  - id: add-to-identified-hostile
+    nodeType: 4
+    actionType: AddToIdentifiedList
+    editorPosition: {x: 300, y: 700}
+    parameters:
+      rid: 1002
+    tickInterval: 1
+  - id: store-monitored-hostile
+    nodeType: 4
+    actionType: StoreMonitoredTarget
+    editorPosition: {x: 400, y: 700}
+    parameters:
+      rid: 1003
+    tickInterval: 1
+  - id: clear-investigation-hostile
+    nodeType: 4
+    actionType: ClearInvestigationTarget
+    editorPosition: {x: 500, y: 700}
+    parameters:
+      rid: 1004
+    tickInterval: 1
+  - id: non-hostile-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 500, y: 550}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: add-to-identified-friendly
+    nodeType: 4
+    actionType: AddToIdentifiedList
+    editorPosition: {x: 500, y: 850}
+    parameters:
+      rid: 1005
+    tickInterval: 1
+  - id: store-monitored-friendly
+    nodeType: 4
+    actionType: StoreMonitoredTarget
+    editorPosition: {x: 600, y: 850}
+    parameters:
+      rid: 1006
+    tickInterval: 1
+  - id: clear-investigation-friendly
+    nodeType: 4
+    actionType: ClearInvestigationTarget
+    editorPosition: {x: 700, y: 850}
+    parameters:
+      rid: 1007
+    tickInterval: 1
+  - id: not-yet-classified
+    nodeType: 4
+    actionType: Wait
+    editorPosition: {x: 500, y: 250}
+    parameters:
+      rid: 1008
+    tickInterval: 1
+  connections:
+  - parentId: root-selector
+    childId: at-silhouette-sequence
+    childIndex: 0
+  - parentId: root-selector
+    childId: not-yet-classified
+    childIndex: 1
+  - parentId: at-silhouette-sequence
+    childId: is-target-silhouette
+    childIndex: 0
+  - parentId: at-silhouette-sequence
+    childId: faction-check-selector
+    childIndex: 1
+  - parentId: faction-check-selector
+    childId: hostile-detected-sequence
+    childIndex: 0
+  - parentId: faction-check-selector
+    childId: non-hostile-sequence
+    childIndex: 1
+  - parentId: hostile-detected-sequence
+    childId: is-target-hostile
+    childIndex: 0
+  - parentId: hostile-detected-sequence
+    childId: add-to-identified-hostile
+    childIndex: 1
+  - parentId: hostile-detected-sequence
+    childId: store-monitored-hostile
+    childIndex: 2
+  - parentId: hostile-detected-sequence
+    childId: clear-investigation-hostile
+    childIndex: 3
+  - parentId: non-hostile-sequence
+    childId: add-to-identified-friendly
+    childIndex: 0
+  - parentId: non-hostile-sequence
+    childId: store-monitored-friendly
+    childIndex: 1
+  - parentId: non-hostile-sequence
+    childId: clear-investigation-friendly
+    childIndex: 2
+  rootNodeId: root-selector
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 1000
+      type: {class: IsTargetDetectionLevelParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        levelKey: target_detection_level
+        minLevel: 2
+    - rid: 1001
+      type: {class: IsTargetHostileParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: investigation_target
+    - rid: 1002
+      type: {class: AddToIdentifiedListParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: investigation_target
+        listKey: identified_entities
+    - rid: 1003
+      type: {class: StoreMonitoredTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        sourceKey: investigation_target
+        targetKey: monitored_target
+    - rid: 1004
+      type: {class: ClearInvestigationTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: investigation_target
+    - rid: 1005
+      type: {class: AddToIdentifiedListParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: investigation_target
+        listKey: identified_entities
+    - rid: 1006
+      type: {class: StoreMonitoredTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        sourceKey: investigation_target
+        targetKey: monitored_target
+    - rid: 1007
+      type: {class: ClearInvestigationTargetParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        targetKey: investigation_target
+    - rid: 1008
+      type: {class: WaitParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
+      data:
+        duration: 0
+        randomDelay: 0
+        elapsedKey:
