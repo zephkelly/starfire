@@ -1,7 +1,6 @@
-using System.Linq;
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
-using Starfire.Entity.Modules.Sensor;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
@@ -10,6 +9,7 @@ namespace Starfire.Entity.AI.BT
     /// The desired distance from target = SilhouetteRange - bufferDistance.
     /// Uses a proportional controller to correct distance errors while damping
     /// lateral velocity to prevent excessive orbiting.
+    /// Reads speed/acceleration/silhouetteRange from blackboard heuristics.
     /// </summary>
     public class CalculateMaintainDistanceAction : BTAction
     {
@@ -35,24 +35,22 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
 #if UNITY_EDITOR
                 if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] MaintainDistance: FAIL - No propulsion");
+                    Debug.Log($"[BT:{Context.EntityName}] MaintainDistance: FAIL - No propulsion (heuristic)");
 #endif
                 return BTNodeStatus.Failure;
             }
 
-            // Get sensor module to determine Silhouette range
-            var sensor = Context.Systems?.GetAllModulesOfType<ISensorShipModule>().FirstOrDefault();
-            if (sensor == null)
+            // Validate sensor capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasSensorModule, out var hasSensor) || !hasSensor)
             {
 #if UNITY_EDITOR
                 if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] MaintainDistance: FAIL - No sensor module");
+                    Debug.Log($"[BT:{Context.EntityName}] MaintainDistance: FAIL - No sensor module (heuristic)");
 #endif
                 return BTNodeStatus.Failure;
             }
@@ -67,11 +65,14 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
+            // Get silhouette range from heuristics
+            Context.TryGet<float>(HeuristicKeys.SilhouetteRange, out var silhouetteRange);
+
             // Calculate desired distance: stay inside Silhouette range by buffer amount
-            float desiredDistance = sensor.SilhouetteRange - _bufferDistance;
+            float desiredDistance = silhouetteRange - _bufferDistance;
             if (desiredDistance < 1f) desiredDistance = 1f; // Minimum safe distance
 
-            var ctx = SteeringContext.FromShip(Context.Controller);
+            var ctx = SteeringContext.FromBlackboard(Context.Controller, Context);
             Vector2 steeringForce = CalculateSteeringForce(ctx, target, desiredDistance);
 
             Context.Set(_outputKey, steeringForce);

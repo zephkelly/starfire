@@ -1,4 +1,5 @@
 using Starfire.Entity.AI.BT;
+using Starfire.Entity.AI.Goals;
 using UnityEngine;
 
 namespace Starfire.Entity.Modules.AICore
@@ -9,6 +10,7 @@ namespace Starfire.Entity.Modules.AICore
         private readonly BasicAICoreConfig _config;
         private EntityControllerBase _controller;
         private BTContext _btContext;
+        private GoalManager _goalManager;
 
         public string ModuleId => _config.ModuleId;
         public string DisplayName => _config.DisplayName;
@@ -23,6 +25,12 @@ namespace Starfire.Entity.Modules.AICore
         public BTContext Context => _btContext;
 
         public BasicAICoreConfig Config => _config;
+        public GoalParameters CurrentGoalParameters { get; private set; }
+
+        /// <summary>
+        /// The goal manager for this AI. May be null if goal system is disabled.
+        /// </summary>
+        public GoalManager GoalManager => _goalManager;
 
         public BasicAICoreModule(BasicAICoreConfig config)
         {
@@ -37,6 +45,13 @@ namespace Starfire.Entity.Modules.AICore
             controller.DriverStack.Push(Driver);
 
             _btContext = new BTContext(controller, Driver);
+
+            // Initialize goal system if enabled
+            if (_config.EnableGoalSystem)
+            {
+                _goalManager = new GoalManager();
+                _goalManager.Initialize(_btContext, _config.DefaultGoals);
+            }
 
             // Auto-create behavior tree from config if not already set
             if (BehaviorTree == null)
@@ -56,6 +71,24 @@ namespace Starfire.Entity.Modules.AICore
             }
 
             BehaviorTree?.Initialize(_btContext);
+        }
+
+        /// <summary>
+        /// Applies goal parameters to the blackboard, enabling dynamic behavior configuration.
+        /// </summary>
+        /// <param name="parameters">The goal parameters to apply.</param>
+        /// <param name="clearPrevious">If true, clears the previous goal parameters first.</param>
+        public void ApplyGoalParameters(GoalParameters parameters, bool clearPrevious = true)
+        {
+            if (_btContext == null) return;
+
+            if (clearPrevious && CurrentGoalParameters != null)
+            {
+                CurrentGoalParameters.ClearFromBlackboard(_btContext);
+            }
+
+            CurrentGoalParameters = parameters;
+            parameters?.WriteToBlackboard(_btContext);
         }
 
         public void OnDetach()

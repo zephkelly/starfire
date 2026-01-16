@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Starfire.Entity.AI.Goals;
 using Starfire.Entity.Modules;
 using Starfire.Entity.Modules.Sensor;
 
@@ -123,6 +124,15 @@ namespace Starfire.Entity.AI.BT
             Register("IsTargetDetectionLevel", typeof(IsTargetDetectionLevelParameters), CreateIsTargetDetectionLevelCondition, "Ship", "Conditions/Sensors");
             Register("IsTargetHostile", typeof(IsTargetHostileParameters), CreateIsTargetHostileCondition, "Ship", "Conditions/Sensors");
             Register("HasLastKnownPosition", typeof(HasLastKnownPositionParameters), CreateHasLastKnownPositionCondition, "Ship", "Conditions/Sensors");
+
+            // Ship > Goals
+            Register("UpdateHeuristics", typeof(UpdateHeuristicsParameters), CreateUpdateHeuristicsAction, "Ship", "Goals");
+            Register("EvaluateGoals", typeof(EvaluateGoalsParameters), CreateEvaluateGoalsAction, "Ship", "Goals");
+            Register("GeneratePatrolWaypoints", typeof(GeneratePatrolWaypointsParameters), CreateGeneratePatrolWaypointsAction, "Ship", "Goals");
+
+            // Ship > Conditions > Goals
+            Register("IsCurrentGoal", typeof(IsCurrentGoalParameters), CreateIsCurrentGoalCondition, "Ship", "Conditions/Goals");
+            Register("HeuristicThreshold", typeof(HeuristicThresholdParameters), CreateHeuristicThresholdCondition, "Ship", "Conditions/Goals");
         }
 
         /// <summary>
@@ -585,6 +595,50 @@ namespace Starfire.Entity.AI.BT
         {
             var p = parameters as SetTargetPositionFromEntityParameters ?? new SetTargetPositionFromEntityParameters();
             return new SetTargetPositionFromEntityAction(p.sourceKey, p.outputKey);
+        }
+
+        // Factory methods for goal actions
+
+        private static IBTNode CreateUpdateHeuristicsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as UpdateHeuristicsParameters ?? new UpdateHeuristicsParameters();
+            return new UpdateHeuristicsAction(p.writeIndividualKeys);
+        }
+
+        private static IBTNode CreateEvaluateGoalsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as EvaluateGoalsParameters ?? new EvaluateGoalsParameters();
+            return new EvaluateGoalsAction(p.goalManagerKey);
+        }
+
+        private static IBTNode CreateGeneratePatrolWaypointsAction(IBTNodeParameters parameters)
+        {
+            var p = parameters as GeneratePatrolWaypointsParameters ?? new GeneratePatrolWaypointsParameters();
+            return new GeneratePatrolWaypointsAction(
+                p.outputKey,
+                p.centerKey,
+                p.radiusKey,
+                p.defaultRadius,
+                p.waypointCount,
+                p.skipIfExists);
+        }
+
+        // Factory methods for goal conditions
+
+        private static IBTNode CreateIsCurrentGoalCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as IsCurrentGoalParameters ?? new IsCurrentGoalParameters();
+            var condition = new IsCurrentGoalCondition(p.expectedGoalType, p.goalTypeKey);
+            condition.Invert = p.invert;
+            return condition;
+        }
+
+        private static IBTNode CreateHeuristicThresholdCondition(IBTNodeParameters parameters)
+        {
+            var p = parameters as HeuristicThresholdParameters ?? new HeuristicThresholdParameters();
+            var condition = new HeuristicThresholdCondition(p.heuristicKey, p.threshold, p.comparison);
+            condition.Invert = p.invert;
+            return condition;
         }
     }
 }

@@ -4,28 +4,30 @@ namespace Starfire.Entity.AI.BT
 {
     /// <summary>
     /// Condition that succeeds when target is at or above a specific detection level.
+    /// The required level can be a fixed value or read from the blackboard at runtime.
     /// </summary>
     public class IsTargetDetectionLevelCondition : BTLeafCondition
     {
         private readonly string _levelKey;
-        private readonly DetectionLevel _minLevel;
+        private readonly BlackboardKeyOr<DetectionLevel> _minLevel;
 
         public IsTargetDetectionLevelCondition(
             string levelKey = "target_detection_level",
-            DetectionLevel minLevel = DetectionLevel.Silhouette)
+            BlackboardKeyOr<DetectionLevel> minLevel = null)
         {
             _levelKey = levelKey;
-            _minLevel = minLevel;
+            _minLevel = minLevel ?? new BlackboardKeyOr<DetectionLevel>(DetectionLevel.Silhouette);
         }
 
         protected override bool CheckCondition()
         {
-            if (!Context.TryGet<DetectionLevel>(_levelKey, out var level))
+            if (!Context.TryGet<DetectionLevel>(_levelKey, out var currentLevel))
             {
                 return false;
             }
 
-            return level >= _minLevel;
+            var requiredLevel = _minLevel.GetValue(Context);
+            return currentLevel >= requiredLevel;
         }
     }
 }

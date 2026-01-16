@@ -1,11 +1,13 @@
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
     /// <summary>
     /// Calculates steering for fly-through waypoints where stopping is not required.
     /// Ship passes within a specified radius without decelerating to a stop.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateFlyThroughAction : BTAction
     {
@@ -28,9 +30,8 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 return BTNodeStatus.Failure;
             }
@@ -41,7 +42,7 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
-            var ctx = SteeringContext.FromShip(Context.Controller);
+            var ctx = SteeringContext.FromBlackboard(Context.Controller, Context);
 
             Vector2 toTarget = target - ctx.Position;
             float distance = toTarget.magnitude;

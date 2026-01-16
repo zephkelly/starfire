@@ -1,5 +1,6 @@
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
@@ -8,6 +9,7 @@ namespace Starfire.Entity.AI.BT
     /// Uses physics-based trajectory prediction to account for lateral velocity
     /// and calculate the exact thrust vector needed for smooth arrival.
     /// Respects cruise speed/acceleration limits set on the blackboard.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateSmartArriveAction : BTAction
     {
@@ -48,9 +50,8 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 return BTNodeStatus.Failure;
             }
@@ -96,7 +97,7 @@ namespace Starfire.Entity.AI.BT
                 cruiseAccel = accel;
             }
 
-            return SteeringContext.FromShip(Context.Controller, cruiseSpeed, cruiseAccel);
+            return SteeringContext.FromBlackboard(Context.Controller, Context, cruiseSpeed, cruiseAccel);
         }
 
         private Vector2 CalculateSteeringForce(Vector2 target, TrajectoryPrediction prediction)

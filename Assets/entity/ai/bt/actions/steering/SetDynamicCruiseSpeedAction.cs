@@ -1,3 +1,4 @@
+using Starfire.Entity.AI.Heuristics;
 using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
@@ -7,6 +8,7 @@ namespace Starfire.Entity.AI.BT
     /// and the length of the next waypoint segment.
     /// Speed is expressed as a percentage of ship max speed, interpolated between
     /// min/max bounds based on effective distance.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class SetDynamicCruiseSpeedAction : BTAction
     {
@@ -53,16 +55,17 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Check propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 Context.Set(_speedKey, -1f);
                 Context.Set(_accelKey, -1f);
                 return BTNodeStatus.Success;
             }
 
-            float shipMaxSpeed = propulsion.MaxSpeed;
-            float shipMaxAccel = propulsion.Acceleration;
+            // Get propulsion values from heuristics
+            Context.TryGet<float>(HeuristicKeys.MaxSpeed, out var shipMaxSpeed);
+            Context.TryGet<float>(HeuristicKeys.MaxAcceleration, out var shipMaxAccel);
 
             float effectiveDistance = CalculateEffectiveDistance();
 

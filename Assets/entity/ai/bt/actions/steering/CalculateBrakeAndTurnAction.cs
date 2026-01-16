@@ -1,3 +1,4 @@
+using Starfire.Entity.AI.Heuristics;
 using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
@@ -7,6 +8,7 @@ namespace Starfire.Entity.AI.BT
     /// Used when ship is facing significantly away from target (high approach angle).
     /// Applies primarily braking force with a small correction toward target.
     /// Returns Success when speed drops below threshold, allowing normal steering to resume.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateBrakeAndTurnAction : BTAction
     {
@@ -29,9 +31,8 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 return BTNodeStatus.Failure;
             }
@@ -42,11 +43,13 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
+            // Get propulsion values from heuristics
+            Context.TryGet<float>(HeuristicKeys.MaxAcceleration, out var maxAccel);
+            Context.TryGet<float>(HeuristicKeys.MaxSpeed, out var maxSpeed);
+
             Vector2 position = Context.Transform.position;
             Vector2 velocity = Context.Controller.Rigidbody.linearVelocity;
             float speed = velocity.magnitude;
-            float maxAccel = propulsion.Acceleration;
-            float maxSpeed = propulsion.MaxSpeed;
 
             // If already slow enough, return Failure so selector falls through
             // to calc-smart-arrive which will provide forward thrust toward target

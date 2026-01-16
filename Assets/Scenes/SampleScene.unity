@@ -1022,11 +1022,6 @@ MonoBehaviour:
   postProcessVolume: {fileID: 1887904437}
   autoFindVolume: 0
   showDebugInfo: 1
-  enableDebugControls: 1
-  debugShakeIntensity: 0.5
-  debugPunchForce: 0.3
-  debugChromaticIntensity: 0.5
-  debugVignetteIntensity: 0.3
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -1497,7 +1492,7 @@ Transform:
   m_GameObject: {fileID: 982980071}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -930.2, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1521,6 +1516,7 @@ MonoBehaviour:
   - {fileID: 1310948273}
   - {fileID: 772721850}
   - {fileID: 336122089}
+  debugBehaviorTree: 1
   arrivalRadius: 4
   showArrivalBoundary: 1
 --- !u!114 &982980077
@@ -1608,6 +1604,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1079180905}
   - component: {fileID: 1079180906}
+  - component: {fileID: 1079180908}
   m_Layer: 0
   m_Name: EntityManager
   m_TagString: Untagged
@@ -1642,6 +1639,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bff5dddd411ed7d4f84912d125c458f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.EntityRegistry
+--- !u!114 &1079180908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1079180904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e051c353eac7b7f4694d08cc8c0aecba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Debugging.AIDebugGizmos
+  aiLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  selectedOnly: 0
+  showSensorRanges: 1
+  showSteeringVectors: 1
+  showWaypoints: 1
+  showInvestigationTarget: 1
+  showVelocity: 1
+  sensorRangeColor: {r: 0, g: 1, b: 1, a: 0.15}
+  silhouetteRangeColor: {r: 0.3, g: 0.5, b: 1, a: 0.15}
+  steeringTargetColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  steeringForceColor: {r: 0.2, g: 1, b: 0.2, a: 1}
+  velocityColor: {r: 1, g: 1, b: 1, a: 0.7}
+  waypointColor: {r: 1, g: 0.6, b: 0.2, a: 1}
+  currentWaypointColor: {r: 1, g: 0.8, b: 0.2, a: 1}
+  investigationColor: {r: 1, g: 0, b: 1, a: 0.8}
+  steeringForceScale: 5
+  velocityScale: 2
+  waypointSize: 0.5
+  currentWaypointSize: 0.8
+  targetCrossSize: 1
+  toggleKey: 283
+  showGizmos: 1
 --- !u!1 &1165281849
 GameObject:
   m_ObjectHideFlags: 0
@@ -2167,7 +2200,7 @@ Transform:
   m_GameObject: {fileID: 1646265250}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -876.8, y: 27, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

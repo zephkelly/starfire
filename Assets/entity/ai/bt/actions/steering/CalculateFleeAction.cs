@@ -1,12 +1,13 @@
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
     /// <summary>
     /// Calculates steering force to flee away from a target position.
     /// Accelerates in the opposite direction from target.
-    /// Reads speed/acceleration from PropulsionModule.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateFleeAction : BTAction
     {
@@ -21,9 +22,8 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate we have propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 return BTNodeStatus.Failure;
             }
@@ -34,8 +34,8 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
-            // Build steering context from ship's current state
-            var ctx = SteeringContext.FromShip(Context.Controller);
+            // Build steering context from blackboard heuristics
+            var ctx = SteeringContext.FromBlackboard(Context.Controller, Context);
 
             // Calculate flee steering (opposite of seek)
             Vector2 fromTarget = ctx.Position - target;

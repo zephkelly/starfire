@@ -1,3 +1,5 @@
+using Starfire.Entity.AI.BT;
+using Starfire.Entity.AI.Heuristics;
 using UnityEngine;
 
 namespace Starfire.Entity.AI.Steering
@@ -71,6 +73,44 @@ namespace Starfire.Entity.AI.Steering
             {
                 effectiveMaxAccel = Mathf.Min(cruiseAccel.Value, shipMaxAccel);
             }
+
+            return new SteeringContext
+            {
+                Position = controller.transform.position,
+                Velocity = controller.Rigidbody.linearVelocity,
+                MaxSpeed = effectiveMaxSpeed,
+                MaxAcceleration = effectiveMaxAccel,
+                Mass = controller.Rigidbody.mass,
+                RotationSpeed = rotation?.RotationSpeed ?? 180f
+            };
+        }
+
+        /// <summary>
+        /// Creates a SteeringContext reading capabilities from blackboard (perception layer pattern).
+        /// Physics state (position, velocity) from controller, capabilities from heuristics.
+        /// </summary>
+        public static SteeringContext FromBlackboard(ShipController controller, BTContext btContext, float? cruiseSpeed = null, float? cruiseAccel = null)
+        {
+            // Get capability values from blackboard heuristics
+            float shipMaxSpeed = btContext.TryGet<float>(HeuristicKeys.MaxSpeed, out var maxSpeed) ? maxSpeed : 10f;
+            float shipMaxAccel = btContext.TryGet<float>(HeuristicKeys.MaxAcceleration, out var maxAccel) ? maxAccel : 5f;
+
+            // Apply cruise overrides, clamping to ship's actual capabilities
+            float effectiveMaxSpeed = shipMaxSpeed;
+            float effectiveMaxAccel = shipMaxAccel;
+
+            if (cruiseSpeed.HasValue && cruiseSpeed.Value > 0)
+            {
+                effectiveMaxSpeed = Mathf.Min(cruiseSpeed.Value, shipMaxSpeed);
+            }
+
+            if (cruiseAccel.HasValue && cruiseAccel.Value > 0)
+            {
+                effectiveMaxAccel = Mathf.Min(cruiseAccel.Value, shipMaxAccel);
+            }
+
+            // Get rotation from ship systems (TODO: migrate to heuristics if needed)
+            var rotation = controller.ShipSystems.PrimaryRotation;
 
             return new SteeringContext
             {

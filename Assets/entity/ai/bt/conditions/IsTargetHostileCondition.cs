@@ -1,4 +1,4 @@
-using System.Linq;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.Modules.Sensor;
 using Starfire.Entity.Modules.Transponder;
 using UnityEngine;
@@ -8,6 +8,7 @@ namespace Starfire.Entity.AI.BT
     /// <summary>
     /// Condition that succeeds when investigation target is hostile faction.
     /// Requires target to be at Silhouette or better detection level.
+    /// Reads own faction from blackboard heuristics.
     /// </summary>
     public class IsTargetHostileCondition : BTLeafCondition
     {
@@ -49,21 +50,20 @@ namespace Starfire.Entity.AI.BT
                 return false;
             }
 
-            // Get own faction from transponder
-            var ownTransponder = Context.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
-            if (ownTransponder?.Faction == null)
+            // Get own faction from heuristics (perception layer)
+            if (!Context.TryGet<HeuristicData>(HeuristicKeys.HeuristicData, out var heuristics) || heuristics.OwnFaction == null)
             {
 #if UNITY_EDITOR
                 if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] IsTargetHostile: FAIL - Own transponder/faction null");
+                    Debug.Log($"[BT:{Context.EntityName}] IsTargetHostile: FAIL - Own faction null (heuristics)");
 #endif
                 return false;
             }
 
-            bool isHostile = ownTransponder.Faction.IsHostileTo(targetFaction);
+            bool isHostile = heuristics.OwnFaction.IsHostileTo(targetFaction);
 #if UNITY_EDITOR
             if (Context.DebugLogging)
-                Debug.Log($"[BT:{Context.EntityName}] IsTargetHostile: {(isHostile ? "SUCCESS" : "FAIL")} - Own:{ownTransponder.Faction.name} vs Target:{targetFaction.name} = {isHostile}");
+                Debug.Log($"[BT:{Context.EntityName}] IsTargetHostile: {(isHostile ? "SUCCESS" : "FAIL")} - Own:{heuristics.OwnFaction.name} vs Target:{targetFaction.name} = {isHostile}");
 #endif
             return isHostile;
         }

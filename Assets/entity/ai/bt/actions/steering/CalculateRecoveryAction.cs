@@ -1,5 +1,6 @@
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
@@ -8,6 +9,7 @@ namespace Starfire.Entity.AI.BT
     /// Adapts behavior based on current speed:
     /// - Fast: gentle loop back to conserve momentum
     /// - Slow: aggressive reverse correction
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateRecoveryAction : BTAction
     {
@@ -33,9 +35,8 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 return BTNodeStatus.Failure;
             }
@@ -46,7 +47,7 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
-            var ctx = SteeringContext.FromShip(Context.Controller);
+            var ctx = SteeringContext.FromBlackboard(Context.Controller, Context);
             float speed = ctx.Velocity.magnitude;
 
             Vector2 steeringForce;

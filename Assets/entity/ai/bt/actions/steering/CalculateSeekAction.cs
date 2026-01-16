@@ -1,12 +1,13 @@
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
     /// <summary>
     /// Calculates steering force to pursue a target without deceleration.
     /// Pure pursuit - always accelerates toward target at max acceleration.
-    /// Reads speed/acceleration from PropulsionModule.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateSeekAction : BTAction
     {
@@ -21,9 +22,8 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate we have propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
                 return BTNodeStatus.Failure;
             }
@@ -34,8 +34,8 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
-            // Build steering context from ship's current state
-            var ctx = SteeringContext.FromShip(Context.Controller);
+            // Build steering context from blackboard heuristics
+            var ctx = SteeringContext.FromBlackboard(Context.Controller, Context);
 
             // Calculate seek steering
             Vector2 toTarget = target - ctx.Position;

@@ -1,6 +1,6 @@
-using System.Linq;
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.Modules.Sensor;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
@@ -8,6 +8,7 @@ namespace Starfire.Entity.AI.BT
     /// Calculates the holding position based on sensor's Silhouette range and sets it as steering target.
     /// The holding position is on the line between ship and target, at (SilhouetteRange - buffer) from target.
     /// This allows CalculateSmartArrive to naturally handle approach and stopping.
+    /// Reads silhouetteRange from blackboard heuristics.
     /// </summary>
     public class SetHoldingPositionAction : BTAction
     {
@@ -27,13 +28,12 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Get sensor module to determine Silhouette range
-            var sensor = Context.Systems?.GetAllModulesOfType<ISensorShipModule>().FirstOrDefault();
-            if (sensor == null)
+            // Validate sensor capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasSensorModule, out var hasSensor) || !hasSensor)
             {
 #if UNITY_EDITOR
                 if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] SetHoldingPosition: FAIL - No sensor module");
+                    Debug.Log($"[BT:{Context.EntityName}] SetHoldingPosition: FAIL - No sensor module (heuristic)");
 #endif
                 return BTNodeStatus.Failure;
             }
@@ -61,8 +61,11 @@ namespace Starfire.Entity.AI.BT
             Vector2 shipPos = Context.Controller.transform.position;
             Vector2 targetPos = targetEntity.Controller.transform.position;
 
+            // Get silhouette range from heuristics
+            Context.TryGet<float>(HeuristicKeys.SilhouetteRange, out var silhouetteRange);
+
             // Calculate holding distance
-            float holdingDistance = sensor.SilhouetteRange - _bufferDistance;
+            float holdingDistance = silhouetteRange - _bufferDistance;
             if (holdingDistance < 1f) holdingDistance = 1f;
 
             // Calculate direction from target to ship

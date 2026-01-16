@@ -161,7 +161,10 @@ MonoBehaviour:
       type: {class: IsTargetDetectionLevelParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:
         levelKey: target_detection_level
-        minLevel: 2
+        minLevel:
+          useBlackboardKey: 1
+          blackboardKey: investigation_goal_level
+          fixedValue: 2
     - rid: 1001
       type: {class: IsTargetHostileParameters, ns: Starfire.Entity.AI.BT, asm: Assembly-CSharp}
       data:

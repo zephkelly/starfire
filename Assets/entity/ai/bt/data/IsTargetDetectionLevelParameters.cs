@@ -17,7 +17,12 @@ namespace Starfire.Entity.AI.BT
 
         /// <summary>
         /// Minimum required detection level.
+        /// Can be a fixed value or read from the blackboard at runtime.
         /// </summary>
-        public DetectionLevel minLevel = DetectionLevel.Silhouette;
+        public BlackboardKeyOr<DetectionLevel> minLevel = new()
+        {
+            useBlackboardKey = false,
+            fixedValue = DetectionLevel.Silhouette
+        };
     }
 }

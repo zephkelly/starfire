@@ -1,12 +1,13 @@
-using UnityEngine;
+using Starfire.Entity.AI.Heuristics;
 using Starfire.Entity.AI.Steering;
+using UnityEngine;
 
 namespace Starfire.Entity.AI.BT
 {
     /// <summary>
     /// Calculates steering force to arrive at a target with proper deceleration.
     /// Uses physics-based stopping distance: v² / (2a)
-    /// Reads speed/acceleration from PropulsionModule.
+    /// Reads speed/acceleration from blackboard heuristics.
     /// </summary>
     public class CalculateArriveAction : BTAction
     {
@@ -26,11 +27,10 @@ namespace Starfire.Entity.AI.BT
 
         protected override BTNodeStatus OnExecute(float deltaTime)
         {
-            // Validate we have propulsion capability
-            var propulsion = Context.Systems?.PrimaryImpulse;
-            if (propulsion == null)
+            // Validate propulsion capability via perception layer
+            if (!Context.TryGet<bool>(HeuristicKeys.HasPropulsionModule, out var hasPropulsion) || !hasPropulsion)
             {
-                Debug.LogWarning($"[CalculateArrive] FAILURE: No propulsion module found. Systems={Context.Systems != null}, PrimaryImpulse={Context.Systems?.PrimaryImpulse != null}");
+                Debug.LogWarning($"[CalculateArrive] FAILURE: No propulsion module (heuristic)");
                 return BTNodeStatus.Failure;
             }
 
@@ -41,8 +41,8 @@ namespace Starfire.Entity.AI.BT
                 return BTNodeStatus.Failure;
             }
 
-            // Build steering context from ship's current state
-            var ctx = SteeringContext.FromShip(Context.Controller);
+            // Build steering context from blackboard heuristics
+            var ctx = SteeringContext.FromBlackboard(Context.Controller, Context);
 
             // Calculate distance and current speed
             Vector2 toTarget = target - ctx.Position;
