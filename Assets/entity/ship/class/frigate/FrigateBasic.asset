@@ -47,6 +47,11 @@ MonoBehaviour:
     isRequired: 1
     defaultModule: {fileID: 11400000, guid: 4c27bee81f4ee504abdeec064449bd94, type: 2}
     displayNameOverride: 
+  - slotId: shield
+    moduleType: 10
+    isRequired: 0
+    defaultModule: {fileID: 11400000, guid: 7e4cc62c5f51c3741b10b7add90dd148, type: 2}
+    displayNameOverride: 
   categoryLimits: []
   capabilities: 00000000010000000400000005000000
   prefabOverride: {fileID: 0}

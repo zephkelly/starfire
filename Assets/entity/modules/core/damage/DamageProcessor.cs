@@ -103,8 +103,6 @@ namespace Starfire.Entity.Modules.Damage
                 // Add required components
                 boundaryObj.AddComponent<PolygonCollider2D>();
                 _shieldBoundary = boundaryObj.AddComponent<ShieldBoundary>();
-
-                Debug.Log($"[DamageProcessor] {gameObject.name} created ShieldBoundary with size {_shield.BoundarySize}");
             }
         }
 

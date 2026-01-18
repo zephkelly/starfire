@@ -28,20 +28,12 @@ namespace Starfire.Entity.AI.BT
         {
             if (!Context.TryGet<DetectedEntity>(_targetKey, out var target))
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] UpdateTargetDetection: FAIL - No target in blackboard");
-#endif
                 return BTNodeStatus.Failure;
             }
 
             // Check if target controller is still valid (destroyed check)
             if (!target.IsValid)
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] UpdateTargetDetection: FAIL - Target no longer valid");
-#endif
                 return BTNodeStatus.Failure;
             }
 
@@ -53,10 +45,6 @@ namespace Starfire.Entity.AI.BT
             var sensor = Context.Systems?.GetAllModulesOfType<ISensorShipModule>().FirstOrDefault();
             if (sensor == null)
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] UpdateTargetDetection: FAIL - No sensor module");
-#endif
                 return BTNodeStatus.Failure;
             }
 
@@ -69,20 +57,12 @@ namespace Starfire.Entity.AI.BT
                 // Update target with fresh detection data
                 Context.Set(_targetKey, updatedTarget);
                 Context.Set(_levelKey, updatedTarget.Level);
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] UpdateTargetDetection: SUCCESS - Fresh data, level {updatedTarget.Level}");
-#endif
             }
             else
             {
                 // Target not in current sensor sweep, but controller still exists
                 // Keep using stored data - don't fail
                 Context.Set(_levelKey, target.Level);
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] UpdateTargetDetection: SUCCESS - Using cached data (sensor lost track), level {target.Level}");
-#endif
             }
 
             return BTNodeStatus.Success;

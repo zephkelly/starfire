@@ -31,29 +31,17 @@ namespace Starfire.Entity.AI.BT
             // Validate sensor capability via perception layer
             if (!Context.TryGet<bool>(HeuristicKeys.HasSensorModule, out var hasSensor) || !hasSensor)
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] SetHoldingPosition: FAIL - No sensor module (heuristic)");
-#endif
                 return BTNodeStatus.Failure;
             }
 
             // Get target entity from blackboard
             if (!Context.TryGet<DetectedEntity>(_targetEntityKey, out var targetEntity))
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] SetHoldingPosition: FAIL - No target entity at '{_targetEntityKey}'");
-#endif
                 return BTNodeStatus.Failure;
             }
 
             if (!targetEntity.IsValid)
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] SetHoldingPosition: FAIL - Target entity is not valid");
-#endif
                 return BTNodeStatus.Failure;
             }
 
@@ -92,7 +80,6 @@ namespace Starfire.Entity.AI.BT
             if (Context.DebugLogging)
             {
                 float distToHold = Vector2.Distance(shipPos, holdingPosition);
-                Debug.Log($"[BT:{Context.EntityName}] SetHoldingPosition: holdDist={holdingDistance:F1}m, distToHoldPos={distToHold:F1}m, currentDist={currentDistance:F1}m");
             }
 #endif
 

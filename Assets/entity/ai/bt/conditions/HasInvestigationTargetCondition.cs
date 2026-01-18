@@ -17,10 +17,6 @@ namespace Starfire.Entity.AI.BT
         protected override bool CheckCondition()
         {
             bool hasTarget = Context.Has(_targetKey);
-#if UNITY_EDITOR
-            if (Context.DebugLogging)
-                Debug.Log($"[BT:{Context.EntityName}] HasInvestigationTarget: {hasTarget}");
-#endif
             return hasTarget;
         }
     }

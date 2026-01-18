@@ -24,29 +24,17 @@ namespace Starfire.Entity.AI.BT
         {
             if (!Context.TryGet<DetectedEntity>(_sourceKey, out var entity))
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] SetTargetPositionFromEntity: FAIL - No entity at '{_sourceKey}'");
-#endif
                 return BTNodeStatus.Failure;
             }
 
             if (!entity.IsValid)
             {
-#if UNITY_EDITOR
-                if (Context.DebugLogging)
-                    Debug.Log($"[BT:{Context.EntityName}] SetTargetPositionFromEntity: FAIL - Entity is not valid");
-#endif
                 return BTNodeStatus.Failure;
             }
 
             Vector2 position = entity.Controller.transform.position;
             Context.Set(_outputKey, position);
 
-#if UNITY_EDITOR
-            if (Context.DebugLogging)
-                Debug.Log($"[BT:{Context.EntityName}] SetTargetPositionFromEntity: Set '{_outputKey}' to {position}");
-#endif
 
             return BTNodeStatus.Success;
         }

@@ -44,12 +44,6 @@ namespace Starfire.Entity
                 lastMoveInput = moveInput;
                 OnMove?.Invoke(moveInput);
             }
-
-            // float rotation = -moveInput.x;
-            // if (Mathf.Abs(rotation) > 0.01f)
-            // {
-            //     OnRotate?.Invoke(rotation);
-            // }
         }
 
         private void UpdateAim()

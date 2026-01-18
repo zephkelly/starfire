@@ -258,11 +258,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 426350014}
+  - component: {fileID: 426350010}
   - component: {fileID: 426350015}
   - component: {fileID: 426350013}
   - component: {fileID: 426350012}
   - component: {fileID: 426350011}
-  - component: {fileID: 426350010}
   - component: {fileID: 426350017}
   - component: {fileID: 426350016}
   - component: {fileID: 426350018}
@@ -1605,6 +1605,7 @@ GameObject:
   - component: {fileID: 1079180905}
   - component: {fileID: 1079180906}
   - component: {fileID: 1079180908}
+  - component: {fileID: 1079180909}
   m_Layer: 0
   m_Name: EntityManager
   m_TagString: Untagged
@@ -1675,6 +1676,30 @@ MonoBehaviour:
   targetCrossSize: 1
   toggleKey: 283
   showGizmos: 1
+--- !u!114 &1079180909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1079180904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea0d9771110e60f42a5be357950e03b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Debugging.AIDebugPanel
+  panelOffset: {x: -340, y: 0}
+  panelWidth: 320
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0.85}
+  headerColor: {r: 0.3, g: 0.5, b: 0.2, a: 1}
+  sectionHeaderColor: {r: 0.2, g: 0.3, b: 0.4, a: 1}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  barBackgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  toggleKey: 290
+  showPanel: 1
+  damageKey: 291
+  healKey: 292
+  damageAmount: 25
 --- !u!1 &1165281849
 GameObject:
   m_ObjectHideFlags: 0
