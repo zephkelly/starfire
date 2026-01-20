@@ -20,9 +20,13 @@ namespace StarfireV2
 
         // Cached particle system values
         private ParticleSystem.EmissionModule _emission;
+        private ParticleSystem.InheritVelocityModule _inheritVelocity;
         private bool _hasParticles;
         private bool _hasLight;
         private bool _hasGlow;
+
+        // Ship reference for velocity inheritance
+        private Rigidbody2D _shipRigidbody;
 
         private void Awake()
         {
@@ -48,15 +52,19 @@ namespace StarfireV2
             if (_hasParticles)
             {
                 _emission = thrusterParticles.emission;
+                _inheritVelocity = thrusterParticles.inheritVelocity;
             }
         }
 
         /// <summary>
         /// Initialize the visual with configuration settings.
         /// </summary>
-        public void Initialize(ThrusterVisualConfig config)
+        /// <param name="config">Visual configuration</param>
+        /// <param name="shipRigidbody">Optional ship rigidbody for velocity-based particle inheritance</param>
+        public void Initialize(ThrusterVisualConfig config, Rigidbody2D shipRigidbody = null)
         {
             _config = config;
+            _shipRigidbody = shipRigidbody;
             _currentIntensity = 0f;
             _targetIntensity = 0f;
 
@@ -106,6 +114,7 @@ namespace StarfireV2
             UpdateParticles();
             UpdateLight();
             UpdateGlow();
+            UpdateVelocityInheritance();
         }
 
         private void UpdateParticles()
@@ -147,6 +156,17 @@ namespace StarfireV2
             thrusterGlow.color = color;
         }
 
+        private void UpdateVelocityInheritance()
+        {
+            if (!_hasParticles || _shipRigidbody == null || _config == null) return;
+
+            // Get ship speed and calculate dynamic inheritance
+            float shipSpeed = _shipRigidbody.linearVelocity.magnitude;
+            float inheritance = _config.GetVelocityInheritance(shipSpeed);
+
+            _inheritVelocity.curveMultiplier = inheritance;
+        }
+
         /// <summary>
         /// Immediately set intensity without smoothing.
         /// Useful for initialization or instant state changes.
@@ -184,7 +204,10 @@ namespace StarfireV2
         /// Creates a ThrusterVisual with code-generated particle system and light.
         /// No prefab required.
         /// </summary>
-        public static ThrusterVisual CreateFromCode(Transform parent, ThrusterVisualConfig config)
+        /// <param name="parent">Parent transform for the visual</param>
+        /// <param name="config">Visual configuration</param>
+        /// <param name="shipRigidbody">Optional ship rigidbody for velocity-based particle inheritance</param>
+        public static ThrusterVisual CreateFromCode(Transform parent, ThrusterVisualConfig config, Rigidbody2D shipRigidbody = null)
         {
             var go = new GameObject("ThrusterVisual");
             go.transform.SetParent(parent, false);
@@ -198,7 +221,7 @@ namespace StarfireV2
             }
 
             visual.CacheComponents();
-            visual.Initialize(config);
+            visual.Initialize(config, shipRigidbody);
 
             return visual;
         }
@@ -216,7 +239,7 @@ namespace StarfireV2
             main.startSpeed = config.ParticleSpeed;
             main.startSize = config.ParticleStartSize;
             main.startColor = config.ParticleStartColor;
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local; // Local space - particles follow ship
             main.maxParticles = 200;
             main.playOnAwake = false;
 
@@ -224,6 +247,12 @@ namespace StarfireV2
             var emission = thrusterParticles.emission;
             emission.enabled = true;
             emission.rateOverTime = 0f; // Controlled by SetIntensity()
+
+            // Velocity inheritance - dynamic based on ship speed
+            var inheritVelocity = thrusterParticles.inheritVelocity;
+            inheritVelocity.enabled = true;
+            inheritVelocity.mode = ParticleSystemInheritVelocityMode.Initial;
+            inheritVelocity.curveMultiplier = config.VelocityInheritanceLow; // Start value, updated dynamically
 
             // Shape module - cone pointing in local forward (up in 2D)
             var shape = thrusterParticles.shape;

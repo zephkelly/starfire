@@ -31,6 +31,10 @@ namespace Starfire.Core.Lighting
         [Tooltip("Exponent for distance falloff (2 = quadratic, 1 = linear)")]
         [SerializeField, Range(0.5f, 4f)] private float _falloffExponent = 2f;
 
+        [Header("Emissive / Bloom")]
+        [Tooltip("Intensity multiplier for HDR/bloom effect. Values > 1 will trigger bloom in post-processing.")]
+        [SerializeField, Range(0f, 5f)] private float _emissiveIntensity = 1f;
+
         [Header("Overlay Material")]
         [Tooltip("Material using the EdgeLightingOverlay shader. If not set, will try to find one.")]
         [SerializeField] private Material _overlayMaterial;
@@ -50,6 +54,7 @@ namespace Starfire.Core.Lighting
         private static readonly int EdgeSoftnessID = Shader.PropertyToID("_EdgeSoftness");
         private static readonly int MinEdgeGlowID = Shader.PropertyToID("_MinEdgeGlow");
         private static readonly int FalloffExponentID = Shader.PropertyToID("_FalloffExponent");
+        private static readonly int EmissiveIntensityID = Shader.PropertyToID("_EmissiveIntensity");
         private static readonly int LightPositionsID = Shader.PropertyToID("_EdgeLightPositions");
         private static readonly int LightColorsID = Shader.PropertyToID("_EdgeLightColors");
         private static readonly int LightParamsID = Shader.PropertyToID("_EdgeLightParams");
@@ -234,6 +239,7 @@ namespace Starfire.Core.Lighting
             _propertyBlock.SetFloat(EdgeSoftnessID, _edgeSoftness);
             _propertyBlock.SetFloat(MinEdgeGlowID, _minEdgeGlow);
             _propertyBlock.SetFloat(FalloffExponentID, _falloffExponent);
+            _propertyBlock.SetFloat(EmissiveIntensityID, _emissiveIntensity);
 
             // Set light data from manager
             _propertyBlock.SetVectorArray(LightPositionsID, positions);
@@ -256,6 +262,7 @@ namespace Starfire.Core.Lighting
                 _propertyBlock.SetFloat(EdgeSoftnessID, _edgeSoftness);
                 _propertyBlock.SetFloat(MinEdgeGlowID, _minEdgeGlow);
                 _propertyBlock.SetFloat(FalloffExponentID, _falloffExponent);
+                _propertyBlock.SetFloat(EmissiveIntensityID, _emissiveIntensity);
                 _overlaySpriteRenderer.SetPropertyBlock(_propertyBlock);
             }
         }
@@ -303,6 +310,15 @@ namespace Starfire.Core.Lighting
         {
             get => _falloffExponent;
             set => _falloffExponent = Mathf.Clamp(value, 0.5f, 4f);
+        }
+
+        /// <summary>
+        /// Emissive intensity for HDR/bloom. Values > 1 will trigger bloom in post-processing.
+        /// </summary>
+        public float EmissiveIntensity
+        {
+            get => _emissiveIntensity;
+            set => _emissiveIntensity = Mathf.Clamp(value, 0f, 5f);
         }
     }
 }

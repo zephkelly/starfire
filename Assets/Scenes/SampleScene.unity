@@ -1477,6 +1477,7 @@ MonoBehaviour:
   _edgeSoftness: 0.112
   _minEdgeGlow: 0
   _falloffExponent: 2.183
+  _emissiveIntensity: 1
   _overlayMaterial: {fileID: 0}
 --- !u!1 &952515127
 GameObject:
@@ -1683,7 +1684,7 @@ Transform:
   m_GameObject: {fileID: 982980071}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -930.2, y: 0, z: 0}
+  m_LocalPosition: {x: 33.94, y: 19.83, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2485,6 +2486,7 @@ MonoBehaviour:
   _edgeSoftness: 0.1
   _minEdgeGlow: 0
   _falloffExponent: 2
+  _emissiveIntensity: 1
   _overlayMaterial: {fileID: 0}
 --- !u!1 &1498633121
 GameObject:
@@ -2531,12 +2533,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fb095a9ee858254190b4d5197ed4fe3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Lighting.EdgeLitSprite
-  _edgeBrightness: 1
+  _edgeBrightness: 0.952
   _edgeTint: {r: 1, g: 1, b: 1, a: 1}
   _edgeWidth: 3
-  _edgeSoftness: 0.112
-  _minEdgeGlow: 0
+  _edgeSoftness: 0.188
+  _minEdgeGlow: 0.023
   _falloffExponent: 2.183
+  _emissiveIntensity: 1.18
   _overlayMaterial: {fileID: 0}
 --- !u!212 &1498633124
 SpriteRenderer:
@@ -2780,7 +2783,7 @@ Transform:
   m_GameObject: {fileID: 1646265250}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -876.8, y: 27, z: 0}
+  m_LocalPosition: {x: -61, y: 27, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

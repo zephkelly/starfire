@@ -725,7 +725,8 @@ namespace StarfireV2
                 if (visualConfig.UseCodeGenerated)
                 {
                     // Create visual entirely from code - no prefab needed
-                    visual = ThrusterVisual.CreateFromCode(spawnParent, visualConfig);
+                    // Pass Rigidbody2D for velocity-based particle inheritance
+                    visual = ThrusterVisual.CreateFromCode(spawnParent, visualConfig, _controller.Rigid2D);
                     visual.transform.localPosition = localPos;
                     visual.transform.localRotation = Quaternion.Euler(0, 0, angle);
                 }
@@ -740,7 +741,8 @@ namespace StarfireV2
                     visual = visualGO.GetComponent<ThrusterVisual>();
                     if (visual != null)
                     {
-                        visual.Initialize(visualConfig);
+                        // Pass Rigidbody2D for velocity-based particle inheritance
+                        visual.Initialize(visualConfig, _controller.Rigid2D);
                     }
                 }
 

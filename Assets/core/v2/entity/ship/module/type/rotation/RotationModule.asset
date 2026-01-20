@@ -44,3 +44,5 @@ MonoBehaviour:
   settlingDerivativeGain: 3
   settlingAcceptanceThreshold: 3
   minimumThrustFraction: 0.02
+  enableDirectionOptimization: 1
+  directionOptimizationVelocityThreshold: 60

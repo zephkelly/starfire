@@ -13,6 +13,9 @@ Shader "Starfire/EdgeLightingOverlay"
 
         [Header(Light Falloff)]
         _FalloffExponent ("Falloff Exponent", Range(0.5, 4)) = 2.0
+
+        [Header(Emissive)]
+        _EmissiveIntensity ("Emissive Intensity", Range(0, 5)) = 1.0
     }
 
     SubShader
@@ -59,6 +62,7 @@ Shader "Starfire/EdgeLightingOverlay"
                 float _EdgeSoftness;
                 float _MinEdgeGlow;
                 float _FalloffExponent;
+                float _EmissiveIntensity;
             CBUFFER_END
 
             struct Attributes
@@ -78,53 +82,99 @@ Shader "Starfire/EdgeLightingOverlay"
 
             float SampleAlpha(float2 uv)
             {
+                // Treat out-of-bounds UV samples as transparent
+                // This fixes edge detection at texture boundaries
+                if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
+                {
+                    return 0.0;
+                }
                 return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).a;
+            }
+
+            float DetectEdgeAtRadius(float2 uv, float2 ts)
+            {
+                // Sobel-style 8-sample gradient calculation
+                float tl = SampleAlpha(uv + float2(-ts.x, ts.y));
+                float t  = SampleAlpha(uv + float2(0, ts.y));
+                float tr = SampleAlpha(uv + float2(ts.x, ts.y));
+                float l  = SampleAlpha(uv + float2(-ts.x, 0));
+                float r  = SampleAlpha(uv + float2(ts.x, 0));
+                float bl = SampleAlpha(uv + float2(-ts.x, -ts.y));
+                float b  = SampleAlpha(uv + float2(0, -ts.y));
+                float br = SampleAlpha(uv + float2(ts.x, -ts.y));
+
+                // Sobel gradients (weighted for better diagonal handling)
+                float gx = (tr + 2.0 * r + br) - (tl + 2.0 * l + bl);
+                float gy = (tl + 2.0 * t + tr) - (bl + 2.0 * b + br);
+
+                return length(float2(gx, gy));
             }
 
             float DetectEdge(float2 uv, float2 texelSize, float centerAlpha)
             {
-                if (centerAlpha < 0.1)
-                {
-                    return 0;
-                }
+                if (centerAlpha < 0.01) return 0;
 
-                float left   = SampleAlpha(uv + float2(-texelSize.x, 0));
-                float right  = SampleAlpha(uv + float2( texelSize.x, 0));
-                float up     = SampleAlpha(uv + float2(0,  texelSize.y));
-                float down   = SampleAlpha(uv + float2(0, -texelSize.y));
-                float tl     = SampleAlpha(uv + float2(-texelSize.x,  texelSize.y));
-                float tr     = SampleAlpha(uv + float2( texelSize.x,  texelSize.y));
-                float bl     = SampleAlpha(uv + float2(-texelSize.x, -texelSize.y));
-                float br     = SampleAlpha(uv + float2( texelSize.x, -texelSize.y));
+                // Sample at multiple radii for robustness (1/3, 2/3, and full width)
+                float edge1 = DetectEdgeAtRadius(uv, texelSize * 0.333);
+                float edge2 = DetectEdgeAtRadius(uv, texelSize * 0.666);
+                float edge3 = DetectEdgeAtRadius(uv, texelSize);
 
-                float minCardinal = min(min(left, right), min(up, down));
-                float minDiagonal = min(min(tl, tr), min(bl, br));
-                float minNeighbor = min(minCardinal, minDiagonal);
+                // Take maximum edge strength across all radii
+                float maxEdge = max(max(edge1, edge2), edge3);
 
-                float alphaThreshold = 0.5;
-                float isOpaque = step(alphaThreshold, centerAlpha);
-                float hasTransparentNeighbor = 1.0 - step(alphaThreshold, minNeighbor);
+                // Normalize gradient magnitude to 0-1 range
+                // Sobel max theoretical output is ~4 for a perfect edge, but typically ~2-3
+                float edge = saturate(maxEdge * 0.4);
 
-                float edge = isOpaque * hasTransparentNeighbor;
-
-                float alphaGradient = saturate((centerAlpha - minNeighbor) / max(_EdgeSoftness, 0.01));
-                edge = lerp(edge, edge * alphaGradient, _EdgeSoftness);
+                // Apply softness - blend based on center alpha proximity to edge
+                edge = lerp(edge, edge * centerAlpha, _EdgeSoftness);
 
                 return edge;
             }
 
             float2 CalculateEdgeNormal(float2 uv, float2 texelSize)
             {
-                float left  = SampleAlpha(uv + float2(-texelSize.x, 0));
-                float right = SampleAlpha(uv + float2( texelSize.x, 0));
-                float up    = SampleAlpha(uv + float2(0,  texelSize.y));
-                float down  = SampleAlpha(uv + float2(0, -texelSize.y));
+                // 8-sample Sobel for better gradient accuracy
+                float tl = SampleAlpha(uv + float2(-texelSize.x, texelSize.y));
+                float t  = SampleAlpha(uv + float2(0, texelSize.y));
+                float tr = SampleAlpha(uv + float2(texelSize.x, texelSize.y));
+                float l  = SampleAlpha(uv + float2(-texelSize.x, 0));
+                float r  = SampleAlpha(uv + float2(texelSize.x, 0));
+                float bl = SampleAlpha(uv + float2(-texelSize.x, -texelSize.y));
+                float b  = SampleAlpha(uv + float2(0, -texelSize.y));
+                float br = SampleAlpha(uv + float2(texelSize.x, -texelSize.y));
 
-                float2 gradient = float2(right - left, up - down);
-                float2 normal = -gradient;
+                // Sobel operator for gradient
+                float gx = (tr + 2.0 * r + br) - (tl + 2.0 * l + bl);
+                float gy = (tl + 2.0 * t + tr) - (bl + 2.0 * b + br);
 
-                float len = length(normal);
-                return len > 0.001 ? normal / len : float2(0, 0);
+                float gradLen = length(float2(gx, gy));
+
+                // Normal points outward (opposite of gradient direction toward opaque)
+                if (gradLen > 0.001)
+                {
+                    return float2(-gx, -gy) / gradLen;
+                }
+
+                // Fallback: find direction to nearest transparent pixel
+                float2 toTrans = float2(0, 0);
+                if (l < 0.5) toTrans.x -= 1.0;
+                if (r < 0.5) toTrans.x += 1.0;
+                if (b < 0.5) toTrans.y -= 1.0;
+                if (t < 0.5) toTrans.y += 1.0;
+                if (tl < 0.5) toTrans += float2(-0.707, 0.707);
+                if (tr < 0.5) toTrans += float2(0.707, 0.707);
+                if (bl < 0.5) toTrans += float2(-0.707, -0.707);
+                if (br < 0.5) toTrans += float2(0.707, -0.707);
+
+                float transLen = length(toTrans);
+                if (transLen > 0.001)
+                {
+                    return toTrans / transLen;
+                }
+
+                // Last resort fallback - point upward
+                return float2(0, 1);
             }
 
             float3 CalculateEdgeLighting(float2 worldPos, float2 edgeNormal)
@@ -221,6 +271,9 @@ Shader "Starfire/EdgeLightingOverlay"
                 float2 edgeNormal = CalculateEdgeNormal(IN.uv, texelSize);
                 float3 edgeLight = CalculateEdgeLighting(IN.worldPos, edgeNormal);
                 edgeLight *= _EdgeTint.rgb * _EdgeBrightness * edge;
+
+                // Apply emissive intensity for HDR/bloom support
+                edgeLight *= _EmissiveIntensity;
 
                 return half4(edgeLight, 0);
             }

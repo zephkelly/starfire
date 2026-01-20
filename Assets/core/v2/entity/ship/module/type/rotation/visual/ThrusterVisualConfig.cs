@@ -83,6 +83,18 @@ namespace StarfireV2
         [Tooltip("Glow color at full thrust")]
         [SerializeField] private Color maxThrustColor = new Color(0.85f, 0.82f, 0.78f, 1f);
 
+        [Header("Particle Physics")]
+        [Tooltip("Velocity inheritance at low ship speed (0-1). Higher values create more exhaust drift.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float velocityInheritanceLow = 0.3f;
+
+        [Tooltip("Velocity inheritance at high ship speed (0-1). Lower values keep particles attached to ship.")]
+        [Range(0f, 0.1f)]
+        [SerializeField] private float velocityInheritanceHigh = 0.01f;
+
+        [Tooltip("Ship speed at which inheritance reaches minimum (units/sec)")]
+        [SerializeField] private float velocityInheritanceSpeedThreshold = 20f;
+
         // Properties
         public GameObject VisualPrefab => visualPrefab;
         public bool UseCodeGenerated => visualPrefab == null;
@@ -112,6 +124,11 @@ namespace StarfireV2
 
         public Color MinThrustColor => minThrustColor;
         public Color MaxThrustColor => maxThrustColor;
+
+        // Particle physics
+        public float VelocityInheritanceLow => velocityInheritanceLow;
+        public float VelocityInheritanceHigh => velocityInheritanceHigh;
+        public float VelocityInheritanceSpeedThreshold => velocityInheritanceSpeedThreshold;
 
         /// <summary>
         /// Interpolate emission rate based on normalized thrust.
@@ -143,6 +160,16 @@ namespace StarfireV2
         public Color GetGlowColor(float normalizedThrust)
         {
             return Color.Lerp(minThrustColor, maxThrustColor, normalizedThrust);
+        }
+
+        /// <summary>
+        /// Calculate velocity inheritance based on ship speed.
+        /// At low speeds, particles drift more. At high speeds, they stay attached.
+        /// </summary>
+        public float GetVelocityInheritance(float shipSpeed)
+        {
+            float t = Mathf.Clamp01(shipSpeed / velocityInheritanceSpeedThreshold);
+            return Mathf.Lerp(velocityInheritanceLow, velocityInheritanceHigh, t);
         }
     }
 }
