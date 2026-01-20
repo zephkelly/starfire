@@ -38,6 +38,13 @@ namespace Starfire.Core.Cam
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo;
 
+        [Header("Debug Controls")]
+        [SerializeField] private bool enableDebugControls = true;
+        [SerializeField] private float debugShakeIntensity = 0.5f;
+        [SerializeField] private float debugPunchForce = 0.3f;
+        [SerializeField] private float debugChromaticIntensity = 0.5f;
+        [SerializeField] private float debugVignetteIntensity = 0.3f;
+
         public UnityEngine.Camera Camera { get; private set; }
         public CameraPresetInstance CurrentPreset { get; private set; }
         public CameraUpdateMode UpdateMode => updateMode;
@@ -200,6 +207,12 @@ namespace Starfire.Core.Cam
             {
                 _zoomController.ScrollZoom(scrollDelta);
             }
+
+            // Debug controls
+            if (enableDebugControls)
+            {
+                HandleDebugControls();
+            }
         }
 
         private void FixedUpdate()
@@ -264,6 +277,46 @@ namespace Starfire.Core.Cam
             transform.position = finalPos;
             transform.rotation = Quaternion.Euler(0, 0, finalRotation);
             Camera.orthographicSize = finalZoom;
+        }
+
+        private void HandleDebugControls()
+        {
+            // F1 - Shake
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                Shake(debugShakeIntensity);
+            }
+
+            // F2 - Punch (random direction)
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                Vector2 dir = UnityEngine.Random.insideUnitCircle.normalized;
+                Punch(dir, debugPunchForce);
+            }
+
+            // F3 - Chromatic Aberration
+            if (Input.GetKeyDown(KeyCode.F3))
+            {
+                SetChromaticAberration(debugChromaticIntensity, 0.3f);
+            }
+
+            // F4 - Vignette
+            if (Input.GetKeyDown(KeyCode.F4))
+            {
+                SetVignette(debugVignetteIntensity, 0.5f);
+            }
+
+            // F5 - Flash
+            if (Input.GetKeyDown(KeyCode.F5))
+            {
+                Flash(Color.white, 0.1f);
+            }
+
+            // F6 - Reset all effects
+            if (Input.GetKeyDown(KeyCode.F6))
+            {
+                ResetEffects();
+            }
         }
 
         private Vector2 CalculateTargetPosition(bool useInterpolatedPosition, float speed)

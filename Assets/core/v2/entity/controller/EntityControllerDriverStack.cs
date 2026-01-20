@@ -1,11 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace StarfireV2
 {
+    [Serializable]
     public class EntityControllerDriverStack
     {
-        private readonly List<IEntityControllerDriver> drivers = new();
+        [SerializeReference]
+        private List<IEntityControllerDriver> drivers = new();
 
         public void Push(IEntityControllerDriver driver)
         {
@@ -23,9 +27,33 @@ namespace StarfireV2
             return drivers.FirstOrDefault(d => d.IsActive);
         }
 
+        public void SetActiveDriver(IEntityControllerDriver driver)
+        {
+            if (drivers.Contains(driver))
+            {
+                drivers.Remove(driver);
+            }
+            drivers.Insert(0, driver);
+        }
+
         public void Clear()
         {
             drivers.Clear();
+        }
+
+        /// <summary>
+        /// Initializes all drivers that require runtime setup.
+        /// Call this from your controller's Start() method.
+        /// </summary>
+        public void InitializeDrivers()
+        {
+            foreach (var driver in drivers)
+            {
+                if (driver is PlayerEntityControllerDriver playerDriver)
+                {
+                    playerDriver.EnsureInitialized();
+                }
+            }
         }
     }
 }

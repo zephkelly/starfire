@@ -8,5 +8,16 @@ namespace StarfireV2
         {
             return EntityModuleHierarchyRegistry.GetTypesInCategory(category);
         }
+
+        public IEnumerable<T> GetAllModulesOfType<T>() where T : class, IEntityModule
+        {
+            foreach (var slot in _slotsById.Values)
+            {
+                if (slot.ModuleBase is T module)
+                {
+                    yield return module;
+                }
+            }
+        }
     }
 }

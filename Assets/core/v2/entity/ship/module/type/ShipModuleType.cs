@@ -13,13 +13,8 @@ namespace StarfireV2
         WarpDrive,
         HyperDrive,
 
-        Laser,
-        PlasmaCannon,
-        MissileLauncher,
-
-        FlakCannon,
-        FlareDispenser,
-        LaserPointDefense,
+        Weapon,
+        PointDefense,
 
         SensorArray,
         Transponder,
@@ -39,13 +34,8 @@ namespace StarfireV2
         WarpDrive = 120,
         HyperDrive = 121,
 
-        Laser = 200,
-        PlasmaCannon = 201,
-        MissileLauncher = 202,
-
-        FlakCannon = 210,
-        FlareDispenser = 211,
-        LaserPointDefense = 212,
+        Weapon = 200,
+        PointDefense = 210,
 
         SensorArray = 300,
         Transponder = 310,

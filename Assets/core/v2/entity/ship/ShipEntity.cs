@@ -13,14 +13,16 @@ namespace StarfireV2
 
         // Typed accessors
         public IShipHullModule Hull => Modules.GetModulesOfType<IShipHullModule>().FirstOrDefault();
+        public IShipPropulsionModule Propulsion => Modules.GetModulesOfType<IShipPropulsionModule>().FirstOrDefault();
+        public IShipRotationModule Rotation => Modules.GetModulesOfType<IShipRotationModule>().FirstOrDefault();
 
         // Category-based accessors
-        public IEnumerable<IShipModule> DefenseModules => GetModulesInCategory(ShipModuleCategory.Defense);
-        public IEnumerable<IShipModule> OffenseModules => GetModulesInCategory(ShipModuleCategory.Offense);
-        public IEnumerable<IShipModule> PropulsionModules => GetModulesInCategory(ShipModuleCategory.Propulsion);
-        public IEnumerable<IShipModule> SensorModules => GetModulesInCategory(ShipModuleCategory.Sensor);
-        public IEnumerable<IShipModule> UtilityModules => GetModulesInCategory(ShipModuleCategory.Utility);
-
+        public IEnumerable<IShipModule> DefenseModules => Modules.GetModulesOfType<IShipModule>().Where(m => m.Category == ShipModuleCategory.Defense);
+        public IEnumerable<IShipOffensiveModule> OffenseModules => Modules.GetModulesOfType<IShipOffensiveModule>().Where(m => m.Category == ShipModuleCategory.Offense);
+        public IEnumerable<IShipModule> PropulsionModules => Modules.GetModulesOfType<IShipModule>().Where(m => m.Category == ShipModuleCategory.Propulsion);
+        public IEnumerable<IShipModule> SensorModules => Modules.GetModulesOfType<IShipModule>().Where(m => m.Category == ShipModuleCategory.Sensor);
+        public IEnumerable<IShipModule> UtilityModules => Modules.GetModulesOfType<IShipModule>().Where(m => m.Category == ShipModuleCategory.Utility);
+        
         public ShipEntity(EntityType type, int id)
         {
             EntityType = type;
@@ -51,14 +53,6 @@ namespace StarfireV2
         public void UpdateModules(float deltaTime)
         {
             Modules.UpdateAll(deltaTime);
-        }
-
-        private IEnumerable<IShipModule> GetModulesInCategory(ShipModuleCategory category)
-        {
-            return Modules.GetSlotsByCategory(category)
-                .Where(s => s.HasModule)
-                .Select(s => s.ModuleBase)
-                .OfType<IShipModule>();
         }
     }
 }

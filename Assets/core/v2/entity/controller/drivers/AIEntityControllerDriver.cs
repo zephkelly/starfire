@@ -1,10 +1,13 @@
+using System;
 using UnityEngine;
 
 namespace StarfireV2
 {
+    [Serializable]
     public class AIEntityControllerDriver : IEntityControllerDriver
     {
-        public int Priority { get; }
+        [field: SerializeField]
+        public int Priority { get; private set; } = 5;
         public bool IsActive { get; set; } = true;
         public bool IsWorldSpaceAim => true;
 
@@ -45,7 +48,10 @@ namespace StarfireV2
         /// </summary>
         public bool HyperdriveRequested { get; set; }
 
-        public AIEntityControllerDriver(int priority = 5)
+        // Parameterless constructor for serialization
+        public AIEntityControllerDriver() { }
+
+        public AIEntityControllerDriver(int priority)
         {
             Priority = priority;
         }

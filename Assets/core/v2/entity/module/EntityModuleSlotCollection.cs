@@ -14,9 +14,9 @@ namespace StarfireV2
         where TCategory : struct, Enum
         where TTypeId : struct, Enum
     {
-        private readonly Dictionary<string, IEntityModuleSlot> _slotsById = new();
-        private readonly Dictionary<string, TTypeId> _slotTypes = new();
-        private readonly Dictionary<TTypeId, List<IEntityModuleSlot>> _slotsByType = new();
+        protected readonly Dictionary<string, IEntityModuleSlot> _slotsById = new();
+        protected readonly Dictionary<string, TTypeId> _slotTypes = new();
+        protected readonly Dictionary<TTypeId, List<IEntityModuleSlot>> _slotsByType = new();
 
         protected abstract IEnumerable<TTypeId> GetTypesInCategory(TCategory category);
 

@@ -230,21 +230,6 @@ void AddForces(uint3 id : SV_DispatchThreadID)
     float2 currentVel = _VelocityRead[id.xy];
     float2 force = float2(0, 0);
 
-    // DEBUG TEST: Inject constant outward velocity at simulation center
-    // This tests if the visualization pipeline works at all
-    // Remove this block once debugging is complete
-    float2 centerUV = float2(0.5, 0.5);
-    float2 cellUV = CellToUV(id.xy);
-    float distFromCenter = length(cellUV - centerUV);
-    float debugRadius = 0.15; // 15% of simulation size
-    if (distFromCenter < debugRadius)
-    {
-        float2 outwardDir = normalize(cellUV - centerUV + float2(0.0001, 0.0001));
-        float debugInfluence = 1.0 - (distFromCenter / debugRadius);
-        force += outwardDir * 50.0 * debugInfluence; // Strong constant outward push
-    }
-    // END DEBUG TEST
-
     for (int i = 0; i < _ObstacleCount; i++)
     {
         ObstacleData obs = _Obstacles[i];

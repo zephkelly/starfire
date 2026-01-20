@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c87f896cd19c85488c585337926b123, type: 3}
+  m_Name: FluidSimulationConfig
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.Fluid.FluidSimulationConfig
+  resolution: 256
+  simulationWorldSize: 100
+  viscosity: 0.1
+  densityDecay: 0.5
+  velocityDamping: 2
+  pressureIterations: 20
+  diffuseIterations: 4
+  shipPushStrength: 30
+  influenceRadiusMultiplier: 3
+  initialDensity: 1
+  densitySourceStrength: 0.2
+  skipWhenNoObstacles: 1
+  minimumSpeedThreshold: 0.5
+  maxObstacleDistance: 80
+  requireNebulaPresence: 1

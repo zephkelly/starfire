@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a74d4ba3d6156a4a8173992600c7fa3, type: 3}
+  m_Name: VelocityCameraPreset
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.Cam.Config.VelocityCameraPreset
+  presetId: default
+  displayName: Default Velocity Preset
+  velocityTrackingThreshold: 5
+  velocityTrackingFullSpeed: 15
+  positionCorrectionTime: 0.1
+  maxPositionError: 2
+  velocityTrackingCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  lowSpeedDampening: 0.15
+  focusLookAheadDistance: 3
+  focusSmoothing: 0.2
+  scaleFocusWithZoom: 1
+  focusSpeedInfluence:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: -0.7
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.3
+      inSlope: -0.7
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  minZoom: 5
+  maxZoom: 15
+  defaultZoom: 10
+  zoomSpeed: 2
+  enableSpeedZoom: 1
+  speedZoomMinSpeed: 0
+  speedZoomMaxSpeed: 20
+  speedZoomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  speedZoomInfluence: 0.5
+  scrollZoomSensitivity: 1
+  scrollZoomSmoothing: 0.15
+  enableZoomOvershoot: 1
+  maxZoomOvershoot: 2
+  overshootRecoverySpeed: 3
+  multiTargetPadding: 3
+  multiTargetMinZoom: 5
+  multiTargetMaxZoom: 20
+  enableScreenBounds: 1
+  screenBoundsMargin: 0.15
+  shakeMultiplier: 1
+  maxShakeOffset: 0.5
+  maxShakeRotation: 3
+  shakeTraumaDecay: 1.5
+  shakeFrequency: 15

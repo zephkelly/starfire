@@ -5,9 +5,9 @@ namespace StarfireV2
     public interface IEntityController
     {
         public IEntity Entity { get; }
-        public IEntityControllerDriver Driver { get; }
+        public EntityControllerDriverStack DriverStack { get; }
 
-        public Rigidbody2D Rigidbody2D { get; }
+        public Rigidbody2D Rigid2D { get; }
         public Transform Transform { get; }
     }
 }

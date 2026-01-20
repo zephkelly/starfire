@@ -4,7 +4,5 @@ namespace StarfireV2
     {
         ShipModuleCategory Category { get; }
         ShipModuleType Type { get; }
-
-        void OnAtach(ShipController controller);
     }
 }

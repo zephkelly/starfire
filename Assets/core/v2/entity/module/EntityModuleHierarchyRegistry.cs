@@ -37,9 +37,7 @@ namespace StarfireV2
             // Defense (shields, deflectors, and defensive weapons)
             Register(EntityType.Ship, (int)ShipModuleTypeId.Shield, (int)ShipModuleCategory.Defense);
             Register(EntityType.Ship, (int)ShipModuleTypeId.Deflector, (int)ShipModuleCategory.Defense);
-            Register(EntityType.Ship, (int)ShipModuleTypeId.FlakCannon, (int)ShipModuleCategory.Defense);
-            Register(EntityType.Ship, (int)ShipModuleTypeId.FlareDispenser, (int)ShipModuleCategory.Defense);
-            Register(EntityType.Ship, (int)ShipModuleTypeId.LaserPointDefense, (int)ShipModuleCategory.Defense);
+            Register(EntityType.Ship, (int)ShipModuleTypeId.PointDefense, (int)ShipModuleCategory.Defense);
 
             // Propulsion
             Register(EntityType.Ship, (int)ShipModuleTypeId.ManeuveringThrusters, (int)ShipModuleCategory.Propulsion);
@@ -49,9 +47,7 @@ namespace StarfireV2
             Register(EntityType.Ship, (int)ShipModuleTypeId.HyperDrive, (int)ShipModuleCategory.Propulsion);
 
             // Offense
-            Register(EntityType.Ship, (int)ShipModuleTypeId.Laser, (int)ShipModuleCategory.Offense);
-            Register(EntityType.Ship, (int)ShipModuleTypeId.PlasmaCannon, (int)ShipModuleCategory.Offense);
-            Register(EntityType.Ship, (int)ShipModuleTypeId.MissileLauncher, (int)ShipModuleCategory.Offense);
+            Register(EntityType.Ship, (int)ShipModuleTypeId.Weapon, (int)ShipModuleCategory.Offense);
 
             // Sensor
             Register(EntityType.Ship, (int)ShipModuleTypeId.SensorArray, (int)ShipModuleCategory.Sensor);

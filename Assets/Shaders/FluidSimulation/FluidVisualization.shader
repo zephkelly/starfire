@@ -27,6 +27,10 @@ Shader "Starfire/FluidVisualization"
         _VisualNoiseOctaves ("Visual Noise Octaves", Range(1, 6)) = 4
         _VisualNoisePersistence ("Visual Noise Persistence", Range(0.3, 0.7)) = 0.5
         _VisualNoiseSeed ("Visual Noise Seed", Vector) = (0, 0, 0, 0)
+
+        [Header(Nebula Masking)]
+        [Toggle] _EnableNebulaMask ("Enable Nebula Mask", Float) = 0
+        _NebulaMaskSoftness ("Nebula Mask Softness", Range(0, 50)) = 10
     }
 
     SubShader
@@ -75,7 +79,13 @@ Shader "Starfire/FluidVisualization"
                 float _VisualNoiseOctaves;
                 float _VisualNoisePersistence;
                 float2 _VisualNoiseSeed;
+                float _EnableNebulaMask;
+                float _NebulaMaskSoftness;
             CBUFFER_END
+
+            // Nebula region masking (set from C#)
+            int _NebulaRegionCount;
+            float4 _NebulaRegions[8]; // xy = center, z = radius, w = falloff
 
             // Simulation bounds (set from C#)
             float2 _SimulationCenter;
@@ -149,6 +159,40 @@ Shader "Starfire/FluidVisualization"
                 }
 
                 return value / maxValue;  // Normalize to 0-1
+            }
+
+            // Calculate nebula region mask at world position
+            // Returns 0 outside nebulas, 1 inside, with smooth transitions
+            float calculateNebulaMask(float2 worldPos)
+            {
+                if (_EnableNebulaMask < 0.5 || _NebulaRegionCount <= 0)
+                {
+                    return 1.0; // No masking - show everywhere
+                }
+
+                float mask = 0.0;
+
+                // Check each nebula region
+                for (int i = 0; i < _NebulaRegionCount && i < 8; i++)
+                {
+                    float2 regionCenter = _NebulaRegions[i].xy;
+                    float regionRadius = _NebulaRegions[i].z;
+                    float regionFalloff = _NebulaRegions[i].w;
+
+                    // Use the larger of region falloff or configured softness
+                    float softness = max(regionFalloff, _NebulaMaskSoftness);
+
+                    float dist = length(worldPos - regionCenter);
+                    float edgeDist = regionRadius - dist;
+
+                    // Smooth falloff from edge
+                    float regionMask = saturate(edgeDist / max(softness, 0.01));
+
+                    // Combine regions (max = union of all regions)
+                    mask = max(mask, regionMask);
+                }
+
+                return mask;
             }
 
             Varyings vert(Attributes IN)
@@ -249,6 +293,10 @@ Shader "Starfire/FluidVisualization"
 
                 // Apply alpha multiplier
                 alpha *= _AlphaMultiplier;
+
+                // Apply nebula region mask (only show wakes inside nebula regions)
+                float nebulaMask = calculateNebulaMask(IN.worldPos);
+                alpha *= nebulaMask;
 
                 return half4(color, alpha);
             }

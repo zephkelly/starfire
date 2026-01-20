@@ -27,14 +27,10 @@ namespace StarfireV2
             { ShipModuleTypeId.HyperDrive, c => new ShipModuleSlot<IShipModule>(c) },
 
             // Weapons - Offensive
-            { ShipModuleTypeId.Laser, c => new ShipModuleSlot<IShipModule>(c) },
-            { ShipModuleTypeId.PlasmaCannon, c => new ShipModuleSlot<IShipModule>(c) },
-            { ShipModuleTypeId.MissileLauncher, c => new ShipModuleSlot<IShipModule>(c) },
+            { ShipModuleTypeId.Weapon, c => new ShipModuleSlot<IShipModule>(c) },
 
             // Weapons - Point Defense
-            { ShipModuleTypeId.FlakCannon, c => new ShipModuleSlot<IShipModule>(c) },
-            { ShipModuleTypeId.FlareDispenser, c => new ShipModuleSlot<IShipModule>(c) },
-            { ShipModuleTypeId.LaserPointDefense, c => new ShipModuleSlot<IShipModule>(c) },
+            { ShipModuleTypeId.PointDefense, c => new ShipModuleSlot<IShipModule>(c) },
 
             // Sensors
             { ShipModuleTypeId.SensorArray, c => new ShipModuleSlot<IShipModule>(c) },
