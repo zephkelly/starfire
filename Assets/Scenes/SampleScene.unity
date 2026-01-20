@@ -119,6 +119,86 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &177714998
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 177714999}
+  - component: {fileID: 177715000}
+  - component: {fileID: 177715001}
+  m_Layer: 0
+  m_Name: WarpEffect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &177714999
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177714998}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 868108038}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &177715000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177714998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04e171453aae6ff4aa41b98d69239649, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.Effects.WarpEffectController
+  config: {fileID: 11400000, guid: aa72bbb1d872648478f9c5fe00e83bd9, type: 2}
+  cameraController: {fileID: 519420034}
+  autoFindCamera: 1
+  useSpeedBasedWarp: 1
+  trackedRigidbody: {fileID: 1155963049}
+  useDirectionalChromatic: 1
+  enableDebugControls: 1
+  debugWarpKey: 304
+  enableConsoleLogging: 1
+--- !u!114 &177715001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 177714998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a9c403a7ba5a5447b168a466c9fc956, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.Effects.WarpDebugPanel
+  panelPosition: {x: 10, y: 10}
+  panelWidth: 300
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0.85}
+  headerColor: {r: 0.4, g: 0.3, b: 0.6, a: 1}
+  sectionHeaderColor: {r: 0.2, g: 0.3, b: 0.4, a: 1}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  okColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
+  warningColor: {r: 1, g: 0.8, b: 0.2, a: 1}
+  errorColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  barBackgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  toggleKey: 288
+  showPanel: 1
+  forceWarpKey: 304
+  resetWarpKey: 32
 --- !u!1 &336122088
 GameObject:
   m_ObjectHideFlags: 0
@@ -1045,7 +1125,7 @@ MonoBehaviour:
   autoFindTarget: 1
   snapOnStart: 1
   updateMode: 2
-  postProcessVolume: {fileID: 0}
+  postProcessVolume: {fileID: 1887904437}
   autoFindVolume: 1
   showDebugInfo: 0
   enableDebugControls: 1
@@ -1365,6 +1445,7 @@ Transform:
   - {fileID: 1633456115}
   - {fileID: 760823829}
   - {fileID: 673270243}
+  - {fileID: 177714999}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &940894957

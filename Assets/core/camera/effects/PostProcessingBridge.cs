@@ -12,6 +12,7 @@ namespace Starfire.Core.Cam.Effects
         private ChromaticAberration _chromaticAberration;
         private Vignette _vignette;
         private ColorAdjustments _colorAdjustments;
+        private LensDistortion _lensDistortion;
 
         private float _chromaticBaseValue;
         private float _chromaticTarget;
@@ -32,6 +33,13 @@ namespace Starfire.Core.Cam.Effects
         private float _flashElapsed;
         private bool _flashing;
 
+        private float _lensDistortionBaseValue;
+        private float _lensDistortionTarget;
+        private float _lensDistortionDuration;
+        private float _lensDistortionElapsed;
+        private float _lensDistortionStartValue;
+        private bool _lensDistortionTransitioning;
+
         public PostProcessingBridge(Volume volume)
         {
             _volume = volume;
@@ -40,6 +48,7 @@ namespace Starfire.Core.Cam.Effects
             _profile.TryGet(out _chromaticAberration);
             _profile.TryGet(out _vignette);
             _profile.TryGet(out _colorAdjustments);
+            _profile.TryGet(out _lensDistortion);
 
             if (_chromaticAberration != null)
             {
@@ -50,6 +59,11 @@ namespace Starfire.Core.Cam.Effects
             {
                 _vignetteBaseValue = _vignette.intensity.value;
             }
+
+            if (_lensDistortion != null)
+            {
+                _lensDistortionBaseValue = _lensDistortion.intensity.value;
+            }
         }
 
         public void Update(float deltaTime)
@@ -57,6 +71,7 @@ namespace Starfire.Core.Cam.Effects
             UpdateChromaticAberration(deltaTime);
             UpdateVignette(deltaTime);
             UpdateFlash(deltaTime);
+            UpdateLensDistortion(deltaTime);
         }
 
         public void SetChromaticAberration(float intensity, float duration = 0f)
@@ -155,6 +170,40 @@ namespace Starfire.Core.Cam.Effects
             }
         }
 
+        public void SetLensDistortion(float intensity, float duration = 0f)
+        {
+            if (_lensDistortion == null) return;
+
+            if (duration <= 0f)
+            {
+                _lensDistortion.intensity.value = intensity;
+                _lensDistortionTransitioning = false;
+            }
+            else
+            {
+                _lensDistortionStartValue = _lensDistortion.intensity.value;
+                _lensDistortionTarget = intensity;
+                _lensDistortionDuration = duration;
+                _lensDistortionElapsed = 0f;
+                _lensDistortionTransitioning = true;
+            }
+        }
+
+        private void UpdateLensDistortion(float deltaTime)
+        {
+            if (!_lensDistortionTransitioning || _lensDistortion == null) return;
+
+            _lensDistortionElapsed += deltaTime;
+            float t = Mathf.Clamp01(_lensDistortionElapsed / _lensDistortionDuration);
+            t = Mathf.SmoothStep(0, 1, t);
+            _lensDistortion.intensity.value = Mathf.Lerp(_lensDistortionStartValue, _lensDistortionTarget, t);
+
+            if (t >= 1f)
+            {
+                _lensDistortionTransitioning = false;
+            }
+        }
+
         public void ResetAll()
         {
             if (_chromaticAberration != null)
@@ -173,6 +222,12 @@ namespace Starfire.Core.Cam.Effects
             {
                 _colorAdjustments.colorFilter.value = Color.white;
                 _flashing = false;
+            }
+
+            if (_lensDistortion != null)
+            {
+                _lensDistortion.intensity.value = _lensDistortionBaseValue;
+                _lensDistortionTransitioning = false;
             }
         }
     }

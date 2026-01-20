@@ -222,6 +222,12 @@ Shader "Starfire/StylizedNebula"
             float _CameraOrthoSize;
             float _ReferenceZoom;
 
+            // Warp effect globals (set by WarpEffectController)
+            float _WarpIntensity;
+            float _WarpNebulaStretch;
+            float _WarpNebulaFade;
+            float2 _WarpDirection;
+
             // ============================================
             // Hash Functions
             // ============================================
@@ -679,6 +685,15 @@ Shader "Starfire/StylizedNebula"
                 float2 parallaxUV = scaledUV + parallaxOffset;
                 float2 aspectCorrectedUV = float2(parallaxUV.x * _ScreenAspect, parallaxUV.y);
 
+                // === Warp Stretching (subtle for nebulae) ===
+                [branch] if (_WarpIntensity > 0.001 && _WarpNebulaStretch > 0.001)
+                {
+                    float parallel = dot(aspectCorrectedUV, _WarpDirection);
+                    float2 perp = aspectCorrectedUV - _WarpDirection * parallel;
+                    parallel *= _WarpNebulaStretch;
+                    aspectCorrectedUV = perp + _WarpDirection * parallel;
+                }
+
                 // === Region Masking ===
                 // Convert screen UV to world position based on camera parameters
                 float2 worldPos = _CameraWorldPos + (uv - 0.5) * _CameraOrthoSize * 2.0 * float2(_ScreenAspect, 1.0);
@@ -788,6 +803,9 @@ Shader "Starfire/StylizedNebula"
 
                 // Add bright spots
                 nebulaColor += spots * _Color4.rgb;
+
+                // === Warp Fade ===
+                nebulaColor *= lerp(1.0, 1.0 - _WarpNebulaFade, _WarpIntensity);
 
                 // === Output ===
                 float alpha = saturate(dot(nebulaColor, float3(0.299, 0.587, 0.114)));

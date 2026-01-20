@@ -106,6 +106,28 @@ Shader "Starfire/Starfield"
             float _CameraOrthoSize;
             float _ReferenceZoom;
 
+            // Warp effect globals (set by WarpEffectController)
+            float _WarpIntensity;
+            float _WarpStretch;
+            float2 _WarpDirection;
+            float _WarpBrightnessBoost;
+
+            // Streak shape globals (set by WarpEffectController from config)
+            float _WarpStreakWidth;
+            float _WarpEdgeSoftnessMin;
+            float _WarpEdgeSoftnessMax;
+            float _WarpLeadingEdgeRatio;
+            float _WarpTrailingFadeStart;
+            float _WarpBlendTransition;
+            float _WarpDistantMinEffect;
+            float _WarpParallaxMultiplier;
+            float _WarpTailTaperPower;
+
+            // Wobble globals (set by WarpEffectController from config)
+            float _WobbleIntensity;
+            float _WobbleFrequency;
+            float _WobbleSpeed;
+
             // PCG-style hash functions - much longer period, no sin() periodicity issues
             float hash1(float2 p)
             {
@@ -246,21 +268,118 @@ Shader "Starfire/Starfield"
 
                         // Distance from current UV to star position
                         float2 toStar = (cellUV - float2(x, y)) - starPos;
-                        float dist = length(toStar);
 
                         // Size with distribution curve (higher distribution = more small stars)
                         float sizeRandom = hash1(neighborCell + 50.0);
                         float curvedRandom = pow(sizeRandom, 1.0 + sizeDistrib * 3.0);
                         float starRadius = lerp(sizeMin, sizeMax, curvedRandom);
 
-                        // Create star with adjustable edge sharpness
-                        // sharpness 0 = soft glow (full falloff), 1 = crisp edge (minimal falloff)
+                        // NORMAL STAR (always calculated as base)
+                        float dist = length(toStar);
                         float falloffWidth = starRadius * lerp(1.0, 0.1, edgeSharpness);
                         float falloffStart = starRadius - falloffWidth;
-                        float star = 1.0 - smoothstep(falloffStart, starRadius, dist);
+                        float normalStar = 1.0 - smoothstep(falloffStart, starRadius, dist);
+
+                        float star = normalStar;
+
+                        // Blend to streak mode when warping (smooth transition, no pop)
+                        [branch] if (_WarpIntensity > 0.001 && _WarpStretch > 1.001)
+                        {
+                            // COMET STREAK MODE - round head, pointed tail (comet shape)
+
+                            // Depth-based warp scaling: distant layers (low parallax) streak less
+                            float depthWarpScale = lerp(_WarpDistantMinEffect, 1.0, saturate(_ParallaxFactor * _WarpParallaxMultiplier));
+                            float effectiveStretch = lerp(1.0, _WarpStretch, depthWarpScale);
+                            float effectiveIntensity = _WarpIntensity * depthWarpScale;
+
+                            // Decompose into parallel (along streak) and perpendicular (across streak) components
+                            float parallelDist = dot(toStar, _WarpDirection);
+                            float2 perpComponent = toStar - _WarpDirection * parallelDist;
+                            float perpDist = length(perpComponent);
+
+                            // Streak thins out as it stretches (configurable width at full warp)
+                            float streakWidth = starRadius * lerp(1.0, _WarpStreakWidth, effectiveIntensity);
+                            float streakLength = starRadius * effectiveStretch;
+
+                            // Edge softness for perpendicular edges
+                            float edgeSoftness = lerp(_WarpEdgeSoftnessMin, _WarpEdgeSoftnessMax, effectiveIntensity);
+
+                            float streakStar;
+
+                            // parallelDist > 0 = ahead of star (in movement direction) = leading edge
+                            // parallelDist < 0 = behind star (opposite to movement) = trailing edge / motion trail
+                            if (parallelDist >= 0.0)
+                            {
+                                // LEADING EDGE (HEAD): Use original circular star falloff
+                                // This preserves the round shape at the front
+                                float headDist = length(toStar);
+                                float headRadius = starRadius;
+                                float headFalloff = headRadius * lerp(1.0, 0.1, edgeSoftness);
+                                streakStar = 1.0 - smoothstep(headRadius - headFalloff, headRadius, headDist);
+
+                                // Also apply short leading cutoff (prevents star from rendering ahead)
+                                float leadingLength = streakLength * _WarpLeadingEdgeRatio;
+                                float leadingFade = 1.0 - smoothstep(leadingLength * 0.5, leadingLength, parallelDist);
+                                streakStar *= leadingFade;
+                            }
+                            else
+                            {
+                                // TRAILING EDGE (TAIL): Tapered pointed shape
+                                float trailDist = -parallelDist; // Make positive for comparison
+                                float trailingLength = streakLength;
+
+                                // How far along the tail (0 = at star, 1 = at tip)
+                                float tailProgress = saturate(trailDist / trailingLength);
+
+                                // Width tapers from full at head to pointed at tip
+                                // tailTaperPower < 1 = slower taper at start (fatter tail)
+                                // tailTaperPower > 1 = faster taper at start (sharper point)
+                                float taperFactor = 1.0 - pow(tailProgress, _WarpTailTaperPower);
+                                float taperedWidth = streakWidth * taperFactor;
+
+                                // Apply wobble to perpendicular distance (only if wobble enabled)
+                                float wobbledPerpDist = perpDist;
+                                [branch] if (_WobbleIntensity > 0.001)
+                                {
+                                    // Per-star unique offset to prevent synchronization
+                                    float starOffset = hash1(neighborCell) * 100.0;
+
+                                    // Time flows through the noise field, creating animated waves
+                                    // trailDist controls wave position along streak
+                                    // Time + starOffset makes each star's wobble unique and animated
+                                    float wobbleNoise = perlin2D(float2(
+                                        trailDist * _WobbleFrequency,
+                                        _Time.y * _WobbleSpeed + starOffset
+                                    )) * 2.0 - 1.0; // Normalize to [-1, 1]
+
+                                    // Scale wobble by taperedWidth (not starRadius) for visible effect
+                                    // taperFactor ensures wobble fades toward tip
+                                    float wobbleOffset = wobbleNoise * _WobbleIntensity * taperFactor * taperedWidth;
+
+                                    // Apply wobble to perpendicular distance
+                                    wobbledPerpDist = perpDist + wobbleOffset;
+                                }
+
+                                // Perpendicular edge with tapered width (using wobbled distance)
+                                float perpEdge = 1.0 - smoothstep(taperedWidth * (1.0 - edgeSoftness), taperedWidth, wobbledPerpDist);
+
+                                // Parallel fade (brightness drops off toward tail)
+                                float endTaper = 1.0 - smoothstep(trailingLength * _WarpTrailingFadeStart, trailingLength, trailDist);
+
+                                streakStar = perpEdge * endTaper;
+                            }
+
+                            // Smooth blend from normal to streak (prevents brightness pop at threshold)
+                            float blendFactor = smoothstep(0.0, _WarpBlendTransition, _WarpIntensity);
+                            star = lerp(normalStar, streakStar, blendFactor);
+                        }
 
                         // Get per-star color
                         float3 starColor = getStarColor(neighborCell, baseColor, colorVariation, warmCool);
+
+                        // Minimal brightness boost during warp (keeps streaks clean)
+                        float brightnessBoost = _WarpBrightnessBoost > 0.001 ? _WarpBrightnessBoost : 1.0;
+                        brightness *= lerp(1.0, brightnessBoost, _WarpIntensity);
 
                         result += star * brightness * starColor;
                     }

@@ -74,7 +74,7 @@ MonoBehaviour:
   maxZoom: 15
   defaultZoom: 10
   zoomSpeed: 2
-  enableSpeedZoom: 1
+  enableSpeedZoom: 0
   speedZoomMinSpeed: 0
   speedZoomMaxSpeed: 20
   speedZoomCurve:

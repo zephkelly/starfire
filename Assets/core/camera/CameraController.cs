@@ -641,6 +641,11 @@ namespace Starfire.Core.Cam
             _effectsManager.SetVignette(intensity, duration);
         }
 
+        public void SetLensDistortion(float intensity, float duration = 0f)
+        {
+            _effectsManager.SetLensDistortion(intensity, duration);
+        }
+
         public void ResetEffects()
         {
             _effectsManager.ResetAll();

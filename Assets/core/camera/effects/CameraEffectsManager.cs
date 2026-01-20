@@ -99,5 +99,8 @@ namespace Starfire.Core.Cam.Effects
 
         public void SetVignette(float intensity, float duration = 0f)
             => _postProcessing?.SetVignette(intensity, duration);
+
+        public void SetLensDistortion(float intensity, float duration = 0f)
+            => _postProcessing?.SetLensDistortion(intensity, duration);
     }
 }
