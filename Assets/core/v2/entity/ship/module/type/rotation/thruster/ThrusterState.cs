@@ -34,6 +34,21 @@ namespace StarfireV2
         public float TargetThrust { get; set; }
 
         /// <summary>
+        /// Base max thrust from definition (before damage).
+        /// </summary>
+        public float BaseMaxThrust { get; private set; }
+
+        /// <summary>
+        /// Efficiency multiplier (0-1). Damaged thrusters have lower efficiency.
+        /// </summary>
+        public float Efficiency { get; set; } = 1f;
+
+        /// <summary>
+        /// Effective max thrust after applying efficiency/damage.
+        /// </summary>
+        public float EffectiveMaxThrust => BaseMaxThrust * Efficiency;
+
+        /// <summary>
         /// Precomputed torque efficiency (torque per Newton of thrust).
         /// Positive = contributes to counter-clockwise rotation.
         /// Negative = contributes to clockwise rotation.
@@ -68,22 +83,41 @@ namespace StarfireV2
         public float AbsoluteTorqueEfficiency => Mathf.Abs(TorqueEfficiency);
 
         /// <summary>
-        /// Maximum torque this thruster can produce.
+        /// Maximum torque this thruster can produce (accounting for damage).
         /// </summary>
-        public float MaxTorqueCapacity => AbsoluteTorqueEfficiency * Definition.maxThrust;
+        public float MaxTorqueCapacity => AbsoluteTorqueEfficiency * EffectiveMaxThrust;
 
         /// <summary>
         /// Current normalized thrust (0 to 1).
         /// </summary>
-        public float NormalizedThrust => Definition.maxThrust > 0f
-            ? CurrentThrust / Definition.maxThrust
+        public float NormalizedThrust => EffectiveMaxThrust > 0f
+            ? CurrentThrust / EffectiveMaxThrust
             : 0f;
 
         public ThrusterState(ThrusterDefinition definition)
         {
             Definition = definition;
+            BaseMaxThrust = definition.maxThrust;
             CurrentThrust = 0f;
             TargetThrust = 0f;
+        }
+
+        /// <summary>
+        /// Apply damage to this thruster (reduces efficiency).
+        /// </summary>
+        /// <param name="damagePercent">Amount to reduce efficiency (0-1)</param>
+        public void ApplyDamage(float damagePercent)
+        {
+            Efficiency = Mathf.Clamp01(Efficiency - damagePercent);
+        }
+
+        /// <summary>
+        /// Repair this thruster (restores efficiency).
+        /// </summary>
+        /// <param name="repairPercent">Amount to restore efficiency (0-1)</param>
+        public void Repair(float repairPercent)
+        {
+            Efficiency = Mathf.Clamp01(Efficiency + repairPercent);
         }
 
         /// <summary>

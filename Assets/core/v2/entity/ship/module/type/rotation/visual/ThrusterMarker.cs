@@ -15,6 +15,9 @@ namespace StarfireV2
         [Tooltip("Thrust direction in local space (normalized)")]
         [SerializeField] private Vector2 thrustDirection = Vector2.up;
 
+        [Tooltip("Maximum thrust force in Newtons (0 = use config default)")]
+        [SerializeField] private float maxThrust = 0f;
+
         [Tooltip("Optional: Override visual prefab for this specific thruster")]
         [SerializeField] private GameObject visualPrefabOverride;
 
@@ -27,6 +30,11 @@ namespace StarfireV2
         /// Thrust direction in local space.
         /// </summary>
         public Vector2 ThrustDirection => thrustDirection.normalized;
+
+        /// <summary>
+        /// Maximum thrust force in Newtons. 0 means use config default.
+        /// </summary>
+        public float MaxThrust => maxThrust;
 
         /// <summary>
         /// Optional visual prefab override for this thruster.

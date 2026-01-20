@@ -15,27 +15,27 @@ namespace StarfireV2
 
         [Header("Code-Generated Particle Settings")]
         [Tooltip("Particle lifetime in seconds")]
-        [SerializeField] private float particleLifetime = 0.3f;
+        [SerializeField] private float particleLifetime = 0.15f;
 
         [Tooltip("Particle emission speed")]
-        [SerializeField] private float particleSpeed = 3f;
+        [SerializeField] private float particleSpeed = 5f;
 
         [Tooltip("Particle start size")]
-        [SerializeField] private float particleStartSize = 0.15f;
+        [SerializeField] private float particleStartSize = 0.04f;
 
         [Tooltip("Particle end size multiplier")]
         [Range(0f, 1f)]
-        [SerializeField] private float particleEndSizeMultiplier = 0.2f;
+        [SerializeField] private float particleEndSizeMultiplier = 0.1f;
 
         [Tooltip("Emission cone angle in degrees")]
         [Range(0f, 90f)]
-        [SerializeField] private float particleConeAngle = 15f;
+        [SerializeField] private float particleConeAngle = 3f;
 
         [Tooltip("Particle start color")]
-        [SerializeField] private Color particleStartColor = new Color(0.8f, 0.9f, 1f, 1f);
+        [SerializeField] private Color particleStartColor = new Color(0.7f, 0.7f, 0.7f, 0.9f);
 
         [Tooltip("Particle end color (fades to this)")]
-        [SerializeField] private Color particleEndColor = new Color(0.3f, 0.5f, 1f, 0f);
+        [SerializeField] private Color particleEndColor = new Color(0.4f, 0.4f, 0.4f, 0f);
 
         [Tooltip("Enable Light2D for thruster glow")]
         [SerializeField] private bool enableLight = true;
@@ -47,14 +47,14 @@ namespace StarfireV2
 
         [Header("Particle Settings")]
         [Tooltip("Base particle emission rate when thruster is at minimum power")]
-        [SerializeField] private float baseEmissionRate = 10f;
+        [SerializeField] private float baseEmissionRate = 20f;
 
         [Tooltip("Maximum particle emission rate at full thrust")]
-        [SerializeField] private float maxEmissionRate = 100f;
+        [SerializeField] private float maxEmissionRate = 150f;
 
         [Header("Light Settings")]
         [Tooltip("Color of the thruster light")]
-        [SerializeField] private Color lightColor = new Color(0.3f, 0.5f, 1f, 1f);
+        [SerializeField] private Color lightColor = new Color(0.9f, 0.85f, 0.8f, 1f);
 
         [Tooltip("Light intensity at minimum thrust")]
         [SerializeField] private float baseLightIntensity = 0.2f;
@@ -78,10 +78,10 @@ namespace StarfireV2
 
         [Header("Color Variation")]
         [Tooltip("Glow color at minimum thrust")]
-        [SerializeField] private Color minThrustColor = new Color(0.2f, 0.4f, 0.8f, 1f);
+        [SerializeField] private Color minThrustColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
         [Tooltip("Glow color at full thrust")]
-        [SerializeField] private Color maxThrustColor = new Color(0.5f, 0.7f, 1f, 1f);
+        [SerializeField] private Color maxThrustColor = new Color(0.85f, 0.82f, 0.78f, 1f);
 
         // Properties
         public GameObject VisualPrefab => visualPrefab;

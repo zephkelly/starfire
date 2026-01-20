@@ -69,6 +69,13 @@ namespace StarfireV2
         [Tooltip("Auto-discover ThrusterMarker components on ship prefab")]
         [SerializeField] private bool autoDiscoverThrusters = true;
 
+        [Tooltip("Default thrust for auto-discovered thrusters (N)")]
+        [SerializeField] private float defaultThrusterThrust = 100f;
+
+        [Tooltip("Default response time for auto-discovered thrusters (s)")]
+        [Range(0f, 0.5f)]
+        [SerializeField] private float defaultThrusterResponseTime = 0.05f;
+
         [Header("Thruster Control Tuning")]
         [Tooltip("Hysteresis to prevent rapid state switching (degrees)")]
         [Range(0f, 10f)]
@@ -111,9 +118,21 @@ namespace StarfireV2
         [Range(0.5f, 5f)]
         [SerializeField] private float settlingDerivativeGain = 3f;
 
+        [Tooltip("Angle threshold below which settling accepts position as 'good enough' (degrees)")]
+        [Range(1f, 10f)]
+        [SerializeField] private float settlingAcceptanceThreshold = 3f;
+
         [Tooltip("Minimum thrust output fraction (prevents thruster stutter)")]
         [Range(0f, 0.1f)]
         [SerializeField] private float minimumThrustFraction = 0.02f;
+
+        [Header("Direction Optimization")]
+        [Tooltip("Enable smart direction selection - continues spinning instead of reversing when faster")]
+        [SerializeField] private bool enableDirectionOptimization = true;
+
+        [Tooltip("Minimum angular velocity to consider direction optimization (deg/s)")]
+        [Range(30f, 120f)]
+        [SerializeField] private float directionOptimizationVelocityThreshold = 60f;
 
         // Identity
         public string ModuleId => moduleId;
@@ -146,6 +165,8 @@ namespace StarfireV2
         public ThrusterDefinition[] Thrusters => thrusters;
         public ThrusterVisualConfig ThrusterVisualConfig => thrusterVisualConfig;
         public bool AutoDiscoverThrusters => autoDiscoverThrusters;
+        public float DefaultThrusterThrust => defaultThrusterThrust;
+        public float DefaultThrusterResponseTime => defaultThrusterResponseTime;
 
         // Thruster control tuning
         public float StateTransitionHysteresis => stateTransitionHysteresis;
@@ -160,7 +181,12 @@ namespace StarfireV2
         public float SettlingVelocityThreshold => settlingVelocityThreshold;
         public float SettlingProportionalGain => settlingProportionalGain;
         public float SettlingDerivativeGain => settlingDerivativeGain;
+        public float SettlingAcceptanceThreshold => settlingAcceptanceThreshold;
         public float MinimumThrustFraction => minimumThrustFraction;
+
+        // Direction optimization
+        public bool EnableDirectionOptimization => enableDirectionOptimization;
+        public float DirectionOptimizationVelocityThreshold => directionOptimizationVelocityThreshold;
 
         public IShipRotationModule CreateModule()
         {

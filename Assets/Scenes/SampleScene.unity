@@ -935,7 +935,7 @@ MonoBehaviour:
         detailFrequency: 1.041
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
-        seed: 0.37
+        seed: 1.15
         regionCenter: {x: 0, y: 0}
         regionRadius: 10000
         regionFalloff: 50
@@ -997,7 +997,7 @@ MonoBehaviour:
         threshold: 0.3324
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
-        seed: 0
+        seed: 2.55
         regionCenter: {x: 0, y: 0}
         regionRadius: 10000
         regionFalloff: 400
@@ -1079,7 +1079,7 @@ Transform:
   m_GameObject: {fileID: 595357236}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.9690003, y: -1.136, z: 0}
+  m_LocalPosition: {x: -1.6, y: -0.82, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1098,7 +1098,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ThrusterMarker
   slotId: 
-  thrustDirection: {x: 0, y: -1}
+  thrustDirection: {x: 0, y: 1}
+  maxThrust: 0
   visualPrefabOverride: {fileID: 0}
 --- !u!1 &619394800
 GameObject:
@@ -1602,7 +1603,7 @@ Transform:
   m_GameObject: {fileID: 967419051}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.839, y: 1.317, z: 0}
+  m_LocalPosition: {x: 1.4, y: 1.59, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1621,7 +1622,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ThrusterMarker
   slotId: 
-  thrustDirection: {x: 0, y: 1}
+  thrustDirection: {x: 0, y: -1}
+  maxThrust: 0
   visualPrefabOverride: {fileID: 0}
 --- !u!1 &982980071
 GameObject:
@@ -2319,7 +2321,7 @@ Transform:
   m_GameObject: {fileID: 1479519681}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.94, y: -1.226, z: 0}
+  m_LocalPosition: {x: 1.44, y: -1.49, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2338,7 +2340,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ThrusterMarker
   slotId: 
-  thrustDirection: {x: 0, y: -1}
+  thrustDirection: {x: 0, y: 1}
+  maxThrust: 0
   visualPrefabOverride: {fileID: 0}
 --- !u!1 &1481375853
 GameObject:
@@ -2812,7 +2815,7 @@ Transform:
   m_GameObject: {fileID: 1682037190}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.07, y: 1.219, z: 0}
+  m_LocalPosition: {x: -1.61, y: 0.9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2831,7 +2834,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ThrusterMarker
   slotId: 
-  thrustDirection: {x: 0, y: 1}
+  thrustDirection: {x: 0, y: -1}
+  maxThrust: 0
   visualPrefabOverride: {fileID: 0}
 --- !u!1 &1887904436
 GameObject:

@@ -15,38 +15,32 @@ MonoBehaviour:
   moduleId: rotation_module
   displayName: Rotation Module
   rotationMode: 3
-  rotationSpeed: 300
+  rotationSpeed: 1
   spriteOffset: 0
   respectMaxSpeed: 0
   smoothingFactor: 8
   smoothDeadzone: 0.5
   useSmoothDamp: 1
-  maxTorque: 50
+  maxTorque: 10
   maxAngularVelocity: 360
   angularDrag: 0
-  physicsDeadzone: 0.1
-  proportionalGain: 10
+  physicsDeadzone: 0.2
+  proportionalGain: 1
   derivativeGain: 5
-  thrusters:
-  - slotId: 1
-    localPosition: {x: 1.839, y: 1.317}
-    thrustDirection: {x: 0, y: 1}
-    maxThrust: 10
-    responseTime: 0
-  - slotId: 
-    localPosition: {x: 1.839, y: -1.317}
-    thrustDirection: {x: 0, y: -1}
-    maxThrust: 10
-    responseTime: 0
-  - slotId: 
-    localPosition: {x: -2.07, y: 1.28}
-    thrustDirection: {x: 0, y: 1}
-    maxThrust: 10
-    responseTime: 0
-  - slotId: 
-    localPosition: {x: -2.07, y: -1.28}
-    thrustDirection: {x: 0, y: -1}
-    maxThrust: 10
-    responseTime: 0
-  thrusterVisualConfig: {fileID: 0}
+  thrusters: []
+  thrusterVisualConfig: {fileID: 11400000, guid: 9ce9e8a189f68cb4497ab87934204026, type: 2}
   autoDiscoverThrusters: 1
+  defaultThrusterThrust: 1
+  defaultThrusterResponseTime: 0.05
+  stateTransitionHysteresis: 2
+  minimumCoastVelocity: 5
+  brakingSafetyMargin: 1.1
+  velocityDeadzone: 1
+  referenceVelocity: 90
+  referenceAngle: 45
+  settlingAngleThreshold: 15
+  settlingVelocityThreshold: 15
+  settlingProportionalGain: 2
+  settlingDerivativeGain: 3
+  settlingAcceptanceThreshold: 3
+  minimumThrustFraction: 0.02

@@ -13,10 +13,18 @@ MonoBehaviour:
   m_Name: ThrusterVisual
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ThrusterVisualConfig
   visualPrefab: {fileID: 0}
+  particleLifetime: 0.05
+  particleSpeed: 20
+  particleStartSize: 0.08
+  particleEndSizeMultiplier: 0.1
+  particleConeAngle: 3
+  particleStartColor: {r: 0.7, g: 0.7, b: 0.7, a: 0.92156863}
+  particleEndColor: {r: 0.4, g: 0.4, b: 0.4, a: 0}
+  enableLight: 1
   responseSpeed: 15
-  baseEmissionRate: 10
-  maxEmissionRate: 100
-  lightColor: {r: 0.3, g: 0.5, b: 1, a: 1}
+  baseEmissionRate: 100
+  maxEmissionRate: 150
+  lightColor: {r: 0.9, g: 0.85, b: 0.8, a: 1}
   baseLightIntensity: 0.2
   maxLightIntensity: 1.5
   lightRadius: 0.5

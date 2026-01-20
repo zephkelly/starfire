@@ -91,13 +91,13 @@ namespace StarfireV2
 
             float absTorque = Mathf.Abs(desiredTorque);
 
-            // Determine which direction we need
-            bool needCounterClockwise = desiredTorque > 0f;
+            // Determine which direction we need (inverted to match Unity's coordinate system)
+            bool needCounterClockwise = desiredTorque < 0f;
 
             // Get available capacity for this direction
             float availableCapacity = needCounterClockwise
-                ? _counterClockwiseCapacity
-                : _clockwiseCapacity;
+                ? _clockwiseCapacity
+                : _counterClockwiseCapacity;
 
             // Calculate scale factor (how much of max capacity to use)
             float scale = availableCapacity > 0.001f
@@ -108,13 +108,13 @@ namespace StarfireV2
             foreach (var thruster in _thrusters)
             {
                 bool canContribute = needCounterClockwise
-                    ? thruster.CanContributeCounterClockwise
-                    : thruster.CanContributeClockwise;
+                    ? thruster.CanContributeClockwise
+                    : thruster.CanContributeCounterClockwise;
 
                 if (canContribute && thruster.AbsoluteTorqueEfficiency > 0.001f)
                 {
-                    // Set target thrust proportional to this thruster's contribution
-                    thruster.TargetThrust = thruster.Definition.maxThrust * scale;
+                    // Set target thrust proportional to this thruster's contribution (accounting for damage)
+                    thruster.TargetThrust = thruster.EffectiveMaxThrust * scale;
                 }
                 else
                 {

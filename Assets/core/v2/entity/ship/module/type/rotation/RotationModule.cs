@@ -382,36 +382,25 @@ namespace StarfireV2
 
         /// <summary>
         /// Calculate torque to brake (stop rotation).
-        /// Uses proportional control based on angular velocity.
+        /// Uses bang-bang control: full braking thrust until stopped.
         /// </summary>
         private float CalculateBrakingTorque(float angularVelocity)
         {
             float absVelocity = Mathf.Abs(angularVelocity);
 
-            // FIX: Use velocity deadzone instead of hardcoded 0.1f
             if (absVelocity < _config.VelocityDeadzone)
             {
-                return 0f; // Already nearly stopped
+                return 0f; // Already stopped
             }
 
-            // Brake opposite to velocity direction
+            // Bang-bang: Full braking thrust opposite to velocity direction
             float direction = -Mathf.Sign(angularVelocity);
 
             float maxTorque = direction > 0
                 ? _thrusterCoordinator.CounterClockwiseCapacity
                 : _thrusterCoordinator.ClockwiseCapacity;
 
-            // FIX: Proportional braking based on velocity
-            // Higher velocity = more braking thrust, low velocity = gentle braking
-            float brakingFactor = Mathf.Clamp01(absVelocity / _config.ReferenceVelocity);
-
-            // Apply minimum thrust fraction to prevent thruster stutter
-            if (brakingFactor > 0f && brakingFactor < _config.MinimumThrustFraction)
-            {
-                brakingFactor = _config.MinimumThrustFraction;
-            }
-
-            return direction * maxTorque * brakingFactor;
+            return direction * maxTorque;
         }
 
         /// <summary>
@@ -423,8 +412,8 @@ namespace StarfireV2
             float absError = Mathf.Abs(error);
             float absVelocity = Mathf.Abs(angularVelocity);
 
-            // If we're very close to settled, allow zero torque
-            if (absError < _config.PhysicsDeadzone * 0.5f && absVelocity < _config.VelocityDeadzone * 0.5f)
+            // Accept position as "good enough" - use wider threshold to prevent repeated micro-corrections
+            if (absError < _config.SettlingAcceptanceThreshold && absVelocity < _config.VelocityDeadzone)
             {
                 return 0f;
             }
@@ -435,44 +424,43 @@ namespace StarfireV2
 
             // Estimate if current velocity will overshoot the target
             // Time to reach target at current velocity: t = error / velocity
-            // If velocity would carry us past the target, we need to brake
+            // Use permissive threshold (0.05s) to let momentum carry through more
             float timeToTarget = absVelocity > 0.1f ? absError / absVelocity : float.MaxValue;
-            bool willOvershoot = movingTowardTarget && timeToTarget < 0.1f; // Will reach target in < 100ms
+            bool willOvershoot = movingTowardTarget && timeToTarget < 0.05f;
 
             float settlingFactor;
 
             if (movingTowardTarget && !willOvershoot)
             {
-                // Moving toward target with good trajectory - COAST (no thrust)
-                // Let momentum carry us, velocity will naturally decay
+                // Moving toward target with good trajectory - COAST
                 settlingFactor = 0f;
             }
             else if (movingTowardTarget && willOvershoot)
             {
-                // About to overshoot - apply gentle braking (opposite to velocity)
+                // About to overshoot - apply gentle braking
                 float brakeFactor = Mathf.Clamp01(absVelocity / _config.SettlingVelocityThreshold);
-                settlingFactor = -Mathf.Sign(angularVelocity) * brakeFactor * 0.5f; // Gentle brake
+                settlingFactor = -Mathf.Sign(angularVelocity) * brakeFactor * 0.5f;
             }
             else
             {
-                // Moving away from target or stopped - apply proportional correction toward target
+                // Moving away from target or stopped - apply proportional correction with strong burst
+                // Use minimum floor of 0.5 so small corrections still get meaningful thrust
                 float normalizedError = Mathf.Clamp01(absError / _config.SettlingAngleThreshold);
-                // Use only P term, scaled down for gentler correction
-                settlingFactor = Mathf.Sign(error) * normalizedError * _config.SettlingProportionalGain * 0.5f;
+                normalizedError = Mathf.Max(normalizedError, 0.5f);
+                settlingFactor = Mathf.Sign(error) * normalizedError * _config.SettlingProportionalGain * 0.8f;
                 settlingFactor = Mathf.Clamp(settlingFactor, -1f, 1f);
             }
 
-            // Get appropriate capacity based on direction
+            // Get appropriate capacity
             float direction = Mathf.Sign(settlingFactor);
             float maxTorque = direction > 0
                 ? _thrusterCoordinator.CounterClockwiseCapacity
                 : _thrusterCoordinator.ClockwiseCapacity;
 
-            // Convert normalized factor to actual torque
             float desiredTorque = settlingFactor * maxTorque;
             float absTorque = Mathf.Abs(desiredTorque);
 
-            // Apply minimum thrust fraction if torque is non-zero but too small
+            // Apply minimum thrust fraction
             if (absTorque > 0.001f && absTorque < maxTorque * _config.MinimumThrustFraction)
             {
                 return Mathf.Sign(desiredTorque) * maxTorque * _config.MinimumThrustFraction;
@@ -493,6 +481,139 @@ namespace StarfireV2
             return pTerm + dTerm;
         }
 
+        /// <summary>
+        /// Determine optimal rotation direction by comparing time to reach target.
+        /// When spinning fast, sometimes continuing through the long path is faster than braking and reversing.
+        /// Returns the optimized angle error (positive = CCW, negative = CW).
+        /// </summary>
+        private float OptimizeRotationDirection(float shortPathError, float angularVelocity)
+        {
+            float absVelocity = Mathf.Abs(angularVelocity);
+
+            // Only optimize when:
+            // 1. Feature is enabled
+            // 2. Ship is spinning fast enough that reversal would be costly
+            if (!_config.EnableDirectionOptimization ||
+                absVelocity < _config.DirectionOptimizationVelocityThreshold)
+            {
+                return shortPathError;
+            }
+
+            // Check if short path requires direction change
+            bool shortPathSameDirection = (shortPathError > 0 && angularVelocity > 0) ||
+                                          (shortPathError < 0 && angularVelocity < 0);
+
+            if (shortPathSameDirection)
+                return shortPathError; // Already going the right way
+
+            // Calculate long path (continue in current direction)
+            // If spinning CCW (positive velocity) and short path is negative (CW), long path = 360 + shortPath
+            // If spinning CW (negative velocity) and short path is positive (CCW), long path = -360 + shortPath
+            float longPathError = angularVelocity > 0
+                ? 360f + shortPathError   // CCW: 360 + (negative short path)
+                : -360f + shortPathError; // CW: -360 + (positive short path)
+
+            // Estimate time for each path
+            float tShort = EstimateTimeToTarget(shortPathError, angularVelocity, requiresReverse: true);
+            float tLong = EstimateTimeToTarget(longPathError, angularVelocity, requiresReverse: false);
+
+            // Choose faster path
+            if (tLong < tShort)
+            {
+                Debug.Log($"[RotationModule] Direction optimization: continuing {(angularVelocity > 0 ? "CCW" : "CW")}. " +
+                          $"shortPath={shortPathError:F1}° (t={tShort:F2}s), longPath={longPathError:F1}° (t={tLong:F2}s)");
+                return longPathError;
+            }
+
+            return shortPathError;
+        }
+
+        /// <summary>
+        /// Estimate time to reach target angle from current state using kinematic equations.
+        /// </summary>
+        private float EstimateTimeToTarget(float angleError, float currentVelocity, bool requiresReverse)
+        {
+            float maxAccel = CalculateMaxAngularAcceleration(forBraking: false, angleError);
+            float maxBrake = CalculateMaxAngularAcceleration(forBraking: true, angleError);
+            float maxVel = _config.MaxAngularVelocity;
+
+            // Guard against division by zero
+            if (maxAccel < 0.001f) maxAccel = 0.001f;
+            if (maxBrake < 0.001f) maxBrake = 0.001f;
+
+            float absError = Mathf.Abs(angleError);
+            float absVelocity = Mathf.Abs(currentVelocity);
+
+            if (requiresReverse)
+            {
+                // Path: brake to stop → accelerate in new direction → coast → final brake
+                float tBrake = absVelocity / maxBrake;
+
+                // While braking, we travel in the WRONG direction (away from target)
+                // Distance covered while braking: d = v*t - 0.5*a*t^2 = v^2 / (2*a)
+                float angleCoveredBraking = (absVelocity * absVelocity) / (2f * maxBrake);
+                float remainingAngle = absError + angleCoveredBraking;
+
+                // For the remaining angle, use triangle or trapezoid velocity profile
+                // Triangle profile time: t = 2 * sqrt(angle / acceleration)
+                float tTriangle = 2f * Mathf.Sqrt(remainingAngle / maxAccel);
+
+                // Check if triangle profile would exceed max velocity
+                float peakVelocity = maxAccel * (tTriangle / 2f);
+                if (peakVelocity > maxVel)
+                {
+                    // Trapezoid profile: accelerate to max, coast, decelerate
+                    float tAccel = maxVel / maxAccel;
+                    float angleAccel = 0.5f * maxAccel * tAccel * tAccel;
+                    float coastAngle = remainingAngle - 2f * angleAccel;
+                    float tCoast = Mathf.Max(0f, coastAngle / maxVel);
+                    return tBrake + 2f * tAccel + tCoast;
+                }
+
+                return tBrake + tTriangle;
+            }
+            else
+            {
+                // Continue in same direction - already have velocity toward target
+                bool atMaxVel = absVelocity >= maxVel * 0.95f;
+
+                if (atMaxVel)
+                {
+                    // Coast most of the way, brake at the end
+                    float brakeAngle = (absVelocity * absVelocity) / (2f * maxBrake);
+                    float coastAngle = absError - brakeAngle;
+                    float tCoast = Mathf.Max(0f, coastAngle / absVelocity);
+                    float tBrake = absVelocity / maxBrake;
+                    return tCoast + tBrake;
+                }
+                else
+                {
+                    // Accelerate toward max, coast, brake
+                    float tAccel = (maxVel - absVelocity) / maxAccel;
+
+                    // Distance covered during acceleration: d = v0*t + 0.5*a*t^2
+                    float angleAccel = absVelocity * tAccel + 0.5f * maxAccel * tAccel * tAccel;
+                    float brakeAngle = (maxVel * maxVel) / (2f * maxBrake);
+                    float coastAngle = absError - angleAccel - brakeAngle;
+
+                    if (coastAngle > 0)
+                    {
+                        // Full trapezoid: accel → coast → brake
+                        float tCoast = coastAngle / maxVel;
+                        float tBrake = maxVel / maxBrake;
+                        return tAccel + tCoast + tBrake;
+                    }
+                    else
+                    {
+                        // Short distance - won't reach max velocity
+                        // Approximate: time ≈ remaining angle / current velocity
+                        // This is conservative but avoids complex math for edge cases
+                        return absError / Mathf.Max(absVelocity, 1f);
+                    }
+                }
+            }
+        }
+
         private void ResetState()
         {
             _smoothDampVelocity = 0f;
@@ -504,42 +625,71 @@ namespace StarfireV2
         private void InitializeThrusters()
         {
             var definitions = _config.Thrusters;
-            if (definitions == null || definitions.Length == 0)
-            {
-                Debug.LogWarning($"[RotationModule] ThrusterBased mode selected but no thrusters defined. Falling back to Physics mode behavior.");
-                return;
-            }
+            var markers = _config.AutoDiscoverThrusters && _controller?.Transform != null
+                ? _controller.Transform.GetComponentsInChildren<ThrusterMarker>()
+                : new ThrusterMarker[0];
 
-            Debug.Log($"[RotationModule] Initializing {definitions.Length} thrusters");
+            // Build list of thruster states
+            var thrusterList = new System.Collections.Generic.List<ThrusterState>();
+            var matchedMarkerIds = new System.Collections.Generic.HashSet<string>();
 
-            // Create thruster states from definitions
-            _thrusterStates = new ThrusterState[definitions.Length];
-            for (int i = 0; i < definitions.Length; i++)
+            // 1. Create states from explicit ThrusterDefinitions
+            if (definitions != null && definitions.Length > 0)
             {
-                _thrusterStates[i] = new ThrusterState(definitions[i]);
-                var def = definitions[i];
-                float efficiency = def.CalculateTorqueEfficiency();
-                Debug.Log($"[RotationModule] Thruster {i}: pos={def.localPosition}, dir={def.thrustDirection}, maxThrust={def.maxThrust}, efficiency={efficiency:F3}");
-            }
-
-            // Try to find markers on the ship if auto-discover is enabled
-            if (_config.AutoDiscoverThrusters && _controller?.Transform != null)
-            {
-                var markers = _controller.Transform.GetComponentsInChildren<ThrusterMarker>();
-                foreach (var marker in markers)
+                foreach (var def in definitions)
                 {
-                    // Match marker to thruster state by slotId
-                    foreach (var state in _thrusterStates)
+                    var state = new ThrusterState(def);
+
+                    // Try to find matching marker by slotId
+                    foreach (var marker in markers)
                     {
-                        if (!string.IsNullOrEmpty(state.Definition.slotId) &&
-                            state.Definition.slotId == marker.SlotId)
+                        if (!string.IsNullOrEmpty(def.slotId) && def.slotId == marker.SlotId)
                         {
                             state.Marker = marker;
+                            matchedMarkerIds.Add(marker.SlotId);
                             break;
                         }
                     }
+
+                    thrusterList.Add(state);
+                    float efficiency = def.CalculateTorqueEfficiency();
+                    Debug.Log($"[RotationModule] Thruster (defined): pos={def.localPosition}, dir={def.thrustDirection}, maxThrust={def.maxThrust}, efficiency={efficiency:F3}");
                 }
             }
+
+            // 2. Auto-discover unmatched markers and create definitions for them
+            foreach (var marker in markers)
+            {
+                // Skip if already matched to a definition
+                if (!string.IsNullOrEmpty(marker.SlotId) && matchedMarkerIds.Contains(marker.SlotId))
+                    continue;
+
+                // Create definition from marker
+                var def = new ThrusterDefinition
+                {
+                    slotId = marker.SlotId ?? $"auto_{marker.GetInstanceID()}",
+                    localPosition = _controller.Transform.InverseTransformPoint(marker.WorldPosition),
+                    thrustDirection = marker.ThrustDirection,
+                    maxThrust = marker.MaxThrust > 0 ? marker.MaxThrust : _config.DefaultThrusterThrust,
+                    responseTime = _config.DefaultThrusterResponseTime
+                };
+
+                var state = new ThrusterState(def);
+                state.Marker = marker;
+                thrusterList.Add(state);
+
+                float efficiency = def.CalculateTorqueEfficiency();
+                Debug.Log($"[RotationModule] Thruster (auto-discovered): pos={def.localPosition}, dir={def.thrustDirection}, maxThrust={def.maxThrust}, efficiency={efficiency:F3}");
+            }
+
+            if (thrusterList.Count == 0)
+            {
+                Debug.LogWarning("[RotationModule] ThrusterBased mode selected but no thrusters found. Place ThrusterMarker components on ship or define thrusters in config.");
+                return;
+            }
+
+            _thrusterStates = thrusterList.ToArray();
+            Debug.Log($"[RotationModule] Initialized {_thrusterStates.Length} thrusters ({definitions?.Length ?? 0} defined, {_thrusterStates.Length - (definitions?.Length ?? 0)} auto-discovered)");
 
             // Initialize visual effects if configured
             if (_config.ThrusterVisualConfig != null)
@@ -565,9 +715,10 @@ namespace StarfireV2
                 Transform spawnParent = state.Marker?.MountPoint ?? _controller.Transform;
                 Vector3 localPos = state.Marker != null ? Vector3.zero : (Vector3)state.Definition.localPosition;
 
-                // Orient visual to face thrust direction
+                // Orient visual to face exhaust direction (opposite of thrust/force direction)
                 Vector2 thrustDir = state.Marker?.ThrustDirection ?? state.Definition.NormalizedThrustDirection;
-                float angle = Mathf.Atan2(thrustDir.y, thrustDir.x) * Mathf.Rad2Deg - 90f;
+                Vector2 exhaustDir = -thrustDir; // Exhaust is expelled opposite to the reaction force
+                float angle = Mathf.Atan2(exhaustDir.y, exhaustDir.x) * Mathf.Rad2Deg - 90f;
 
                 ThrusterVisual visual;
 
@@ -628,8 +779,11 @@ namespace StarfireV2
                 return;
             }
 
-            float error = input.GetAngleDelta(_config.SpriteOffset);
+            float shortPathError = input.GetAngleDelta(_config.SpriteOffset);
             float angularVelocity = _controller.Rigid2D.angularVelocity;
+
+            // Optimize rotation direction - may choose to continue spinning instead of reversing
+            float error = OptimizeRotationDirection(shortPathError, angularVelocity);
 
             // Determine control state using physics-based state machine
             ThrusterControlState previousState = _currentState;
