@@ -33,6 +33,17 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WakeDirectionalBiasId = Shader.PropertyToID("_WakeDirectionalBias");
         private static readonly int WakeChromaStrengthId = Shader.PropertyToID("_WakeChromaStrength");
 
+        // Animation property IDs
+        private static readonly int WakePulseSpeedId = Shader.PropertyToID("_WakePulseSpeed");
+        private static readonly int WakePulseAmountId = Shader.PropertyToID("_WakePulseAmount");
+        private static readonly int WakeRippleCountId = Shader.PropertyToID("_WakeRippleCount");
+        private static readonly int WakeRippleSpeedId = Shader.PropertyToID("_WakeRippleSpeed");
+        private static readonly int WakeRippleStrengthId = Shader.PropertyToID("_WakeRippleStrength");
+        private static readonly int WakeNoiseScaleId = Shader.PropertyToID("_WakeNoiseScale");
+        private static readonly int WakeNoiseSpeedId = Shader.PropertyToID("_WakeNoiseSpeed");
+        private static readonly int WakeNoiseStrengthId = Shader.PropertyToID("_WakeNoiseStrength");
+        private static readonly int WakeBowWaveStrengthId = Shader.PropertyToID("_WakeBowWaveStrength");
+
         public override void Create()
         {
             _wakePass = new GravitationalWakePass
@@ -79,6 +90,17 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WakeTrailFalloffId, config.trailFalloff);
             Shader.SetGlobalFloat(WakeDirectionalBiasId, config.directionalBias);
             Shader.SetGlobalFloat(WakeChromaStrengthId, config.chromaEnabled ? config.chromaStrength * intensityMultiplier : 0f);
+
+            // Animation parameters (scaled by intensity)
+            Shader.SetGlobalFloat(WakePulseSpeedId, config.pulseSpeed);
+            Shader.SetGlobalFloat(WakePulseAmountId, config.pulseAmount * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeRippleCountId, config.rippleCount);
+            Shader.SetGlobalFloat(WakeRippleSpeedId, config.rippleSpeed);
+            Shader.SetGlobalFloat(WakeRippleStrengthId, config.rippleStrength * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeNoiseScaleId, config.noiseScale);
+            Shader.SetGlobalFloat(WakeNoiseSpeedId, config.noiseSpeed);
+            Shader.SetGlobalFloat(WakeNoiseStrengthId, config.noiseStrength * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeBowWaveStrengthId, config.bowWaveStrength * intensityMultiplier);
         }
 
         protected override void Dispose(bool disposing)
