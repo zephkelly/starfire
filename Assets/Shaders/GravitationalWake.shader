@@ -46,6 +46,7 @@ Shader "Starfire/GravitationalWake"
             float _WakeTrailFalloff;
             float _WakeDirectionalBias;
             float _WakeChromaStrength;
+            float2 _WakeCenterPosition; // Ship's screen position (0-1), set by CameraController
 
             // Debug properties
             float _UseDebugValues;
@@ -82,8 +83,15 @@ Shader "Starfire/GravitationalWake"
                 float directionalBias = _WakeDirectionalBias;
                 float chromaStrength = _WakeChromaStrength;
 
-                // Center-relative coordinates (-0.5 to 0.5)
-                float2 centerUV = uv - 0.5;
+                // Get ship center position (default to screen center if not set)
+                float2 shipCenter = _WakeCenterPosition;
+                if (shipCenter.x == 0 && shipCenter.y == 0)
+                {
+                    shipCenter = float2(0.5, 0.5);
+                }
+
+                // Center-relative coordinates based on ship position
+                float2 centerUV = uv - shipCenter;
 
                 // Aspect ratio correction
                 float aspectRatio = _ScreenParams.x / _ScreenParams.y;

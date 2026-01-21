@@ -22,6 +22,9 @@ namespace Starfire.Core.V3.Cam
         private float _targetZoom;
         private float _zoomVelocity;
 
+        // Wake effect position
+        private static readonly int WakeCenterPositionId = Shader.PropertyToID("_WakeCenterPosition");
+
         private void Awake()
         {
             _camera = GetComponent<Camera>();
@@ -103,6 +106,20 @@ namespace Starfire.Core.V3.Cam
 
             // Zoom
             UpdateZoom();
+
+            // Update wake effect position
+            UpdateWakePosition();
+        }
+
+        private void UpdateWakePosition()
+        {
+            // Ship is offset from screen center by the inverse of aim offset
+            // Convert world-space offset to normalized screen space (0-1)
+            Vector2 aimOffsetScreen = _currentAimOffset / (_camera.orthographicSize * 2f);
+            aimOffsetScreen.x /= _camera.aspect;
+
+            Vector2 shipScreenPos = new Vector2(0.5f, 0.5f) - aimOffsetScreen;
+            Shader.SetGlobalVector(WakeCenterPositionId, shipScreenPos);
         }
 
         private void UpdateZoom()
