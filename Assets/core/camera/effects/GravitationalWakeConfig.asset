@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 244995d3da4e66f49a05c81a2ed355d0, type: 3}
   m_Name: GravitationalWakeConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.Effects.GravitationalWakeConfig
-  bubbleRadius: 0.08
+  bubbleRadius: 0.5
   ringWidth: 0.15
+  referenceOrthoSize: 10
   trailLength: 0.5
   trailFalloff: 1.5
   directionalBias: 0.7
@@ -45,3 +46,19 @@ MonoBehaviour:
   chromaEnabled: 1
   chromaStrength: 0.003
   activationThreshold: 0.01
+  pulseSpeed: 1.5
+  pulseAmount: 0.15
+  rippleCount: 2
+  rippleSpeed: 0.3
+  rippleStrength: 0.25
+  noiseScale: 12
+  noiseSpeed: 0.5
+  noiseStrength: 0.2
+  bowWaveStrength: 0.35
+  edgeDistortionStrength: 0.5
+  edgeSharpness: 4
+  wakeAngle: 45
+  wakeTurbulence: 0.6
+  wakeTurbulenceScale: 8
+  wakeTurbulenceSpeed: 1
+  wakeSpread: 1

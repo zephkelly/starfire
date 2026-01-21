@@ -360,10 +360,9 @@ Shader "Starfire/Nebula"
 
                 // Calculate zoom factor
                 float zoomFactor = _CameraOrthoSize / max(_ReferenceZoom, 0.001);
-                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
 
-                // Scale UVs around center
-                float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+                // Scale UVs around center - all layers scale uniformly with zoom
+                float2 scaledUV = (uv - 0.5) * zoomFactor + 0.5;
 
                 // Apply parallax offset
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;

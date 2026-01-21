@@ -679,8 +679,7 @@ Shader "Starfire/StylizedNebula"
 
                 // === Parallax ===
                 float zoomFactor = _CameraOrthoSize / max(_ReferenceZoom, 0.001);
-                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
-                float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+                float2 scaledUV = (uv - 0.5) * zoomFactor + 0.5;
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
                 float2 parallaxUV = scaledUV + parallaxOffset;
                 float2 aspectCorrectedUV = float2(parallaxUV.x * _ScreenAspect, parallaxUV.y);

@@ -403,12 +403,8 @@ Shader "Starfire/Starfield"
                 // Calculate zoom factor relative to reference zoom
                 float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
 
-                // Depth-aware zoom: distant layers (low parallax) zoom less, nearby layers zoom more
-                // _ParallaxFactor typically ranges 0.01-0.1, multiply by 10 to get 0.1-1.0 range
-                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
-
-                // Scale UVs around center point
-                float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+                // Scale UVs around center point - all layers scale uniformly with zoom
+                float2 scaledUV = (uv - 0.5) * zoomFactor + 0.5;
 
                 // Apply parallax offset based on camera position
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;

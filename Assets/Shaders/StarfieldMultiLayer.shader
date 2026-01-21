@@ -286,11 +286,8 @@ Shader "Starfire/StarfieldMultiLayer"
                     float3 depthColor = _DepthColors[d].rgb;
                     float seed = _DepthSeeds[d];
 
-                    // Depth-aware zoom
-                    float depthZoomFactor = lerp(1.0, zoomFactor, saturate(parallax * 10.0));
-
-                    // Scale UVs around center point
-                    float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+                    // Scale UVs around center point - all layers scale uniformly with zoom
+                    float2 scaledUV = (uv - 0.5) * zoomFactor + 0.5;
 
                     // Apply parallax offset
                     float2 parallaxOffset = _CameraWorldPos * parallax;

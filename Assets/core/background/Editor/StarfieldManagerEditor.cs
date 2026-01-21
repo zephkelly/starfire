@@ -7,6 +7,7 @@ namespace Starfire.Core.Background.Editor
     [CustomEditor(typeof(StarfieldManager))]
     public class StarfieldManagerEditor : UnityEditor.Editor
     {
+        private SerializedProperty _targetCamera;
         private SerializedProperty _backgroundDepth;
         private SerializedProperty _scaleMultiplier;
         private SerializedProperty _enableEditorPreview;
@@ -14,6 +15,7 @@ namespace Starfire.Core.Background.Editor
 
         private void OnEnable()
         {
+            _targetCamera = serializedObject.FindProperty("targetCamera");
             _backgroundDepth = serializedObject.FindProperty("backgroundDepth");
             _scaleMultiplier = serializedObject.FindProperty("scaleMultiplier");
             _enableEditorPreview = serializedObject.FindProperty("enableEditorPreview");
@@ -23,6 +25,12 @@ namespace Starfire.Core.Background.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            // Camera
+            EditorGUILayout.LabelField("Camera", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_targetCamera, new GUIContent("Target Camera", "Camera to use for sizing. If not set, uses Camera.main"));
+
+            EditorGUILayout.Space();
 
             // Settings
             EditorGUILayout.LabelField("Settings", EditorStyles.boldLabel);

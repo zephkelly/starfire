@@ -11,6 +11,10 @@ namespace Starfire.Core.Background
     [ExecuteAlways]
     public class StarfieldManager : MonoBehaviour
     {
+        [Header("Camera")]
+        [Tooltip("Camera to use for sizing. If not set, uses Camera.main")]
+        [SerializeField] private Camera targetCamera;
+
         [Header("Settings")]
         [Tooltip("Base Z position for the background quads (should be far behind other objects)")]
         [SerializeField] private float backgroundDepth = 100f;
@@ -46,15 +50,27 @@ namespace Starfire.Core.Background
 
         private void OnEnable()
         {
-            _camera = Camera.main;
-            if (_camera == null)
-            {
-                _camera = FindFirstObjectByType<Camera>();
-            }
+            UpdateCameraReference();
 
             if (ShouldRender())
             {
                 InitializeLayers();
+            }
+        }
+
+        private void UpdateCameraReference()
+        {
+            if (targetCamera != null)
+            {
+                _camera = targetCamera;
+            }
+            else
+            {
+                _camera = Camera.main;
+                if (_camera == null)
+                {
+                    _camera = FindFirstObjectByType<Camera>();
+                }
             }
         }
 
@@ -136,6 +152,9 @@ namespace Starfire.Core.Background
         private void LateUpdate()
         {
             if (!ShouldRender()) return;
+
+            // Refresh camera reference each frame to stay in sync
+            UpdateCameraReference();
 
             if (!_initialized)
             {

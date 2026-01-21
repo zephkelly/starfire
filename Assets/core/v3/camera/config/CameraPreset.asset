@@ -41,8 +41,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   lookAheadSmoothing: 0.15
-  orthographicSize: 10
-  minZoom: 10
+  orthographicSize: 25
+  minZoom: 25
   maxZoom: 40
   scrollSensitivity: 2
   zoomRateCurve:
@@ -78,4 +78,4 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  zoomSmoothing: 0.1
+  zoomSmoothing: 0

@@ -26,6 +26,11 @@ namespace Starfire.Core.V3.Cam
         private static readonly int WakeCenterPositionId = Shader.PropertyToID("_WakeCenterPosition");
         private static readonly int WakeOrthoSizeId = Shader.PropertyToID("_WakeOrthoSize");
 
+        // Starfield shader globals
+        private static readonly int CameraOrthoSizeId = Shader.PropertyToID("_CameraOrthoSize");
+        private static readonly int CameraWorldPosId = Shader.PropertyToID("_CameraWorldPos");
+        private static readonly int ScreenAspectId = Shader.PropertyToID("_ScreenAspect");
+
         private void Awake()
         {
             _camera = GetComponent<Camera>();
@@ -110,6 +115,16 @@ namespace Starfire.Core.V3.Cam
 
             // Update wake effect position
             UpdateWakePosition();
+
+            // Update starfield shader globals
+            UpdateStarfieldGlobals();
+        }
+
+        private void UpdateStarfieldGlobals()
+        {
+            Shader.SetGlobalFloat(CameraOrthoSizeId, _camera.orthographicSize);
+            Shader.SetGlobalVector(CameraWorldPosId, new Vector4(transform.position.x, transform.position.y, 0, 0));
+            Shader.SetGlobalFloat(ScreenAspectId, _camera.aspect);
         }
 
         private void UpdateWakePosition()

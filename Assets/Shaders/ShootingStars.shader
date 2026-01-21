@@ -111,11 +111,8 @@ Shader "Starfire/ShootingStars"
                 // UV 0-1 maps to camera view
                 float2 centeredUV = (uv - 0.5) * 2.0; // -1 to 1
 
-                // Calculate depth-aware zoom factor (matches Starfield.shader)
-                // Distant layers (low parallax) zoom less, nearby layers zoom more
-                float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
-                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
-                float effectiveOrthoSize = _ReferenceZoom * depthZoomFactor;
+                // Zoom factor - scale uniformly with camera
+                float effectiveOrthoSize = _CameraOrthoSize;
 
                 // World position using depth-adjusted ortho size
                 // This makes distant layers appear to zoom less, matching Starfield.shader behavior
