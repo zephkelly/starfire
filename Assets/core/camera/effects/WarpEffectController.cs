@@ -13,7 +13,7 @@ namespace Starfire.Core.Cam.Effects
     }
 
     /// <summary>
-    /// Controls the warp visual effect, orchestrating star streaking, chromatic aberration,
+    /// Controls the warp visual effect, orchestrating star streaking,
     /// lens distortion, and camera zoom effects.
     /// </summary>
     public class WarpEffectController : MonoBehaviour
@@ -29,10 +29,6 @@ namespace Starfire.Core.Cam.Effects
         [SerializeField] private bool useSpeedBasedWarp = true;
         [Tooltip("Optional direct reference to a Rigidbody2D to track. If null, uses camera target.")]
         [SerializeField] private Rigidbody2D trackedRigidbody;
-
-        [Header("Post Processing")]
-        [Tooltip("Use custom directional chromatic aberration instead of URP's radial effect. Requires DirectionalChromaticAberrationFeature on the renderer.")]
-        [SerializeField] private bool useDirectionalChromatic = true;
 
         [Header("Debug")]
         [SerializeField] private bool enableDebugControls;
@@ -72,6 +68,15 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WobbleIntensityId = Shader.PropertyToID("_WobbleIntensity");
         private static readonly int WobbleFrequencyId = Shader.PropertyToID("_WobbleFrequency");
         private static readonly int WobbleSpeedId = Shader.PropertyToID("_WobbleSpeed");
+
+        // Gravitational wake shader property IDs
+        private static readonly int WakeBubbleRadiusId = Shader.PropertyToID("_WakeBubbleRadius");
+        private static readonly int WakeRingWidthId = Shader.PropertyToID("_WakeRingWidth");
+        private static readonly int WakeTrailLengthId = Shader.PropertyToID("_WakeTrailLength");
+        private static readonly int WakeDistortionStrengthId = Shader.PropertyToID("_WakeDistortionStrength");
+        private static readonly int WakeTrailFalloffId = Shader.PropertyToID("_WakeTrailFalloff");
+        private static readonly int WakeDirectionalBiasId = Shader.PropertyToID("_WakeDirectionalBias");
+        private static readonly int WakeChromaStrengthId = Shader.PropertyToID("_WakeChromaStrength");
 
         // Internal state
         private Vector2 _warpDirection = Vector2.up;
@@ -243,24 +248,28 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WobbleIntensityId, config != null ? config.wobbleIntensity : 0f);
             Shader.SetGlobalFloat(WobbleFrequencyId, config != null ? config.wobbleFrequency : 5f);
             Shader.SetGlobalFloat(WobbleSpeedId, config != null ? config.wobbleSpeed : 2f);
+
+            // Gravitational wake globals
+            UpdateWakeGlobals();
+        }
+
+        private void UpdateWakeGlobals()
+        {
+            // Evaluate wake intensity from curve (modulates distortion strength)
+            float wakeIntensity = config != null ? config.GetWakeIntensity(WarpIntensity) : WarpIntensity;
+
+            Shader.SetGlobalFloat(WakeBubbleRadiusId, config != null ? config.wakeBubbleRadius : 0.08f);
+            Shader.SetGlobalFloat(WakeRingWidthId, config != null ? config.wakeRingWidth : 0.15f);
+            Shader.SetGlobalFloat(WakeTrailLengthId, config != null ? config.wakeTrailLength : 0.5f);
+            Shader.SetGlobalFloat(WakeDistortionStrengthId, (config != null ? config.wakeDistortionStrength : 0.03f) * wakeIntensity);
+            Shader.SetGlobalFloat(WakeTrailFalloffId, config != null ? config.wakeTrailFalloff : 1.5f);
+            Shader.SetGlobalFloat(WakeDirectionalBiasId, config != null ? config.wakeDirectionalBias : 0.7f);
+            Shader.SetGlobalFloat(WakeChromaStrengthId, config != null && config.wakeChromaEnabled ? config.wakeChromaStrength : 0f);
         }
 
         private void UpdatePostProcessing()
         {
             if (cameraController == null) return;
-
-            // Only use URP's built-in chromatic aberration if not using directional version
-            // The directional version reads _WarpIntensity global directly from shader
-            if (!useDirectionalChromatic)
-            {
-                float chromatic = config != null ? config.GetChromaticAberration(WarpIntensity) : WarpIntensity * 0.7f;
-                cameraController.SetChromaticAberration(chromatic);
-            }
-            else
-            {
-                // Ensure built-in chromatic is disabled when using directional
-                cameraController.SetChromaticAberration(0f);
-            }
 
             float lensDistortion = config != null ? config.GetLensDistortion(WarpIntensity) : WarpIntensity * 0.15f;
             cameraController.SetLensDistortion(lensDistortion);
@@ -403,6 +412,15 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WobbleIntensityId, config != null ? config.wobbleIntensity : 0f);
             Shader.SetGlobalFloat(WobbleFrequencyId, config != null ? config.wobbleFrequency : 5f);
             Shader.SetGlobalFloat(WobbleSpeedId, config != null ? config.wobbleSpeed : 2f);
+
+            // Gravitational wake globals (reset to zero distortion)
+            Shader.SetGlobalFloat(WakeBubbleRadiusId, config != null ? config.wakeBubbleRadius : 0.08f);
+            Shader.SetGlobalFloat(WakeRingWidthId, config != null ? config.wakeRingWidth : 0.15f);
+            Shader.SetGlobalFloat(WakeTrailLengthId, config != null ? config.wakeTrailLength : 0.5f);
+            Shader.SetGlobalFloat(WakeDistortionStrengthId, 0f); // Zero distortion when reset
+            Shader.SetGlobalFloat(WakeTrailFalloffId, config != null ? config.wakeTrailFalloff : 1.5f);
+            Shader.SetGlobalFloat(WakeDirectionalBiasId, config != null ? config.wakeDirectionalBias : 0.7f);
+            Shader.SetGlobalFloat(WakeChromaStrengthId, 0f); // No chroma when reset
         }
 
         #region Public API
@@ -500,7 +518,6 @@ namespace Starfire.Core.Cam.Effects
 
             if (cameraController != null)
             {
-                cameraController.SetChromaticAberration(0f);
                 cameraController.SetLensDistortion(0f);
             }
 

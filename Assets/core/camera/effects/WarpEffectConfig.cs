@@ -54,13 +54,6 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Parallax multiplier for depth scaling (higher = more difference between layers)")]
         [Range(1f, 20f)] public float parallaxDepthMultiplier = 10f;
 
-        [Header("Chromatic Aberration")]
-        [Tooltip("Maximum chromatic aberration intensity at full warp")]
-        [Range(0f, 1f)] public float maxChromaticIntensity = 0.7f;
-
-        [Tooltip("Curve mapping warp intensity to chromatic aberration")]
-        public AnimationCurve chromaticCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-
         [Header("Lens Distortion")]
         [Tooltip("Maximum lens distortion at full warp (positive = barrel, negative = pincushion)")]
         [Range(-0.5f, 0.5f)] public float maxLensDistortion = 0.15f;
@@ -105,6 +98,34 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Easing curve for manual warp transitions")]
         public AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
+        [Header("Gravitational Wake Effect")]
+        [Tooltip("Radius of undistorted zone around ship center (screen space 0-0.5)")]
+        [Range(0f, 0.3f)] public float wakeBubbleRadius = 0.08f;
+
+        [Tooltip("Width of the distortion ring around the bubble")]
+        [Range(0.05f, 0.3f)] public float wakeRingWidth = 0.15f;
+
+        [Tooltip("How far the wake trail extends behind the ship")]
+        [Range(0.1f, 1f)] public float wakeTrailLength = 0.5f;
+
+        [Tooltip("Maximum UV distortion strength")]
+        [Range(0f, 0.1f)] public float wakeDistortionStrength = 0.03f;
+
+        [Tooltip("How quickly wake fades with distance from ship")]
+        [Range(0.5f, 3f)] public float wakeTrailFalloff = 1.5f;
+
+        [Tooltip("How strongly wake favors trailing direction (1 = only behind, 0 = symmetric)")]
+        [Range(0f, 1f)] public float wakeDirectionalBias = 0.7f;
+
+        [Tooltip("Curve mapping warp intensity to wake effect strength")]
+        public AnimationCurve wakeIntensityCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Tooltip("Enable subtle chromatic aberration in wake zone")]
+        public bool wakeChromaEnabled = true;
+
+        [Tooltip("Chromatic aberration strength in wake")]
+        [Range(0f, 0.01f)] public float wakeChromaStrength = 0.002f;
+
         /// <summary>
         /// Evaluate the stretch multiplier for a given warp intensity.
         /// </summary>
@@ -112,14 +133,6 @@ namespace Starfire.Core.Cam.Effects
         {
             float curvedIntensity = stretchCurve.Evaluate(intensity);
             return Mathf.Lerp(1f, maxStretchMultiplier, curvedIntensity);
-        }
-
-        /// <summary>
-        /// Evaluate the chromatic aberration for a given warp intensity.
-        /// </summary>
-        public float GetChromaticAberration(float intensity)
-        {
-            return chromaticCurve.Evaluate(intensity) * maxChromaticIntensity;
         }
 
         /// <summary>
@@ -161,6 +174,14 @@ namespace Starfire.Core.Cam.Effects
         public float GetNebulaFade(float intensity)
         {
             return intensity * nebulaFadeAtFullWarp;
+        }
+
+        /// <summary>
+        /// Evaluate the wake effect intensity for a given warp intensity.
+        /// </summary>
+        public float GetWakeIntensity(float intensity)
+        {
+            return wakeIntensityCurve.Evaluate(intensity);
         }
     }
 }
