@@ -633,8 +633,10 @@ Shader "Starfire/Comet"
                 // Calculate world position from UV
                 float2 centeredUV = (pixelizedUV - 0.5) * 2.0;
 
-                // Zoom factor - scale uniformly with camera
-                float effectiveOrthoSize = _CameraOrthoSize;
+                // Depth-aware zoom
+                float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
+                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
+                float effectiveOrthoSize = _ReferenceZoom * depthZoomFactor;
 
                 // Parallax coordinate space
                 float2 worldPos;
