@@ -24,6 +24,7 @@ namespace Starfire.Core.V3.Cam
 
         // Wake effect position
         private static readonly int WakeCenterPositionId = Shader.PropertyToID("_WakeCenterPosition");
+        private static readonly int WakeOrthoSizeId = Shader.PropertyToID("_WakeOrthoSize");
 
         private void Awake()
         {
@@ -120,6 +121,9 @@ namespace Starfire.Core.V3.Cam
 
             Vector2 shipScreenPos = new Vector2(0.5f, 0.5f) - aimOffsetScreen;
             Shader.SetGlobalVector(WakeCenterPositionId, shipScreenPos);
+
+            // Pass orthographic size for wake effect zoom scaling
+            Shader.SetGlobalFloat(WakeOrthoSizeId, _camera.orthographicSize);
         }
 
         private void UpdateZoom()

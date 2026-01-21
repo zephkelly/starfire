@@ -64,6 +64,21 @@ Shader "Starfire/GravitationalWake"
             float _WakeNoiseStrength;
             float _WakeBowWaveStrength;
 
+            // Edge distortion globals (event horizon effect)
+            float _WakeEdgeStrength;
+            float _WakeEdgeSharpness;
+
+            // Wake zone turbulence globals
+            float _WakeAngle;
+            float _WakeTurbulence;
+            float _WakeTurbulenceScale;
+            float _WakeTurbulenceSpeed;
+            float _WakeSpread;
+
+            // Camera zoom scaling
+            float _WakeOrthoSize; // Camera orthographic size for zoom scaling
+            float _WakeReferenceOrthoSize; // Reference ortho size where config values are calibrated
+
             // Debug properties
             float _UseDebugValues;
             float _DebugIntensity;
@@ -132,6 +147,17 @@ Shader "Starfire/GravitationalWake"
                 float trailFalloff = max(_WakeTrailFalloff, 0.5);
                 float directionalBias = _WakeDirectionalBias;
                 float chromaStrength = _WakeChromaStrength;
+
+                // === ZOOM SCALING ===
+                // Scale effect size based on camera zoom
+                // Smaller ortho = zoomed in = effect should be larger on screen
+                float refOrtho = max(_WakeReferenceOrthoSize, 1.0);
+                float zoomScale = refOrtho / max(_WakeOrthoSize, 1.0);
+
+                // Apply zoom scale to bubble/ring (ship-relative elements)
+                bubbleRadius *= zoomScale;
+                ringWidth *= zoomScale;
+                // NOTE: trailLength NOT scaled - wake zone should always fill entire screen
 
                 // Get ship center position (default to screen center if not set)
                 float2 shipCenter = _WakeCenterPosition;
@@ -223,11 +249,66 @@ Shader "Starfire/GravitationalWake"
                 // Pulls space inward at front of ship (piercing through spacetime)
                 float2 bowOffset = dirFromCenter * bowFactor * bowStrength * distortStrength * ringProfile;
 
-                // Final UV offset with all components
-                float2 totalOffset = (radialOffset + tangentialOffset + wakeOffset + bowOffset + noiseOffset) * distortionMask;
+                // === EXTREME EDGE DISTORTION (Event Horizon) ===
+                // Sharp, intense distortion exactly at bubble boundary - like light bending around a black hole
+                float edgeDist = abs(distFromCenter - bubbleRadius);
+                float edgeProfile = exp(-edgeDist * _WakeEdgeSharpness / ringWidth);
+                float2 edgeOffset = -dirFromCenter * edgeProfile * _WakeEdgeStrength * distortStrength * 3.0;
 
-                // Clamp offset to prevent sampling outside texture
-                totalOffset = clamp(totalOffset, -0.1, 0.1);
+                // === WAKE ZONE (Full Cone Behind Ship) ===
+                // Calculate if pixel is within wake cone angle
+                float wakeAngleRad = _WakeAngle * PI / 180.0;
+                float wakeConeMask = smoothstep(cos(wakeAngleRad), cos(wakeAngleRad * 0.5), -directionDot);
+
+                // Wake only behind ship (where directionDot < 0)
+                float behindShip = saturate(-directionDot);
+                wakeConeMask *= behindShip;
+
+                // Wake spreads and intensifies with distance from bubble
+                float wakeDistance = max(distFromCenter - bubbleRadius, 0.0);
+                float wakeDistanceFactor = saturate(wakeDistance / trailLength);
+                float wakeZoneIntensity = wakeConeMask * (1.0 + wakeDistanceFactor * _WakeSpread);
+
+                // === SWIRLING VORTEX TURBULENCE ===
+                // Create chaotic swirling distortion filling the wake cone
+                float2 wakeNoiseCoord = aspectCorrected * _WakeTurbulenceScale;
+                float turbTime = _Time.y * _WakeTurbulenceSpeed;
+
+                // Create swirling vortex pattern using curl noise approach
+                // Calculate noise gradients for curl (perpendicular flow creates swirls)
+                float noiseCenter = noise2D(wakeNoiseCoord + turbTime);
+                float noiseRight = noise2D(wakeNoiseCoord + float2(0.01, 0) + turbTime);
+                float noiseUp = noise2D(wakeNoiseCoord + float2(0, 0.01) + turbTime);
+
+                // Curl gives perpendicular flow (creates swirling vortices)
+                float2 curl = float2(noiseUp - noiseCenter, -(noiseRight - noiseCenter)) * 100.0;
+
+                // Add second octave of vortices for more complex turbulence
+                float2 curl2 = float2(
+                    noise2D(wakeNoiseCoord * 2.0 + float2(0, 0.01) + turbTime * 1.5) - noise2D(wakeNoiseCoord * 2.0 + turbTime * 1.5),
+                    -(noise2D(wakeNoiseCoord * 2.0 + float2(0.01, 0) + turbTime * 1.5) - noise2D(wakeNoiseCoord * 2.0 + turbTime * 1.5))
+                ) * 50.0;
+
+                // Combined swirling turbulence
+                float2 vortexTurbulence = (curl + curl2 * 0.5);
+
+                // Turbulence increases with distance from ship (wake spreads out)
+                float spreadFactor = 1.0 + wakeDistanceFactor * _WakeSpread;
+                float2 wakeDistortOffset = vortexTurbulence * _WakeTurbulence * wakeZoneIntensity * distortStrength * spreadFactor;
+
+                // Add outward flow component in wake direction
+                wakeDistortOffset += -warpDir * wakeZoneIntensity * distortStrength * 0.2;
+
+                // Final UV offset combining all effects:
+                // - Edge distortion (event horizon)
+                // - Ring distortion (existing gravitational lensing)
+                // - Wake zone turbulence (chaotic swirling in entire wake cone)
+                // - Bow wave (front compression)
+                // - Noise wobble (organic movement)
+                float2 totalOffset = (edgeOffset + radialOffset + tangentialOffset + wakeOffset + bowOffset + noiseOffset + wakeDistortOffset) * distortionMask;
+
+                // Allow stronger distortion for dramatic effect
+                totalOffset = clamp(totalOffset, -0.15, 0.15);
 
                 float2 distortedUV = uv + totalOffset;
 

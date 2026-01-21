@@ -11,10 +11,13 @@ namespace Starfire.Core.Cam.Effects
     {
         [Header("Bubble Zone")]
         [Tooltip("Radius of undistorted zone around ship center (screen space 0-0.5)")]
-        [Range(0f, 0.3f)] public float bubbleRadius = 0.08f;
+        [Range(0f, 0.5f)] public float bubbleRadius = 0.15f;
 
         [Tooltip("Width of the distortion ring around the bubble")]
-        [Range(0.05f, 0.3f)] public float ringWidth = 0.15f;
+        [Range(0.05f, 0.5f)] public float ringWidth = 0.2f;
+
+        [Tooltip("Camera ortho size where bubble radius values are calibrated. Effect scales to maintain world-space size.")]
+        [Range(1f, 50f)] public float referenceOrthoSize = 10f;
 
         [Header("Wake Trail")]
         [Tooltip("How far the wake trail extends behind the ship")]
@@ -74,6 +77,29 @@ namespace Starfire.Core.Cam.Effects
         [Header("Animation - Bow Wave")]
         [Tooltip("Bow wave strength relative to trailing wake (piercing effect at front)")]
         [Range(0f, 0.5f)] public float bowWaveStrength = 0.35f;
+
+        [Header("Edge Distortion (Event Horizon)")]
+        [Tooltip("Extreme distortion strength at bubble edge")]
+        [Range(0f, 1f)] public float edgeDistortionStrength = 0.5f;
+
+        [Tooltip("Sharpness of edge distortion falloff (higher = sharper edge)")]
+        [Range(1f, 10f)] public float edgeSharpness = 4f;
+
+        [Header("Wake Zone (Full Turbulence)")]
+        [Tooltip("Angular spread of wake behind ship (degrees from center)")]
+        [Range(15f, 90f)] public float wakeAngle = 45f;
+
+        [Tooltip("Turbulence strength in wake zone")]
+        [Range(0f, 1f)] public float wakeTurbulence = 0.6f;
+
+        [Tooltip("Scale of turbulence vortices in wake")]
+        [Range(3f, 20f)] public float wakeTurbulenceScale = 8f;
+
+        [Tooltip("Speed of turbulence animation")]
+        [Range(0.1f, 3f)] public float wakeTurbulenceSpeed = 1f;
+
+        [Tooltip("How much wake turbulence increases with distance")]
+        [Range(0f, 2f)] public float wakeSpread = 1f;
 
         /// <summary>
         /// Get the wake intensity multiplier for a given warp intensity.

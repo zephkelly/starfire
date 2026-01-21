@@ -44,6 +44,20 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WakeNoiseStrengthId = Shader.PropertyToID("_WakeNoiseStrength");
         private static readonly int WakeBowWaveStrengthId = Shader.PropertyToID("_WakeBowWaveStrength");
 
+        // Edge distortion property IDs
+        private static readonly int WakeEdgeStrengthId = Shader.PropertyToID("_WakeEdgeStrength");
+        private static readonly int WakeEdgeSharpnessId = Shader.PropertyToID("_WakeEdgeSharpness");
+
+        // Wake zone property IDs
+        private static readonly int WakeAngleId = Shader.PropertyToID("_WakeAngle");
+        private static readonly int WakeTurbulenceId = Shader.PropertyToID("_WakeTurbulence");
+        private static readonly int WakeTurbulenceScaleId = Shader.PropertyToID("_WakeTurbulenceScale");
+        private static readonly int WakeTurbulenceSpeedId = Shader.PropertyToID("_WakeTurbulenceSpeed");
+        private static readonly int WakeSpreadId = Shader.PropertyToID("_WakeSpread");
+
+        // Zoom scaling property ID
+        private static readonly int WakeReferenceOrthoSizeId = Shader.PropertyToID("_WakeReferenceOrthoSize");
+
         public override void Create()
         {
             _wakePass = new GravitationalWakePass
@@ -101,6 +115,20 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WakeNoiseSpeedId, config.noiseSpeed);
             Shader.SetGlobalFloat(WakeNoiseStrengthId, config.noiseStrength * intensityMultiplier);
             Shader.SetGlobalFloat(WakeBowWaveStrengthId, config.bowWaveStrength * intensityMultiplier);
+
+            // Edge distortion parameters
+            Shader.SetGlobalFloat(WakeEdgeStrengthId, config.edgeDistortionStrength * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeEdgeSharpnessId, config.edgeSharpness);
+
+            // Wake zone parameters
+            Shader.SetGlobalFloat(WakeAngleId, config.wakeAngle);
+            Shader.SetGlobalFloat(WakeTurbulenceId, config.wakeTurbulence * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeTurbulenceScaleId, config.wakeTurbulenceScale);
+            Shader.SetGlobalFloat(WakeTurbulenceSpeedId, config.wakeTurbulenceSpeed);
+            Shader.SetGlobalFloat(WakeSpreadId, config.wakeSpread);
+
+            // Zoom scaling
+            Shader.SetGlobalFloat(WakeReferenceOrthoSizeId, config.referenceOrthoSize);
         }
 
         protected override void Dispose(bool disposing)
