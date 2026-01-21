@@ -377,7 +377,7 @@ Shader "Starfire/Nebula"
                 {
                     float parallel = dot(aspectCorrectedUV, _WarpDirection);
                     float2 perp = aspectCorrectedUV - _WarpDirection * parallel;
-                    parallel *= _WarpNebulaStretch;
+                    parallel /= _WarpNebulaStretch;
                     aspectCorrectedUV = perp + _WarpDirection * parallel;
                 }
 

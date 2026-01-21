@@ -165,7 +165,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.Effects.WarpEffectController
   config: {fileID: 11400000, guid: aa72bbb1d872648478f9c5fe00e83bd9, type: 2}
-  cameraController: {fileID: 519420034}
+  cameraController: {fileID: 0}
   autoFindCamera: 1
   useSpeedBasedWarp: 1
   trackedRigidbody: {fileID: 1155963049}
@@ -549,9 +549,8 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
-  - component: {fileID: 519420034}
   - component: {fileID: 519420033}
-  - component: {fileID: 519420035}
+  - component: {fileID: 519420036}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -1082,33 +1081,7 @@ MonoBehaviour:
         regionRadius: 10000
         regionFalloff: 400
         regionEdgeMode: 1
---- !u!114 &519420034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 519420028}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24876525dba70ae4696e12fb0ec77c30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.CameraController
-  defaultPreset: {fileID: 11400000, guid: 861295d0a2678f94eba42f38716d2a62, type: 2}
-  initialTarget: {fileID: 1155963048}
-  autoFindTarget: 0
-  snapOnStart: 1
-  updateMode: 2
-  useInterpolation: 1
-  postProcessVolume: {fileID: 1887904437}
-  autoFindVolume: 0
-  showDebugInfo: 1
-  enableDebugControls: 1
-  debugShakeIntensity: 0.5
-  debugPunchForce: 0.3
-  debugChromaticIntensity: 0.5
-  debugVignetteIntensity: 0.3
---- !u!114 &519420035
+--- !u!114 &519420036
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1117,22 +1090,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec8661b12d7746c449537ff255b2c0e6, type: 3}
+  m_Script: {fileID: 11500000, guid: 434a67da96bcc834db187cc4301a7708, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.Cam.VelocityCameraController
-  defaultPreset: {fileID: 11400000, guid: 4c07268481614274cb26f00abfdb5ea6, type: 2}
-  initialTarget: {fileID: 1155963048}
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V3.Cam.CameraController
+  preset: {fileID: 11400000, guid: 8bd2f7e2db80be646ad0357a427f9bf9, type: 2}
+  target: {fileID: 1155963048}
   autoFindTarget: 1
-  snapOnStart: 1
-  updateMode: 2
-  postProcessVolume: {fileID: 1887904437}
-  autoFindVolume: 1
-  showDebugInfo: 0
-  enableDebugControls: 1
-  debugShakeIntensity: 0.5
-  debugPunchForce: 0.3
-  debugChromaticIntensity: 0.5
-  debugVignetteIntensity: 0.3
 --- !u!1 &595357236
 GameObject:
   m_ObjectHideFlags: 0
@@ -1375,7 +1338,7 @@ MonoBehaviour:
   maxVisibleRegions: 8
   frustumPadding: 50
   backgroundDepth: 100
-  scaleMultiplier: 1.1
+  scaleMultiplier: 0
   nebulaShader: {fileID: 4800000, guid: 491ad7d29bd137744b81182facc84d92, type: 3}
   stylizedNebulaShader: {fileID: 4800000, guid: e7555eb9143c3d744be2aca70f4b46b2, type: 3}
   showDebugGizmos: 0

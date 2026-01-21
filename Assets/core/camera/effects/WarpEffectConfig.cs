@@ -76,7 +76,7 @@ namespace Starfire.Core.Cam.Effects
         public AnimationCurve zoomCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
         [Header("Nebula Effects")]
-        [Tooltip("How much nebulae stretch relative to stars (0 = no stretch, 1 = same as stars)")]
+        [Tooltip("Max nebula expansion at full warp (0.1 = 10% expansion, 0.5 = 50% expansion)")]
         [Range(0f, 1f)] public float nebulaStretchRatio = 0.3f;
 
         [Tooltip("How much nebulae fade at full warp")]
@@ -152,8 +152,7 @@ namespace Starfire.Core.Cam.Effects
         /// </summary>
         public float GetNebulaStretchMultiplier(float intensity)
         {
-            float starStretch = GetStretchMultiplier(intensity);
-            return Mathf.Lerp(1f, 1f + (starStretch - 1f) * nebulaStretchRatio, intensity);
+            return 1f + nebulaStretchRatio * intensity;
         }
 
         /// <summary>
