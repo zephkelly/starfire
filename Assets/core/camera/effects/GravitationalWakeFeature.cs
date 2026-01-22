@@ -58,6 +58,10 @@ namespace Starfire.Core.Cam.Effects
         // Zoom scaling property ID
         private static readonly int WakeReferenceOrthoSizeId = Shader.PropertyToID("_WakeReferenceOrthoSize");
 
+        // Ellipse shape property IDs
+        private static readonly int WakeEllipseRatioId = Shader.PropertyToID("_WakeEllipseRatio");
+        private static readonly int WakeNeedleSharpnessId = Shader.PropertyToID("_WakeNeedleSharpness");
+
         public override void Create()
         {
             _wakePass = new GravitationalWakePass
@@ -129,6 +133,10 @@ namespace Starfire.Core.Cam.Effects
 
             // Zoom scaling
             Shader.SetGlobalFloat(WakeReferenceOrthoSizeId, config.referenceOrthoSize);
+
+            // Ellipse shape
+            Shader.SetGlobalFloat(WakeEllipseRatioId, config.ellipseRatio);
+            Shader.SetGlobalFloat(WakeNeedleSharpnessId, config.needleSharpness);
         }
 
         protected override void Dispose(bool disposing)

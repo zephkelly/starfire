@@ -19,6 +19,13 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Camera ortho size where bubble radius values are calibrated. Effect scales to maintain world-space size.")]
         [Range(1f, 50f)] public float referenceOrthoSize = 10f;
 
+        [Header("Ellipse Shape")]
+        [Tooltip("Ratio of minor to major axis (1 = circle, 0.3 = narrow ellipse aligned with movement)")]
+        [Range(0.2f, 1f)] public float ellipseRatio = 1f;
+
+        [Tooltip("How pointed the front edge becomes (0 = uniform ellipse, 1 = sharp needle)")]
+        [Range(0f, 1f)] public float needleSharpness = 0f;
+
         [Header("Wake Trail")]
         [Tooltip("How far the wake trail extends behind the ship")]
         [Range(0.1f, 1f)] public float trailLength = 0.5f;

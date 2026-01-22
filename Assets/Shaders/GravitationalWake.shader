@@ -53,6 +53,10 @@ Shader "Starfire/GravitationalWake"
             float _WakeChromaStrength;
             float2 _WakeCenterPosition; // Ship's screen position (0-1), set by CameraController
 
+            // Ellipse shape globals
+            float _WakeEllipseRatio;
+            float _WakeNeedleSharpness;
+
             // Animation globals
             float _WakePulseSpeed;
             float _WakePulseAmount;
@@ -117,6 +121,29 @@ Shader "Starfire/GravitationalWake"
                 );
             }
 
+            // Calculate elliptical distance aligned with warp direction
+            // majorAxis = direction of travel (stretched), minorAxis = perpendicular (compressed)
+            float ellipticalDistance(float2 pos, float2 majorDir, float ellipseRatio, float needleSharpness)
+            {
+                // Get perpendicular direction for minor axis
+                float2 minorDir = float2(-majorDir.y, majorDir.x);
+
+                // Project position onto major and minor axes
+                float majorComponent = dot(pos, majorDir);
+                float minorComponent = dot(pos, minorDir);
+
+                // Apply ellipse ratio to minor axis (squashes perpendicular to movement)
+                float adjustedMinor = minorComponent / max(ellipseRatio, 0.2);
+
+                // Needle sharpening: elongate the FRONT more than the back
+                // Front is where majorComponent > 0 (ahead in warp direction)
+                float frontFactor = saturate(majorComponent / max(length(pos), 0.001));
+                float needleStretch = 1.0 + needleSharpness * frontFactor * 2.0;
+                float adjustedMajor = majorComponent / needleStretch;
+
+                return length(float2(adjustedMajor, adjustedMinor));
+            }
+
             half4 Frag(Varyings IN) : SV_Target
             {
                 float2 uv = IN.texcoord;
@@ -173,8 +200,10 @@ Shader "Starfire/GravitationalWake"
                 float aspectRatio = _ScreenParams.x / _ScreenParams.y;
                 float2 aspectCorrected = centerUV * float2(aspectRatio, 1.0);
 
-                // Distance from center
-                float distFromCenter = length(aspectCorrected);
+                // Elliptical distance aligned with movement direction
+                float ellipseRatio = max(_WakeEllipseRatio, 0.2);
+                float needleSharp = _WakeNeedleSharpness;
+                float distFromCenter = ellipticalDistance(aspectCorrected, warpDir, ellipseRatio, needleSharp);
 
                 // Avoid division by zero
                 float2 dirFromCenter = distFromCenter > 0.001
