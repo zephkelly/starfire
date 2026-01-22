@@ -52,6 +52,7 @@ Shader "Starfire/GravitationalWake"
             float _WakeDirectionalBias;
             float _WakeChromaStrength;
             float2 _WakeCenterPosition; // Ship's screen position (0-1), set by CameraController
+            float _WakeShipExclusionRadius; // Screen-space radius for ship exclusion (0-1), set by CameraController
 
             // Ellipse shape globals
             float _WakeEllipseRatio;
@@ -82,6 +83,17 @@ Shader "Starfire/GravitationalWake"
             // Camera zoom scaling
             float _WakeOrthoSize; // Camera orthographic size for zoom scaling
             float _WakeReferenceOrthoSize; // Reference ortho size where config values are calibrated
+
+            // Bubble interior distortion
+            float _WakeBubbleInteriorDistortion;
+
+            // Energy glow globals
+            float _WakeEnergyGlowEnabled;
+            float4 _WakeEnergyGlowColor;
+            float _WakeEnergyGlowIntensity;
+            float _WakeEnergyGlowWidth;
+            float _WakeEnergyFlowSpeed;
+            float _WakeEnergyFlowBands;
 
             // Debug properties
             float _UseDebugValues;
@@ -210,9 +222,19 @@ Shader "Starfire/GravitationalWake"
                     ? aspectCorrected / distFromCenter
                     : float2(0, 1);
 
+                // === SHIP EXCLUSION ZONE ===
+                // Skip distortion within the ship's screen-space footprint
+                // Uses smooth transition to avoid hard edges
+                float shipExclusionMask = smoothstep(
+                    _WakeShipExclusionRadius * 0.9,  // Inner edge (full exclusion)
+                    _WakeShipExclusionRadius * 1.1,  // Outer edge (blend to distortion)
+                    distFromCenter
+                );
+
                 // === BUBBLE ZONE MASK ===
-                // Inner zone is undistorted (ship cockpit area)
-                float bubbleMask = smoothstep(bubbleRadius, bubbleRadius + ringWidth * 0.5, distFromCenter);
+                // Inner zone is undistorted (ship cockpit area) unless bubbleInteriorDistortion is set
+                float baseBubbleMask = smoothstep(bubbleRadius, bubbleRadius + ringWidth * 0.5, distFromCenter);
+                float bubbleMask = lerp(baseBubbleMask, 1.0, _WakeBubbleInteriorDistortion);
 
                 // Outer falloff (effect fades at screen edges)
                 float outerMask = 1.0 - smoothstep(0.5, 0.8, distFromCenter);
@@ -241,7 +263,7 @@ Shader "Starfire/GravitationalWake"
                 trailMask = pow(trailMask, trailFalloff);
 
                 // === COMBINE MASKS ===
-                float distortionMask = bubbleMask * outerMask * lerp(0.3, 1.0, wakeFactor) * trailMask * intensity;
+                float distortionMask = bubbleMask * outerMask * lerp(0.3, 1.0, wakeFactor) * trailMask * intensity * shipExclusionMask;
 
                 // === GRAVITATIONAL LENSING DISTORTION ===
                 // Ring-shaped distortion profile (like light bending around a mass)
@@ -341,6 +363,23 @@ Shader "Starfire/GravitationalWake"
 
                 float2 distortedUV = uv + totalOffset;
 
+                // === SHIP SAMPLE EXCLUSION ===
+                // Check if the distorted UV would sample from the ship's area
+                // If so, use the original UV to prevent ship from being refracted
+                float2 distortedCenterUV = distortedUV - shipCenter;
+                float2 distortedAspectCorrected = distortedCenterUV * float2(aspectRatio, 1.0);
+                float distortedDistFromShip = length(distortedAspectCorrected);
+
+                // If distorted UV falls within ship exclusion zone, blend back to original UV
+                float sampleExclusionMask = smoothstep(
+                    _WakeShipExclusionRadius * 0.85,  // Inner edge (full exclusion)
+                    _WakeShipExclusionRadius * 1.0,   // Outer edge (allow distortion)
+                    distortedDistFromShip
+                );
+
+                // Blend between original UV (ship area) and distorted UV (outside ship)
+                distortedUV = lerp(uv, distortedUV, sampleExclusionMask);
+
                 // Clamp UVs to valid range
                 distortedUV = clamp(distortedUV, 0.001, 0.999);
 
@@ -355,11 +394,61 @@ Shader "Starfire/GravitationalWake"
                     float chromaOffset = distortionMask * chromaStrength;
                     float2 chromaDir = dirFromCenter;
 
-                    float2 uvR = clamp(distortedUV + chromaDir * chromaOffset, 0.001, 0.999);
-                    float2 uvB = clamp(distortedUV - chromaDir * chromaOffset, 0.001, 0.999);
+                    float2 uvR = distortedUV + chromaDir * chromaOffset;
+                    float2 uvB = distortedUV - chromaDir * chromaOffset;
+
+                    // Check if chromatic UVs would sample from ship exclusion zone
+                    float2 uvRCenter = uvR - shipCenter;
+                    float uvRDist = length(uvRCenter * float2(aspectRatio, 1.0));
+                    uvR = lerp(uv, uvR, smoothstep(_WakeShipExclusionRadius * 0.85, _WakeShipExclusionRadius, uvRDist));
+
+                    float2 uvBCenter = uvB - shipCenter;
+                    float uvBDist = length(uvBCenter * float2(aspectRatio, 1.0));
+                    uvB = lerp(uv, uvB, smoothstep(_WakeShipExclusionRadius * 0.85, _WakeShipExclusionRadius, uvBDist));
+
+                    uvR = clamp(uvR, 0.001, 0.999);
+                    uvB = clamp(uvB, 0.001, 0.999);
 
                     color.r = SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, uvR).r;
                     color.b = SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, uvB).b;
+                }
+
+                // === ENERGY GLOW ===
+                // Add colored flowing glow at bubble edge
+                [branch]
+                if (_WakeEnergyGlowEnabled > 0.5 && intensity > 0.01)
+                {
+                    // Angle around bubble center for flow animation
+                    float angle = atan2(dirFromCenter.y, dirFromCenter.x);
+
+                    // Flowing energy bands - animate based on angle
+                    float flowPhase = angle * _WakeEnergyFlowBands - _Time.y * _WakeEnergyFlowSpeed * TAU;
+                    float energyFlow = sin(flowPhase) * 0.5 + 0.5;
+
+                    // Add secondary wave for more organic feel
+                    float secondaryPhase = angle * (_WakeEnergyFlowBands * 0.7) + _Time.y * _WakeEnergyFlowSpeed * TAU * 0.3;
+                    energyFlow = energyFlow * 0.7 + (sin(secondaryPhase) * 0.5 + 0.5) * 0.3;
+
+                    // Glow profile - strongest at bubble edge, fades outward
+                    float glowDist = abs(distFromCenter - bubbleRadius);
+                    float glowWidth = _WakeEnergyGlowWidth * ringWidth;
+                    float glowProfile = exp(-glowDist * glowDist / (glowWidth * glowWidth * 0.5));
+
+                    // Also add glow along the ring
+                    float ringGlow = ringProfile * 0.5;
+
+                    // Combine edge glow and ring glow
+                    float totalGlow = max(glowProfile, ringGlow);
+
+                    // Stronger glow in wake direction (behind ship)
+                    float wakeGlow = lerp(0.4, 1.0, wakeFactor);
+
+                    // Final glow color - mask out ship exclusion zone
+                    float glowIntensity = totalGlow * energyFlow * wakeGlow * _WakeEnergyGlowIntensity * intensity * shipExclusionMask;
+                    float3 glowColor = _WakeEnergyGlowColor.rgb * glowIntensity;
+
+                    // Add glow to color (additive blending for HDR bloom support)
+                    color.rgb += glowColor;
                 }
 
                 // === DEBUG VISUALIZATION ===

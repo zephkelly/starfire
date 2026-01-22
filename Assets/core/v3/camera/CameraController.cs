@@ -1,4 +1,5 @@
 using Starfire.Core.Cam;
+using Starfire.Core.Cam.Effects;
 using Starfire.Core.V3.Cam.Config;
 using UnityEngine;
 
@@ -18,6 +19,9 @@ namespace Starfire.Core.V3.Cam
         private Vector2 _currentAimOffset;
         private Vector2 _aimOffsetVelocity;
 
+        // Wake exclusion
+        private WakeExclusionSource _exclusionSource;
+
         // Zoom
         private float _targetZoom;
         private float _zoomVelocity;
@@ -25,6 +29,7 @@ namespace Starfire.Core.V3.Cam
         // Wake effect position
         private static readonly int WakeCenterPositionId = Shader.PropertyToID("_WakeCenterPosition");
         private static readonly int WakeOrthoSizeId = Shader.PropertyToID("_WakeOrthoSize");
+        private static readonly int WakeShipExclusionRadiusId = Shader.PropertyToID("_WakeShipExclusionRadius");
 
         // Starfield shader globals
         private static readonly int CameraOrthoSizeId = Shader.PropertyToID("_CameraOrthoSize");
@@ -57,6 +62,9 @@ namespace Starfire.Core.V3.Cam
                 _targetZoom = preset.orthographicSize;
                 _camera.orthographicSize = _targetZoom;
             }
+
+            // Find wake exclusion source (typically on player ship)
+            _exclusionSource = FindFirstObjectByType<WakeExclusionSource>();
         }
 
         private void LateUpdate()
@@ -139,6 +147,17 @@ namespace Starfire.Core.V3.Cam
 
             // Pass orthographic size for wake effect zoom scaling
             Shader.SetGlobalFloat(WakeOrthoSizeId, _camera.orthographicSize);
+
+            // Ship exclusion radius - convert world radius to screen-space
+            float exclusionRadius = 0f;
+            if (_exclusionSource != null)
+            {
+                float worldRadius = _exclusionSource.WorldRadius;
+                // Convert world radius to normalized screen space (0-1 range)
+                // Screen height in world units = orthographicSize * 2
+                exclusionRadius = worldRadius / (_camera.orthographicSize * 2f);
+            }
+            Shader.SetGlobalFloat(WakeShipExclusionRadiusId, exclusionRadius);
         }
 
         private void UpdateZoom()

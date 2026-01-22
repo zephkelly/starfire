@@ -38,10 +38,14 @@ namespace Starfire.Core.Cam.Effects
 
         [Header("Distortion Strength")]
         [Tooltip("Maximum UV distortion strength")]
-        [Range(0f, 0.15f)] public float distortionStrength = 0.03f;
+        [Range(0f, 0.3f)] public float distortionStrength = 0.03f;
 
         [Tooltip("Curve mapping warp intensity (0-1) to wake effect strength")]
         public AnimationCurve intensityCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Header("Bubble Interior")]
+        [Tooltip("Allow distortion inside the bubble zone (0 = protected interior, 1 = full distortion everywhere)")]
+        [Range(0f, 1f)] public float bubbleInteriorDistortion = 0f;
 
         [Header("Chromatic Aberration")]
         [Tooltip("Enable subtle chromatic aberration in wake zone")]
@@ -107,6 +111,25 @@ namespace Starfire.Core.Cam.Effects
 
         [Tooltip("How much wake turbulence increases with distance")]
         [Range(0f, 2f)] public float wakeSpread = 1f;
+
+        [Header("Energy Glow")]
+        [Tooltip("Enable glowing energy rim at bubble edge")]
+        public bool energyGlowEnabled = true;
+
+        [Tooltip("Primary glow color")]
+        public Color energyGlowColor = new Color(0.3f, 0.7f, 1f, 1f);
+
+        [Tooltip("Glow intensity (values above 1 can trigger bloom)")]
+        [Range(0f, 3f)] public float energyGlowIntensity = 1f;
+
+        [Tooltip("Glow width relative to ring width")]
+        [Range(0.1f, 1f)] public float energyGlowWidth = 0.5f;
+
+        [Tooltip("Flow speed around the bubble (rotational animation)")]
+        [Range(0f, 5f)] public float energyFlowSpeed = 1f;
+
+        [Tooltip("Number of energy bands flowing around bubble")]
+        [Range(1f, 10f)] public float energyFlowBands = 3f;
 
         /// <summary>
         /// Get the wake intensity multiplier for a given warp intensity.

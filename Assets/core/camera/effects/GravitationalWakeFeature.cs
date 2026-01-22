@@ -62,6 +62,17 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WakeEllipseRatioId = Shader.PropertyToID("_WakeEllipseRatio");
         private static readonly int WakeNeedleSharpnessId = Shader.PropertyToID("_WakeNeedleSharpness");
 
+        // Bubble interior property ID
+        private static readonly int WakeBubbleInteriorDistortionId = Shader.PropertyToID("_WakeBubbleInteriorDistortion");
+
+        // Energy glow property IDs
+        private static readonly int WakeEnergyGlowEnabledId = Shader.PropertyToID("_WakeEnergyGlowEnabled");
+        private static readonly int WakeEnergyGlowColorId = Shader.PropertyToID("_WakeEnergyGlowColor");
+        private static readonly int WakeEnergyGlowIntensityId = Shader.PropertyToID("_WakeEnergyGlowIntensity");
+        private static readonly int WakeEnergyGlowWidthId = Shader.PropertyToID("_WakeEnergyGlowWidth");
+        private static readonly int WakeEnergyFlowSpeedId = Shader.PropertyToID("_WakeEnergyFlowSpeed");
+        private static readonly int WakeEnergyFlowBandsId = Shader.PropertyToID("_WakeEnergyFlowBands");
+
         public override void Create()
         {
             _wakePass = new GravitationalWakePass
@@ -137,6 +148,17 @@ namespace Starfire.Core.Cam.Effects
             // Ellipse shape
             Shader.SetGlobalFloat(WakeEllipseRatioId, config.ellipseRatio);
             Shader.SetGlobalFloat(WakeNeedleSharpnessId, config.needleSharpness);
+
+            // Bubble interior
+            Shader.SetGlobalFloat(WakeBubbleInteriorDistortionId, config.bubbleInteriorDistortion);
+
+            // Energy glow
+            Shader.SetGlobalFloat(WakeEnergyGlowEnabledId, config.energyGlowEnabled ? 1f : 0f);
+            Shader.SetGlobalVector(WakeEnergyGlowColorId, config.energyGlowColor);
+            Shader.SetGlobalFloat(WakeEnergyGlowIntensityId, config.energyGlowIntensity * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeEnergyGlowWidthId, config.energyGlowWidth);
+            Shader.SetGlobalFloat(WakeEnergyFlowSpeedId, config.energyFlowSpeed);
+            Shader.SetGlobalFloat(WakeEnergyFlowBandsId, config.energyFlowBands);
         }
 
         protected override void Dispose(bool disposing)
