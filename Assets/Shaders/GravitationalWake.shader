@@ -95,6 +95,23 @@ Shader "Starfire/GravitationalWake"
             float _WakeEnergyFlowSpeed;
             float _WakeEnergyFlowBands;
 
+            // Front deflector globals
+            float _WakeDeflectorGlowEnabled;
+            float _WakeDeflectorGlowIntensity;
+            float4 _WakeDeflectorGlowColor;
+            float _WakeDeflectorGlowSize;
+            float _WakeDeflectorPulseSpeed;
+
+            // Turbulent boundary globals
+            float _WakeTurbBoundaryEnabled;
+            float _WakeTurbBoundaryIntensity;
+            float _WakeTurbBoundaryScale;
+            float _WakeTurbBoundarySpeed;
+            float _WakeTurbBoundaryWaveCount;
+            float _WakeTurbBoundaryWaveAmplitude;
+            float _WakeTurbBoundaryColorShift;
+            float _WakeTurbBoundaryDispersion;
+
             // Debug properties
             float _UseDebugValues;
             float _DebugIntensity;
@@ -131,6 +148,14 @@ Shader "Starfire/GravitationalWake"
                          dot(hash22(i + float2(1, 1)), f - float2(1, 1)), u.x),
                     u.y
                 );
+            }
+
+            // HSV to RGB conversion for rainbow colors
+            float3 hsv2rgb(float3 c)
+            {
+                float4 K = float4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+                float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
             }
 
             // Calculate elliptical distance aligned with warp direction
@@ -196,7 +221,9 @@ Shader "Starfire/GravitationalWake"
                 // Apply zoom scale to bubble/ring (ship-relative elements)
                 bubbleRadius *= zoomScale;
                 ringWidth *= zoomScale;
-                // NOTE: trailLength NOT scaled - wake zone should always fill entire screen
+                // Trail length scales inversely - extends further on screen when zoomed out
+                // This maintains consistent world-space wake extent
+                trailLength /= max(zoomScale, 0.1);
 
                 // Get ship center position (default to screen center if not set)
                 float2 shipCenter = _WakeCenterPosition;
@@ -236,8 +263,12 @@ Shader "Starfire/GravitationalWake"
                 float baseBubbleMask = smoothstep(bubbleRadius, bubbleRadius + ringWidth * 0.5, distFromCenter);
                 float bubbleMask = lerp(baseBubbleMask, 1.0, _WakeBubbleInteriorDistortion);
 
-                // Outer falloff (effect fades at screen edges)
-                float outerMask = 1.0 - smoothstep(0.5, 0.8, distFromCenter);
+                // Outer falloff scales inversely with zoom to maintain world-space extent
+                float outerFadeStart = 0.5 / max(zoomScale, 0.1);
+                float outerFadeEnd = 0.8 / max(zoomScale, 0.1);
+                // Clamp to prevent artifacts at extreme zoom levels
+                outerFadeEnd = min(outerFadeEnd, 2.0);
+                float outerMask = 1.0 - smoothstep(outerFadeStart, outerFadeEnd, distFromCenter);
 
                 // === DIRECTIONAL WAKE ===
                 // How much this pixel is "behind" the ship (in wake zone)
@@ -251,12 +282,16 @@ Shader "Starfire/GravitationalWake"
                 // Apply directional bias (higher = more focused behind ship)
                 wakeFactor = pow(wakeFactor, max(directionalBias, 0.1));
 
-                // === BOW WAVE (PIERCING EFFECT) ===
+                // === ENHANCED BOW WAVE (PIERCING EFFECT) ===
                 // Compression effect at front of ship - space being pushed aside
                 // bowFactor is inverse of wakeFactor: strongest ahead, weakest behind
                 float bowFactor = 1.0 - wakeFactor;
-                bowFactor = pow(bowFactor, 2.0); // Concentrate at front
+                bowFactor = pow(bowFactor, 1.5); // Less aggressive falloff for wider visibility
                 float bowStrength = _WakeBowWaveStrength;
+
+                // Add compression ripples at front for more visibility
+                float bowRipplePhase = (distFromCenter * 8.0 - _Time.y * 2.0) * TAU;
+                float bowRipple = sin(bowRipplePhase) * 0.3 + 0.7;
 
                 // Trail length falloff (wake fades with distance behind ship)
                 float trailMask = 1.0 - smoothstep(0.0, trailLength, distFromCenter * (1.0 - wakeFactor * 0.5));
@@ -298,7 +333,8 @@ Shader "Starfire/GravitationalWake"
 
                 // === BOW WAVE OFFSET ===
                 // Pulls space inward at front of ship (piercing through spacetime)
-                float2 bowOffset = dirFromCenter * bowFactor * bowStrength * distortStrength * ringProfile;
+                // Enhanced with ripple animation and stronger pull
+                float2 bowOffset = dirFromCenter * bowFactor * bowStrength * distortStrength * ringProfile * bowRipple * 2.0;
 
                 // === EXTREME EDGE DISTORTION (Event Horizon) ===
                 // Sharp, intense distortion exactly at bubble boundary - like light bending around a black hole
@@ -449,6 +485,127 @@ Shader "Starfire/GravitationalWake"
 
                     // Add glow to color (additive blending for HDR bloom support)
                     color.rgb += glowColor;
+                }
+
+                // === FRONT DEFLECTOR GLOW ===
+                // Concentrated bright glow at the front piercing point
+                [branch]
+                if (_WakeDeflectorGlowEnabled > 0.5 && intensity > 0.01)
+                {
+                    // Calculate how "front-facing" this pixel is (dot with warp direction)
+                    float frontFacing = saturate(dot(dirFromCenter, warpDir));
+                    frontFacing = pow(frontFacing, 3.0); // Concentrate at tip
+
+                    // Pulsing animation for dynamic feel
+                    float deflectorPulse = sin(_Time.y * _WakeDeflectorPulseSpeed) * 0.3 + 0.7;
+
+                    // Distance-based glow at front point - gaussian falloff
+                    float deflectorDist = abs(distFromCenter - bubbleRadius);
+                    float deflectorGlowSize = _WakeDeflectorGlowSize * zoomScale; // Scale with zoom
+                    float deflectorGlow = exp(-deflectorDist * deflectorDist / (deflectorGlowSize * deflectorGlowSize));
+
+                    // Also add glow extending slightly beyond bubble at front
+                    float frontExtend = saturate((distFromCenter - bubbleRadius) / (ringWidth * 0.5));
+                    float extendGlow = exp(-frontExtend * 2.0) * frontFacing;
+
+                    // Combine: front-facing * distance falloff * pulse * intensity
+                    float deflectorIntensity = (deflectorGlow + extendGlow * 0.5) * frontFacing * deflectorPulse * _WakeDeflectorGlowIntensity * intensity * shipExclusionMask;
+
+                    // Add deflector glow (HDR values for bloom)
+                    color.rgb += _WakeDeflectorGlowColor.rgb * deflectorIntensity;
+                }
+
+                // === TURBULENT BOUNDARY (Fluid Aurora) ===
+                // Rough, turbulent effect with rainbow colors along bubble boundary
+                [branch]
+                if (_WakeTurbBoundaryEnabled > 0.5 && intensity > 0.01)
+                {
+                    // Distance from bubble edge (positive = outside, negative = inside)
+                    float edgeDistance = distFromCenter - bubbleRadius;
+
+                    // Rotate angle relative to warp direction so discontinuity is behind ship
+                    // This hides the atan2 seam in the wake where dispersion masks it
+                    float2 rotatedDir = float2(
+                        dot(dirFromCenter, float2(warpDir.y, -warpDir.x)),  // perpendicular
+                        dot(dirFromCenter, warpDir)                          // parallel (positive = ahead)
+                    );
+                    float turbAngle = atan2(rotatedDir.x, rotatedDir.y);
+
+                    // === SEAM FADE MASK ===
+                    // Fade out effect near ±PI where atan2 discontinuity occurs (behind ship)
+                    // abs(turbAngle) approaches PI at the seam
+                    float seamProximity = abs(turbAngle) / PI;  // 0 at front, 1 at back seam
+                    float seamFadeMask = smoothstep(1.0, 0.85, seamProximity);  // Fade out last 15% near seam
+
+                    // === KELVIN-HELMHOLTZ WAVES ===
+                    // Multiple wave frequencies for organic turbulence
+                    float turbTime = _Time.y * _WakeTurbBoundarySpeed;
+                    float wave1 = sin(turbAngle * _WakeTurbBoundaryWaveCount + turbTime * 2.3) * 0.5;
+                    float wave2 = sin(turbAngle * _WakeTurbBoundaryWaveCount * 1.7 - turbTime * 1.8) * 0.3;
+                    float wave3 = sin(turbAngle * _WakeTurbBoundaryWaveCount * 2.3 + turbTime * 3.1) * 0.2;
+
+                    // Combine waves with noise for chaos
+                    float2 turbNoiseCoord = aspectCorrected * _WakeTurbBoundaryScale + turbTime * 0.3;
+                    float turbNoise = noise2D(turbNoiseCoord) * 0.4;
+
+                    // Total wave displacement
+                    float waveDisplacement = (wave1 + wave2 + wave3 + turbNoise) * _WakeTurbBoundaryWaveAmplitude * ringWidth;
+
+                    // Displaced edge distance (creates wavy boundary)
+                    float displacedEdge = edgeDistance - waveDisplacement;
+
+                    // === AURORA BAND STRUCTURE ===
+                    // Create multiple sharp bands rather than smooth gradient
+                    float bandPhase = turbAngle * 3.0 + edgeDistance * 20.0 - turbTime;
+                    float bandPattern = sin(bandPhase) * 0.5 + 0.5;
+                    bandPattern = pow(bandPattern, 0.5); // Sharpen bands
+
+                    // Secondary band layer for complexity
+                    float band2Phase = turbAngle * 5.0 - edgeDistance * 15.0 + turbTime * 1.3;
+                    float band2 = sin(band2Phase) * 0.5 + 0.5;
+                    band2 = pow(band2, 0.7);
+
+                    // === BOUNDARY MASK ===
+                    // Effect strongest at bubble edge, fades inward/outward
+                    float boundaryMask = exp(-displacedEdge * displacedEdge / (ringWidth * ringWidth * 0.3));
+
+                    // Wake dispersion - effect spreads and breaks apart behind ship
+                    float dispersionFactor = 1.0 + wakeFactor * _WakeTurbBoundaryDispersion;
+                    float wakeSpreadMask = exp(-abs(edgeDistance) / (ringWidth * dispersionFactor));
+
+                    // Combine masks - stronger at boundary, disperses into wake
+                    float turbMask = lerp(boundaryMask, wakeSpreadMask, wakeFactor * 0.7);
+                    turbMask *= (bandPattern * 0.6 + band2 * 0.4); // Apply band structure
+
+                    // === RAINBOW COLOR ===
+                    // Hue shifts based on angle, turbulence, and time
+                    float hue = frac(
+                        turbAngle / TAU * 0.5 +                    // Position around bubble
+                        turbNoise * _WakeTurbBoundaryColorShift +  // Turbulence variation
+                        turbTime * 0.1 +                           // Slow rotation
+                        edgeDistance * 2.0                         // Depth variation
+                    );
+
+                    // Vary saturation based on band intensity (more saturated at peaks)
+                    float saturation = 0.7 + bandPattern * 0.3;
+
+                    // Value/brightness - higher at band peaks
+                    float turbValue = 0.8 + band2 * 0.4;
+
+                    // Convert HSV to RGB
+                    float3 turbColor = hsv2rgb(float3(hue, saturation, turbValue));
+
+                    // === SHARP EDGE HIGHLIGHTS ===
+                    // Add bright edges where waves crest (like breaking waves)
+                    float waveGradient = abs(wave1 + wave2);
+                    float crestHighlight = smoothstep(0.5, 0.8, waveGradient) * 0.5;
+                    turbColor += crestHighlight;
+
+                    // Final intensity (apply seam fade to hide discontinuity)
+                    float turbIntensity = turbMask * _WakeTurbBoundaryIntensity * intensity * shipExclusionMask * seamFadeMask;
+
+                    // Add to color (not purely additive - blend for more physical look)
+                    color.rgb = lerp(color.rgb, color.rgb + turbColor * turbIntensity, turbIntensity);
                 }
 
                 // === DEBUG VISUALIZATION ===

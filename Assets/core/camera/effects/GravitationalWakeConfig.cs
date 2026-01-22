@@ -131,6 +131,48 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Number of energy bands flowing around bubble")]
         [Range(1f, 10f)] public float energyFlowBands = 3f;
 
+        [Header("Front Deflector")]
+        [Tooltip("Enable bright glow at the front piercing point")]
+        public bool deflectorGlowEnabled = true;
+
+        [Tooltip("Deflector glow color (HDR for bloom)")]
+        [ColorUsage(true, true)]
+        public Color deflectorGlowColor = new Color(0.5f, 0.8f, 1f, 1f);
+
+        [Tooltip("Deflector glow intensity (values above 1 trigger bloom)")]
+        [Range(0f, 5f)] public float deflectorGlowIntensity = 2f;
+
+        [Tooltip("Size of the deflector glow point")]
+        [Range(0.01f, 0.2f)] public float deflectorGlowSize = 0.08f;
+
+        [Tooltip("Pulse speed for deflector glow animation")]
+        [Range(0.5f, 5f)] public float deflectorPulseSpeed = 3f;
+
+        [Header("Turbulent Boundary (Fluid Aurora)")]
+        [Tooltip("Enable turbulent fluid-like effect along bubble boundary")]
+        public bool turbBoundaryEnabled = true;
+
+        [Tooltip("Overall intensity of turbulent boundary effect")]
+        [Range(0f, 2f)] public float turbBoundaryIntensity = 1f;
+
+        [Tooltip("Scale of turbulence noise pattern")]
+        [Range(5f, 30f)] public float turbBoundaryScale = 15f;
+
+        [Tooltip("Animation speed of turbulence")]
+        [Range(0.1f, 3f)] public float turbBoundarySpeed = 1f;
+
+        [Tooltip("Number of wave oscillations around bubble")]
+        [Range(2f, 12f)] public float turbBoundaryWaveCount = 6f;
+
+        [Tooltip("Amplitude of wave displacement")]
+        [Range(0f, 1f)] public float turbBoundaryWaveAmplitude = 0.5f;
+
+        [Tooltip("How much turbulence affects color hue")]
+        [Range(0f, 1f)] public float turbBoundaryColorShift = 0.3f;
+
+        [Tooltip("How much effect disperses/spreads into wake")]
+        [Range(0f, 3f)] public float turbBoundaryDispersion = 1.5f;
+
         /// <summary>
         /// Get the wake intensity multiplier for a given warp intensity.
         /// </summary>

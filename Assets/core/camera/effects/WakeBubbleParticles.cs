@@ -46,10 +46,27 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Bias particles toward the wake (behind ship). 0 = uniform, 1 = only behind")]
         [Range(0f, 1f)] public float wakeBias = 0.7f;
 
+        [Header("Front Deflector Particles")]
+        [Tooltip("Enable particles at the front deflector point")]
+        public bool enableDeflectorParticles = true;
+
+        [Tooltip("Emission rate for deflector particles")]
+        [Range(5f, 50f)] public float deflectorEmissionRate = 20f;
+
+        [Tooltip("Color of deflector particles")]
+        public Color deflectorColor = new Color(0.6f, 0.9f, 1f, 1f);
+
+        [Tooltip("How particles spread outward from deflector (degrees)")]
+        [Range(0f, 90f)] public float deflectorSpreadAngle = 45f;
+
+        [Tooltip("Speed of deflector particles")]
+        [Range(1f, 10f)] public float deflectorParticleSpeed = 5f;
+
         private ParticleSystem _particleSystem;
         private ParticleSystem.EmitParams _emitParams;
         private Camera _mainCamera;
         private float _emissionAccumulator;
+        private float _deflectorAccumulator;
         private Vector2 _lastVelocityDir;
 
         // Shader property IDs
@@ -81,6 +98,7 @@ namespace Starfire.Core.Cam.Effects
             }
 
             EmitAlongBubbleEdge(warpIntensity, _lastVelocityDir);
+            EmitDeflectorParticles(warpIntensity, _lastVelocityDir);
         }
 
         void CreateParticleSystem()
@@ -207,6 +225,48 @@ namespace Starfire.Core.Cam.Effects
             }
 
             return baseAngle;
+        }
+
+        void EmitDeflectorParticles(float warpIntensity, Vector2 warpDir)
+        {
+            if (!enableDeflectorParticles) return;
+
+            float adjustedRate = deflectorEmissionRate * warpIntensity;
+            _deflectorAccumulator += adjustedRate * Time.deltaTime;
+
+            int count = Mathf.FloorToInt(_deflectorAccumulator);
+            _deflectorAccumulator -= count;
+
+            if (count <= 0) return;
+
+            // Calculate front point position
+            float orthoSize = _mainCamera.orthographicSize;
+            float worldRadius = wakeConfig.bubbleRadius * orthoSize * 2f;
+            Vector3 shipPos = target.position;
+            Vector3 frontPoint = shipPos + new Vector3(warpDir.x, warpDir.y, 0) * worldRadius;
+
+            for (int i = 0; i < count; i++)
+            {
+                // Spread particles in cone from front point
+                float spreadRad = deflectorSpreadAngle * Mathf.Deg2Rad;
+                float randomAngle = Random.Range(-spreadRad, spreadRad);
+
+                // Rotate warp direction by random angle
+                float cos = Mathf.Cos(randomAngle);
+                float sin = Mathf.Sin(randomAngle);
+                Vector2 particleDir = new Vector2(
+                    warpDir.x * cos - warpDir.y * sin,
+                    warpDir.x * sin + warpDir.y * cos
+                );
+
+                _emitParams.position = frontPoint;
+                _emitParams.velocity = new Vector3(particleDir.x, particleDir.y, 0) * deflectorParticleSpeed;
+                _emitParams.startSize = Random.Range(particleSizeRange.x * 0.5f, particleSizeRange.y * 0.8f);
+                _emitParams.startLifetime = particleLifetime * 0.6f;
+                _emitParams.startColor = deflectorColor;
+
+                _particleSystem.Emit(_emitParams, 1);
+            }
         }
 
         void OnDestroy()

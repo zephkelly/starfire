@@ -73,6 +73,23 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WakeEnergyFlowSpeedId = Shader.PropertyToID("_WakeEnergyFlowSpeed");
         private static readonly int WakeEnergyFlowBandsId = Shader.PropertyToID("_WakeEnergyFlowBands");
 
+        // Front deflector property IDs
+        private static readonly int WakeDeflectorGlowEnabledId = Shader.PropertyToID("_WakeDeflectorGlowEnabled");
+        private static readonly int WakeDeflectorGlowIntensityId = Shader.PropertyToID("_WakeDeflectorGlowIntensity");
+        private static readonly int WakeDeflectorGlowColorId = Shader.PropertyToID("_WakeDeflectorGlowColor");
+        private static readonly int WakeDeflectorGlowSizeId = Shader.PropertyToID("_WakeDeflectorGlowSize");
+        private static readonly int WakeDeflectorPulseSpeedId = Shader.PropertyToID("_WakeDeflectorPulseSpeed");
+
+        // Turbulent boundary property IDs
+        private static readonly int WakeTurbBoundaryEnabledId = Shader.PropertyToID("_WakeTurbBoundaryEnabled");
+        private static readonly int WakeTurbBoundaryIntensityId = Shader.PropertyToID("_WakeTurbBoundaryIntensity");
+        private static readonly int WakeTurbBoundaryScaleId = Shader.PropertyToID("_WakeTurbBoundaryScale");
+        private static readonly int WakeTurbBoundarySpeedId = Shader.PropertyToID("_WakeTurbBoundarySpeed");
+        private static readonly int WakeTurbBoundaryWaveCountId = Shader.PropertyToID("_WakeTurbBoundaryWaveCount");
+        private static readonly int WakeTurbBoundaryWaveAmplitudeId = Shader.PropertyToID("_WakeTurbBoundaryWaveAmplitude");
+        private static readonly int WakeTurbBoundaryColorShiftId = Shader.PropertyToID("_WakeTurbBoundaryColorShift");
+        private static readonly int WakeTurbBoundaryDispersionId = Shader.PropertyToID("_WakeTurbBoundaryDispersion");
+
         public override void Create()
         {
             _wakePass = new GravitationalWakePass
@@ -159,6 +176,23 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WakeEnergyGlowWidthId, config.energyGlowWidth);
             Shader.SetGlobalFloat(WakeEnergyFlowSpeedId, config.energyFlowSpeed);
             Shader.SetGlobalFloat(WakeEnergyFlowBandsId, config.energyFlowBands);
+
+            // Front deflector
+            Shader.SetGlobalFloat(WakeDeflectorGlowEnabledId, config.deflectorGlowEnabled ? 1f : 0f);
+            Shader.SetGlobalVector(WakeDeflectorGlowColorId, config.deflectorGlowColor);
+            Shader.SetGlobalFloat(WakeDeflectorGlowIntensityId, config.deflectorGlowIntensity * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeDeflectorGlowSizeId, config.deflectorGlowSize);
+            Shader.SetGlobalFloat(WakeDeflectorPulseSpeedId, config.deflectorPulseSpeed);
+
+            // Turbulent boundary
+            Shader.SetGlobalFloat(WakeTurbBoundaryEnabledId, config.turbBoundaryEnabled ? 1f : 0f);
+            Shader.SetGlobalFloat(WakeTurbBoundaryIntensityId, config.turbBoundaryIntensity * intensityMultiplier);
+            Shader.SetGlobalFloat(WakeTurbBoundaryScaleId, config.turbBoundaryScale);
+            Shader.SetGlobalFloat(WakeTurbBoundarySpeedId, config.turbBoundarySpeed);
+            Shader.SetGlobalFloat(WakeTurbBoundaryWaveCountId, config.turbBoundaryWaveCount);
+            Shader.SetGlobalFloat(WakeTurbBoundaryWaveAmplitudeId, config.turbBoundaryWaveAmplitude);
+            Shader.SetGlobalFloat(WakeTurbBoundaryColorShiftId, config.turbBoundaryColorShift);
+            Shader.SetGlobalFloat(WakeTurbBoundaryDispersionId, config.turbBoundaryDispersion);
         }
 
         protected override void Dispose(bool disposing)
