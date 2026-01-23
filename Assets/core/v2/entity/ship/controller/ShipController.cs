@@ -24,6 +24,13 @@ namespace StarfireV2
             Rigid2D = GetComponent<Rigidbody2D>();
             Transform = transform;
 
+            // Initialize hardpoint registry before modules so weapons can find their hardpoints
+            var hardpointRegistry = GetComponent<V2HardpointRegistry>();
+            if (hardpointRegistry != null)
+            {
+                hardpointRegistry.Initialize();
+            }
+
             Ship = new ShipEntity(EntityType.Ship, GetInstanceID());
             Ship.InitializeModules(this, _slotConfigurations);
 

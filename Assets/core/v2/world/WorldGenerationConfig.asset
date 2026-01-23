@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80d893ac9bdc247449d73af095376beb, type: 3}
+  m_Name: WorldGenerationConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.WorldGenerationConfig
+  chunkSize: 500
+  worldSeed: 0
+  floatingOriginLimit: 2560
+  loadRadius: 3
+  unloadRadius: 5
+  chunksPerFrame: 2
+  maxLoadedChunks: 100
+  nebulaConfig: {fileID: 11400000, guid: 728fd23ab32a8a942a57f47824d1b424, type: 2}
+  enableDebugGizmos: 1
+  chunkBoundsColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.3}
+  loadedChunkColor: {r: 0, g: 1, b: 0, a: 0.2}
+  loadingChunkColor: {r: 1, g: 1, b: 0, a: 0.2}
+  logChunkEvents: 0

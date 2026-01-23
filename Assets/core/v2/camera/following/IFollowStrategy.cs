@@ -15,5 +15,6 @@ namespace Starfire.Core.V2.Cam.Following
         Vector2 Update(Vector2 targetPosition, Vector2 targetVelocity, Vector2 focusDirection, float currentZoom, float deltaTime);
         void SnapTo(Vector2 position);
         void SetPreset(VelocityCameraPresetInstance preset);
+        void ShiftPosition(Vector2 shiftAmount);
     }
 }

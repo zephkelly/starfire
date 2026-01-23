@@ -520,8 +520,6 @@ namespace StarfireV2
             // Choose faster path
             if (tLong < tShort)
             {
-                Debug.Log($"[RotationModule] Direction optimization: continuing {(angularVelocity > 0 ? "CCW" : "CW")}. " +
-                          $"shortPath={shortPathError:F1}° (t={tShort:F2}s), longPath={longPathError:F1}° (t={tLong:F2}s)");
                 return longPathError;
             }
 
@@ -653,7 +651,6 @@ namespace StarfireV2
 
                     thrusterList.Add(state);
                     float efficiency = def.CalculateTorqueEfficiency();
-                    Debug.Log($"[RotationModule] Thruster (defined): pos={def.localPosition}, dir={def.thrustDirection}, maxThrust={def.maxThrust}, efficiency={efficiency:F3}");
                 }
             }
 
@@ -679,7 +676,6 @@ namespace StarfireV2
                 thrusterList.Add(state);
 
                 float efficiency = def.CalculateTorqueEfficiency();
-                Debug.Log($"[RotationModule] Thruster (auto-discovered): pos={def.localPosition}, dir={def.thrustDirection}, maxThrust={def.maxThrust}, efficiency={efficiency:F3}");
             }
 
             if (thrusterList.Count == 0)
@@ -689,7 +685,6 @@ namespace StarfireV2
             }
 
             _thrusterStates = thrusterList.ToArray();
-            Debug.Log($"[RotationModule] Initialized {_thrusterStates.Length} thrusters ({definitions?.Length ?? 0} defined, {_thrusterStates.Length - (definitions?.Length ?? 0)} auto-discovered)");
 
             // Initialize visual effects if configured
             if (_config.ThrusterVisualConfig != null)
@@ -701,7 +696,6 @@ namespace StarfireV2
             _thrusterCoordinator = new ThrusterCoordinator();
             _thrusterCoordinator.Initialize(_thrusterStates, _controller.Transform, _controller.Rigid2D);
 
-            Debug.Log($"[RotationModule] Coordinator initialized. CW capacity={_thrusterCoordinator.ClockwiseCapacity:F2}, CCW capacity={_thrusterCoordinator.CounterClockwiseCapacity:F2}");
         }
 
         private void InitializeThrusterVisuals()
@@ -776,7 +770,6 @@ namespace StarfireV2
             // Fallback if thrusters not initialized
             if (_thrusterCoordinator == null || _thrusterStates == null || _thrusterStates.Length == 0)
             {
-                Debug.LogWarning("[RotationModule] ProcessThrusterRotation called but thrusters not initialized - falling back to Physics mode");
                 ProcessPhysicsRotation(input, deltaTime);
                 return;
             }
@@ -818,7 +811,6 @@ namespace StarfireV2
                     ? absVelocity * absVelocity / (2f * CalculateMaxAngularAcceleration(true, error))
                     : 0f;
                 float thrustPercent = maxTorque > 0.001f ? Mathf.Abs(desiredTorque) / maxTorque * 100f : 0f;
-                Debug.Log($"[RotationModule] State={_currentState}, error={error:F2}°, angVel={angularVelocity:F2}°/s, stopAngle={stopAngle:F2}°, torque={desiredTorque:F2} ({thrustPercent:F1}%)");
             }
 
             // Distribute torque to thrusters and apply forces

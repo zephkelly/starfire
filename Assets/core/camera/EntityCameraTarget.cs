@@ -1,3 +1,4 @@
+using Starfire.Core.V2.World;
 using Starfire.Entity;
 using UnityEngine;
 
@@ -110,6 +111,22 @@ namespace Starfire.Core.Cam
             _initialized = true;
         }
 
+        private void OnEnable()
+        {
+            if (WorldGenerationService.Instance != null)
+            {
+                WorldGenerationService.Instance.OnOriginShift += OnOriginShift;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (WorldGenerationService.Instance != null)
+            {
+                WorldGenerationService.Instance.OnOriginShift -= OnOriginShift;
+            }
+        }
+
         private void FixedUpdate()
         {
             _previousPosition = _currentPosition;
@@ -119,6 +136,15 @@ namespace Starfire.Core.Cam
         public void SetPriority(float value)
         {
             priority = value;
+        }
+
+        /// <summary>
+        /// Called when a floating origin shift occurs. Updates cached interpolation positions.
+        /// </summary>
+        public void OnOriginShift(Vector2 shiftAmount)
+        {
+            _previousPosition += shiftAmount;
+            _currentPosition += shiftAmount;
         }
     }
 }

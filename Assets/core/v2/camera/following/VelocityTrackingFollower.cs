@@ -121,5 +121,11 @@ namespace Starfire.Core.V2.Cam.Following
             _focusOffsetVelocity = Vector2.zero;
             _positionError = Vector2.zero;
         }
+
+        public void ShiftPosition(Vector2 shiftAmount)
+        {
+            _trackedPosition += shiftAmount;
+            _cameraPosition += shiftAmount;
+        }
     }
 }

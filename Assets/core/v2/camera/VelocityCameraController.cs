@@ -571,6 +571,14 @@ namespace Starfire.Core.V2.Cam
 
         public Vector2 GetFocusOffset() => Follower.FocusOffset;
 
+        /// <summary>
+        /// Called when a floating origin shift occurs. Updates internal tracking state.
+        /// </summary>
+        public void OnOriginShift(Vector2 shiftAmount)
+        {
+            Follower?.ShiftPosition(shiftAmount);
+        }
+
         #endregion
 
         private void OnDrawGizmos()

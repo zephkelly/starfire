@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9117544257060278590}
   - component: {fileID: 4759239104627342113}
   - component: {fileID: 3923424246020262017}
-  - component: {fileID: -8154604781831530690}
+  - component: {fileID: 5128131940681900993}
   m_Layer: 10
   m_Name: laser_projectile
   m_TagString: Untagged
@@ -158,7 +158,7 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 3, y: 1.9999999}
   m_Direction: 0
---- !u!114 &-8154604781831530690
+--- !u!114 &5128131940681900993
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -167,6 +167,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 4886334230931569842}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95ee4d979f40d764fbb9b454fc0887c8, type: 3}
+  m_Script: {fileID: 11500000, guid: 55deb46f9ec46894e93398fcb6aa048c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Entity.Modules.Weapon.Projectile
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2Projectile

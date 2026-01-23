@@ -30,6 +30,12 @@ namespace StarfireV2
         {
             if (_module != null)
             {
+                // Unassign hardpoint if weapon module
+                if (_module is IWeaponModule oldWeapon)
+                {
+                    oldWeapon.OnHardpointUnassigned();
+                }
+
                 _module.OnDetach();
             }
 
@@ -38,6 +44,24 @@ namespace StarfireV2
             if (_module != null)
             {
                 _module.OnAttach(_controller);
+
+                // Assign hardpoint for weapon modules
+                if (_module is IWeaponModule weapon && !string.IsNullOrEmpty(_slotId))
+                {
+                    var registry = _controller.Transform.GetComponent<V2HardpointRegistry>();
+                    if (registry != null)
+                    {
+                        var hardpoint = registry.GetHardpoint(_slotId);
+                        if (hardpoint != null)
+                        {
+                            weapon.OnHardpointAssigned(hardpoint);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[ShipModuleSlot] No hardpoint found for slot '{_slotId}'");
+                        }
+                    }
+                }
             }
 
             OnModuleChanged?.Invoke(_module);

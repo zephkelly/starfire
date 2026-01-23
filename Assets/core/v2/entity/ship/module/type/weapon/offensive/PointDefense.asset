@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b5ca7cf199a3754a8e1fbe16d8e61dc, type: 3}
+  m_Name: PointDefense
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.PointDefenseModuleConfig
+  moduleId: PointDefense
+  displayName: PointDefense
+  weightClass: 0
+  damage: 5
+  fireRate: 5
+  range: 500
+  engagementRange: 500
+  trackingSpeed: 360
+  maxTrackedTargets: 3
+  threatLayers:
+    serializedVersion: 2
+    m_Bits: 512
+  scanInterval: 0.1
+  turretSettings:
+    isTurret: 1
+    rotationSpeed: 180
+    firingArc: 360
+    canFireWhileRotating: 0
+    firingTolerance: 5
+    predictTargetPosition: 0
+  projectileConfig: {fileID: 11400000, guid: d4eda8fcd0ce8564695c6c77848ebe60, type: 2}
+  projectilePrefab: {fileID: 4886334230931569842, guid: ed9dd1d09849057488e9bd728ce5b6f1, type: 3}
+  weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
