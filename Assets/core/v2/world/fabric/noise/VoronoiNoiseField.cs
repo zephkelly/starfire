@@ -6,7 +6,8 @@ namespace StarfireV2
 {
     /// <summary>
     /// Voronoi/cellular noise for territory boundaries and region-based generation.
-    /// Supports optional domain warping for organic, natural-looking borders.
+    /// Supports optional domain warping for organic borders, faceted (low-poly) border mode,
+    /// and resource-biased distance for border attraction.
     /// </summary>
     [Serializable]
     public class VoronoiNoiseField : INoiseField
@@ -20,9 +21,13 @@ namespace StarfireV2
         private readonly PerlinNoiseField _warpNoiseY;
         private readonly float _warpStrength;
 
-        // Edge noise for fine border detail
+        // Edge noise for fine border detail (disabled in faceted mode)
         private readonly PerlinNoiseField _edgeNoise;
         private readonly float _edgeNoiseStrength;
+
+        // Faceted border mode: quantizes warp to create low-poly angular borders
+        private readonly bool _useFacetedWarp;
+        private readonly int _facetAngularSteps;
 
         public float CellSize { get => cellSize; set => cellSize = Mathf.Max(100f, value); }
         public float Jitter { get => jitter; set => jitter = Mathf.Clamp01(value); }
@@ -69,6 +74,35 @@ namespace StarfireV2
             }
         }
 
+        /// <summary>
+        /// Constructor with faceted border support.
+        /// When faceted is true, domain warp is quantized to discrete angular steps
+        /// producing low-poly straight-segment borders, and edge noise is disabled.
+        /// </summary>
+        public VoronoiNoiseField(float cellSize, float jitter, float warpStrength, float warpScale, int warpOctaves,
+            float edgeNoiseStrength, float edgeNoiseScale,
+            bool useFacetedWarp, int facetAngularSteps)
+        {
+            this.cellSize = cellSize;
+            this.jitter = jitter;
+            _warpStrength = warpStrength;
+            _useFacetedWarp = useFacetedWarp;
+            _facetAngularSteps = Mathf.Max(4, facetAngularSteps);
+
+            if (warpStrength > 0f)
+            {
+                _warpNoiseX = new PerlinNoiseField(warpScale, warpOctaves, 0.5f);
+                _warpNoiseY = new PerlinNoiseField(warpScale, warpOctaves, 0.5f);
+            }
+
+            // Edge noise is incompatible with faceted mode (would smooth out the facets)
+            if (!useFacetedWarp && edgeNoiseStrength > 0f)
+            {
+                _edgeNoiseStrength = edgeNoiseStrength;
+                _edgeNoise = new PerlinNoiseField(edgeNoiseScale, 3, 0.5f);
+            }
+        }
+
         public float Sample(Vector2D position)
         {
             var result = SampleDetailed(position, 0f);
@@ -83,15 +117,22 @@ namespace StarfireV2
 
         public VoronoiResult SampleDetailed(Vector2D position, float seed = 0f)
         {
-            // Apply domain warping for organic borders
-            Vector2D samplePos = position;
-            if (_warpStrength > 0f && _warpNoiseX != null)
-            {
-                // Perlin returns [0,1], convert to [-1,1] then scale by warp strength
-                float warpX = (_warpNoiseX.Sample(position, seed) - 0.5f) * 2f * _warpStrength;
-                float warpY = (_warpNoiseY.Sample(position, seed + 1000f) - 0.5f) * 2f * _warpStrength;
-                samplePos = new Vector2D(position.X + warpX, position.Y + warpY);
-            }
+            return SampleDetailedInternal(position, seed, 0f);
+        }
+
+        /// <summary>
+        /// Sample with resource bias. Positive resourceBias makes the nearest cell
+        /// "win" more strongly, causing borders to bulge toward resource-rich areas.
+        /// resourceBias is pre-scaled (e.g., overallResourceValue * attractionStrength).
+        /// </summary>
+        public VoronoiResult SampleDetailed(Vector2D position, float seed, float resourceBias)
+        {
+            return SampleDetailedInternal(position, seed, resourceBias);
+        }
+
+        private VoronoiResult SampleDetailedInternal(Vector2D position, float seed, float resourceBias)
+        {
+            Vector2D samplePos = ApplyWarp(position, seed);
 
             double scaledX = samplePos.X / cellSize;
             double scaledY = samplePos.Y / cellSize;
@@ -113,7 +154,6 @@ namespace StarfireV2
 
                     Vector2D cellCenter = GetCellCenter(nx, ny, seed);
 
-                    // Use warped position for distance calculation to create organic borders
                     double distX = samplePos.X - cellCenter.X;
                     double distY = samplePos.Y - cellCenter.Y;
                     float dist = (float)Math.Sqrt(distX * distX + distY * distY);
@@ -132,14 +172,21 @@ namespace StarfireV2
                 }
             }
 
+            // Resource attraction: reduce nearest distance so the nearest cell
+            // expands into resource-rich areas, pulling the border toward resources
+            if (resourceBias > 0f)
+            {
+                minDist -= resourceBias * cellSize;
+            }
+
             float distanceToEdge = (secondMinDist - minDist) * 0.5f;
 
-            // Apply edge noise for fine border detail (only near borders)
-            if (_edgeNoise != null && distanceToEdge < cellSize * 0.3f)
+            // Apply edge noise for fine border detail (only near borders, disabled in faceted mode)
+            if (_edgeNoise != null && !_useFacetedWarp && distanceToEdge < cellSize * 0.3f)
             {
                 float edgePerturbation = (_edgeNoise.Sample(position, seed) - 0.5f) * 2f * _edgeNoiseStrength;
                 distanceToEdge += edgePerturbation;
-                distanceToEdge = Mathf.Max(0f, distanceToEdge); // Prevent negative distances
+                distanceToEdge = Mathf.Max(0f, distanceToEdge);
             }
 
             return new VoronoiResult
@@ -154,14 +201,7 @@ namespace StarfireV2
 
         public int GetCellIdAt(Vector2D position, float seed = 0f)
         {
-            // Apply domain warping for organic borders
-            Vector2D samplePos = position;
-            if (_warpStrength > 0f && _warpNoiseX != null)
-            {
-                float warpX = (_warpNoiseX.Sample(position, seed) - 0.5f) * 2f * _warpStrength;
-                float warpY = (_warpNoiseY.Sample(position, seed + 1000f) - 0.5f) * 2f * _warpStrength;
-                samplePos = new Vector2D(position.X + warpX, position.Y + warpY);
-            }
+            Vector2D samplePos = ApplyWarp(position, seed);
 
             double scaledX = samplePos.X / cellSize;
             double scaledY = samplePos.Y / cellSize;
@@ -181,7 +221,6 @@ namespace StarfireV2
 
                     Vector2D cellCenter = GetCellCenter(nx, ny, seed);
 
-                    // Use warped position for distance calculation to create organic borders
                     double distX = samplePos.X - cellCenter.X;
                     double distY = samplePos.Y - cellCenter.Y;
                     float dist = (float)(distX * distX + distY * distY);
@@ -197,12 +236,52 @@ namespace StarfireV2
             return nearestCellId;
         }
 
+        /// <summary>
+        /// Apply domain warping. In faceted mode, warp direction and magnitude are
+        /// quantized to produce piecewise-linear (low-poly) border segments.
+        /// </summary>
+        private Vector2D ApplyWarp(Vector2D position, float seed)
+        {
+            if (_warpStrength <= 0f || _warpNoiseX == null)
+                return position;
+
+            float rawWarpX = (_warpNoiseX.Sample(position, seed) - 0.5f) * 2f;
+            float rawWarpY = (_warpNoiseY.Sample(position, seed + 1000f) - 0.5f) * 2f;
+
+            float warpX, warpY;
+
+            if (_useFacetedWarp)
+            {
+                // Convert to polar, quantize angle and magnitude for faceted borders
+                float angle = Mathf.Atan2(rawWarpY, rawWarpX);
+                float magnitude = Mathf.Sqrt(rawWarpX * rawWarpX + rawWarpY * rawWarpY);
+
+                // Quantize angle to discrete steps → straight border segments
+                float stepSize = (2f * Mathf.PI) / _facetAngularSteps;
+                angle = Mathf.Round(angle / stepSize) * stepSize;
+
+                // Quantize magnitude to discrete levels → uniform segment lengths
+                magnitude = Mathf.Round(magnitude * 3f) / 3f;
+
+                warpX = Mathf.Cos(angle) * magnitude * _warpStrength;
+                warpY = Mathf.Sin(angle) * magnitude * _warpStrength;
+            }
+            else
+            {
+                warpX = rawWarpX * _warpStrength;
+                warpY = rawWarpY * _warpStrength;
+            }
+
+            return new Vector2D(position.X + warpX, position.Y + warpY);
+        }
+
         private Vector2D GetCellCenter(int cellX, int cellY, float seed)
         {
-            int hash = HashCellCoord(cellX, cellY, seed);
+            int seedInt = (int)(seed * 1000);
 
-            float jitterX = (HashToFloat(hash) - 0.5f) * jitter;
-            float jitterY = (HashToFloat(hash * 16807) - 0.5f) * jitter;
+            // Use two independent hashes for X and Y jitter to avoid correlation
+            float jitterX = (HashToFloat(MixHash(cellX, cellY, seedInt)) - 0.5f) * jitter;
+            float jitterY = (HashToFloat(MixHash(cellX, cellY, seedInt + 7919)) - 0.5f) * jitter;
 
             return new Vector2D(
                 (cellX + 0.5f + jitterX) * cellSize,
@@ -212,16 +291,33 @@ namespace StarfireV2
 
         private static int HashCellCoord(int x, int y, float seed)
         {
-            int hash = 17;
-            hash = hash * 31 + x;
-            hash = hash * 31 + y;
-            hash = hash * 31 + (int)(seed * 1000);
-            return hash & 0x7FFFFFFF;
+            return MixHash(x, y, (int)(seed * 1000));
+        }
+
+        /// <summary>
+        /// Avalanche-quality integer hash combining cell coordinates and seed.
+        /// Ensures adjacent cells produce uncorrelated hash values.
+        /// </summary>
+        private static int MixHash(int x, int y, int seed)
+        {
+            // Combine inputs with large primes to break linearity
+            uint h = (uint)x * 0x9E3779B1u;  // golden ratio derived
+            h ^= (uint)y * 0x517CC1B7u;       // another large prime
+            h ^= (uint)seed * 0x6C62272Eu;
+
+            // Avalanche mixing (MurmurHash3 finalizer)
+            h ^= h >> 16;
+            h *= 0x85EBCA6Bu;
+            h ^= h >> 13;
+            h *= 0xC2B2AE35u;
+            h ^= h >> 16;
+
+            return (int)(h & 0x7FFFFFFFu);
         }
 
         private static float HashToFloat(int hash)
         {
-            return (hash & 0xFFFF) / 65536f;
+            return (hash & 0xFFFFFF) / 16777216f;
         }
     }
 

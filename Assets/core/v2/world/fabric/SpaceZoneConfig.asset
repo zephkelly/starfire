@@ -13,27 +13,27 @@ MonoBehaviour:
   m_Name: SpaceZoneConfig
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.SpaceZoneConfig
   enabled: 1
-  nebulaBlobSpacing: 200000
-  nebulaBlobRadiusMin: 80000
-  nebulaBlobRadiusMax: 300000
-  nebulaBlobStrength: 1
-  nebulaFalloffPower: 2
-  nebulaThreshold: 0.7
+  nebulaBlobSpacing: 100000
+  nebulaBlobRadiusMin: 200000
+  nebulaBlobRadiusMax: 400000
+  nebulaBlobStrength: 1.84
+  nebulaFalloffPower: 1.5
+  nebulaThreshold: 0.703
   asteroidBlobSpacing: 80000
   asteroidBlobRadiusMin: 30000
   asteroidBlobRadiusMax: 80000
-  asteroidBlobStrength: 0.8
-  asteroidFalloffPower: 2.5
-  asteroidThreshold: 0.7
+  asteroidBlobStrength: 0.741
+  asteroidFalloffPower: 1.27
+  asteroidThreshold: 0.319
   voidBlobSpacing: 300000
-  voidBlobRadiusMin: 150000
+  voidBlobRadiusMin: 15000
   voidBlobRadiusMax: 60000
-  voidBlobStrength: 1
-  voidFalloffPower: 1.5
-  voidThreshold: 0.2
+  voidBlobStrength: 1.62
+  voidFalloffPower: 1
+  voidThreshold: 0.197
   anomalyBlobSpacing: 500000
   anomalyBlobRadiusMin: 20000
-  anomalyBlobRadiusMax: 60000
+  anomalyBlobRadiusMax: 40000
   anomalyBlobStrength: 0.9
   anomalyFalloffPower: 3
   anomalyThreshold: 0.4

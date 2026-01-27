@@ -37,6 +37,18 @@ namespace Starfire.Core.Background
         public abstract void ConfigureMaterial(Material material);
 
         /// <summary>
+        /// Apply world fabric properties to the material based on this layer's parallax depth.
+        /// Call at the end of ConfigureMaterial() to set per-layer fabric values.
+        /// </summary>
+        protected void ApplyFabricProperties(Material material)
+        {
+            var bridge = WorldFabricBridge.Instance;
+            if (bridge == null) return;
+
+            bridge.ApplyFabricToMaterial(material, parallaxDepth);
+        }
+
+        /// <summary>
         /// Initialize the layer's quad and material.
         /// </summary>
         public virtual void Initialize(Transform parent, Mesh quadMesh, int sortOrder)

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16dfe67d5e2999d43aa931cdfcde3da9, type: 3}
+  m_Name: ResourceConfig
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ResourceConfig
+  enabled: 1
+  mineralBlobSpacing: 120000
+  mineralBlobRadiusMin: 40000
+  mineralBlobRadiusMax: 150000
+  mineralBlobStrength: 0.9
+  mineralFalloffPower: 2
+  mineralThreshold: 0.3
+  oreBlobSpacing: 100000
+  oreBlobRadiusMin: 30000
+  oreBlobRadiusMax: 120000
+  oreBlobStrength: 0.85
+  oreFalloffPower: 2.5
+  oreThreshold: 0.3
+  gasBlobSpacing: 180000
+  gasBlobRadiusMin: 60000
+  gasBlobRadiusMax: 250000
+  gasBlobStrength: 0.9
+  gasFalloffPower: 2
+  gasThreshold: 0.3
+  exoticBlobSpacing: 400000
+  exoticBlobRadiusMin: 15000
+  exoticBlobRadiusMax: 50000
+  exoticBlobStrength: 0.85
+  exoticFalloffPower: 3
+  exoticThreshold: 0.4
+  waterBlobSpacing: 150000
+  waterBlobRadiusMin: 50000
+  waterBlobRadiusMax: 200000
+  waterBlobStrength: 0.9
+  waterFalloffPower: 2
+  waterThreshold: 0.3
+  mineralAsteroidBoost: 1.5
+  oreAsteroidBoost: 1.4
+  gasNebulaBoost: 1.5
+  exoticAnomalyBoost: 1.8
+  waterNebulaBoost: 1.2
+  commonThreshold: 0.1
+  uncommonThreshold: 0.3
+  rareThreshold: 0.55
+  exoticTierThreshold: 0.75
+  mineralValueWeight: 1
+  oreValueWeight: 1.2
+  gasValueWeight: 1.5
+  exoticValueWeight: 3
+  waterValueWeight: 0.8

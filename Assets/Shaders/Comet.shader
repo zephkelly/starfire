@@ -60,6 +60,16 @@ Shader "Starfire/Comet"
 
         [Header(Debug)]
         [Toggle] _DebugMode ("Debug Mode (ignore gradient)", Float) = 0
+
+        [HideInInspector] _FabricNebulaDensity ("Fabric Nebula Density", Float) = 0
+        [HideInInspector] _FabricAsteroidDensity ("Fabric Asteroid Density", Float) = 0
+        [HideInInspector] _FabricVoidFactor ("Fabric Void Factor", Float) = 0
+        [HideInInspector] _FabricAnomalyStrength ("Fabric Anomaly Strength", Float) = 0
+        [HideInInspector] _FabricVoidStarFade ("Fabric Void Star Fade", Float) = 0
+        [HideInInspector] _FabricVoidBgDarken ("Fabric Void Bg Darken", Float) = 0
+        [HideInInspector] _FabricNebulaTint ("Fabric Nebula Tint", Vector) = (0.6, 0.3, 0.7, 1)
+        [HideInInspector] _FabricNebulaTintStrength ("Fabric Nebula Tint Strength", Float) = 0
+        [HideInInspector] _FabricAnomalyShift ("Fabric Anomaly Shift", Float) = 0
     }
 
     SubShader
@@ -136,6 +146,17 @@ Shader "Starfire/Comet"
                 float _Seed;
                 float _ParallaxFactor;
                 float _DebugMode;
+
+                // World Fabric properties (set per-material by WorldFabricBridge)
+                float _FabricNebulaDensity;
+                float _FabricAsteroidDensity;
+                float _FabricVoidFactor;
+                float _FabricAnomalyStrength;
+                float _FabricVoidStarFade;
+                float _FabricVoidBgDarken;
+                float4 _FabricNebulaTint;
+                float _FabricNebulaTintStrength;
+                float _FabricAnomalyShift;
             CBUFFER_END
 
             // Gradient texture
@@ -759,6 +780,26 @@ Shader "Starfire/Comet"
                 }
 
                 result *= _Brightness;
+
+                // === World Fabric modulation ===
+                // Void: dim comet
+                float voidDim = 1.0 - _FabricVoidFactor * _FabricVoidStarFade;
+                result *= voidDim;
+
+                // Nebula: tint comet
+                result = lerp(result, result * _FabricNebulaTint.rgb, _FabricNebulaDensity * _FabricNebulaTintStrength);
+
+                // Anomaly: subtle color shift
+                [branch] if (_FabricAnomalyStrength > 0.01)
+                {
+                    float anomalyT = _FabricAnomalyStrength * _FabricAnomalyShift;
+                    float3 anomalyShift = float3(
+                        result.r + result.g * anomalyT * 0.3,
+                        result.g * (1.0 - anomalyT * 0.5),
+                        result.b + result.r * anomalyT * 0.2
+                    );
+                    result = lerp(result, anomalyShift, anomalyT);
+                }
 
                 // Calculate alpha from luminance
                 float alpha = saturate(dot(result, float3(0.299, 0.587, 0.114)));

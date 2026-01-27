@@ -91,6 +91,16 @@ Shader "Starfire/StylizedNebula"
         _RegionFalloff ("Falloff Distance", Float) = 500
         _RegionFalloffPower ("Falloff Power", Float) = 2.0
         _RegionEdgeMode ("Edge Mode (0=Smooth, 1=Sharp, 2=Inverse)", Float) = 0
+
+        [HideInInspector] _FabricNebulaDensity ("Fabric Nebula Density", Float) = 0
+        [HideInInspector] _FabricAsteroidDensity ("Fabric Asteroid Density", Float) = 0
+        [HideInInspector] _FabricVoidFactor ("Fabric Void Factor", Float) = 0
+        [HideInInspector] _FabricAnomalyStrength ("Fabric Anomaly Strength", Float) = 0
+        [HideInInspector] _FabricVoidStarFade ("Fabric Void Star Fade", Float) = 0
+        [HideInInspector] _FabricVoidBgDarken ("Fabric Void Bg Darken", Float) = 0
+        [HideInInspector] _FabricNebulaTint ("Fabric Nebula Tint", Vector) = (0.6, 0.3, 0.7, 1)
+        [HideInInspector] _FabricNebulaTintStrength ("Fabric Nebula Tint Strength", Float) = 0
+        [HideInInspector] _FabricAnomalyShift ("Fabric Anomaly Shift", Float) = 0
     }
 
     SubShader
@@ -216,6 +226,17 @@ Shader "Starfire/StylizedNebula"
                 float _RegionFalloff;
                 float _RegionFalloffPower;
                 float _RegionEdgeMode;
+
+                // World Fabric properties (set per-material by WorldFabricBridge)
+                float _FabricNebulaDensity;
+                float _FabricAsteroidDensity;
+                float _FabricVoidFactor;
+                float _FabricAnomalyStrength;
+                float _FabricVoidStarFade;
+                float _FabricVoidBgDarken;
+                float4 _FabricNebulaTint;
+                float _FabricNebulaTintStrength;
+                float _FabricAnomalyShift;
             CBUFFER_END
 
             // Global camera properties
@@ -229,11 +250,6 @@ Shader "Starfire/StylizedNebula"
             float _WarpNebulaStretch;
             float _WarpNebulaFade;
             float2 _WarpDirection;
-
-            // World Fabric globals (set by WorldFabricBridge)
-            float _FabricNebulaDensity;
-            float _FabricVoidFactor;
-            float _FabricVoidStarFade;
 
             // ============================================
             // Hash Functions
@@ -814,17 +830,14 @@ Shader "Starfire/StylizedNebula"
                 // Add bright spots
                 nebulaColor += spots * _Color4.rgb;
 
-                // === Apply Region Mask to FINAL output (smooth fade, no threshold cutoff) ===
-                nebulaColor *= regionMask;
+                // Region mask disabled — fabric density now controls spatial visibility
+                // nebulaColor *= regionMask;
 
                 // === Warp Fade ===
                 nebulaColor *= lerp(1.0, 1.0 - _WarpNebulaFade, _WarpIntensity);
 
-                // === World Fabric modulation ===
-                // Boost emission in fabric nebula zones, fade in voids
-                float fabricNebulaBoost = lerp(1.0, 1.3, _FabricNebulaDensity);
-                float fabricVoidFade = 1.0 - _FabricVoidFactor * _FabricVoidStarFade * 0.5;
-                nebulaColor *= fabricNebulaBoost * fabricVoidFade;
+                // World Fabric: fade out nebula outside fabric nebula regions
+                nebulaColor *= smoothstep(0.0, 0.6, _FabricNebulaDensity);
 
                 // === Output ===
                 float alpha = saturate(dot(nebulaColor, float3(0.299, 0.587, 0.114)));

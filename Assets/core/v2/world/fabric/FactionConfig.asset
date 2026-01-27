@@ -13,19 +13,43 @@ MonoBehaviour:
   m_Name: FactionConfig
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.FactionConfig
   enabled: 1
-  majorFactionCellSize: 100000
-  cellJitter: 0.985
-  contestedBorderWidth: 2000
-  controlFadeDistance: 1000
-  borderWarpStrength: 3808
-  borderWarpScale: 0.002
-  borderWarpOctaves: 3
-  edgeNoiseStrength: 396
-  edgeNoiseScale: 0.00329
-  enableEmpireClustering: 1
-  empireCellSize: 100000
-  empireJitter: 0.101
-  empireWarpStrength: 10000
-  majorFactions: []
+  factionBlobSpacing: 300000
+  factionBlobRadiusMin: 100000
+  factionBlobRadiusMax: 400000
+  factionBlobStrength: 1
+  factionFalloffPower: 2
+  factionActivationThreshold: 0.3
+  contestedDensityGap: 0.15
+  controlFadeDensityRange: 0.3
+  majorFactions:
+  - factionId: terran_alliance
+    displayName: Terran Alliance
+    primaryColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+    secondaryColor: {r: 0.1, g: 0.3, b: 0.7, a: 1}
+    aggressionLevel: 0.8
+    territoryWeight: 1.2
+  - factionId: voidborn_collective
+    displayName: Voidborn Collective
+    primaryColor: {r: 0.8, g: 0.2, b: 0.2, a: 1}
+    secondaryColor: {r: 0.5, g: 0.1, b: 0.1, a: 1}
+    aggressionLevel: 1.5
+    territoryWeight: 1
+  - factionId: nebula_syndicate
+    displayName: Nebula Syndicate
+    primaryColor: {r: 0.2, g: 0.8, b: 0.4, a: 1}
+    secondaryColor: {r: 0.1, g: 0.5, b: 0.2, a: 1}
+    aggressionLevel: 1
+    territoryWeight: 0.9
+  - factionId: stellar_dominion
+    displayName: Stellar Dominion
+    primaryColor: {r: 0.9, g: 0.7, b: 0.1, a: 1}
+    secondaryColor: {r: 0.6, g: 0.5, b: 0.1, a: 1}
+    aggressionLevel: 1.3
+    territoryWeight: 1.1
+  neutralCellChance: 0.65
+  voidNeutralBonus: 0.25
+  anomalyNeutralBonus: 0.3
+  resourceDensityBoost: 0.3
+  resourceClaimingBoost: 0.4
   enableMinorFactions: 1
   minorFactionChance: 0.15

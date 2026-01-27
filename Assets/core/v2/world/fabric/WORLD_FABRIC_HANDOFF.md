@@ -1,7 +1,7 @@
 # World Fabric System - Onboarding Document
 
-> **Status**: PHASE 1-3.8 COMPLETE - Metaball architecture + starfield integration
-> **Last Updated**: 2026-01-27
+> **Status**: PHASE 1-4.3 COMPLETE - MetaballField-based faction territories + resource influence
+> **Last Updated**: 2026-01-28
 > **Namespace**: `StarfireV2`
 
 ## Overview
@@ -44,10 +44,10 @@ A `WorldFabricBridge` component samples fabric data at the camera position and p
      │                        │                        │
      ▼                        ▼                        ▼
 ┌──────────┐           ┌──────────┐            ┌──────────┐
-│ Metaball │           │ Voronoi  │            │ Poisson  │
-│ Fields   │           │ + Warp   │            │  Disk    │
-│(4 indep.)│           └──────────┘            └──────────┘
-└──────────┘
+│ Metaball │           │ Metaball │            │ Poisson  │
+│ Fields   │           │ Fields   │            │  Disk    │
+│(4 indep.)│           │(per fac.)│            └──────────┘
+└──────────┘           └──────────┘
 
      ┌─────────────────────────────────────────────────┐
      │              WorldFabricBridge                   │
@@ -88,16 +88,18 @@ Assets/core/v2/world/fabric/
 ├── noise/
 │   ├── INoiseField.cs          # Base interface [DONE]
 │   ├── MetaballField.cs        # Implicit blob field for bubble-like regions [DONE]
-│   ├── PerlinNoiseField.cs     # Multi-octave Perlin (used by faction borders) [DONE]
-│   ├── VoronoiNoiseField.cs    # Cellular/territory noise with domain warping + edge noise [DONE]
-│   ├── HierarchicalVoronoiField.cs # Two-tier Voronoi for empire clustering [DONE]
+│   ├── PerlinNoiseField.cs     # Multi-octave Perlin (used by domain warping) [DONE]
+│   ├── VoronoiNoiseField.cs    # Cellular/territory noise (legacy, not used by factions) [DONE]
+│   ├── HierarchicalVoronoiField.cs # Two-tier Voronoi (legacy, not used by factions) [DONE]
 │   └── WorleyNoiseField.cs     # Hazard zone noise [DONE]
 │
 ├── layers/
 │   ├── SpaceZoneConfig.cs      # Per-property metaball field config ScriptableObject [DONE]
 │   ├── SpaceZoneLayer.cs       # Bitmask properties + metaball fields + data + query [DONE]
-│   ├── FactionConfig.cs        # Faction config ScriptableObject [DONE]
-│   ├── FactionTerritoryLayer.cs # Empire territories + data + query [DONE]
+│   ├── ResourceConfig.cs       # Resource distribution config ScriptableObject [DONE]
+│   ├── ResourceLayer.cs        # Resource distribution + data + query [DONE]
+│   ├── FactionConfig.cs        # Faction config ScriptableObject (metaball-based) [DONE]
+│   ├── FactionTerritoryLayer.cs # MetaballField faction territories + data + query [DONE]
 │   ├── StarSystemLayer.cs      # Stars and planets [TODO]
 │   ├── PointOfInterestLayer.cs # Stations, gates, derelicts [TODO]
 │   ├── HazardLayer.cs          # Radiation, anomalies [TODO]
@@ -118,7 +120,8 @@ Assets/core/background/
 
 | Priority | Tier | Layers |
 |----------|------|--------|
-| 0-9 | Foundation | SpaceZoneLayer |
+| 0-4 | Foundation | SpaceZoneLayer |
+| 5-9 | Resources | ResourceLayer |
 | 10-19 | Political | FactionTerritoryLayer, StarSystemLayer |
 | 20-29 | Structural | PointOfInterestLayer |
 | 30-39 | Environmental | HazardLayer, ResourceLayer |
@@ -136,7 +139,7 @@ WorldGenerationService.Instance.OnChunkGenerated += HandleChunkGenerated;
 Uses `SpaceZoneType.NebulaDense` from the legacy zone query to decide whether to generate nebula regions in a chunk. This continues to work via the backward-compatible `DerivePrimaryZone()` mapping.
 
 ### FactionTerritoryLayer
-Depends on `SpaceZoneLayerData` from the generation context. Reads `PrimaryZoneType` and `ZoneDensity` fields which are preserved for backward compatibility.
+Depends on `SpaceZoneLayerData` and `ResourceLayerData` from the generation context. Each major faction has its own `MetaballField`; zone data modifies faction density (void/anomaly weaken presence) and resource data boosts it.
 
 ### Entity System
 Ships/AI query world state for behavior:
@@ -277,60 +280,50 @@ public struct MetaballSampleResult
 }
 ```
 
-## WorldFabricBridge (Starfield Integration)
+## WorldFabricBridge (Per-Layer Starfield Integration)
 
-`WorldFabricBridge` (`core/background/WorldFabricBridge.cs`) is a MonoBehaviour that connects the World Fabric system to all starfield and nebula shaders. It runs in `LateUpdate` and is marked `[ExecuteAlways]`.
+`WorldFabricBridge` (`core/background/WorldFabricBridge.cs`) is a singleton MonoBehaviour that connects the World Fabric system to all starfield layers. Each layer gets its own smoothed fabric sample based on parallax depth, creating depth-aware zone transitions.
 
-### Data Flow
+See [STARFIELD_FABRIC_HANDOFF.md](../../background/STARFIELD_FABRIC_HANDOFF.md) for full details.
+
+### Data Flow (Per-Layer)
 
 ```
-Camera position → WorldFabricService.SampleFabricAtWorldPosition()
-    → SpaceFabricSample (raw values)
-    → Exponential lerp smoothing (prevents visual popping)
-    → Shader.SetGlobalFloat/Vector (9 shader globals)
-    → All starfield/nebula shaders read these globals
+Camera position + parallax depth offset
+    → WorldFabricService.SampleFabricAtWorldPosition(offsetPos)
+    → Per-depth exponential lerp smoothing
+    → material.SetFloat/SetVector (9 per-material properties)
+    → Each shader reads from CBUFFER (not globals)
 ```
 
-### Shader Globals Set
+Global shader properties are still pushed as fallback for non-layer consumers.
 
-| Global Name | Type | Source | Description |
-|-------------|------|--------|-------------|
-| `_FabricNebulaDensity` | float | smoothed sample | Nebula density 0–1 |
-| `_FabricAsteroidDensity` | float | smoothed sample | Asteroid density 0–1 |
-| `_FabricVoidFactor` | float | smoothed sample | Void factor 0–1 |
-| `_FabricAnomalyStrength` | float | smoothed sample | Anomaly strength 0–1 |
-| `_FabricVoidStarFade` | float | inspector param | Max star fade amount in void (default 0.85) |
-| `_FabricVoidBgDarken` | float | inspector param | Max background darken in void (default 0.6) |
-| `_FabricNebulaTint` | float4 | inspector param | Nebula tint color (default purple 0.6, 0.3, 0.7) |
-| `_FabricNebulaTintStrength` | float | inspector param | Max nebula tint strength (default 0.15) |
-| `_FabricAnomalyShift` | float | inspector param | Anomaly color shift amount (default 0.3) |
+### Per-Layer Sampling
 
-### Shader Responses
-
-**Starfield.shader / ShapedStarfield.shader:**
-- Void: `starValue *= (1 - _FabricVoidFactor * _FabricVoidStarFade)` — stars dim
-- Void background: `bgColor *= (1 - _FabricVoidFactor * _FabricVoidBgDarken)` — background darkens
-- Nebula: `starValue = lerp(starValue, starValue * _FabricNebulaTint, nebulaDensity * tintStrength)` — star color tint
-- Anomaly: Subtle RGB channel shift proportional to `_FabricAnomalyStrength * _FabricAnomalyShift`
-
-**Nebula.shader / StylizedNebula.shader:**
-- Nebula boost: `nebulaColor *= lerp(1.0, 1.3, _FabricNebulaDensity)` — emission increases in fabric nebula zones
-- Void fade: `nebulaColor *= (1 - _FabricVoidFactor * _FabricVoidStarFade * 0.5)` — nebula dims in voids (half strength)
-
-### Smooth Transitions
-
-Uses exponential interpolation to prevent popping at zone boundaries:
-```csharp
-float lerpRate = 1f - Mathf.Exp(-dt / (transitionSpeed * 0.33f));
-_smoothValue = Mathf.Lerp(_smoothValue, targetValue, lerpRate);
+Each parallax depth bucket gets a slightly different sample point:
 ```
-Default `transitionSpeed` = 3 seconds. This gives a smooth ~1 second 63% response time.
+samplePos = cameraWorldPos + cameraWorldPos.normalized × parallaxDepth × fabricDepthInfluence
+```
+`fabricDepthInfluence` (default 10000) controls the offset. Deep background layers may see different zones than foreground layers.
+
+### All 7 Shaders Respond to Fabric
+
+| Shader | Void | Nebula | Anomaly |
+|--------|------|--------|---------|
+| Starfield | Dim stars + darken BG | Tint stars | Color shift |
+| ShapedStarfield | Dim stars + darken BG | Tint stars | Color shift |
+| StarfieldMultiLayer | Dim stars + darken BG | Tint stars | Color shift |
+| Nebula | Fade emission | Boost emission | Color shift |
+| StylizedNebula | Fade emission | Boost emission | Color shift |
+| ShootingStars | Dim brightness | Tint color | Color shift |
+| Comet | Dim brightness | Tint coma/tail | Color shift |
 
 ### Inspector Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `transitionSpeed` | 3.0 | Seconds for full transition (0.5–10) |
+| `fabricDepthInfluence` | 10000 | How much parallax offsets sample point (0–50000) |
 | `voidStarFade` | 0.85 | How much void dims stars (0–1) |
 | `voidBackgroundDarken` | 0.6 | How much void darkens background (0–1) |
 | `nebulaStarTint` | 0.15 | How much nebula tints stars (0–1) |
@@ -345,13 +338,78 @@ Default `transitionSpeed` = 3 seconds. This gives a smooth ~1 second 63% respons
 SpaceFabricSample smoothed = bridge.SmoothedSample;
 ```
 
+## Resource Distribution System
+
+Resources are generated as a separate layer (priority 5) between SpaceZoneLayer and FactionTerritoryLayer. Each resource category has its own MetaballField, and densities are boosted by correlated space zone types.
+
+### Resource Categories
+
+| Category | Seed Offset | Blob Spacing | Radius Range | Zone Correlation |
+|----------|-------------|-------------|--------------|------------------|
+| Mineral  | 30000       | 120,000     | 40k-150k     | Asteroid zones (×1.5) |
+| Ore      | 37777       | 100,000     | 30k-120k     | Asteroid zones (×1.4) |
+| Gas      | 45555       | 180,000     | 60k-250k     | Nebula zones (×1.5) |
+| Exotic   | 53333       | 400,000     | 15k-50k      | Anomaly zones (×1.8) |
+| Water    | 61111       | 150,000     | 50k-200k     | Nebula zones (×1.2) |
+
+### Bitmask System
+
+```csharp
+[Flags]
+public enum ResourceProperty
+{
+    None    = 0,
+    Mineral = 1 << 0,
+    Ore     = 1 << 1,
+    Gas     = 1 << 2,
+    Exotic  = 1 << 3,
+    Water   = 1 << 4,
+}
+```
+
+### Rarity Tiers
+
+Derived from the weighted `OverallResourceValue` (exotic resources worth 3× minerals):
+
+| Tier | Threshold | Description |
+|------|-----------|-------------|
+| None | < 0.1 | Barren space |
+| Common | ≥ 0.1 | Basic resources |
+| Uncommon | ≥ 0.3 | Moderate deposits |
+| Rare | ≥ 0.55 | Valuable resource concentration |
+| Exotic | ≥ 0.75 | Exceptionally rich area |
+
+### Query API
+
+```csharp
+// Sample all resources with zone correlation
+ResourceFabricSample sample = WorldFabricService.Instance.SampleResourcesAt(absolutePosition);
+sample.MineralDensity;     // 0-1
+sample.ExoticDensity;      // 0-1
+sample.OverallResourceValue; // Weighted sum
+sample.RarityTier;         // None/Common/Uncommon/Rare/Exotic
+sample.ActiveResources.HasFlag(ResourceProperty.Gas); // boolean
+
+// From Unity world position
+ResourceFabricSample sample = WorldFabricService.Instance.SampleResourcesAtWorldPosition(transform.position);
+```
+
+### Data Flow
+
+```
+SpaceZoneLayer (pri 0) → ResourceLayer (pri 5) → FactionTerritoryLayer (pri 10)
+                              ↑ reads zone data for correlation boosts
+```
+
+---
+
 ## Faction System
 
 **Hybrid Approach**: Predefined major factions + procedural minor factions.
 
 ### Major Factions (Predefined)
 - 3-5 handcrafted factions with unique names, colors, and traits
-- Control large Voronoi cells (larger `cellSize` in config)
+- Control organic metaball-based territories (blob spacing/radius in config)
 - Have defined diplomatic relationships
 
 ### Minor Factions (Procedural)
@@ -359,58 +417,81 @@ SpaceFabricSample smoothed = bridge.SmoothedSample;
 - Smaller territories in gaps between major factions
 - Traits derived from zone type (e.g., nebula dwellers, asteroid miners)
 
+### Unclaimed Wilderness
+
+Most of space is **unclaimed** — faction territories are islands of civilization, not a wall-to-wall checkerboard. Territory is unclaimed wherever no faction's MetaballField density exceeds the activation threshold (`factionActivationThreshold`, default 0.3). Additionally, zone modifiers weaken faction presence in voids and anomalies.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `factionActivationThreshold` | 0.3 | Density below which territory is unclaimed (0–1) |
+| `voidNeutralBonus` | 0.25 | Faction density reduction multiplier in void regions |
+| `anomalyNeutralBonus` | 0.30 | Faction density reduction multiplier in anomaly regions |
+
+Faction territories naturally form organic bubble-like regions around blob clusters, with vast unclaimed gaps between them. Void and anomaly zones further suppress faction density, making those areas almost always unclaimed.
+
 ### Territory Mechanics
-Territories use a **hierarchical Voronoi system** with domain warping for organic, natural-looking boundaries:
-- **Empire tier**: Large cells (600,000 units default) determine faction ownership - ensures contiguous territories
-- **Territory tier**: Smaller cells (100,000 units) provide border detail and variation
-- `DistanceToBorder` determines control strength
-- `IsContestedZone` = within X units of border (configurable)
+Territories use a **MetaballField-based system** where each faction has its own implicit blob field. Territory ownership is determined by which faction has the highest density at any given point. This produces naturally organic, bubble-like borders with no grid artifacts.
+
+- Each major faction has its own `MetaballField` with a unique seed offset
+- Territory = highest density above threshold wins
+- Unclaimed space = no faction exceeds threshold
+- `DistanceToBorder` is a density gap (winner - runner-up) — higher = deeper inside territory
+- `IsContestedZone` = density gap below `contestedDensityGap`
 - Border areas have higher pirate activity
 
-### Empire Clustering (Contiguous Territories)
-Enable `enableEmpireClustering` to create large, contiguous faction territories instead of fragmented "speckled" patterns.
-
-**FactionConfig empire settings (scaled for 100k-600k worlds):**
+**FactionConfig territory settings:**
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `enableEmpireClustering` | true | Enable hierarchical territory system |
-| `empireCellSize` | 600000 | Size of empire super-cells (3-6x territory size) |
-| `empireJitter` | 0.5 | Randomness of empire cell positions |
-| `empireWarpStrength` | 60000 | Warp strength for empire borders (10-20% of cell size) |
+| `factionBlobSpacing` | 300000 | Distance between blob centers (controls region spacing) |
+| `factionBlobRadiusMin` | 100000 | Minimum blob radius |
+| `factionBlobRadiusMax` | 400000 | Maximum blob radius |
+| `factionBlobStrength` | 1.0 | Contribution strength per blob (0.1-2) |
+| `factionFalloffPower` | 2.0 | Edge sharpness (1-5, higher = sharper) |
+| `factionActivationThreshold` | 0.3 | Density below which territory is unclaimed (0-1) |
+| `contestedDensityGap` | 0.15 | If winner - runner-up < this, zone is contested |
+| `controlFadeDensityRange` | 0.3 | Density range over which control fades (0 to 1 strength) |
 
-### Border Warping (Natural Look)
-Pure Voronoi creates uniform hexagonal borders. Domain warping applies Perlin noise to distort the lookup coordinates, creating organic flowing borders instead of straight lines.
+### Resource Border Influence
 
-**FactionConfig warp settings (scaled for 100k-600k worlds):**
+Resource-rich areas boost all faction densities at sample time, effectively expanding faction territories toward valuable resources.
+
+`faction_density = raw_metaball_density × zone_modifier + (OverallResourceValue × resourceDensityBoost)`
+
+**FactionConfig resource influence settings:**
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `borderWarpStrength` | 15000 | How far borders deviate (10-30% of cell size) |
-| `borderWarpScale` | 0.00001 | Frequency of curves (1/cellSize for base frequency) |
-| `borderWarpOctaves` | 3 | Complexity of warp noise |
+| `resourceDensityBoost` | 0.3 | How much resource density boosts faction density (0-0.5) |
+| `resourceClaimingBoost` | 0.4 | Neutral chance reduction per unit of OverallResourceValue (0-1) |
 
-### Edge Noise (Fine Border Detail)
-Adds high-frequency Perlin noise directly to border distances for jagged, natural-looking edges.
+**Data flow**: ResourceLayer (priority 5) generates `ResourceLayerData` → FactionTerritoryLayer (priority 10) reads it from `WorldFabricContext` for density boosting.
 
-**FactionConfig edge noise settings (scaled for 100k-600k worlds):**
+### Zone Influence on Territories
+
+Void and anomaly regions weaken faction presence via multipliers on density:
+- Void zones: `density × (1 - voidFactor × voidNeutralBonus)`
+- Anomaly zones: `density × (1 - anomalyStrength × anomalyNeutralBonus)`
+
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `edgeNoiseStrength` | 2000 | Strength of fine edge perturbation (1-5% of cell size) |
-| `edgeNoiseScale` | 0.0001 | Scale of edge noise (higher frequency than warp scale) |
+| `voidNeutralBonus` | 0.25 | Faction density reduction in void regions |
+| `anomalyNeutralBonus` | 0.30 | Faction density reduction in anomaly regions |
 
 ```csharp
-// Hierarchical Voronoi with empire clustering + edge noise (scaled for large worlds)
-var hierarchical = new HierarchicalVoronoiField(
-    empireCellSize: 600000f,     // Large cells for faction ownership
-    empireJitter: 0.5f,
-    empireWarpStrength: 60000f,
-    territoryCellSize: 100000f,  // Smaller cells for border detail
-    territoryJitter: 0.8f,
-    territoryWarpStrength: 15000f,
-    warpScale: 0.00001f,
-    warpOctaves: 3,
-    edgeNoiseStrength: 2000f,    // Fine border detail
-    edgeNoiseScale: 0.0001f
-);
+// MetaballField-based territories — each faction gets its own field
+var fieldConfig = config.GetFactionFieldConfig(); // MetaballFieldConfig from FactionConfig
+var factionFields = new MetaballField[factionCount];
+for (int i = 0; i < factionCount; i++)
+    factionFields[i] = new MetaballField(fieldConfig, seedOffset: (i + 1) * 10000f);
+
+// At any point: sample all fields, highest density wins
+for (int i = 0; i < factionCount; i++)
+{
+    float density = factionFields[i].SampleDetailed(position, worldSeed).NormalizedDensity;
+    density = density * zoneMod + resourceBoost;
+    // Track winner and runner-up...
+}
+// Winner above threshold → owns territory
+// No one above threshold → unclaimed/neutral
 ```
 
 ## Adding New Content Types
@@ -453,6 +534,7 @@ Create via: `Right-click → Create → Starfire → World Fabric → [Config Ty
 
 - **WorldFabricConfig** - Master config referencing all layer configs
 - **SpaceZoneConfig** - Zone noise parameters
+- **ResourceConfig** - Resource field parameters, zone correlation, rarity tiers
 - **FactionConfig** - Faction list, territory sizes, border width
 - **StarSystemConfig** - Star density, planet counts
 - **POIConfig** - Station types, spawn rates
@@ -483,6 +565,12 @@ The `WorldFabricService` component includes a built-in debug preview system that
 | AsteroidDensity | Heat map of continuous asteroid density (black → brown) |
 | VoidFactor | Heat map of continuous void factor (black → dark blue) |
 | AnomalyStrength | Heat map of continuous anomaly strength (black → red) |
+| MineralDensity | Heat map of mineral resource density (black → gold) |
+| OreDensity | Heat map of ore resource density (black → brown) |
+| GasDensity | Heat map of gas resource density (black → green) |
+| ExoticDensity | Heat map of exotic resource density (black → purple) |
+| WaterDensity | Heat map of water resource density (black → blue) |
+| ResourceValue | Heat map of weighted overall resource value (black → green → yellow) |
 
 ### Inspector Settings
 
@@ -531,7 +619,11 @@ The preview includes a color legend explaining what each color represents for th
 - [x] Phase 3.8: MetaballField architecture (replaces Perlin zones with bubble-like regions)
 - [x] Phase 3.8.1: Bitmask property system (overlapping states: asteroids + nebula)
 - [x] Phase 3.8.2: WorldFabricBridge + starfield shader integration (void fading, nebula tint)
-- [ ] Phase 4: StarSystemLayer + POILayer
+- [x] Phase 3.9: Unclaimed wilderness (neutral cells + zone-aware claiming + avalanche hash for organic borders)
+- [x] Phase 4.0: ResourceLayer (5 resource types with MetaballFields + zone correlation + rarity tiers)
+- [x] Phase 4.1: Resource-aware faction borders (resource density boosts faction presence)
+- [x] Phase 4.2: MetaballField-based faction territories (replaces Voronoi — organic bubble borders, per-faction fields, winner-takes-all)
+- [ ] Phase 4.3: StarSystemLayer + POILayer
 - [ ] Phase 5: HazardLayer + ResourceLayer
 - [x] Phase 6: Debug visualization & tooling (Inspector preview with throttling + per-property heat maps)
 - [ ] Entity AI integration

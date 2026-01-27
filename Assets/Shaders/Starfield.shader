@@ -39,6 +39,16 @@ Shader "Starfire/Starfield"
         _LayerSeed ("Layer Seed", Float) = 0
         _ClusterAmount ("Cluster Amount", Range(0, 1)) = 0.3
         _ClusterScale ("Cluster Scale", Float) = 0.05
+
+        [HideInInspector] _FabricNebulaDensity ("Fabric Nebula Density", Float) = 0
+        [HideInInspector] _FabricAsteroidDensity ("Fabric Asteroid Density", Float) = 0
+        [HideInInspector] _FabricVoidFactor ("Fabric Void Factor", Float) = 0
+        [HideInInspector] _FabricAnomalyStrength ("Fabric Anomaly Strength", Float) = 0
+        [HideInInspector] _FabricVoidStarFade ("Fabric Void Star Fade", Float) = 0
+        [HideInInspector] _FabricVoidBgDarken ("Fabric Void Bg Darken", Float) = 0
+        [HideInInspector] _FabricNebulaTint ("Fabric Nebula Tint", Vector) = (0.6, 0.3, 0.7, 1)
+        [HideInInspector] _FabricNebulaTintStrength ("Fabric Nebula Tint Strength", Float) = 0
+        [HideInInspector] _FabricAnomalyShift ("Fabric Anomaly Shift", Float) = 0
     }
 
     SubShader
@@ -98,6 +108,17 @@ Shader "Starfire/Starfield"
                 float _LayerSeed;
                 float _ClusterAmount;
                 float _ClusterScale;
+
+                // World Fabric properties (set per-material by WorldFabricBridge)
+                float _FabricNebulaDensity;
+                float _FabricAsteroidDensity;
+                float _FabricVoidFactor;
+                float _FabricAnomalyStrength;
+                float _FabricVoidStarFade;
+                float _FabricVoidBgDarken;
+                float4 _FabricNebulaTint;
+                float _FabricNebulaTintStrength;
+                float _FabricAnomalyShift;
             CBUFFER_END
 
             // Set from script
@@ -128,16 +149,10 @@ Shader "Starfire/Starfield"
             float _WobbleFrequency;
             float _WobbleSpeed;
 
-            // World Fabric globals (set by WorldFabricBridge)
-            float _FabricNebulaDensity;
-            float _FabricAsteroidDensity;
-            float _FabricVoidFactor;
-            float _FabricAnomalyStrength;
-            float _FabricVoidStarFade;
-            float _FabricVoidBgDarken;
-            float4 _FabricNebulaTint;
-            float _FabricNebulaTintStrength;
-            float _FabricAnomalyShift;
+            // Star density reduction globals (set by WarpEffectController)
+            float _WarpStarFade;
+            float _WarpStarFadeNearBias;
+            float _WarpStarFadeMinDepth;
 
             // PCG-style hash functions - much longer period, no sin() periodicity issues
             float hash1(float2 p)
@@ -424,8 +439,16 @@ Shader "Starfire/Starfield"
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
                 float2 parallaxUV = scaledUV + parallaxOffset;
 
+                // Warp star density reduction — parallax-aware
+                // nearBias controls which depths fade more: 0 = background fades more, 1 = foreground fades more
+                float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,
+                    lerp(saturate(1.0 - _ParallaxFactor * _WarpParallaxMultiplier),
+                         saturate(_ParallaxFactor * _WarpParallaxMultiplier),
+                         _WarpStarFadeNearBias));
+                float warpSpawnChance = _SpawnChance * (1.0 - _WarpStarFade * depthFadeFactor);
+
                 // Generate starfield with parallax, twinkling, color, sharpness, and natural distribution
-                float3 starValue = stars(parallaxUV, _StarDensity, _StarSizeMin, _StarSizeMax, _SizeDistribution, _SpawnChance, _TwinkleSpeed, _TwinkleAmount, _Time.y, _ScreenAspect, _StarColor.rgb, _ColorVariation, _WarmCoolMix, _EdgeSharpness, _LayerSeed, _ClusterAmount, _ClusterScale);
+                float3 starValue = stars(parallaxUV, _StarDensity, _StarSizeMin, _StarSizeMax, _SizeDistribution, warpSpawnChance, _TwinkleSpeed, _TwinkleAmount, _Time.y, _ScreenAspect, _StarColor.rgb, _ColorVariation, _WarmCoolMix, _EdgeSharpness, _LayerSeed, _ClusterAmount, _ClusterScale);
 
                 // === World Fabric modulation ===
                 // Void: fade stars and darken background

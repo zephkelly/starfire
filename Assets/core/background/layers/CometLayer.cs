@@ -394,6 +394,9 @@ namespace Starfire.Core.Background.Layers
             material.SetVectorArray(CometParams1ID, _params1Array);
             material.SetVectorArray(CometParams2ID, _params2Array);
             material.SetVectorArray(CometParams3ID, _params3Array);
+
+            // Per-layer fabric sampling
+            ApplyFabricProperties(material);
         }
 
         /// <summary>

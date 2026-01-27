@@ -39,6 +39,16 @@ Shader "Starfire/ShapedStarfield"
 
         [Header(Shape Configuration)]
         [IntRange] _ShapeCount ("Active Shape Count", Range(1, 4)) = 4
+
+        [HideInInspector] _FabricNebulaDensity ("Fabric Nebula Density", Float) = 0
+        [HideInInspector] _FabricAsteroidDensity ("Fabric Asteroid Density", Float) = 0
+        [HideInInspector] _FabricVoidFactor ("Fabric Void Factor", Float) = 0
+        [HideInInspector] _FabricAnomalyStrength ("Fabric Anomaly Strength", Float) = 0
+        [HideInInspector] _FabricVoidStarFade ("Fabric Void Star Fade", Float) = 0
+        [HideInInspector] _FabricVoidBgDarken ("Fabric Void Bg Darken", Float) = 0
+        [HideInInspector] _FabricNebulaTint ("Fabric Nebula Tint", Vector) = (0.6, 0.3, 0.7, 1)
+        [HideInInspector] _FabricNebulaTintStrength ("Fabric Nebula Tint Strength", Float) = 0
+        [HideInInspector] _FabricAnomalyShift ("Fabric Anomaly Shift", Float) = 0
     }
 
     SubShader
@@ -100,6 +110,17 @@ Shader "Starfire/ShapedStarfield"
                 float _ClusterAmount;
                 float _ClusterScale;
                 int _ShapeCount;
+
+                // World Fabric properties (set per-material by WorldFabricBridge)
+                float _FabricNebulaDensity;
+                float _FabricAsteroidDensity;
+                float _FabricVoidFactor;
+                float _FabricAnomalyStrength;
+                float _FabricVoidStarFade;
+                float _FabricVoidBgDarken;
+                float4 _FabricNebulaTint;
+                float _FabricNebulaTintStrength;
+                float _FabricAnomalyShift;
             CBUFFER_END
 
             // Per-shape arrays (set from C#)
@@ -140,16 +161,10 @@ Shader "Starfire/ShapedStarfield"
             float _WobbleFrequency;
             float _WobbleSpeed;
 
-            // World Fabric globals (set by WorldFabricBridge)
-            float _FabricNebulaDensity;
-            float _FabricAsteroidDensity;
-            float _FabricVoidFactor;
-            float _FabricAnomalyStrength;
-            float _FabricVoidStarFade;
-            float _FabricVoidBgDarken;
-            float4 _FabricNebulaTint;
-            float _FabricNebulaTintStrength;
-            float _FabricAnomalyShift;
+            // Star density reduction globals (set by WarpEffectController)
+            float _WarpStarFade;
+            float _WarpStarFadeNearBias;
+            float _WarpStarFadeMinDepth;
 
             // PCG-style hash functions
             float hash1(float2 p)
@@ -499,11 +514,18 @@ Shader "Starfire/ShapedStarfield"
                 float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
                 float2 parallaxUV = scaledUV + parallaxOffset;
 
+                // Warp star density reduction — parallax-aware
+                float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,
+                    lerp(saturate(1.0 - _ParallaxFactor * _WarpParallaxMultiplier),
+                         saturate(_ParallaxFactor * _WarpParallaxMultiplier),
+                         _WarpStarFadeNearBias));
+                float warpSpawnChance = _SpawnChance * (1.0 - _WarpStarFade * depthFadeFactor);
+
                 // Generate shaped starfield
                 float3 starValue = shapedStars(
                     parallaxUV,
                     _StarDensity,
-                    _SpawnChance,
+                    warpSpawnChance,
                     _TwinkleSpeed,
                     _TwinkleAmount,
                     _Time.y,

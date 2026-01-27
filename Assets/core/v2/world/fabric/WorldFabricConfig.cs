@@ -10,8 +10,9 @@ namespace StarfireV2
     {
         [Header("Layer Configs")]
         public SpaceZoneConfig spaceZoneConfig;
+        public ResourceConfig resourceConfig;
         public FactionConfig factionConfig;
-        // Future: StarSystemConfig, POIConfig, HazardConfig, ResourceConfig
+        // Future: StarSystemConfig, POIConfig, HazardConfig
 
         [Header("Debug")]
         public bool showDebugGizmos = false;

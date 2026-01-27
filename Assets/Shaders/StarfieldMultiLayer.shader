@@ -32,6 +32,16 @@ Shader "Starfire/StarfieldMultiLayer"
         [Header(Clustering)]
         _ClusterAmount ("Cluster Amount", Range(0, 1)) = 0.3
         _ClusterScale ("Cluster Scale", Float) = 0.05
+
+        [HideInInspector] _FabricNebulaDensity ("Fabric Nebula Density", Float) = 0
+        [HideInInspector] _FabricAsteroidDensity ("Fabric Asteroid Density", Float) = 0
+        [HideInInspector] _FabricVoidFactor ("Fabric Void Factor", Float) = 0
+        [HideInInspector] _FabricAnomalyStrength ("Fabric Anomaly Strength", Float) = 0
+        [HideInInspector] _FabricVoidStarFade ("Fabric Void Star Fade", Float) = 0
+        [HideInInspector] _FabricVoidBgDarken ("Fabric Void Bg Darken", Float) = 0
+        [HideInInspector] _FabricNebulaTint ("Fabric Nebula Tint", Vector) = (0.6, 0.3, 0.7, 1)
+        [HideInInspector] _FabricNebulaTintStrength ("Fabric Nebula Tint Strength", Float) = 0
+        [HideInInspector] _FabricAnomalyShift ("Fabric Anomaly Shift", Float) = 0
     }
 
     SubShader
@@ -90,7 +100,24 @@ Shader "Starfire/StarfieldMultiLayer"
                 float _RenderBackground;
                 float _ClusterAmount;
                 float _ClusterScale;
+
+                // World Fabric properties (set per-material by WorldFabricBridge)
+                float _FabricNebulaDensity;
+                float _FabricAsteroidDensity;
+                float _FabricVoidFactor;
+                float _FabricAnomalyStrength;
+                float _FabricVoidStarFade;
+                float _FabricVoidBgDarken;
+                float4 _FabricNebulaTint;
+                float _FabricNebulaTintStrength;
+                float _FabricAnomalyShift;
             CBUFFER_END
+
+            // Star density reduction globals (set by WarpEffectController)
+            float _WarpStarFade;
+            float _WarpStarFadeNearBias;
+            float _WarpStarFadeMinDepth;
+            float _WarpParallaxMultiplier;
 
             // Per-depth arrays (outside CBUFFER for better compatibility)
             // x = parallax, y = density, z = sizeMin, w = sizeMax
@@ -175,7 +202,7 @@ Shader "Starfire/StarfieldMultiLayer"
             }
 
             // Generate stars for a single depth layer
-            float3 starsAtDepth(float2 uv, float density, float sizeMin, float sizeMax, float layerSeed, float3 baseColor)
+            float3 starsAtDepth(float2 uv, float density, float sizeMin, float sizeMax, float layerSeed, float3 baseColor, float spawnChance)
             {
                 float3 result = float3(0, 0, 0);
 
@@ -201,12 +228,12 @@ Shader "Starfire/StarfieldMultiLayer"
                         float2 neighborCell = cellID + float2(x, y);
 
                         // Calculate cluster noise (skip if disabled)
-                        float adjustedSpawnChance = _SpawnChance;
+                        float adjustedSpawnChance = spawnChance;
                         [branch] if (_ClusterAmount > 0.01)
                         {
                             float clusterNoise = perlin2D(neighborCell * _ClusterScale);
                             float clusterModifier = lerp(1.0, 0.2 + clusterNoise * 0.8, _ClusterAmount);
-                            adjustedSpawnChance = _SpawnChance * clusterModifier;
+                            adjustedSpawnChance = spawnChance * clusterModifier;
                         }
 
                         // Spawn chance check
@@ -296,22 +323,56 @@ Shader "Starfire/StarfieldMultiLayer"
                     float2 parallaxOffset = _CameraWorldPos * parallax;
                     float2 parallaxUV = scaledUV + parallaxOffset;
 
+                    // Warp star density reduction — parallax-aware per depth
+                    float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,
+                        lerp(saturate(1.0 - parallax * _WarpParallaxMultiplier),
+                             saturate(parallax * _WarpParallaxMultiplier),
+                             _WarpStarFadeNearBias));
+                    float warpSpawnChance = _SpawnChance * (1.0 - _WarpStarFade * depthFadeFactor);
+
                     // Generate stars at this depth
-                    float3 depthStars = starsAtDepth(parallaxUV, density, sizeMin, sizeMax, seed, depthColor);
+                    float3 depthStars = starsAtDepth(parallaxUV, density, sizeMin, sizeMax, seed, depthColor, warpSpawnChance);
 
                     result += depthStars;
                 }
 
+                // === World Fabric modulation ===
+                // Separate stars from background for fabric processing
+                float3 bgColor = (_RenderBackground > 0.5) ? _BackgroundColor.rgb : float3(0, 0, 0);
+                float3 starValue = result - bgColor;
+
+                // Void: fade stars
+                float voidDim = 1.0 - _FabricVoidFactor * _FabricVoidStarFade;
+                starValue *= voidDim;
+
+                // Nebula: tint stars
+                starValue = lerp(starValue, starValue * _FabricNebulaTint.rgb, _FabricNebulaDensity * _FabricNebulaTintStrength);
+
+                // Anomaly: subtle color shift
+                [branch] if (_FabricAnomalyStrength > 0.01)
+                {
+                    float anomalyT = _FabricAnomalyStrength * _FabricAnomalyShift;
+                    float3 anomalyShift = float3(
+                        starValue.r + starValue.g * anomalyT * 0.3,
+                        starValue.g * (1.0 - anomalyT * 0.5),
+                        starValue.b + starValue.r * anomalyT * 0.2
+                    );
+                    starValue = lerp(starValue, anomalyShift, anomalyT);
+                }
+
                 // Calculate alpha from luminance
-                float starAlpha = saturate(dot(result, float3(0.299, 0.587, 0.114)) * 2.0);
+                float starAlpha = saturate(dot(starValue, float3(0.299, 0.587, 0.114)) * 2.0);
 
                 if (_RenderBackground > 0.5)
                 {
-                    return half4(result, 1.0);
+                    // Void darkens background
+                    float bgDim = 1.0 - _FabricVoidFactor * _FabricVoidBgDarken;
+                    float3 finalColor = bgColor * bgDim + starValue;
+                    return half4(finalColor, 1.0);
                 }
                 else
                 {
-                    return half4(result, starAlpha);
+                    return half4(starValue, starAlpha);
                 }
             }
 

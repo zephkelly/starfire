@@ -286,6 +286,9 @@ namespace Starfire.Core.Background.Layers
             material.SetVectorArray(ShapeVisualsID, _shapeVisuals);
             material.SetVectorArray(ShapeColorsID, _shapeColors);
             material.SetVector(CumulativeWeightsID, cumulativeWeights);
+
+            // Per-layer fabric sampling
+            ApplyFabricProperties(material);
         }
     }
 }

@@ -208,6 +208,9 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(RenderBackgroundID, renderBackground ? 1f : 0f);
             material.SetFloat(ClusterAmountID, clusterAmount);
             material.SetFloat(ClusterScaleID, clusterScale);
+
+            // Per-layer fabric sampling
+            ApplyFabricProperties(material);
         }
 
         /// <summary>

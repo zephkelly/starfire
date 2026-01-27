@@ -8,6 +8,7 @@ namespace StarfireV2
     /// Two-tier hierarchical Voronoi field for faction territory generation.
     /// Empire tier: Large cells that determine faction ownership (creates contiguous territories)
     /// Territory tier: Smaller cells that provide border detail and variation
+    /// Supports faceted (low-poly) borders and resource-biased distance.
     /// </summary>
     [Serializable]
     public class HierarchicalVoronoiField
@@ -26,6 +27,26 @@ namespace StarfireV2
             int warpOctaves,
             float edgeNoiseStrength,
             float edgeNoiseScale)
+            : this(empireCellSize, empireJitter, empireWarpStrength,
+                   territoryCellSize, territoryJitter, territoryWarpStrength,
+                   warpScale, warpOctaves, edgeNoiseStrength, edgeNoiseScale,
+                   false, 8)
+        {
+        }
+
+        public HierarchicalVoronoiField(
+            float empireCellSize,
+            float empireJitter,
+            float empireWarpStrength,
+            float territoryCellSize,
+            float territoryJitter,
+            float territoryWarpStrength,
+            float warpScale,
+            int warpOctaves,
+            float edgeNoiseStrength,
+            float edgeNoiseScale,
+            bool useFacetedBorders,
+            int facetAngularSteps)
         {
             // Empire tier: large cells for faction assignment
             // Uses gentler warping to create smooth large-scale borders
@@ -34,11 +55,13 @@ namespace StarfireV2
                 empireJitter,
                 empireWarpStrength,
                 warpScale * 0.5f,  // Lower frequency for empire borders
-                warpOctaves
+                warpOctaves,
+                0f, 0f,  // No edge noise on empire tier
+                useFacetedBorders,
+                facetAngularSteps
             );
 
             // Territory tier: smaller cells for border detail
-            // Uses full warping + edge noise for organic fine-grained borders
             _territoryTier = new VoronoiNoiseField(
                 territoryCellSize,
                 territoryJitter,
@@ -46,7 +69,9 @@ namespace StarfireV2
                 warpScale,
                 warpOctaves,
                 edgeNoiseStrength,
-                edgeNoiseScale
+                edgeNoiseScale,
+                useFacetedBorders,
+                facetAngularSteps
             );
         }
 
@@ -56,12 +81,26 @@ namespace StarfireV2
         /// </summary>
         public HierarchicalVoronoiResult SampleDetailed(Vector2D position, float seed)
         {
+            return SampleDetailedInternal(position, seed, 0f);
+        }
+
+        /// <summary>
+        /// Sample with resource bias for border attraction.
+        /// Positive resourceBias causes borders to bulge toward resource-rich areas.
+        /// </summary>
+        public HierarchicalVoronoiResult SampleDetailed(Vector2D position, float seed, float resourceBias)
+        {
+            return SampleDetailedInternal(position, seed, resourceBias);
+        }
+
+        private HierarchicalVoronoiResult SampleDetailedInternal(Vector2D position, float seed, float resourceBias)
+        {
             // Empire tier determines faction ownership
-            var empireResult = _empireTier.SampleDetailed(position, seed);
+            var empireResult = _empireTier.SampleDetailed(position, seed, resourceBias);
 
             // Territory tier provides border detail
             // Use a different seed offset to decorrelate the two tiers
-            var territoryResult = _territoryTier.SampleDetailed(position, seed + 5000f);
+            var territoryResult = _territoryTier.SampleDetailed(position, seed + 5000f, resourceBias);
 
             // The final distance-to-border is primarily from the territory tier
             // but we also consider the empire border for large-scale transitions

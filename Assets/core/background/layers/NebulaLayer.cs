@@ -189,6 +189,9 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(RegionRadiusID, regionRadius);
             material.SetFloat(RegionFalloffID, regionFalloff);
             material.SetFloat(RegionEdgeModeID, regionEdgeMode);
+
+            // Per-layer fabric sampling
+            ApplyFabricProperties(material);
         }
     }
 }

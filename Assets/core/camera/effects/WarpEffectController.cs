@@ -78,6 +78,11 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WakeDirectionalBiasId = Shader.PropertyToID("_WakeDirectionalBias");
         private static readonly int WakeChromaStrengthId = Shader.PropertyToID("_WakeChromaStrength");
 
+        // Star density reduction shader property IDs
+        private static readonly int WarpStarFadeId = Shader.PropertyToID("_WarpStarFade");
+        private static readonly int WarpStarFadeNearBiasId = Shader.PropertyToID("_WarpStarFadeNearBias");
+        private static readonly int WarpStarFadeMinDepthId = Shader.PropertyToID("_WarpStarFadeMinDepth");
+
         // Internal state
         private Vector2 _warpDirection = Vector2.up;
         private float _transitionDuration;
@@ -251,6 +256,12 @@ namespace Starfire.Core.Cam.Effects
 
             // Gravitational wake globals
             UpdateWakeGlobals();
+
+            // Star density reduction globals
+            float starFade = config != null ? config.GetWarpStarFade(WarpIntensity) : WarpIntensity * 0.7f;
+            Shader.SetGlobalFloat(WarpStarFadeId, starFade);
+            Shader.SetGlobalFloat(WarpStarFadeNearBiasId, config != null ? config.warpStarFadeNearBias : 0.5f);
+            Shader.SetGlobalFloat(WarpStarFadeMinDepthId, config != null ? config.warpStarFadeMinDepth : 0.3f);
         }
 
         private void UpdateWakeGlobals()
@@ -421,6 +432,11 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WakeTrailFalloffId, config != null ? config.wakeTrailFalloff : 1.5f);
             Shader.SetGlobalFloat(WakeDirectionalBiasId, config != null ? config.wakeDirectionalBias : 0.7f);
             Shader.SetGlobalFloat(WakeChromaStrengthId, 0f); // No chroma when reset
+
+            // Star density reduction (no fade when reset)
+            Shader.SetGlobalFloat(WarpStarFadeId, 0f);
+            Shader.SetGlobalFloat(WarpStarFadeNearBiasId, 0.5f);
+            Shader.SetGlobalFloat(WarpStarFadeMinDepthId, 0.3f);
         }
 
         #region Public API

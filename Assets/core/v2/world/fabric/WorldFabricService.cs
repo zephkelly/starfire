@@ -99,6 +99,11 @@ namespace StarfireV2
                 RegisterLayer(new SpaceZoneLayer(config.spaceZoneConfig));
             }
 
+            if (config.resourceConfig != null && config.resourceConfig.enabled)
+            {
+                RegisterLayer(new ResourceLayer(config.resourceConfig));
+            }
+
             if (config.factionConfig != null && config.factionConfig.enabled)
             {
                 RegisterLayer(new FactionTerritoryLayer(config.factionConfig));
@@ -224,6 +229,12 @@ namespace StarfireV2
                 _editModeQueries["SpaceZones"] = layer.CreateQuery();
             }
 
+            if (config.resourceConfig != null && config.resourceConfig.enabled)
+            {
+                var layer = new ResourceLayer(config.resourceConfig);
+                _editModeQueries["Resources"] = layer.CreateQuery();
+            }
+
             if (config.factionConfig != null && config.factionConfig.enabled)
             {
                 var layer = new FactionTerritoryLayer(config.factionConfig);
@@ -312,6 +323,32 @@ namespace StarfireV2
         }
 
         /// <summary>
+        /// Sample resource properties at a position (with zone correlation).
+        /// </summary>
+        public ResourceFabricSample SampleResourcesAt(Vector2D absolutePosition)
+        {
+            var cache = GetActiveQueryCache();
+            if (cache.TryGetValue("Resources", out var query) && query is ResourceQuery rq)
+            {
+                var zoneSample = SampleFabricAt(absolutePosition);
+                return rq.QueryWithZone(absolutePosition, GetWorldSeed(), zoneSample).FabricSample;
+            }
+            return default;
+        }
+
+        /// <summary>
+        /// Sample resources at a Unity world position (converts via floating origin).
+        /// </summary>
+        public ResourceFabricSample SampleResourcesAtWorldPosition(Vector2 worldPosition)
+        {
+            if (_worldService == null)
+                return default;
+
+            Vector2D absolute = _worldService.WorldToAbsolute(worldPosition);
+            return SampleResourcesAt(absolute);
+        }
+
+        /// <summary>
         /// Query danger level at a position.
         /// </summary>
         public float GetDangerLevelAt(Vector2D absolutePosition)
@@ -346,6 +383,7 @@ namespace StarfireV2
                 FactionInfo = GetFactionAt(absolutePosition),
                 DangerLevel = GetDangerLevelAt(absolutePosition),
                 FabricSample = SampleFabricAt(absolutePosition),
+                ResourceSample = SampleResourcesAt(absolutePosition),
             };
         }
 
@@ -418,7 +456,7 @@ namespace StarfireV2
 
         #region Debug Preview
 
-        public enum PreviewMode { SpaceZones, Factions, FactionBorders, Danger, Combined, NebulaDensity, AsteroidDensity, VoidFactor, AnomalyStrength }
+        public enum PreviewMode { SpaceZones, Factions, FactionBorders, Danger, Combined, NebulaDensity, AsteroidDensity, VoidFactor, AnomalyStrength, MineralDensity, OreDensity, GasDensity, ExoticDensity, WaterDensity, ResourceValue }
 
         [Header("Debug Preview")]
         [SerializeField] private bool enablePreview = false;
@@ -508,6 +546,12 @@ namespace StarfireV2
                         PreviewMode.AsteroidDensity => GetFabricPropertyColor(pos, SpaceProperty.Asteroids),
                         PreviewMode.VoidFactor => GetFabricPropertyColor(pos, SpaceProperty.Void),
                         PreviewMode.AnomalyStrength => GetFabricPropertyColor(pos, SpaceProperty.Anomaly),
+                        PreviewMode.MineralDensity => GetResourcePropertyColor(pos, ResourceProperty.Mineral),
+                        PreviewMode.OreDensity => GetResourcePropertyColor(pos, ResourceProperty.Ore),
+                        PreviewMode.GasDensity => GetResourcePropertyColor(pos, ResourceProperty.Gas),
+                        PreviewMode.ExoticDensity => GetResourcePropertyColor(pos, ResourceProperty.Exotic),
+                        PreviewMode.WaterDensity => GetResourcePropertyColor(pos, ResourceProperty.Water),
+                        PreviewMode.ResourceValue => GetResourceValueColor(pos),
                         _ => Color.black
                     };
 
@@ -541,6 +585,44 @@ namespace StarfireV2
             };
 
             return Color.Lerp(Color.black, baseColor, density);
+        }
+
+        private Color GetResourcePropertyColor(Vector2D pos, ResourceProperty property)
+        {
+            var sample = SampleResourcesAt(pos);
+            float density = property switch
+            {
+                ResourceProperty.Mineral => sample.MineralDensity,
+                ResourceProperty.Ore => sample.OreDensity,
+                ResourceProperty.Gas => sample.GasDensity,
+                ResourceProperty.Exotic => sample.ExoticDensity,
+                ResourceProperty.Water => sample.WaterDensity,
+                _ => 0f
+            };
+
+            Color baseColor = property switch
+            {
+                ResourceProperty.Mineral => new Color(0.7f, 0.7f, 0.4f),
+                ResourceProperty.Ore => new Color(0.6f, 0.3f, 0.1f),
+                ResourceProperty.Gas => new Color(0.3f, 0.7f, 0.3f),
+                ResourceProperty.Exotic => new Color(0.8f, 0.2f, 0.8f),
+                ResourceProperty.Water => new Color(0.2f, 0.5f, 0.9f),
+                _ => Color.white
+            };
+
+            return Color.Lerp(Color.black, baseColor, density);
+        }
+
+        private Color GetResourceValueColor(Vector2D pos)
+        {
+            var sample = SampleResourcesAt(pos);
+            float value = sample.OverallResourceValue;
+
+            // Gradient: black → green → yellow → red for increasing value
+            if (value < 0.5f)
+                return Color.Lerp(Color.black, new Color(0.2f, 0.6f, 0.1f), value * 2f);
+            else
+                return Color.Lerp(new Color(0.2f, 0.6f, 0.1f), new Color(0.9f, 0.7f, 0.1f), (value - 0.5f) * 2f);
         }
 
         private Color GetZoneColor(Vector2D pos, float seed)
@@ -595,7 +677,7 @@ namespace StarfireV2
             if (faction.IsContestedZone)
                 return Color.red;
 
-            float borderFade = Mathf.InverseLerp(0, config?.factionConfig?.controlFadeDistance ?? 1000f, faction.DistanceToBorder);
+            float borderFade = Mathf.InverseLerp(0, config?.factionConfig?.contestedDensityGap ?? 0.15f, faction.DistanceToBorder);
             return Color.Lerp(Color.yellow, Color.black, borderFade);
         }
 
@@ -656,6 +738,7 @@ namespace StarfireV2
         public FactionTerritoryInfo FactionInfo;
         public float DangerLevel;
         public SpaceFabricSample FabricSample;
+        public ResourceFabricSample ResourceSample;
 
         public static WorldLocationInfo Default => new()
         {

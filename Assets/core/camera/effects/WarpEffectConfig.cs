@@ -126,6 +126,19 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Chromatic aberration strength in wake")]
         [Range(0f, 0.01f)] public float wakeChromaStrength = 0.002f;
 
+        [Header("Star Density Reduction")]
+        [Tooltip("How much to reduce star spawn chance at full warp (0 = no reduction, 1 = all stars gone)")]
+        [Range(0f, 1f)] public float warpStarFadeMax = 0.7f;
+
+        [Tooltip("Curve mapping warp intensity (0-1) to star density reduction factor (0-1)")]
+        public AnimationCurve warpStarFadeCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+        [Tooltip("How much parallax depth affects star fade. 0 = background fades more, 1 = foreground fades more")]
+        [Range(0f, 1f)] public float warpStarFadeNearBias = 0.5f;
+
+        [Tooltip("Minimum fade factor for the least-affected depth layer (0 = can fully preserve, 1 = always fade equally)")]
+        [Range(0f, 1f)] public float warpStarFadeMinDepth = 0.3f;
+
         /// <summary>
         /// Evaluate the stretch multiplier for a given warp intensity.
         /// </summary>
@@ -182,6 +195,15 @@ namespace Starfire.Core.Cam.Effects
         public float GetWakeIntensity(float intensity)
         {
             return wakeIntensityCurve.Evaluate(intensity);
+        }
+
+        /// <summary>
+        /// Evaluate the star density reduction for a given warp intensity.
+        /// Returns 0 (no fade) to warpStarFadeMax (maximum fade).
+        /// </summary>
+        public float GetWarpStarFade(float intensity)
+        {
+            return warpStarFadeCurve.Evaluate(intensity) * warpStarFadeMax;
         }
     }
 }

@@ -94,7 +94,7 @@ namespace StarfireV2.Editor
                     // Edit mode info
                     if (!Application.isPlaying)
                     {
-                        EditorGUILayout.HelpBox("Edit Mode: Preview uses config values directly. Changes to SpaceZoneConfig or FactionConfig require clicking 'Generate Preview' to update.", MessageType.Info);
+                        EditorGUILayout.HelpBox("Edit Mode: Preview uses config values directly. Changes to SpaceZoneConfig, ResourceConfig, or FactionConfig require clicking 'Generate Preview' to update.", MessageType.Info);
                     }
 
                     EditorGUILayout.Space();
@@ -229,6 +229,63 @@ namespace StarfireV2.Editor
                 EditorGUILayout.LabelField("Anomaly Strength:", EditorStyles.miniBoldLabel);
                 DrawLegendItem("Normal", Color.black);
                 DrawLegendItem("Anomalous", new Color(0.8f, 0.2f, 0.2f));
+                EditorGUILayout.EndVertical();
+            }
+
+            if (mode == WorldFabricService.PreviewMode.MineralDensity)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Mineral Density:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("None", Color.black);
+                DrawLegendItem("Dense", new Color(0.7f, 0.7f, 0.4f));
+                EditorGUILayout.EndVertical();
+            }
+
+            if (mode == WorldFabricService.PreviewMode.OreDensity)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Ore Density:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("None", Color.black);
+                DrawLegendItem("Dense", new Color(0.6f, 0.3f, 0.1f));
+                EditorGUILayout.EndVertical();
+            }
+
+            if (mode == WorldFabricService.PreviewMode.GasDensity)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Gas Density:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("None", Color.black);
+                DrawLegendItem("Dense", new Color(0.3f, 0.7f, 0.3f));
+                EditorGUILayout.EndVertical();
+            }
+
+            if (mode == WorldFabricService.PreviewMode.ExoticDensity)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Exotic Density:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("None", Color.black);
+                DrawLegendItem("Dense", new Color(0.8f, 0.2f, 0.8f));
+                EditorGUILayout.EndVertical();
+            }
+
+            if (mode == WorldFabricService.PreviewMode.WaterDensity)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Water Density:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("None", Color.black);
+                DrawLegendItem("Dense", new Color(0.2f, 0.5f, 0.9f));
+                EditorGUILayout.EndVertical();
+            }
+
+            if (mode == WorldFabricService.PreviewMode.ResourceValue)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Resource Value:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("None", Color.black);
+                DrawLegendItem("Common", new Color(0.1f, 0.3f, 0.05f));
+                DrawLegendItem("Uncommon", new Color(0.2f, 0.6f, 0.1f));
+                DrawLegendItem("Rare", new Color(0.55f, 0.65f, 0.1f));
+                DrawLegendItem("Exotic", new Color(0.9f, 0.7f, 0.1f));
                 EditorGUILayout.EndVertical();
             }
         }

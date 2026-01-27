@@ -377,6 +377,9 @@ namespace Starfire.Core.Background.Layers
 
             material.SetVectorArray(StarPositionsID, _positionArray);
             material.SetVectorArray(StarParamsID, _paramsArray);
+
+            // Per-layer fabric sampling
+            ApplyFabricProperties(material);
         }
 
         private ShootingStarBehaviorConfig SelectBehaviorConfig()

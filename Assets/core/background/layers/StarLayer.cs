@@ -133,6 +133,9 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(LayerSeedID, layerSeed);
             material.SetFloat(ClusterAmountID, clusterAmount);
             material.SetFloat(ClusterScaleID, clusterScale);
+
+            // Per-layer fabric sampling
+            ApplyFabricProperties(material);
         }
     }
 }
