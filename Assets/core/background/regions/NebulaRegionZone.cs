@@ -192,13 +192,33 @@ namespace Starfire.Core.Background.Regions
                     float innerRadius = currentRadius - config.falloffDistance;
                     if (innerRadius > 0)
                     {
-                        Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.3f);
+                        // Inner boundary (100% density)
+                        Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.5f);
                         DrawCircle(center, innerRadius, 32);
 
-                        // Draw radial lines to show falloff
-                        if (selected)
+                        // Draw intermediate density rings to visualize power curve
+                        if (selected && config.falloffDistance > 1f)
                         {
-                            Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f);
+                            float power = config.falloffPower;
+                            float[] densityLevels = { 0.75f, 0.5f, 0.25f };
+                            float[] alphas = { 0.35f, 0.25f, 0.15f };
+
+                            for (int d = 0; d < densityLevels.Length; d++)
+                            {
+                                // For density = 1 - pow(t, power), solve for t
+                                // t = pow(1 - density, 1/power)
+                                float t = Mathf.Pow(1f - densityLevels[d], 1f / power);
+                                float ringRadius = innerRadius + t * config.falloffDistance;
+
+                                if (ringRadius > innerRadius && ringRadius < currentRadius)
+                                {
+                                    Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, alphas[d]);
+                                    DrawCircle(center, ringRadius, 24);
+                                }
+                            }
+
+                            // Draw radial lines to show falloff zone
+                            Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.15f);
                             for (int i = 0; i < 8; i++)
                             {
                                 float angle = i * 45f * Mathf.Deg2Rad;
@@ -213,6 +233,28 @@ namespace Starfire.Core.Background.Regions
                     float outerRadius = currentRadius + config.falloffDistance;
                     Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.3f);
                     DrawCircle(center, outerRadius, 32);
+
+                    // Draw intermediate density rings for inverse falloff
+                    if (selected && config.falloffDistance > 1f)
+                    {
+                        float power = config.falloffPower;
+                        float[] densityLevels = { 0.25f, 0.5f, 0.75f };
+                        float[] alphas = { 0.15f, 0.25f, 0.35f };
+
+                        for (int d = 0; d < densityLevels.Length; d++)
+                        {
+                            // For density = pow(t, power), solve for t
+                            // t = pow(density, 1/power)
+                            float t = Mathf.Pow(densityLevels[d], 1f / power);
+                            float ringRadius = currentRadius + t * config.falloffDistance;
+
+                            if (ringRadius > currentRadius && ringRadius < outerRadius)
+                            {
+                                Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, alphas[d]);
+                                DrawCircle(center, ringRadius, 24);
+                            }
+                        }
+                    }
 
                     // Draw X pattern to indicate "clear zone"
                     if (selected)

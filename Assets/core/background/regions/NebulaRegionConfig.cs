@@ -20,7 +20,11 @@ namespace Starfire.Core.Background.Regions
 
         [Tooltip("Distance over which the edge fades (for smooth falloff)")]
         [Min(0f)]
-        public float falloffDistance = 20f;
+        public float falloffDistance = 500f;
+
+        [Tooltip("Power curve for falloff (1=linear, 2+=holds density then rapid fade, <1=quick fade then holds)")]
+        [Range(0.5f, 4f)]
+        public float falloffPower = 2f;
 
         [Header("Nebula Type")]
         [Tooltip("Use the stylized nebula shader instead of the basic one")]

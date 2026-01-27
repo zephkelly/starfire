@@ -140,6 +140,17 @@ Shader "Starfire/ShapedStarfield"
             float _WobbleFrequency;
             float _WobbleSpeed;
 
+            // World Fabric globals (set by WorldFabricBridge)
+            float _FabricNebulaDensity;
+            float _FabricAsteroidDensity;
+            float _FabricVoidFactor;
+            float _FabricAnomalyStrength;
+            float _FabricVoidStarFade;
+            float _FabricVoidBgDarken;
+            float4 _FabricNebulaTint;
+            float _FabricNebulaTintStrength;
+            float _FabricAnomalyShift;
+
             // PCG-style hash functions
             float hash1(float2 p)
             {
@@ -504,13 +515,34 @@ Shader "Starfire/ShapedStarfield"
                     _ShapeCount
                 );
 
+                // === World Fabric modulation ===
+                // Void: fade stars
+                float voidDim = 1.0 - _FabricVoidFactor * _FabricVoidStarFade;
+                starValue *= voidDim;
+
+                // Nebula: tint stars
+                starValue = lerp(starValue, starValue * _FabricNebulaTint.rgb, _FabricNebulaDensity * _FabricNebulaTintStrength);
+
+                // Anomaly: subtle color shift
+                [branch] if (_FabricAnomalyStrength > 0.01)
+                {
+                    float anomalyT = _FabricAnomalyStrength * _FabricAnomalyShift;
+                    float3 anomalyShift = float3(
+                        starValue.r + starValue.g * anomalyT * 0.3,
+                        starValue.g * (1.0 - anomalyT * 0.5),
+                        starValue.b + starValue.r * anomalyT * 0.2
+                    );
+                    starValue = lerp(starValue, anomalyShift, anomalyT);
+                }
+
                 // Calculate alpha from luminance
                 float starAlpha = saturate(dot(starValue, float3(0.299, 0.587, 0.114)) * 2.0);
 
                 // Combine with background or output transparent
                 if (_RenderBackground > 0.5)
                 {
-                    float3 finalColor = _BackgroundColor.rgb + starValue;
+                    float bgDim = 1.0 - _FabricVoidFactor * _FabricVoidBgDarken;
+                    float3 finalColor = _BackgroundColor.rgb * bgDim + starValue;
                     return half4(finalColor, 1.0);
                 }
                 else

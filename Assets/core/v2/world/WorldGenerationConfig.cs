@@ -40,8 +40,14 @@ namespace Starfire.Core.V2.World
         public int maxLoadedChunks = 100;
 
         [Header("Generators")]
-        [Tooltip("Nebula generation configuration")]
+        [Tooltip("Legacy: Independent nebula generation (uses separate Perlin noise)")]
         public NebulaGenerationConfig nebulaConfig;
+
+        [Tooltip("Fabric-integrated nebula generation (uses SpaceZoneLayer data)")]
+        public FabricNebulaGenerationConfig fabricNebulaConfig;
+
+        [Tooltip("Use fabric-integrated nebula generation when fabricNebulaConfig is assigned")]
+        public bool useFabricNebulaGeneration = true;
 
         // Future generator configs
         // public AsteroidGenerationConfig asteroidConfig;
@@ -59,6 +65,9 @@ namespace Starfire.Core.V2.World
 
         [Tooltip("Color for loading chunks")]
         public Color loadingChunkColor = new Color(1f, 1f, 0f, 0.2f);
+
+        [Tooltip("Color for chunks containing nebula regions")]
+        public Color nebulaChunkColor = new Color(0.6f, 0.2f, 0.8f, 0.5f);
 
         [Tooltip("Log chunk events to console")]
         public bool logChunkEvents = false;

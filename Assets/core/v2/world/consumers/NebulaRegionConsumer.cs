@@ -84,19 +84,23 @@ namespace Starfire.Core.V2.World.Consumers
 
         public void OnOriginShift(Vector2 offset)
         {
-            // The NebulaRegionManager's quads follow the camera automatically,
-            // so we just need to update the WorldPosition values on each region.
-            // The manager handles the actual quad positioning in its LateUpdate.
-
+            // NOTE: We no longer shift WorldPosition directly here.
+            // The NebulaRegionManager now uses a virtual position system (matching StarfieldManager)
+            // that converts WorldPosition to virtual coordinates when updating shader properties.
+            // The manager's HandleOriginShift will mark all regions dirty, which triggers the
+            // virtual position recalculation in UpdateMaterialProperties.
+            //
+            // However, we still need to shift WorldPosition to keep it in sync with actual
+            // Unity world space (for gizmos, collision checks, etc.)
             if (!TryGetRegionManager())
                 return;
 
             var allRegions = _regionManager.GetAllRegions();
             foreach (var region in allRegions)
             {
-                // Shift the world position by the offset
+                // Shift the actual world position to match Unity space
                 region.WorldPosition += offset;
-                region.MarkDirty();
+                // Note: MarkDirty is called by NebulaRegionManager.HandleOriginShift
             }
         }
 

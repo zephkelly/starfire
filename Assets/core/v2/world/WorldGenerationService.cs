@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Core.V2.World.Chunk;
+using Starfire.Core.V2.World.Data;
 using Starfire.Core.V2.World.Generation;
 using Starfire.Core.V2.World.Generation.Generators;
 using Starfire.Core.V2.World.Consumers;
 using Starfire.Core.V2.Cam;
+using Starfire.Core.Background.Regions;
 using StarfireV2;
 
 namespace Starfire.Core.V2.World
@@ -201,11 +203,24 @@ namespace Starfire.Core.V2.World
 
         private void InitializeGenerators()
         {
-            // Add nebula generator if config exists
-            if (config.nebulaConfig != null)
+            // Nebula generation - prefer fabric-integrated when available
+            if (config.useFabricNebulaGeneration && config.fabricNebulaConfig != null)
             {
+                // Use fabric-integrated generator (queries SpaceZoneLayer data)
+                var fabricNebulaGenerator = new FabricNebulaChunkGenerator(config.fabricNebulaConfig);
+                RegisterGenerator(fabricNebulaGenerator);
+
+                if (config.logChunkEvents)
+                    Debug.Log("WorldGenerationService: Using fabric-integrated nebula generation");
+            }
+            else if (config.nebulaConfig != null)
+            {
+                // Fall back to legacy independent generator
                 var nebulaGenerator = new NebulaChunkGenerator(config.nebulaConfig);
                 RegisterGenerator(nebulaGenerator);
+
+                if (config.logChunkEvents)
+                    Debug.Log("WorldGenerationService: Using legacy independent nebula generation");
             }
 
             // Sort generators by priority
@@ -572,6 +587,9 @@ namespace Starfire.Core.V2.World
         {
             if (_chunkManager == null) return;
 
+            int nebulaChunkCount = 0;
+            int totalRegions = 0;
+
             foreach (var kvp in _chunkManager.LoadedChunks)
             {
                 var chunk = kvp.Value;
@@ -579,10 +597,28 @@ namespace Starfire.Core.V2.World
                 Vector3 center = new Vector3(worldCenter.x, worldCenter.y, 0);
                 Vector3 size = new Vector3(config.chunkSize, config.chunkSize, 0);
 
-                // Draw chunk bounds
-                Color color = chunk.State == ChunkState.Loaded
-                    ? config.loadedChunkColor
-                    : config.loadingChunkColor;
+                // Check for nebula data
+                var nebulaData = chunk.GetData<NebulaChunkData>();
+                bool hasNebula = nebulaData != null && nebulaData.Regions.Count > 0;
+
+                if (hasNebula)
+                {
+                    nebulaChunkCount++;
+                    totalRegions += nebulaData.Regions.Count;
+                }
+
+                // Draw chunk bounds with appropriate color
+                Color color;
+                if (hasNebula)
+                {
+                    color = config.nebulaChunkColor;
+                }
+                else
+                {
+                    color = chunk.State == ChunkState.Loaded
+                        ? config.loadedChunkColor
+                        : config.loadingChunkColor;
+                }
 
                 Gizmos.color = color;
                 Gizmos.DrawWireCube(center, size);
@@ -590,6 +626,12 @@ namespace Starfire.Core.V2.World
                 // Draw filled quad
                 Gizmos.color = new Color(color.r, color.g, color.b, color.a * 0.3f);
                 Gizmos.DrawCube(center, size);
+
+                // Draw nebula region boundaries if present
+                if (hasNebula)
+                {
+                    DrawNebulaRegionGizmos(nebulaData, worldCenter);
+                }
             }
 
             // Draw center marker
@@ -599,6 +641,77 @@ namespace Starfire.Core.V2.World
                 Vector3 camPos = targetCamera.transform.position;
                 Gizmos.DrawLine(camPos - Vector3.right * 10, camPos + Vector3.right * 10);
                 Gizmos.DrawLine(camPos - Vector3.up * 10, camPos + Vector3.up * 10);
+            }
+
+            // Debug: Draw text showing nebula stats near origin
+            #if UNITY_EDITOR
+            if (nebulaChunkCount > 0 || totalRegions > 0)
+            {
+                Gizmos.color = Color.magenta;
+                // Draw a marker at origin showing we have nebula data
+                Gizmos.DrawWireSphere(Vector3.zero, 5f);
+            }
+            #endif
+        }
+
+        private void DrawNebulaRegionGizmos(NebulaChunkData data, Vector2 chunkWorldCenter)
+        {
+            foreach (var definition in data.Regions)
+            {
+                Vector2 regionCenter = chunkWorldCenter + definition.LocalPosition;
+                Vector3 center3D = new Vector3(regionCenter.x, regionCenter.y, 0);
+
+                // Draw center marker
+                Gizmos.color = Color.white;
+                float markerSize = 5f;
+                Gizmos.DrawLine(center3D - Vector3.right * markerSize, center3D + Vector3.right * markerSize);
+                Gizmos.DrawLine(center3D - Vector3.up * markerSize, center3D + Vector3.up * markerSize);
+
+                // Draw boundaries based on edge behavior
+                var regionConfig = definition.Config;
+                if (regionConfig == null) continue;
+
+                switch (regionConfig.edgeBehavior)
+                {
+                    case NebulaEdgeBehavior.SmoothFalloff:
+                        // Outer edge (where fade ends)
+                        Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.8f);
+                        DrawCircleGizmo(center3D, definition.Radius, 64);
+                        // Inner edge (where fade starts)
+                        float innerRadius = Mathf.Max(0f, definition.Radius - regionConfig.falloffDistance);
+                        Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.4f);
+                        DrawCircleGizmo(center3D, innerRadius, 64);
+                        break;
+
+                    case NebulaEdgeBehavior.SharpBoundary:
+                        Gizmos.color = new Color(1f, 0.4f, 0.2f, 0.8f);
+                        DrawCircleGizmo(center3D, definition.Radius, 64);
+                        break;
+
+                    case NebulaEdgeBehavior.InverseFalloff:
+                        // Inner edge (clear zone boundary)
+                        Gizmos.color = new Color(0.8f, 0.2f, 0.8f, 0.8f);
+                        DrawCircleGizmo(center3D, definition.Radius, 64);
+                        // Outer edge (full nebula density)
+                        float outerRadius = definition.Radius + regionConfig.falloffDistance;
+                        Gizmos.color = new Color(0.8f, 0.2f, 0.8f, 0.4f);
+                        DrawCircleGizmo(center3D, outerRadius, 64);
+                        break;
+                }
+            }
+        }
+
+        private void DrawCircleGizmo(Vector3 center, float radius, int segments)
+        {
+            float angleStep = 360f / segments;
+            Vector3 prevPoint = center + new Vector3(radius, 0, 0);
+
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = i * angleStep * Mathf.Deg2Rad;
+                Vector3 nextPoint = center + new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
+                Gizmos.DrawLine(prevPoint, nextPoint);
+                prevPoint = nextPoint;
             }
         }
 

@@ -700,6 +700,26 @@ namespace Starfire.Core.Background.Layers
         public EventModeConfig ActiveEventMode => _activeEventMode;
 
         /// <summary>
+        /// Handle origin shift by updating all active star positions.
+        /// Called by StarfieldManager when origin shift occurs.
+        /// </summary>
+        /// <param name="shiftAmount">The world-space shift that was applied.</param>
+        public void OnOriginShift(Vector2 shiftAmount)
+        {
+            if (_activeStars == null) return;
+
+            for (int i = 0; i < _activeStars.Count; i++)
+            {
+                var star = _activeStars[i];
+                // Shift all world-space positions to maintain relative positions
+                star.startPosition += shiftAmount;
+                star.position += shiftAmount;
+                star.spawnCameraPosition += shiftAmount;
+                _activeStars[i] = star;
+            }
+        }
+
+        /// <summary>
         /// Spawn multiple stars in a specific direction (for events like meteor showers).
         /// </summary>
         /// <param name="direction">Normalized direction for all spawned stars.</param>

@@ -88,7 +88,8 @@ Shader "Starfire/StylizedNebula"
         [Header(Region Masking)]
         _RegionCenter ("Region Center (World XY)", Vector) = (0, 0, 0, 0)
         _RegionRadius ("Region Radius", Float) = 10000
-        _RegionFalloff ("Falloff Distance", Float) = 50
+        _RegionFalloff ("Falloff Distance", Float) = 500
+        _RegionFalloffPower ("Falloff Power", Float) = 2.0
         _RegionEdgeMode ("Edge Mode (0=Smooth, 1=Sharp, 2=Inverse)", Float) = 0
     }
 
@@ -213,6 +214,7 @@ Shader "Starfire/StylizedNebula"
                 float4 _RegionCenter;
                 float _RegionRadius;
                 float _RegionFalloff;
+                float _RegionFalloffPower;
                 float _RegionEdgeMode;
             CBUFFER_END
 
@@ -227,6 +229,11 @@ Shader "Starfire/StylizedNebula"
             float _WarpNebulaStretch;
             float _WarpNebulaFade;
             float2 _WarpDirection;
+
+            // World Fabric globals (set by WorldFabricBridge)
+            float _FabricNebulaDensity;
+            float _FabricVoidFactor;
+            float _FabricVoidStarFade;
 
             // ============================================
             // Hash Functions
@@ -636,22 +643,26 @@ Shader "Starfire/StylizedNebula"
             // Region Masking
             // ============================================
 
-            float calculateRegionMask(float2 worldPos, float2 regionCenter, float radius, float falloff, float edgeMode)
+            float calculateRegionMask(float2 worldPos, float2 regionCenter, float radius, float falloff, float falloffPower, float edgeMode)
             {
                 float distToCenter = distance(worldPos, regionCenter);
                 float regionMask = 1.0;
 
-                if (edgeMode < 0.5) // Smooth falloff
+                if (edgeMode < 0.5) // Smooth falloff with power curve
                 {
-                    regionMask = 1.0 - smoothstep(radius - falloff, radius, distToCenter);
+                    // Clamp inner edge to 0 so large falloffs (falloff > radius) work correctly
+                    float innerEdge = max(0.0, radius - falloff);
+                    float t = smoothstep(innerEdge, radius, distToCenter);
+                    regionMask = 1.0 - pow(t, falloffPower);
                 }
                 else if (edgeMode < 1.5) // Sharp boundary
                 {
                     regionMask = 1.0 - step(radius, distToCenter);
                 }
-                else // Inverse (clear zone - nebula outside, clear inside)
+                else // Inverse (clear zone - nebula outside, clear inside) with power curve
                 {
-                    regionMask = smoothstep(radius, radius + falloff, distToCenter);
+                    float t = smoothstep(radius, radius + falloff, distToCenter);
+                    regionMask = pow(t, falloffPower);
                 }
 
                 return regionMask;
@@ -697,7 +708,7 @@ Shader "Starfire/StylizedNebula"
                 // === Region Masking ===
                 // Convert screen UV to world position based on camera parameters
                 float2 worldPos = _CameraWorldPos + (uv - 0.5) * _CameraOrthoSize * 2.0 * float2(_ScreenAspect, 1.0);
-                float regionMask = calculateRegionMask(worldPos, _RegionCenter.xy, _RegionRadius, _RegionFalloff, _RegionEdgeMode);
+                float regionMask = calculateRegionMask(worldPos, _RegionCenter.xy, _RegionRadius, _RegionFalloff, _RegionFalloffPower, _RegionEdgeMode);
 
                 // === Style-Specific UV Warping ===
                 float2 styledUV = aspectCorrectedUV;
@@ -746,9 +757,8 @@ Shader "Starfire/StylizedNebula"
                     baseNoise = lerp(posterized, posterized * (0.85 + brushVar * 0.3), 0.5);
                 }
 
-                // Apply density with region mask
-                float maskedDensity = _Density * regionMask;
-                float scaledNoise = baseNoise * maskedDensity;
+                // Apply density (NOT masked - mask applied to final output)
+                float scaledNoise = baseNoise * _Density;
 
                 // === Internal Structure Features ===
                 float structuredNoise = scaledNoise;
@@ -804,8 +814,17 @@ Shader "Starfire/StylizedNebula"
                 // Add bright spots
                 nebulaColor += spots * _Color4.rgb;
 
+                // === Apply Region Mask to FINAL output (smooth fade, no threshold cutoff) ===
+                nebulaColor *= regionMask;
+
                 // === Warp Fade ===
                 nebulaColor *= lerp(1.0, 1.0 - _WarpNebulaFade, _WarpIntensity);
+
+                // === World Fabric modulation ===
+                // Boost emission in fabric nebula zones, fade in voids
+                float fabricNebulaBoost = lerp(1.0, 1.3, _FabricNebulaDensity);
+                float fabricVoidFade = 1.0 - _FabricVoidFactor * _FabricVoidStarFade * 0.5;
+                nebulaColor *= fabricNebulaBoost * fabricVoidFade;
 
                 // === Output ===
                 float alpha = saturate(dot(nebulaColor, float3(0.299, 0.587, 0.114)));

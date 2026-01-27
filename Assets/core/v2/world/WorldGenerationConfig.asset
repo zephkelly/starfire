@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80d893ac9bdc247449d73af095376beb, type: 3}
   m_Name: WorldGenerationConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.WorldGenerationConfig
-  chunkSize: 500
+  chunkSize: 1000
   worldSeed: 0
-  floatingOriginLimit: 2560
+  floatingOriginLimit: 10000
   loadRadius: 3
   unloadRadius: 5
   chunksPerFrame: 2
@@ -24,4 +24,5 @@ MonoBehaviour:
   chunkBoundsColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.3}
   loadedChunkColor: {r: 0, g: 1, b: 0, a: 0.2}
   loadingChunkColor: {r: 1, g: 1, b: 0, a: 0.2}
-  logChunkEvents: 0
+  nebulaChunkColor: {r: 0.6, g: 0.2, b: 0.8, a: 0.5}
+  logChunkEvents: 1

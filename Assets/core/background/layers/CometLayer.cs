@@ -565,6 +565,26 @@ namespace Starfire.Core.Background.Layers
         }
 
         /// <summary>
+        /// Handle origin shift by updating all active comet positions.
+        /// Called by StarfieldManager when origin shift occurs.
+        /// </summary>
+        /// <param name="shiftAmount">The world-space shift that was applied.</param>
+        public void OnOriginShift(Vector2 shiftAmount)
+        {
+            if (_activeComets == null) return;
+
+            for (int i = 0; i < _activeComets.Count; i++)
+            {
+                var comet = _activeComets[i];
+                // Shift all world-space positions to maintain relative positions
+                comet.startPosition += shiftAmount;
+                comet.position += shiftAmount;
+                comet.spawnCameraPosition += shiftAmount;
+                _activeComets[i] = comet;
+            }
+        }
+
+        /// <summary>
         /// Get the number of currently active comets.
         /// </summary>
         public int ActiveCometCount => _activeComets?.Count ?? 0;

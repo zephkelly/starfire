@@ -15,5 +15,5 @@ MonoBehaviour:
   moduleId: propulsion_module
   displayName: Propulsion Module
   maxSpeed: 2000
-  acceleration: 1000
+  acceleration: 100
   drag: 0

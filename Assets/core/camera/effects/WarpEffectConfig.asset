@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59691a94878bf2f45ba6843d676fcc84, type: 3}
   m_Name: WarpEffectConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.Effects.WarpEffectConfig
-  maxStretchMultiplier: 44.9
+  maxStretchMultiplier: 50
   stretchCurve:
     serializedVersion: 2
     m_Curve:
@@ -48,9 +48,9 @@ MonoBehaviour:
   wobbleIntensity: 0.048
   wobbleFrequency: 11.62
   wobbleSpeed: 1.24
-  distantLayerMinEffect: 0.471
-  parallaxDepthMultiplier: 14.83
-  maxLensDistortion: 0.038
+  distantLayerMinEffect: 1
+  parallaxDepthMultiplier: 1.47
+  maxLensDistortion: -0.213
   lensDistortionCurve:
     serializedVersion: 2
     m_Curve:
@@ -75,7 +75,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxZoomMultiplier: 1.563
+  maxZoomMultiplier: 1.668
   zoomCurve:
     serializedVersion: 2
     m_Curve:
@@ -100,7 +100,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  nebulaStretchRatio: 0.028
+  nebulaStretchRatio: 0.039
   nebulaFadeAtFullWarp: 0.3
   minSpeedForEffect: 200
   maxSpeedForEffect: 1000
@@ -155,10 +155,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  wakeBubbleRadius: 0.08
-  wakeRingWidth: 0.15
+  wakeBubbleRadius: 0.0744
+  wakeRingWidth: 0.2232
   wakeTrailLength: 0.5
-  wakeDistortionStrength: 0.03
+  wakeDistortionStrength: 0.0364
   wakeTrailFalloff: 1.5
   wakeDirectionalBias: 0.7
   wakeIntensityCurve:
@@ -186,4 +186,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   wakeChromaEnabled: 1
-  wakeChromaStrength: 0.002
+  wakeChromaStrength: 0.00993

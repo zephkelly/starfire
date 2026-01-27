@@ -16,10 +16,10 @@ MonoBehaviour:
   densityNoiseScale: 0.001
   minDensityThreshold: 0.3
   densityNoiseOffset: {x: 0, y: 0}
-  minNebulaSpacing: 100
+  minNebulaSpacing: 8000
   maxSamplingAttempts: 30
-  minRadius: 30
-  maxRadius: 150
+  minRadius: 4000
+  maxRadius: 10000
   radiusDistribution:
     serializedVersion: 2
     m_Curve:
@@ -44,4 +44,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  nebulaConfigs: []
+  nebulaConfigs:
+  - config: {fileID: 0}
+    weight: 0
+    minDensity: 0
+    maxDensity: 0

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Core.Background.Layers;
 using Starfire.Core.Background.Presets;
+using Starfire.Core.V2.World;
 
 namespace Starfire.Core.Background.Regions
 {
@@ -36,7 +37,13 @@ namespace Starfire.Core.Background.Regions
         [SerializeField] private Shader stylizedNebulaShader;
 
         [Header("Debug")]
-        [SerializeField] private bool showDebugGizmos = false;
+        [SerializeField] private bool showDebugGizmos = true;
+        [SerializeField] private bool logRegionEvents = true;
+
+        /// <summary>
+        /// Whether debug gizmos are enabled (exposed for editor scripts).
+        /// </summary>
+        public bool ShowDebugGizmos => showDebugGizmos;
 
         // Runtime state
         private readonly List<NebulaRegion> _allRegions = new List<NebulaRegion>();
@@ -47,6 +54,11 @@ namespace Starfire.Core.Background.Regions
         private Camera _camera;
         private Mesh _sharedQuadMesh;
         private bool _initialized = false;
+
+        // Floating origin tracking (matches StarfieldManager pattern)
+        private Vector2 _originShiftAccumulator = Vector2.zero;
+        private bool _subscribedToOriginShift = false;
+        private const float WRAP_PERIOD = 100000f;
 
         // Events
         public event Action<NebulaRegion> OnRegionCreated;
@@ -80,10 +92,12 @@ namespace Starfire.Core.Background.Regions
             }
 
             Initialize();
+            TrySubscribeToOriginShift();
         }
 
         private void OnDisable()
         {
+            UnsubscribeFromOriginShift();
             Cleanup();
             if (Instance == this)
             {
@@ -94,6 +108,12 @@ namespace Starfire.Core.Background.Regions
         private void LateUpdate()
         {
             if (_camera == null || !_initialized) return;
+
+            // Retry origin shift subscription if needed (handles script execution order)
+            if (!_subscribedToOriginShift)
+            {
+                TrySubscribeToOriginShift();
+            }
 
             UpdateVisibleRegions();
             UpdateRegionTransforms();
@@ -107,30 +127,84 @@ namespace Starfire.Core.Background.Regions
             {
                 if (!region.IsActive) continue;
 
-                // Draw region boundary
-                Gizmos.color = region.Config.edgeBehavior switch
-                {
-                    NebulaEdgeBehavior.SmoothFalloff => new Color(0.2f, 0.6f, 1f, 0.5f),
-                    NebulaEdgeBehavior.SharpBoundary => new Color(1f, 0.4f, 0.2f, 0.5f),
-                    NebulaEdgeBehavior.InverseFalloff => new Color(0.8f, 0.2f, 0.8f, 0.5f),
-                    _ => Color.white
-                };
+                Vector3 center = new Vector3(region.WorldPosition.x, region.WorldPosition.y, 0);
 
-                DrawCircleGizmo(new Vector3(region.WorldPosition.x, region.WorldPosition.y, 0), region.Radius, 32);
+                // Draw center marker
+                DrawCenterMarker(center);
 
-                // Draw falloff boundary for smooth/inverse
-                if (region.Config.edgeBehavior == NebulaEdgeBehavior.SmoothFalloff)
+                // Draw boundaries based on edge behavior
+                switch (region.Config.edgeBehavior)
                 {
-                    Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.25f);
-                    DrawCircleGizmo(new Vector3(region.WorldPosition.x, region.WorldPosition.y, 0),
-                        region.Radius - region.Config.falloffDistance, 32);
+                    case NebulaEdgeBehavior.SmoothFalloff:
+                        DrawSmoothFalloffGizmo(center, region.Radius, region.Config);
+                        break;
+                    case NebulaEdgeBehavior.SharpBoundary:
+                        DrawSharpBoundaryGizmo(center, region.Radius);
+                        break;
+                    case NebulaEdgeBehavior.InverseFalloff:
+                        DrawInverseFalloffGizmo(center, region.Radius, region.Config);
+                        break;
                 }
-                else if (region.Config.edgeBehavior == NebulaEdgeBehavior.InverseFalloff)
-                {
-                    Gizmos.color = new Color(0.8f, 0.2f, 0.8f, 0.25f);
-                    DrawCircleGizmo(new Vector3(region.WorldPosition.x, region.WorldPosition.y, 0),
-                        region.Radius + region.Config.falloffDistance, 32);
-                }
+            }
+        }
+
+        private void DrawCenterMarker(Vector3 center)
+        {
+            float size = 5f;
+            Gizmos.color = Color.white;
+            Gizmos.DrawLine(center - Vector3.right * size, center + Vector3.right * size);
+            Gizmos.DrawLine(center - Vector3.up * size, center + Vector3.up * size);
+        }
+
+        private void DrawSmoothFalloffGizmo(Vector3 center, float radius, NebulaRegionConfig config)
+        {
+            float innerRadius = Mathf.Max(0f, radius - config.falloffDistance);
+            Color baseColor = new Color(0.2f, 0.6f, 1f, 1f);
+
+            // Outer edge (where fade ends, density = 0)
+            Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.8f);
+            DrawCircleGizmo(center, radius, 64);
+
+            // Inner edge (where fade starts, density = 1)
+            Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.4f);
+            DrawCircleGizmo(center, innerRadius, 64);
+
+            // Gradient rings showing expected density
+            DrawGradientRings(center, innerRadius, radius, baseColor, 4);
+        }
+
+        private void DrawInverseFalloffGizmo(Vector3 center, float radius, NebulaRegionConfig config)
+        {
+            float outerRadius = radius + config.falloffDistance;
+            Color baseColor = new Color(0.8f, 0.2f, 0.8f, 1f);
+
+            // Inner edge (clear zone boundary)
+            Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.8f);
+            DrawCircleGizmo(center, radius, 64);
+
+            // Outer edge (full nebula density)
+            Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, 0.4f);
+            DrawCircleGizmo(center, outerRadius, 64);
+
+            // Gradient rings showing expected density
+            DrawGradientRings(center, radius, outerRadius, baseColor, 4);
+        }
+
+        private void DrawSharpBoundaryGizmo(Vector3 center, float radius)
+        {
+            Gizmos.color = new Color(1f, 0.4f, 0.2f, 0.8f);
+            DrawCircleGizmo(center, radius, 64);
+        }
+
+        private void DrawGradientRings(Vector3 center, float inner, float outer, Color baseColor, int count)
+        {
+            for (int i = 1; i < count; i++)
+            {
+                float t = i / (float)count;
+                float ringRadius = Mathf.Lerp(inner, outer, t);
+                float alpha = 0.1f + (1f - t) * 0.15f;
+                Gizmos.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+                DrawCircleGizmo(center, ringRadius, 32);
             }
         }
 
@@ -249,6 +323,11 @@ namespace Starfire.Core.Background.Regions
                 InitializeRegionRendering(region);
             }
 
+            if (logRegionEvents)
+            {
+                Debug.Log($"[Nebula] Created region {region.Id} at {position}, radius={radius}, falloff={config.falloffDistance}, edgeBehavior={config.edgeBehavior}");
+            }
+
             OnRegionCreated?.Invoke(region);
             return region;
         }
@@ -259,6 +338,11 @@ namespace Starfire.Core.Background.Regions
         public void DestroyRegion(NebulaRegion region)
         {
             if (region == null) return;
+
+            if (logRegionEvents)
+            {
+                Debug.Log($"[Nebula] Destroying region {region.Id} at {region.WorldPosition}");
+            }
 
             CleanupRegionRendering(region);
             _allRegions.Remove(region);
@@ -652,6 +736,85 @@ namespace Starfire.Core.Background.Regions
                 Gizmos.DrawLine(prevPoint, nextPoint);
                 prevPoint = nextPoint;
             }
+        }
+
+        #endregion
+
+        #region Floating Origin Support
+
+        private void TrySubscribeToOriginShift()
+        {
+            if (_subscribedToOriginShift) return;
+
+            var service = WorldGenerationService.Instance;
+            if (service != null)
+            {
+                service.OnOriginShift += HandleOriginShift;
+                _subscribedToOriginShift = true;
+
+                if (logRegionEvents)
+                {
+                    Debug.Log("[Nebula] Subscribed to origin shift events");
+                }
+            }
+        }
+
+        private void UnsubscribeFromOriginShift()
+        {
+            if (!_subscribedToOriginShift) return;
+
+            var service = WorldGenerationService.Instance;
+            if (service != null)
+            {
+                service.OnOriginShift -= HandleOriginShift;
+            }
+            _subscribedToOriginShift = false;
+        }
+
+        private void HandleOriginShift(Vector2 shiftAmount)
+        {
+            // Add inverse of shift to maintain visual continuity (same pattern as StarfieldManager)
+            _originShiftAccumulator -= shiftAmount;
+
+            // Wrap symmetrically to prevent precision loss at extreme values
+            // Uses [-WRAP_PERIOD/2, +WRAP_PERIOD/2) range to avoid zero-crossing discontinuity
+            _originShiftAccumulator.x = WrapCoordinateSymmetric(_originShiftAccumulator.x, WRAP_PERIOD);
+            _originShiftAccumulator.y = WrapCoordinateSymmetric(_originShiftAccumulator.y, WRAP_PERIOD);
+
+            if (logRegionEvents)
+            {
+                Debug.Log($"[Nebula] Origin shift: {shiftAmount}, accumulator now: {_originShiftAccumulator}");
+            }
+
+            // Mark all regions dirty so they update their shader properties with new virtual positions
+            foreach (var region in _allRegions)
+            {
+                region.MarkDirty();
+            }
+        }
+
+        /// <summary>
+        /// Converts an actual Unity world position to virtual position for shader use.
+        /// This ensures nebula region positions match the camera's virtual position
+        /// used by StarfieldManager for floating origin compatibility.
+        /// Do NOT wrap the result - accumulator is already wrapped symmetrically during origin shifts.
+        /// </summary>
+        public Vector2 GetVirtualPosition(Vector2 actualWorldPos)
+        {
+            return actualWorldPos + _originShiftAccumulator;
+        }
+
+        /// <summary>
+        /// Symmetric wrapping: keeps value in [-halfPeriod, +halfPeriod) range.
+        /// This prevents discontinuity when crossing zero, unlike asymmetric [0, period) wrapping.
+        /// </summary>
+        private static float WrapCoordinateSymmetric(float value, float period)
+        {
+            float halfPeriod = period * 0.5f;
+            value = value % period;
+            if (value < -halfPeriod) value += period;
+            else if (value >= halfPeriod) value -= period;
+            return value;
         }
 
         #endregion

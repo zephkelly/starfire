@@ -128,6 +128,17 @@ Shader "Starfire/Starfield"
             float _WobbleFrequency;
             float _WobbleSpeed;
 
+            // World Fabric globals (set by WorldFabricBridge)
+            float _FabricNebulaDensity;
+            float _FabricAsteroidDensity;
+            float _FabricVoidFactor;
+            float _FabricAnomalyStrength;
+            float _FabricVoidStarFade;
+            float _FabricVoidBgDarken;
+            float4 _FabricNebulaTint;
+            float _FabricNebulaTintStrength;
+            float _FabricAnomalyShift;
+
             // PCG-style hash functions - much longer period, no sin() periodicity issues
             float hash1(float2 p)
             {
@@ -416,6 +427,27 @@ Shader "Starfire/Starfield"
                 // Generate starfield with parallax, twinkling, color, sharpness, and natural distribution
                 float3 starValue = stars(parallaxUV, _StarDensity, _StarSizeMin, _StarSizeMax, _SizeDistribution, _SpawnChance, _TwinkleSpeed, _TwinkleAmount, _Time.y, _ScreenAspect, _StarColor.rgb, _ColorVariation, _WarmCoolMix, _EdgeSharpness, _LayerSeed, _ClusterAmount, _ClusterScale);
 
+                // === World Fabric modulation ===
+                // Void: fade stars and darken background
+                float voidDim = 1.0 - _FabricVoidFactor * _FabricVoidStarFade;
+                starValue *= voidDim;
+
+                // Nebula: tint stars toward nebula color
+                float3 nebulaTinted = lerp(starValue, starValue * _FabricNebulaTint.rgb, _FabricNebulaDensity * _FabricNebulaTintStrength);
+                starValue = nebulaTinted;
+
+                // Anomaly: subtle color shift (hue rotation toward red/green)
+                [branch] if (_FabricAnomalyStrength > 0.01)
+                {
+                    float anomalyT = _FabricAnomalyStrength * _FabricAnomalyShift;
+                    float3 anomalyShift = float3(
+                        starValue.r + starValue.g * anomalyT * 0.3,
+                        starValue.g * (1.0 - anomalyT * 0.5),
+                        starValue.b + starValue.r * anomalyT * 0.2
+                    );
+                    starValue = lerp(starValue, anomalyShift, anomalyT);
+                }
+
                 // Calculate star luminance for alpha
                 float starAlpha = saturate(dot(starValue, float3(0.299, 0.587, 0.114)) * 2.0);
 
@@ -423,7 +455,9 @@ Shader "Starfire/Starfield"
                 if (_RenderBackground > 0.5)
                 {
                     // First layer: render background + stars, fully opaque
-                    float3 finalColor = _BackgroundColor.rgb + starValue;
+                    // Void darkens background
+                    float bgDim = 1.0 - _FabricVoidFactor * _FabricVoidBgDarken;
+                    float3 finalColor = _BackgroundColor.rgb * bgDim + starValue;
                     return half4(finalColor, 1.0);
                 }
                 else
