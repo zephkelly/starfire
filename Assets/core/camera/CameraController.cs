@@ -80,6 +80,10 @@ namespace Starfire.Core.Cam
 
         private bool _updatedThisFrame;
 
+        // Wake effect shader globals
+        private static readonly int WakeCenterPositionId = Shader.PropertyToID("_WakeCenterPosition");
+        private static readonly int WakeOrthoSizeId = Shader.PropertyToID("_WakeOrthoSize");
+
         public event Action<CameraPreset> OnPresetChanged;
         public event Action<ICameraTarget> OnTargetChanged;
 
@@ -277,6 +281,18 @@ namespace Starfire.Core.Cam
             transform.position = finalPos;
             transform.rotation = Quaternion.Euler(0, 0, finalRotation);
             Camera.orthographicSize = finalZoom;
+
+            // Update wake center position in viewport space
+            if (_targetProvider.HasTargets)
+            {
+                Vector2 targetWorldPos = useInterpolatedPosition
+                    ? _targetProvider.GetInterpolatedPosition()
+                    : _targetProvider.GetTargetPosition();
+                Vector3 viewportPos = Camera.WorldToViewportPoint(new Vector3(targetWorldPos.x, targetWorldPos.y, 0f));
+                Shader.SetGlobalVector(WakeCenterPositionId, new Vector4(viewportPos.x, viewportPos.y, 0, 0));
+            }
+
+            Shader.SetGlobalFloat(WakeOrthoSizeId, Camera.orthographicSize);
         }
 
         private void HandleDebugControls()

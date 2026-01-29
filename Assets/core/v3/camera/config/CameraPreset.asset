@@ -43,7 +43,7 @@ MonoBehaviour:
   lookAheadSmoothing: 0.15
   orthographicSize: 25
   minZoom: 25
-  maxZoom: 40
+  maxZoom: 80
   scrollSensitivity: 2
   zoomRateCurve:
     serializedVersion: 2

@@ -58,8 +58,13 @@ namespace StarfireV2
                         }
                         else
                         {
-                            Debug.LogWarning($"[ShipModuleSlot] No hardpoint found for slot '{_slotId}'");
+                            Debug.LogWarning($"[ShipModuleSlot] No hardpoint found for slot '{_slotId}'. " +
+                                             $"Available hardpoints: {string.Join(", ", registry.GetAllSlotIds())}");
                         }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[ShipModuleSlot] No V2HardpointRegistry found on '{_controller.Transform.name}'");
                     }
                 }
             }

@@ -9,11 +9,18 @@ namespace Starfire.Core.Cam.Effects
     [CreateAssetMenu(fileName = "GravitationalWakeConfig", menuName = "Starfire/Effects/Gravitational Wake Config")]
     public class GravitationalWakeConfig : ScriptableObject
     {
-        [Header("Bubble Zone")]
-        [Tooltip("Radius of undistorted zone around ship center (screen space 0-0.5)")]
+        [Header("Player Exclusion Zone")]
+        [Tooltip("Screen-space radius of the exclusion zone around the ship (no distortion inside)")]
+        [Range(0.01f, 1f)] public float exclusionRadius = 0.08f;
+
+        [Tooltip("Softness of exclusion falloff (higher = softer edge, smoother transition)")]
+        [Range(0.5f, 3f)] public float exclusionSoftness = 1.5f;
+
+        [Header("Ring Zone")]
+        [Tooltip("Radius of the wake effect center (used for particle spawn position and ring profile)")]
         [Range(0f, 0.5f)] public float bubbleRadius = 0.15f;
 
-        [Tooltip("Width of the distortion ring around the bubble")]
+        [Tooltip("Width of the distortion ring")]
         [Range(0.05f, 0.5f)] public float ringWidth = 0.2f;
 
         [Tooltip("Camera ortho size where bubble radius values are calibrated. Effect scales to maintain world-space size.")]
@@ -23,8 +30,11 @@ namespace Starfire.Core.Cam.Effects
         [Tooltip("Ratio of minor to major axis (1 = circle, 0.3 = narrow ellipse aligned with movement)")]
         [Range(0.2f, 1f)] public float ellipseRatio = 1f;
 
-        [Tooltip("How pointed the front edge becomes (0 = uniform ellipse, 1 = sharp needle)")]
+        [Tooltip("How sharp the front wedge angle is (0 = circular, 1 = narrow V-shape that splits around the ship)")]
         [Range(0f, 1f)] public float needleSharpness = 0f;
+
+        [Tooltip("How far back to shift the effect tip toward the ship (screen-space units)")]
+        [Range(0f, 0.15f)] public float frontOffset = 0.05f;
 
         [Header("Wake Trail")]
         [Tooltip("How far the wake trail extends behind the ship")]
@@ -42,10 +52,6 @@ namespace Starfire.Core.Cam.Effects
 
         [Tooltip("Curve mapping warp intensity (0-1) to wake effect strength")]
         public AnimationCurve intensityCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-
-        [Header("Bubble Interior")]
-        [Tooltip("Allow distortion inside the bubble zone (0 = protected interior, 1 = full distortion everywhere)")]
-        [Range(0f, 1f)] public float bubbleInteriorDistortion = 0f;
 
         [Header("Chromatic Aberration")]
         [Tooltip("Enable subtle chromatic aberration in wake zone")]

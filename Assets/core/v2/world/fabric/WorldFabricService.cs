@@ -99,6 +99,11 @@ namespace StarfireV2
                 RegisterLayer(new SpaceZoneLayer(config.spaceZoneConfig));
             }
 
+            if (config.colorDistributionConfig != null && config.colorDistributionConfig.enabled)
+            {
+                RegisterLayer(new ColorDistributionLayer(config.colorDistributionConfig));
+            }
+
             if (config.resourceConfig != null && config.resourceConfig.enabled)
             {
                 RegisterLayer(new ResourceLayer(config.resourceConfig));
@@ -223,10 +228,21 @@ namespace StarfireV2
             if (config == null) return;
 
             // Create temporary layers for edit-mode queries
+            SpaceZoneQuery spaceZoneQuery = null;
             if (config.spaceZoneConfig != null && config.spaceZoneConfig.enabled)
             {
                 var layer = new SpaceZoneLayer(config.spaceZoneConfig);
-                _editModeQueries["SpaceZones"] = layer.CreateQuery();
+                spaceZoneQuery = layer.CreateQuery() as SpaceZoneQuery;
+                _editModeQueries["SpaceZones"] = spaceZoneQuery;
+            }
+
+            if (config.colorDistributionConfig != null && config.colorDistributionConfig.enabled)
+            {
+                var layer = new ColorDistributionLayer(config.colorDistributionConfig);
+                var colorQuery = layer.CreateQuery() as ColorDistributionQuery;
+                if (colorQuery != null && spaceZoneQuery != null)
+                    colorQuery.SetZoneQuery(spaceZoneQuery);
+                _editModeQueries["ColorDistribution"] = colorQuery;
             }
 
             if (config.resourceConfig != null && config.resourceConfig.enabled)
@@ -349,6 +365,46 @@ namespace StarfireV2
         }
 
         /// <summary>
+        /// Get the ColorDistribution query for direct palette sampling.
+        /// </summary>
+        public ColorDistributionQuery GetColorDistributionQuery()
+        {
+            var cache = GetActiveQueryCache();
+            if (cache.TryGetValue("ColorDistribution", out var query) && query is ColorDistributionQuery cdq)
+                return cdq;
+            return null;
+        }
+
+        /// <summary>
+        /// Sample color palette at a position.
+        /// </summary>
+        public ColorDistributionSample SampleColorsAt(Vector2D absolutePosition)
+        {
+            var cache = GetActiveQueryCache();
+            if (cache.TryGetValue("ColorDistribution", out var query) && query is ColorDistributionQuery cdq)
+            {
+                // Ensure zone query is wired up
+                if (cache.TryGetValue("SpaceZones", out var zoneQuery) && zoneQuery is SpaceZoneQuery szq)
+                    cdq.SetZoneQuery(szq);
+
+                return cdq.QueryAt(absolutePosition, GetWorldSeed());
+            }
+            return ColorDistributionSample.Default;
+        }
+
+        /// <summary>
+        /// Sample color palette at a Unity world position (converts via floating origin).
+        /// </summary>
+        public ColorDistributionSample SampleColorsAtWorldPosition(Vector2 worldPosition)
+        {
+            if (_worldService == null)
+                return ColorDistributionSample.Default;
+
+            Vector2D absolute = _worldService.WorldToAbsolute(worldPosition);
+            return SampleColorsAt(absolute);
+        }
+
+        /// <summary>
         /// Query danger level at a position.
         /// </summary>
         public float GetDangerLevelAt(Vector2D absolutePosition)
@@ -456,7 +512,7 @@ namespace StarfireV2
 
         #region Debug Preview
 
-        public enum PreviewMode { SpaceZones, Factions, FactionBorders, Danger, Combined, NebulaDensity, AsteroidDensity, VoidFactor, AnomalyStrength, MineralDensity, OreDensity, GasDensity, ExoticDensity, WaterDensity, ResourceValue }
+        public enum PreviewMode { SpaceZones, Factions, FactionBorders, Danger, Combined, NebulaDensity, AsteroidDensity, VoidFactor, AnomalyStrength, MineralDensity, OreDensity, GasDensity, ExoticDensity, WaterDensity, ResourceValue, ColorDistribution }
 
         [Header("Debug Preview")]
         [SerializeField] private bool enablePreview = false;
@@ -552,6 +608,7 @@ namespace StarfireV2
                         PreviewMode.ExoticDensity => GetResourcePropertyColor(pos, ResourceProperty.Exotic),
                         PreviewMode.WaterDensity => GetResourcePropertyColor(pos, ResourceProperty.Water),
                         PreviewMode.ResourceValue => GetResourceValueColor(pos),
+                        PreviewMode.ColorDistribution => GetColorDistributionColor(pos),
                         _ => Color.black
                     };
 
@@ -623,6 +680,22 @@ namespace StarfireV2
                 return Color.Lerp(Color.black, new Color(0.2f, 0.6f, 0.1f), value * 2f);
             else
                 return Color.Lerp(new Color(0.2f, 0.6f, 0.1f), new Color(0.9f, 0.7f, 0.1f), (value - 0.5f) * 2f);
+        }
+
+        private Color GetColorDistributionColor(Vector2D pos)
+        {
+            var colorSample = SampleColorsAt(pos);
+
+            // Show the mid-tone color (Color2) as a representative of the palette
+            // This gives a good visualization of how colors vary across regions
+            Color paletteColor = colorSample.Palette.Color2;
+
+            // Boost saturation slightly for better visibility in the preview
+            Color.RGBToHSV(paletteColor, out float h, out float s, out float v);
+            s = Mathf.Clamp01(s * 1.3f);
+            v = Mathf.Clamp01(v * 1.2f);
+
+            return Color.HSVToRGB(h, s, v);
         }
 
         private Color GetZoneColor(Vector2D pos, float seed)

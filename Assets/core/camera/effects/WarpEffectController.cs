@@ -70,7 +70,6 @@ namespace Starfire.Core.Cam.Effects
         private static readonly int WobbleSpeedId = Shader.PropertyToID("_WobbleSpeed");
 
         // Gravitational wake shader property IDs
-        private static readonly int WakeBubbleRadiusId = Shader.PropertyToID("_WakeBubbleRadius");
         private static readonly int WakeRingWidthId = Shader.PropertyToID("_WakeRingWidth");
         private static readonly int WakeTrailLengthId = Shader.PropertyToID("_WakeTrailLength");
         private static readonly int WakeDistortionStrengthId = Shader.PropertyToID("_WakeDistortionStrength");
@@ -269,7 +268,6 @@ namespace Starfire.Core.Cam.Effects
             // Evaluate wake intensity from curve (modulates distortion strength)
             float wakeIntensity = config != null ? config.GetWakeIntensity(WarpIntensity) : WarpIntensity;
 
-            Shader.SetGlobalFloat(WakeBubbleRadiusId, config != null ? config.wakeBubbleRadius : 0.08f);
             Shader.SetGlobalFloat(WakeRingWidthId, config != null ? config.wakeRingWidth : 0.15f);
             Shader.SetGlobalFloat(WakeTrailLengthId, config != null ? config.wakeTrailLength : 0.5f);
             Shader.SetGlobalFloat(WakeDistortionStrengthId, (config != null ? config.wakeDistortionStrength : 0.03f) * wakeIntensity);
@@ -425,7 +423,6 @@ namespace Starfire.Core.Cam.Effects
             Shader.SetGlobalFloat(WobbleSpeedId, config != null ? config.wobbleSpeed : 2f);
 
             // Gravitational wake globals (reset to zero distortion)
-            Shader.SetGlobalFloat(WakeBubbleRadiusId, config != null ? config.wakeBubbleRadius : 0.08f);
             Shader.SetGlobalFloat(WakeRingWidthId, config != null ? config.wakeRingWidth : 0.15f);
             Shader.SetGlobalFloat(WakeTrailLengthId, config != null ? config.wakeTrailLength : 0.5f);
             Shader.SetGlobalFloat(WakeDistortionStrengthId, 0f); // Zero distortion when reset

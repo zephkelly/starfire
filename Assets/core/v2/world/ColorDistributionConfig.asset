@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 873a88d634b0fe84c8077a92a4ccb180, type: 3}
+  m_Name: ColorDistributionConfig
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ColorDistributionConfig
+  enabled: 1
+  hueNoiseScale: 100000
+  hueDetailScale: 20000
+  hueDetailStrength: 0.15
+  defaultHarmonyMode: 0
+  baseSaturationMultiplier: 1
+  baseValueMultiplier: 1
+  nebulaSaturationInfluence: 0.5
+  voidDesaturationInfluence: 0.7
+  anomalyHueShiftInfluence: 0.5
+  transitionSmoothness: 2
+  paletteOverrides: []

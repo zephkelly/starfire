@@ -44,6 +44,10 @@ namespace StarfireV2
         [Tooltip("How long impact effects persist before cleanup.")]
         public float effectDuration = 1f;
 
+        [Header("Screen Shake")]
+        [Tooltip("Configuration for camera screen shake on impact.")]
+        public V2ScreenShakeConfig screenShakeConfig;
+
         /// <summary>
         /// Default impact configuration with minimal effects.
         /// </summary>

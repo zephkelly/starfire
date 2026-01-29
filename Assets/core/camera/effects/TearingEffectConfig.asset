@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420ce703071d07f478f8811317e5b646, type: 3}
   m_Name: TearingEffectConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Cam.Effects.TearingEffectConfig
-  maxTearOffset: 0.03
+  maxTearOffset: 0.0387
   tearDepthMultiplier: 8
   tearIntensityCurve:
     serializedVersion: 2

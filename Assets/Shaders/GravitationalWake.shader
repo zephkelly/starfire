@@ -44,19 +44,18 @@ Shader "Starfire/GravitationalWake"
             float2 _WarpDirection;
 
             // Wake-specific globals
-            float _WakeBubbleRadius;
             float _WakeRingWidth;
             float _WakeTrailLength;
             float _WakeDistortionStrength;
             float _WakeTrailFalloff;
             float _WakeDirectionalBias;
             float _WakeChromaStrength;
-            float2 _WakeCenterPosition; // Ship's screen position (0-1), set by CameraController
-            float _WakeShipExclusionRadius; // Screen-space radius for ship exclusion (0-1), set by CameraController
+            float2 _WakeCenterPosition;
 
             // Ellipse shape globals
             float _WakeEllipseRatio;
             float _WakeNeedleSharpness;
+            float _WakeFrontOffset;
 
             // Animation globals
             float _WakePulseSpeed;
@@ -84,8 +83,9 @@ Shader "Starfire/GravitationalWake"
             float _WakeOrthoSize; // Camera orthographic size for zoom scaling
             float _WakeReferenceOrthoSize; // Reference ortho size where config values are calibrated
 
-            // Bubble interior distortion
-            float _WakeBubbleInteriorDistortion;
+            // Player exclusion zone (Gaussian falloff)
+            float _WakeExclusionRadius;
+            float _WakeExclusionSoftness;
 
             // Energy glow globals
             float _WakeEnergyGlowEnabled;
@@ -159,7 +159,7 @@ Shader "Starfire/GravitationalWake"
             }
 
             // Calculate elliptical distance aligned with warp direction
-            // majorAxis = direction of travel (stretched), minorAxis = perpendicular (compressed)
+            // Uses a single tapered ellipse: minor axis progressively squeezes toward the front
             float ellipticalDistance(float2 pos, float2 majorDir, float ellipseRatio, float needleSharpness)
             {
                 // Get perpendicular direction for minor axis
@@ -172,13 +172,14 @@ Shader "Starfire/GravitationalWake"
                 // Apply ellipse ratio to minor axis (squashes perpendicular to movement)
                 float adjustedMinor = minorComponent / max(ellipseRatio, 0.2);
 
-                // Needle sharpening: elongate the FRONT more than the back
-                // Front is where majorComponent > 0 (ahead in warp direction)
-                float frontFactor = saturate(majorComponent / max(length(pos), 0.001));
-                float needleStretch = 1.0 + needleSharpness * frontFactor * 2.0;
-                float adjustedMajor = majorComponent / needleStretch;
+                // How far forward this point is (0 = back, 1 = front tip)
+                float forwardness = saturate(majorComponent / max(length(pos), 0.001));
 
-                return length(float2(adjustedMajor, adjustedMinor));
+                // Squeeze the minor axis more toward the front for a natural taper
+                float squeeze = 1.0 + needleSharpness * forwardness * 3.0;
+                float taperedMinor = adjustedMinor * squeeze;
+
+                return length(float2(majorComponent, taperedMinor));
             }
 
             half4 Frag(Varyings IN) : SV_Target
@@ -200,10 +201,8 @@ Shader "Starfire/GravitationalWake"
 
                 // Get wake parameters (use defaults if globals not set)
                 // === BREATHING/PULSE ANIMATION ===
-                // Animate bubble radius with a breathing effect
                 float pulsePhase = sin(_Time.y * _WakePulseSpeed);
                 float pulseOffset = pulsePhase * _WakePulseAmount;
-                float bubbleRadius = max(_WakeBubbleRadius, 0.05) * (1.0 + pulseOffset);
                 // Ring width pulses inversely (slightly) for more organic feel
                 float ringWidth = max(_WakeRingWidth, 0.1) * (1.0 - pulseOffset * 0.3);
                 float trailLength = max(_WakeTrailLength, 0.2);
@@ -218,28 +217,31 @@ Shader "Starfire/GravitationalWake"
                 float refOrtho = max(_WakeReferenceOrthoSize, 1.0);
                 float zoomScale = refOrtho / max(_WakeOrthoSize, 1.0);
 
-                // Apply zoom scale to bubble/ring (ship-relative elements)
-                bubbleRadius *= zoomScale;
+                // Apply zoom scale to ring (ship-relative elements)
                 ringWidth *= zoomScale;
                 // Trail length scales inversely - extends further on screen when zoomed out
                 // This maintains consistent world-space wake extent
                 trailLength /= max(zoomScale, 0.1);
 
-                // Get ship center position (default to screen center if not set)
+                // Ship center position in viewport space (set by CameraController)
                 float2 shipCenter = _WakeCenterPosition;
                 if (shipCenter.x == 0 && shipCenter.y == 0)
                 {
                     shipCenter = float2(0.5, 0.5);
                 }
 
-                // Center-relative coordinates based on ship position
-                float2 centerUV = uv - shipCenter;
-
                 // Aspect ratio correction
                 float aspectRatio = _ScreenParams.x / _ScreenParams.y;
+
+                // === FRONT OFFSET ===
+                // Shift the wake center backwards along warp direction to pull tip closer to ship
+                float2 adjustedCenter = shipCenter - warpDir * _WakeFrontOffset / float2(aspectRatio, 1.0);
+
+                // Center-relative coordinates based on offset center (for lensing)
+                float2 centerUV = uv - adjustedCenter;
                 float2 aspectCorrected = centerUV * float2(aspectRatio, 1.0);
 
-                // Elliptical distance aligned with movement direction
+                // Elliptical distance aligned with movement direction (from offset center)
                 float ellipseRatio = max(_WakeEllipseRatio, 0.2);
                 float needleSharp = _WakeNeedleSharpness;
                 float distFromCenter = ellipticalDistance(aspectCorrected, warpDir, ellipseRatio, needleSharp);
@@ -248,20 +250,6 @@ Shader "Starfire/GravitationalWake"
                 float2 dirFromCenter = distFromCenter > 0.001
                     ? aspectCorrected / distFromCenter
                     : float2(0, 1);
-
-                // === SHIP EXCLUSION ZONE ===
-                // Skip distortion within the ship's screen-space footprint
-                // Uses smooth transition to avoid hard edges
-                float shipExclusionMask = smoothstep(
-                    _WakeShipExclusionRadius * 0.9,  // Inner edge (full exclusion)
-                    _WakeShipExclusionRadius * 1.1,  // Outer edge (blend to distortion)
-                    distFromCenter
-                );
-
-                // === BUBBLE ZONE MASK ===
-                // Inner zone is undistorted (ship cockpit area) unless bubbleInteriorDistortion is set
-                float baseBubbleMask = smoothstep(bubbleRadius, bubbleRadius + ringWidth * 0.5, distFromCenter);
-                float bubbleMask = lerp(baseBubbleMask, 1.0, _WakeBubbleInteriorDistortion);
 
                 // Outer falloff scales inversely with zoom to maintain world-space extent
                 float outerFadeStart = 0.5 / max(zoomScale, 0.1);
@@ -298,11 +286,11 @@ Shader "Starfire/GravitationalWake"
                 trailMask = pow(trailMask, trailFalloff);
 
                 // === COMBINE MASKS ===
-                float distortionMask = bubbleMask * outerMask * lerp(0.3, 1.0, wakeFactor) * trailMask * intensity * shipExclusionMask;
+                float distortionMask = outerMask * lerp(0.3, 1.0, wakeFactor) * trailMask * intensity;
 
                 // === GRAVITATIONAL LENSING DISTORTION ===
                 // Ring-shaped distortion profile (like light bending around a mass)
-                float ringDist = abs(distFromCenter - bubbleRadius - ringWidth * 0.5);
+                float ringDist = abs(distFromCenter - ringWidth * 0.5);
                 float ringProfile = 1.0 - smoothstep(0.0, ringWidth, ringDist);
 
                 // === RIPPLE ANIMATION ===
@@ -310,7 +298,7 @@ Shader "Starfire/GravitationalWake"
                 float ripplePhase = (distFromCenter * _WakeRippleCount - _Time.y * _WakeRippleSpeed) * TAU;
                 float rippleWave = sin(ripplePhase) * _WakeRippleStrength;
                 // Ripples are strongest in the ring zone, fade outside
-                float rippleMask = ringProfile * (1.0 - smoothstep(0.0, trailLength * 0.5, distFromCenter - bubbleRadius));
+                float rippleMask = ringProfile * (1.0 - smoothstep(0.0, trailLength * 0.5, distFromCenter));
                 ringProfile *= (1.0 + rippleWave * rippleMask);
 
                 // Radial distortion - pulls pixels toward center (compression effect)
@@ -338,7 +326,7 @@ Shader "Starfire/GravitationalWake"
 
                 // === EXTREME EDGE DISTORTION (Event Horizon) ===
                 // Sharp, intense distortion exactly at bubble boundary - like light bending around a black hole
-                float edgeDist = abs(distFromCenter - bubbleRadius);
+                float edgeDist = abs(distFromCenter);
                 float edgeProfile = exp(-edgeDist * _WakeEdgeSharpness / ringWidth);
                 float2 edgeOffset = -dirFromCenter * edgeProfile * _WakeEdgeStrength * distortStrength * 3.0;
 
@@ -352,7 +340,7 @@ Shader "Starfire/GravitationalWake"
                 wakeConeMask *= behindShip;
 
                 // Wake spreads and intensifies with distance from bubble
-                float wakeDistance = max(distFromCenter - bubbleRadius, 0.0);
+                float wakeDistance = max(distFromCenter, 0.0);
                 float wakeDistanceFactor = saturate(wakeDistance / trailLength);
                 float wakeZoneIntensity = wakeConeMask * (1.0 + wakeDistanceFactor * _WakeSpread);
 
@@ -394,27 +382,29 @@ Shader "Starfire/GravitationalWake"
                 // - Noise wobble (organic movement)
                 float2 totalOffset = (edgeOffset + radialOffset + tangentialOffset + wakeOffset + bowOffset + noiseOffset + wakeDistortOffset) * distortionMask;
 
+                // === PLAYER EXCLUSION ZONE ===
+                // Simple CIRCULAR distance from ACTUAL ship center (not adjusted center, not elliptical)
+                float2 shipRelativeUV = (uv - shipCenter) * float2(aspectRatio, 1.0);
+                float exclusionDist = length(shipRelativeUV);
+                float exclusionRadius = _WakeExclusionRadius * zoomScale;
+                float gaussWidth = exclusionRadius * _WakeExclusionSoftness;
+                float exclusionMask = 1.0 - exp(-exclusionDist * exclusionDist / (gaussWidth * gaussWidth + 0.0001));
+
+                // Apply exclusion to distortion offset
+                totalOffset *= exclusionMask;
+
                 // Allow stronger distortion for dramatic effect
                 totalOffset = clamp(totalOffset, -0.15, 0.15);
 
                 float2 distortedUV = uv + totalOffset;
 
-                // === SHIP SAMPLE EXCLUSION ===
-                // Check if the distorted UV would sample from the ship's area
-                // If so, use the original UV to prevent ship from being refracted
-                float2 distortedCenterUV = distortedUV - shipCenter;
-                float2 distortedAspectCorrected = distortedCenterUV * float2(aspectRatio, 1.0);
-                float distortedDistFromShip = length(distortedAspectCorrected);
-
-                // If distorted UV falls within ship exclusion zone, blend back to original UV
-                float sampleExclusionMask = smoothstep(
-                    _WakeShipExclusionRadius * 0.85,  // Inner edge (full exclusion)
-                    _WakeShipExclusionRadius * 1.0,   // Outer edge (allow distortion)
-                    distortedDistFromShip
-                );
-
-                // Blend between original UV (ship area) and distorted UV (outside ship)
-                distortedUV = lerp(uv, distortedUV, sampleExclusionMask);
+                // === PREVENT SAMPLING FROM SHIP AREA ===
+                // Check if distorted UV would sample from inside ship exclusion zone
+                float2 distortedShipRelative = (distortedUV - shipCenter) * float2(aspectRatio, 1.0);
+                float distortedExclusionDist = length(distortedShipRelative);
+                // Smoothly blend to original UV if we'd sample from ship area
+                float sampleProtection = smoothstep(0.0, exclusionRadius, distortedExclusionDist);
+                distortedUV = lerp(uv, distortedUV, sampleProtection);
 
                 // Clamp UVs to valid range
                 distortedUV = clamp(distortedUV, 0.001, 0.999);
@@ -427,20 +417,11 @@ Shader "Starfire/GravitationalWake"
                 [branch]
                 if (chromaStrength > 0.0001)
                 {
-                    float chromaOffset = distortionMask * chromaStrength;
+                    float chromaOffset = distortionMask * chromaStrength * exclusionMask;
                     float2 chromaDir = dirFromCenter;
 
                     float2 uvR = distortedUV + chromaDir * chromaOffset;
                     float2 uvB = distortedUV - chromaDir * chromaOffset;
-
-                    // Check if chromatic UVs would sample from ship exclusion zone
-                    float2 uvRCenter = uvR - shipCenter;
-                    float uvRDist = length(uvRCenter * float2(aspectRatio, 1.0));
-                    uvR = lerp(uv, uvR, smoothstep(_WakeShipExclusionRadius * 0.85, _WakeShipExclusionRadius, uvRDist));
-
-                    float2 uvBCenter = uvB - shipCenter;
-                    float uvBDist = length(uvBCenter * float2(aspectRatio, 1.0));
-                    uvB = lerp(uv, uvB, smoothstep(_WakeShipExclusionRadius * 0.85, _WakeShipExclusionRadius, uvBDist));
 
                     uvR = clamp(uvR, 0.001, 0.999);
                     uvB = clamp(uvB, 0.001, 0.999);
@@ -466,7 +447,7 @@ Shader "Starfire/GravitationalWake"
                     energyFlow = energyFlow * 0.7 + (sin(secondaryPhase) * 0.5 + 0.5) * 0.3;
 
                     // Glow profile - strongest at bubble edge, fades outward
-                    float glowDist = abs(distFromCenter - bubbleRadius);
+                    float glowDist = abs(distFromCenter);
                     float glowWidth = _WakeEnergyGlowWidth * ringWidth;
                     float glowProfile = exp(-glowDist * glowDist / (glowWidth * glowWidth * 0.5));
 
@@ -480,7 +461,7 @@ Shader "Starfire/GravitationalWake"
                     float wakeGlow = lerp(0.4, 1.0, wakeFactor);
 
                     // Final glow color - mask out ship exclusion zone
-                    float glowIntensity = totalGlow * energyFlow * wakeGlow * _WakeEnergyGlowIntensity * intensity * shipExclusionMask;
+                    float glowIntensity = totalGlow * energyFlow * wakeGlow * _WakeEnergyGlowIntensity * intensity ;
                     float3 glowColor = _WakeEnergyGlowColor.rgb * glowIntensity;
 
                     // Add glow to color (additive blending for HDR bloom support)
@@ -500,16 +481,16 @@ Shader "Starfire/GravitationalWake"
                     float deflectorPulse = sin(_Time.y * _WakeDeflectorPulseSpeed) * 0.3 + 0.7;
 
                     // Distance-based glow at front point - gaussian falloff
-                    float deflectorDist = abs(distFromCenter - bubbleRadius);
+                    float deflectorDist = abs(distFromCenter);
                     float deflectorGlowSize = _WakeDeflectorGlowSize * zoomScale; // Scale with zoom
                     float deflectorGlow = exp(-deflectorDist * deflectorDist / (deflectorGlowSize * deflectorGlowSize));
 
                     // Also add glow extending slightly beyond bubble at front
-                    float frontExtend = saturate((distFromCenter - bubbleRadius) / (ringWidth * 0.5));
+                    float frontExtend = saturate((distFromCenter) / (ringWidth * 0.5));
                     float extendGlow = exp(-frontExtend * 2.0) * frontFacing;
 
                     // Combine: front-facing * distance falloff * pulse * intensity
-                    float deflectorIntensity = (deflectorGlow + extendGlow * 0.5) * frontFacing * deflectorPulse * _WakeDeflectorGlowIntensity * intensity * shipExclusionMask;
+                    float deflectorIntensity = (deflectorGlow + extendGlow * 0.5) * frontFacing * deflectorPulse * _WakeDeflectorGlowIntensity * intensity ;
 
                     // Add deflector glow (HDR values for bloom)
                     color.rgb += _WakeDeflectorGlowColor.rgb * deflectorIntensity;
@@ -521,7 +502,7 @@ Shader "Starfire/GravitationalWake"
                 if (_WakeTurbBoundaryEnabled > 0.5 && intensity > 0.01)
                 {
                     // Distance from bubble edge (positive = outside, negative = inside)
-                    float edgeDistance = distFromCenter - bubbleRadius;
+                    float edgeDistance = distFromCenter;
 
                     // Rotate angle relative to warp direction so discontinuity is behind ship
                     // This hides the atan2 seam in the wake where dispersion masks it
@@ -602,7 +583,7 @@ Shader "Starfire/GravitationalWake"
                     turbColor += crestHighlight;
 
                     // Final intensity (apply seam fade to hide discontinuity)
-                    float turbIntensity = turbMask * _WakeTurbBoundaryIntensity * intensity * shipExclusionMask * seamFadeMask;
+                    float turbIntensity = turbMask * _WakeTurbBoundaryIntensity * intensity  * seamFadeMask;
 
                     // Add to color (not purely additive - blend for more physical look)
                     color.rgb = lerp(color.rgb, color.rgb + turbColor * turbIntensity, turbIntensity);
@@ -621,7 +602,7 @@ Shader "Starfire/GravitationalWake"
                     float crosshair = max(crossH, crossV);
 
                     // Circle showing bubble radius
-                    float bubbleRing = abs(distFromCenter - bubbleRadius);
+                    float bubbleRing = abs(distFromCenter);
                     float bubbleCircle = 1.0 - smoothstep(0.0, lineWidth * 0.5, bubbleRing);
 
                     // Direction arrow (line from center in warp direction)

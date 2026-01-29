@@ -1,3 +1,4 @@
+using Starfire.Core.V3.Cam.Effects;
 using UnityEngine;
 
 namespace Starfire.Core.V3.Cam.Config
@@ -39,5 +40,9 @@ namespace Starfire.Core.V3.Cam.Config
 
         [Tooltip("Smoothing time for zoom transitions (0 = instant)")]
         public float zoomSmoothing = 0.1f;
+
+        [Header("Screen Shake")]
+        [Tooltip("Configuration for screen shake behavior.")]
+        public V3ScreenShakeConfig screenShakeConfig = new V3ScreenShakeConfig();
     }
 }

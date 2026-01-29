@@ -46,5 +46,23 @@ namespace StarfireV2
         /// Prefab to instantiate for Physics mode projectiles.
         /// </summary>
         public GameObject ProjectilePrefab;
+
+        // Missile-specific fields (only used when mode is Missile)
+
+        /// <summary>
+        /// Zero-based index of this missile in a volley. Used for bloom angle calculation.
+        /// </summary>
+        public int MissileIndex;
+
+        /// <summary>
+        /// Total number of missiles in the volley. Used for bloom angle calculation.
+        /// </summary>
+        public int VolleyCount;
+
+        /// <summary>
+        /// Optional pre-locked target for missiles using PreLocked targeting mode.
+        /// If null, missiles will use AutoAcquire to find targets.
+        /// </summary>
+        public Transform PreLockedTarget;
     }
 }

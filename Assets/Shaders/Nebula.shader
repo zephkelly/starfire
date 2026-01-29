@@ -57,6 +57,12 @@ Shader "Starfire/Nebula"
         [HideInInspector] _FabricNebulaTint ("Fabric Nebula Tint", Vector) = (0.6, 0.3, 0.7, 1)
         [HideInInspector] _FabricNebulaTintStrength ("Fabric Nebula Tint Strength", Float) = 0
         [HideInInspector] _FabricAnomalyShift ("Fabric Anomaly Shift", Float) = 0
+
+        [HideInInspector] _FabricColor1 ("Fabric Color 1", Color) = (0.1, 0.05, 0.2, 1)
+        [HideInInspector] _FabricColor2 ("Fabric Color 2", Color) = (0.4, 0.1, 0.3, 1)
+        [HideInInspector] _FabricColor3 ("Fabric Color 3", Color) = (0.8, 0.3, 0.4, 1)
+        [HideInInspector] _FabricColor4 ("Fabric Color 4", Color) = (1, 0.8, 0.6, 1)
+        [HideInInspector] _FabricColorBlend ("Fabric Color Blend", Float) = 0
     }
 
     SubShader
@@ -135,6 +141,13 @@ Shader "Starfire/Nebula"
                 float4 _FabricNebulaTint;
                 float _FabricNebulaTintStrength;
                 float _FabricAnomalyShift;
+
+                // Fabric color distribution
+                float4 _FabricColor1;
+                float4 _FabricColor2;
+                float4 _FabricColor3;
+                float4 _FabricColor4;
+                float _FabricColorBlend;
             CBUFFER_END
 
             // Global camera properties (set by StarfieldManager)
@@ -430,12 +443,18 @@ Shader "Starfire/Nebula"
                     _Seed
                 );
 
+                // Blend between authored colors and fabric colors based on _FabricColorBlend
+                float4 finalColor1 = lerp(_Color1, _FabricColor1, _FabricColorBlend);
+                float4 finalColor2 = lerp(_Color2, _FabricColor2, _FabricColorBlend);
+                float4 finalColor3 = lerp(_Color3, _FabricColor3, _FabricColorBlend);
+                float4 finalColor4 = lerp(_Color4, _FabricColor4, _FabricColorBlend);
+
                 // Apply coloring with ORIGINAL density (not masked)
                 float3 nebulaColor = applyNebulaColor(
                     noiseValue, _Density, _Threshold, _EdgeSoftness,
                     _GradientBias, _GradientContrast,
                     _EmissionIntensity, _CoreEmissionBoost,
-                    _ColorCount, _Color1, _Color2, _Color3, _Color4
+                    _ColorCount, finalColor1, finalColor2, finalColor3, finalColor4
                 );
 
                 // Region mask disabled — fabric density now controls spatial visibility

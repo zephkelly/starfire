@@ -35,8 +35,11 @@ namespace StarfireV2
         [Tooltip("Tint color for the projectile.")]
         public Color color = Color.white;
 
-        [Tooltip("Optional trail renderer prefab to attach.")]
+        [Tooltip("Optional trail renderer prefab to attach (legacy/advanced use).")]
         public GameObject trailPrefab;
+
+        [Tooltip("Inline shader-based trail configuration. Used when trailPrefab is null and enabled.")]
+        public V2TrailConfig trailConfig;
 
         [Header("Mode")]
         [Tooltip("How the projectile handles collision detection and movement.")]
@@ -58,5 +61,13 @@ namespace StarfireV2
 
         [Tooltip("Material for the hitscan line renderer.")]
         public Material hitscanMaterial;
+
+        [Header("Missile Settings")]
+        [Tooltip("Configuration for missile homing and weaving behavior. Only used when mode is Missile.")]
+        public V2MissileConfig missileConfig;
+
+        [Header("Thrust Missile Settings")]
+        [Tooltip("Configuration for thrust-based missile behavior. Only used when mode is ThrustMissile.")]
+        public V2ThrustMissileConfig thrustMissileConfig;
     }
 }

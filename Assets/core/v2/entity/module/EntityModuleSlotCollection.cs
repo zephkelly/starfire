@@ -28,6 +28,13 @@ namespace StarfireV2
             if (slot == null)
                 throw new ArgumentNullException(nameof(slot));
 
+            if (_slotsById.ContainsKey(slotId))
+            {
+                UnityEngine.Debug.LogError($"[SlotCollection] DUPLICATE slotId '{slotId}'! " +
+                    $"Previous slot will be OVERWRITTEN and orphaned. " +
+                    $"Each module slot must have a unique slotId.");
+            }
+
             _slotsById[slotId] = slot;
             _slotTypes[slotId] = typeId;
 

@@ -50,12 +50,26 @@ namespace Starfire.Core.Background
         [Range(0f, 1f)]
         [SerializeField] private float anomalyColorShift = 0.3f;
 
+        [Header("Color Distribution")]
+        [Tooltip("Enable fabric-based color distribution for nebulae")]
+        [SerializeField] private bool enableColorDistribution = true;
+
+        [Tooltip("How fast color palettes transition (seconds for full change)")]
+        [Range(0.5f, 10f)]
+        [SerializeField] private float colorTransitionSpeed = 2f;
+
         [Header("Debug")]
         [SerializeField] private bool showDebugValues = false;
 
         // Per-depth smoothed sample cache
         // Key = parallax depth (rounded to avoid float key issues), Value = smoothed sample
         private readonly Dictionary<int, SmoothedFabricSample> _depthSamples = new();
+
+        // Per-depth smoothed palette cache
+        private readonly Dictionary<int, SmoothedColorPalette> _depthPalettes = new();
+
+        // Primary smoothed palette for globals
+        private ColorPalette _smoothPalette = ColorPalette.Default;
 
         // Primary (camera-position) smoothed values for globals fallback
         private float _smoothNebulaDensity;
@@ -84,6 +98,13 @@ namespace Starfire.Core.Background
         public static readonly int MatFabricNebulaTintID = Shader.PropertyToID("_FabricNebulaTint");
         public static readonly int MatFabricNebulaTintStrengthID = Shader.PropertyToID("_FabricNebulaTintStrength");
         public static readonly int MatFabricAnomalyShiftID = Shader.PropertyToID("_FabricAnomalyShift");
+
+        // Color distribution property IDs
+        public static readonly int MatFabricColor1ID = Shader.PropertyToID("_FabricColor1");
+        public static readonly int MatFabricColor2ID = Shader.PropertyToID("_FabricColor2");
+        public static readonly int MatFabricColor3ID = Shader.PropertyToID("_FabricColor3");
+        public static readonly int MatFabricColor4ID = Shader.PropertyToID("_FabricColor4");
+        public static readonly int MatFabricColorBlendID = Shader.PropertyToID("_FabricColorBlend");
 
         private Camera _camera;
         private float _lastDt;
@@ -159,6 +180,22 @@ namespace Starfire.Core.Background
                 kvp.Value.Update(fabricService, _lastCamWorldPos, fabricDepthInfluence, _lastLerpRate);
             }
 
+            // Update color palettes if enabled
+            if (enableColorDistribution)
+            {
+                float colorLerpRate = 1f - Mathf.Exp(-_lastDt / Mathf.Max(colorTransitionSpeed * 0.33f, 0.01f));
+
+                // Sample colors at camera position for globals
+                var colorSample = fabricService.SampleColorsAtWorldPosition(_lastCamWorldPos);
+                _smoothPalette = ColorPalette.Lerp(_smoothPalette, colorSample.Palette, colorLerpRate);
+
+                // Update all cached per-depth palettes
+                foreach (var kvp in _depthPalettes)
+                {
+                    kvp.Value.Update(fabricService, _lastCamWorldPos, fabricDepthInfluence, colorLerpRate);
+                }
+            }
+
             // Push globals as fallback
             Shader.SetGlobalFloat(FabricNebulaDensityID, _smoothNebulaDensity);
             Shader.SetGlobalFloat(FabricAsteroidDensityID, _smoothAsteroidDensity);
@@ -191,6 +228,31 @@ namespace Starfire.Core.Background
         }
 
         /// <summary>
+        /// Get a smoothed color palette for a specific parallax depth.
+        /// Different parallax depths get subtly different colors, creating depth-aware transitions.
+        /// </summary>
+        public ColorPalette GetSmoothedPaletteForDepth(float parallaxDepth)
+        {
+            if (!enableColorDistribution)
+                return ColorPalette.Default;
+
+            int depthKey = Mathf.RoundToInt(parallaxDepth * 10000f);
+
+            if (!_depthPalettes.TryGetValue(depthKey, out var smoothed))
+            {
+                smoothed = new SmoothedColorPalette(parallaxDepth);
+                _depthPalettes[depthKey] = smoothed;
+            }
+
+            return smoothed.Palette;
+        }
+
+        /// <summary>
+        /// Whether color distribution is enabled.
+        /// </summary>
+        public bool IsColorDistributionEnabled => enableColorDistribution;
+
+        /// <summary>
         /// Apply fabric properties to a material for a given parallax depth.
         /// Call this from StarfieldLayer.ConfigureMaterial().
         /// </summary>
@@ -211,6 +273,35 @@ namespace Starfire.Core.Background
         }
 
         /// <summary>
+        /// Apply fabric properties including color palette to a material.
+        /// Call this from nebula layers that support dynamic coloring.
+        /// </summary>
+        /// <param name="material">The material to apply properties to.</param>
+        /// <param name="parallaxDepth">The layer's parallax depth.</param>
+        /// <param name="colorBlend">How much to blend toward fabric colors (0 = authored, 1 = fabric).</param>
+        public void ApplyFabricToMaterialWithColors(Material material, float parallaxDepth, float colorBlend)
+        {
+            // Apply standard fabric properties
+            ApplyFabricToMaterial(material, parallaxDepth);
+
+            // Apply color palette if enabled
+            if (enableColorDistribution && colorBlend > 0f)
+            {
+                var palette = GetSmoothedPaletteForDepth(parallaxDepth);
+
+                material.SetColor(MatFabricColor1ID, palette.Color1);
+                material.SetColor(MatFabricColor2ID, palette.Color2);
+                material.SetColor(MatFabricColor3ID, palette.Color3);
+                material.SetColor(MatFabricColor4ID, palette.Color4);
+                material.SetFloat(MatFabricColorBlendID, colorBlend);
+            }
+            else
+            {
+                material.SetFloat(MatFabricColorBlendID, 0f);
+            }
+        }
+
+        /// <summary>
         /// Current smoothed fabric sample at camera position (for other scripts).
         /// </summary>
         public SpaceFabricSample SmoothedSample => new SpaceFabricSample
@@ -227,6 +318,11 @@ namespace Starfire.Core.Background
         public float NebulaStarTint => nebulaStarTint;
         public Color NebulaTintColor => nebulaTintColor;
         public float AnomalyColorShift => anomalyColorShift;
+
+        /// <summary>
+        /// Current smoothed color palette at camera position.
+        /// </summary>
+        public ColorPalette SmoothedPalette => _smoothPalette;
 
         /// <summary>
         /// Internal smoothed sample tracker for a specific parallax depth.
@@ -256,6 +352,31 @@ namespace Starfire.Core.Background
                     VoidFactor = Mathf.Lerp(Sample.VoidFactor, raw.VoidFactor, lerpRate),
                     AnomalyStrength = Mathf.Lerp(Sample.AnomalyStrength, raw.AnomalyStrength, lerpRate),
                 };
+            }
+        }
+
+        /// <summary>
+        /// Internal smoothed color palette tracker for a specific parallax depth.
+        /// </summary>
+        private class SmoothedColorPalette
+        {
+            public float ParallaxDepth;
+            public ColorPalette Palette;
+
+            public SmoothedColorPalette(float parallaxDepth)
+            {
+                ParallaxDepth = parallaxDepth;
+                Palette = ColorPalette.Default;
+            }
+
+            public void Update(WorldFabricService fabricService, Vector2 camWorldPos, float depthInfluence, float lerpRate)
+            {
+                // Offset sample position by parallax depth
+                Vector2 samplePos = camWorldPos + camWorldPos.normalized * ParallaxDepth * depthInfluence;
+                var colorSample = fabricService.SampleColorsAtWorldPosition(samplePos);
+
+                // Smooth interpolation using HSV for natural color transitions
+                Palette = ColorPalette.Lerp(Palette, colorSample.Palette, lerpRate);
             }
         }
 

@@ -37,20 +37,20 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  warpBrightnessMultiplier: 0.62
+  warpBrightnessMultiplier: 0.435
   streakWidthAtFullWarp: 1
   edgeSoftnessMin: 0.5
   edgeSoftnessMax: 0.5
   leadingEdgeRatio: 0.2084
   trailingFadeStart: 0.1
   blendTransitionRange: 0.2337
-  tailTaperPower: 0.403
+  tailTaperPower: 0.449
   wobbleIntensity: 0.048
   wobbleFrequency: 11.62
   wobbleSpeed: 1.24
   distantLayerMinEffect: 1
   parallaxDepthMultiplier: 1.47
-  maxLensDistortion: -0.213
+  maxLensDistortion: -0.353
   lensDistortionCurve:
     serializedVersion: 2
     m_Curve:
@@ -75,7 +75,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxZoomMultiplier: 1.668
+  maxZoomMultiplier: 1.461
   zoomCurve:
     serializedVersion: 2
     m_Curve:
@@ -155,9 +155,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  wakeBubbleRadius: 0.0744
-  wakeRingWidth: 0.2232
-  wakeTrailLength: 0.5
+  wakeBubbleRadius: 0.0347
+  wakeRingWidth: 0.2266
+  wakeTrailLength: 0.471
   wakeDistortionStrength: 0.0364
   wakeTrailFalloff: 1.5
   wakeDirectionalBias: 0.7
@@ -187,3 +187,30 @@ MonoBehaviour:
     m_RotationOrder: 4
   wakeChromaEnabled: 1
   wakeChromaStrength: 0.00993
+  warpStarFadeMax: 0.7
+  warpStarFadeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  warpStarFadeNearBias: 0.5
+  warpStarFadeMinDepth: 0.3

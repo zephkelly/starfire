@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f49f47168b38cf1448f3f6423a8240ba, type: 3}
-  m_Name: OffensiveWeapon
+  m_Name: LaserWeapon
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.OffensiveWeaponModuleConfig
   moduleId: OffensiveWeapon
   displayName: OffensiveWeapon
-  weightClass: 1
+  weightClass: 0
   damage: 10
-  fireRate: 1
+  fireRate: 4
   range: 500
   damageConfig:
     damageType: 1
@@ -26,6 +26,7 @@ MonoBehaviour:
     shieldPenetration: 0
   turretSettings:
     isTurret: 0
+    targetingMode: 1
     rotationSpeed: 180
     firingArc: 360
     canFireWhileRotating: 0
@@ -34,3 +35,34 @@ MonoBehaviour:
   projectileConfig: {fileID: 11400000, guid: d4eda8fcd0ce8564695c6c77848ebe60, type: 2}
   projectilePrefab: {fileID: 4886334230931569842, guid: ed9dd1d09849057488e9bd728ce5b6f1, type: 3}
   weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+  fireShakeConfig:
+    traumaAmount: 0.05
+    enablePunch: 1
+    punchForce: 0.1
+    punchDuration: 0.1
+    maxEffectDistance: 30
+    attenuationCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    scaleWithOrthoSize: 1

@@ -1,17 +1,45 @@
+using Starfire.Core.V3.Cam.Effects;
+using StarfireV2.Pooling;
 using UnityEngine;
 
 namespace StarfireV2
 {
     /// <summary>
     /// Handles hitscan weapon firing with instant hit detection and beam visual.
-    /// This is not a pooled object - it's created on fire and destroyed after visual fades.
+    /// Supports object pooling for the beam visual.
     /// </summary>
-    public class V2HitscanProjectile : MonoBehaviour
+    public class V2HitscanProjectile : MonoBehaviour, IPoolable
     {
         private LineRenderer _lineRenderer;
         private float _duration;
         private float _elapsed;
         private Color _startColor;
+        private bool _isActive;
+
+        public bool IsActive => _isActive;
+
+        public bool OnPoolGet()
+        {
+            _isActive = true;
+            _elapsed = 0f;
+
+            if (_lineRenderer != null)
+            {
+                _lineRenderer.enabled = true;
+            }
+
+            return _lineRenderer != null;
+        }
+
+        public void OnPoolReturn()
+        {
+            _isActive = false;
+
+            if (_lineRenderer != null)
+            {
+                _lineRenderer.enabled = false;
+            }
+        }
 
         /// <summary>
         /// Fires a hitscan from origin in direction, performing instant raycast and spawning visual.
@@ -65,25 +93,79 @@ namespace StarfireV2
             CreateBeamVisual(origin, endPoint, projectileConfig);
         }
 
-        private static void CreateBeamVisual(Vector2 start, Vector2 end, V2ProjectileConfig config)
+        /// <summary>
+        /// Creates a beam visual, using object pooling when available.
+        /// </summary>
+        public static void CreateBeamVisual(Vector2 start, Vector2 end, V2ProjectileConfig config)
         {
             if (config == null) return;
 
-            var beamGO = new GameObject("HitscanBeam");
-            beamGO.transform.position = start;
+            GameObject beamGO;
+            V2HitscanProjectile hitscan = null;
+            bool fromPool = false;
 
-            var hitscan = beamGO.AddComponent<V2HitscanProjectile>();
-            hitscan.Initialize(start, end, config);
+            // Try to get from pool
+            if (ProjectilePoolManager.Instance != null)
+            {
+                beamGO = ProjectilePoolManager.Instance.GetHitscanBeam();
+                if (beamGO != null)
+                {
+                    fromPool = true;
+                    hitscan = beamGO.GetComponent<V2HitscanProjectile>();
+
+                    // If the pooled object doesn't have our component, add it
+                    if (hitscan == null)
+                    {
+                        // This is using the HitscanBeamPoolable from the manager
+                        // We need to configure it differently
+                        var poolable = beamGO.GetComponent<HitscanBeamPoolable>();
+                        if (poolable != null)
+                        {
+                            poolable.Initialize(
+                                start, end,
+                                config.hitscanDuration,
+                                config.hitscanWidth,
+                                config.hitscanColor,
+                                config.hitscanMaterial
+                            );
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: create new beam object
+            if (!fromPool || hitscan == null)
+            {
+                beamGO = new GameObject("HitscanBeam");
+                beamGO.transform.position = start;
+                hitscan = beamGO.AddComponent<V2HitscanProjectile>();
+            }
+
+            hitscan.Initialize(start, end, config, fromPool);
         }
 
-        private void Initialize(Vector2 start, Vector2 end, V2ProjectileConfig config)
+        private bool _fromPool;
+
+        private void Initialize(Vector2 start, Vector2 end, V2ProjectileConfig config, bool fromPool = false)
         {
             _duration = config.hitscanDuration;
             _elapsed = 0f;
             _startColor = config.hitscanColor;
+            _isActive = true;
+            _fromPool = fromPool;
 
-            // Create line renderer
-            _lineRenderer = gameObject.AddComponent<LineRenderer>();
+            // Get or create line renderer
+            if (_lineRenderer == null)
+            {
+                _lineRenderer = GetComponent<LineRenderer>();
+                if (_lineRenderer == null)
+                {
+                    _lineRenderer = gameObject.AddComponent<LineRenderer>();
+                }
+            }
+
+            _lineRenderer.enabled = true;
             _lineRenderer.positionCount = 2;
             _lineRenderer.SetPosition(0, start);
             _lineRenderer.SetPosition(1, end);
@@ -98,7 +180,7 @@ namespace StarfireV2
             {
                 _lineRenderer.material = config.hitscanMaterial;
             }
-            else
+            else if (_lineRenderer.material == null)
             {
                 // Use default sprite material
                 _lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
@@ -109,11 +191,13 @@ namespace StarfireV2
 
         private void Update()
         {
+            if (!_isActive) return;
+
             _elapsed += Time.deltaTime;
 
             if (_elapsed >= _duration)
             {
-                Destroy(gameObject);
+                ReturnToPool();
                 return;
             }
 
@@ -124,6 +208,20 @@ namespace StarfireV2
 
             _lineRenderer.startColor = fadedColor;
             _lineRenderer.endColor = fadedColor;
+        }
+
+        private void ReturnToPool()
+        {
+            _isActive = false;
+
+            if (_fromPool && ProjectilePoolManager.Instance != null)
+            {
+                ProjectilePoolManager.Instance.ReturnHitscanBeam(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
         private static void SpawnImpactEffects(Vector2 hitPoint, Vector2 normal, V2ImpactConfig config)
@@ -161,6 +259,12 @@ namespace StarfireV2
             if (config.impactSound != null)
             {
                 AudioSource.PlayClipAtPoint(config.impactSound, hitPoint, config.soundVolume);
+            }
+
+            // Trigger screen shake
+            if (config.screenShakeConfig != null)
+            {
+                V3CameraShakeService.Instance?.TriggerImpactShake(hitPoint, normal, config.screenShakeConfig);
             }
         }
     }

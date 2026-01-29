@@ -49,6 +49,10 @@ namespace StarfireV2
         [Tooltip("Prefab for the weapon visual (turret, barrel, etc.) instantiated at hardpoint.")]
         [SerializeField] private GameObject weaponVisualPrefab;
 
+        [Header("Screen Shake")]
+        [Tooltip("Configuration for camera screen shake when firing.")]
+        [SerializeField] private V2FireShakeConfig fireShakeConfig;
+
         // Public accessors
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
@@ -61,6 +65,7 @@ namespace StarfireV2
         public V2ProjectileConfig ProjectileConfig => projectileConfig;
         public GameObject ProjectilePrefab => projectilePrefab;
         public GameObject WeaponVisualPrefab => weaponVisualPrefab;
+        public V2FireShakeConfig FireShakeConfig => fireShakeConfig;
 
         // IShipModuleConfig implementation
         public ShipModuleTypeId TypeId => ShipModuleTypeId.Weapon;

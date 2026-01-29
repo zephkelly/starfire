@@ -4,6 +4,22 @@ using UnityEngine;
 namespace StarfireV2
 {
     /// <summary>
+    /// Determines how a turret acquires its target direction.
+    /// </summary>
+    public enum V2TargetingMode
+    {
+        /// <summary>
+        /// Aim direction is set externally via SetAimDirection (by AI or player input).
+        /// </summary>
+        Manual,
+
+        /// <summary>
+        /// Turret automatically aims at the mouse cursor world position.
+        /// </summary>
+        MouseCursor
+    }
+
+    /// <summary>
     /// Configuration for weapon turret behavior.
     /// </summary>
     [Serializable]
@@ -11,6 +27,9 @@ namespace StarfireV2
     {
         [Tooltip("Whether this weapon can rotate to track targets.")]
         public bool isTurret = false;
+
+        [Tooltip("How the turret determines its target direction.")]
+        public V2TargetingMode targetingMode = V2TargetingMode.Manual;
 
         [Tooltip("Rotation speed in degrees per second.")]
         public float rotationSpeed = 180f;

@@ -17,7 +17,7 @@ MonoBehaviour:
   nebulaBlobRadiusMin: 200000
   nebulaBlobRadiusMax: 400000
   nebulaBlobStrength: 1.84
-  nebulaFalloffPower: 1.5
+  nebulaFalloffPower: 1.74
   nebulaThreshold: 0.703
   asteroidBlobSpacing: 80000
   asteroidBlobRadiusMin: 30000
@@ -26,11 +26,11 @@ MonoBehaviour:
   asteroidFalloffPower: 1.27
   asteroidThreshold: 0.319
   voidBlobSpacing: 300000
-  voidBlobRadiusMin: 15000
-  voidBlobRadiusMax: 60000
-  voidBlobStrength: 1.62
-  voidFalloffPower: 1
-  voidThreshold: 0.197
+  voidBlobRadiusMin: 100000
+  voidBlobRadiusMax: 200000
+  voidBlobStrength: 1.917
+  voidFalloffPower: 1.9
+  voidThreshold: 0.284
   anomalyBlobSpacing: 500000
   anomalyBlobRadiusMin: 20000
   anomalyBlobRadiusMax: 40000

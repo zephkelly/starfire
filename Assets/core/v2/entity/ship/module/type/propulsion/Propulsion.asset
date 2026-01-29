@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.PropulsionModuleConfig
   moduleId: propulsion_module
   displayName: Propulsion Module
-  maxSpeed: 2000
-  acceleration: 100
+  maxSpeed: 8000
+  acceleration: 60
   drag: 0

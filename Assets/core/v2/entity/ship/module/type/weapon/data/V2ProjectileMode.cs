@@ -24,6 +24,20 @@ namespace StarfireV2
         /// Visual beam/trail appears and fades over time.
         /// Best for laser beams and instant-hit weapons.
         /// </summary>
-        Hitscan
+        Hitscan,
+
+        /// <summary>
+        /// Homing missile with weaving path and target tracking.
+        /// Uses physics simulation with steering forces applied by V2MissileBehavior.
+        /// Missiles bloom outward at launch, then track and weave toward targets.
+        /// </summary>
+        Missile,
+
+        /// <summary>
+        /// Physics-driven missile using thruster forces for movement and steering.
+        /// Main rear thruster provides forward acceleration, side steering thrusters
+        /// apply lateral forces via AddForceAtPosition for realistic turning.
+        /// </summary>
+        ThrustMissile
     }
 }

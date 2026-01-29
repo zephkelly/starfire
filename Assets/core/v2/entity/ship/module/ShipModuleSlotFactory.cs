@@ -33,10 +33,10 @@ namespace StarfireV2
             { ShipModuleTypeId.PointDefense, c => new ShipModuleSlot<IDefensiveWeaponModule>(c) },
 
             // Sensors
-            { ShipModuleTypeId.SensorArray, c => new ShipModuleSlot<IShipModule>(c) },
+            { ShipModuleTypeId.SensorArray, c => new ShipModuleSlot<ISensorModule>(c) },
 
             // Comms
-            { ShipModuleTypeId.Transponder, c => new ShipModuleSlot<IShipModule>(c) },
+            { ShipModuleTypeId.Transponder, c => new ShipModuleSlot<ITransponderModule>(c) },
 
             // Utility
             { ShipModuleTypeId.CargoBay, c => new ShipModuleSlot<IShipModule>(c) },

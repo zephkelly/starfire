@@ -248,6 +248,12 @@ namespace Starfire.Core.Background.Layers
         [Range(0, 2)]
         public int regionEdgeMode = 0;
 
+        // === Fabric Color Distribution ===
+        [Header("Fabric Color Distribution")]
+        [Tooltip("How much to blend toward fabric-generated colors (0 = use authored colors, 1 = use fabric colors)")]
+        [Range(0f, 1f)]
+        public float fabricColorBlend = 0.8f;
+
         // Shader property IDs
         private static readonly int EnablePillarsID = Shader.PropertyToID("_EnablePillars");
         private static readonly int EnablePainterlyID = Shader.PropertyToID("_EnablePainterly");
@@ -403,8 +409,24 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(RegionFalloffID, regionFalloff);
             material.SetFloat(RegionEdgeModeID, regionEdgeMode);
 
-            // Per-layer fabric sampling
-            ApplyFabricProperties(material);
+            // Per-layer fabric sampling with color distribution
+            ApplyFabricPropertiesWithColors(material, fabricColorBlend);
+        }
+
+        /// <summary>
+        /// Apply fabric properties including color palette to the material.
+        /// </summary>
+        protected void ApplyFabricPropertiesWithColors(Material material, float colorBlend)
+        {
+            var bridge = WorldFabricBridge.Instance;
+            if (bridge == null)
+            {
+                // Fallback to standard fabric properties without colors
+                ApplyFabricProperties(material);
+                return;
+            }
+
+            bridge.ApplyFabricToMaterialWithColors(material, parallaxDepth, colorBlend);
         }
     }
 }

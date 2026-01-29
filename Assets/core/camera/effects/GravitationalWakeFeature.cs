@@ -25,7 +25,8 @@ namespace Starfire.Core.Cam.Effects
 
         // Shader property IDs
         private static readonly int WarpIntensityId = Shader.PropertyToID("_WarpIntensity");
-        private static readonly int WakeBubbleRadiusId = Shader.PropertyToID("_WakeBubbleRadius");
+        private static readonly int WakeExclusionRadiusId = Shader.PropertyToID("_WakeExclusionRadius");
+        private static readonly int WakeExclusionSoftnessId = Shader.PropertyToID("_WakeExclusionSoftness");
         private static readonly int WakeRingWidthId = Shader.PropertyToID("_WakeRingWidth");
         private static readonly int WakeTrailLengthId = Shader.PropertyToID("_WakeTrailLength");
         private static readonly int WakeDistortionStrengthId = Shader.PropertyToID("_WakeDistortionStrength");
@@ -61,9 +62,7 @@ namespace Starfire.Core.Cam.Effects
         // Ellipse shape property IDs
         private static readonly int WakeEllipseRatioId = Shader.PropertyToID("_WakeEllipseRatio");
         private static readonly int WakeNeedleSharpnessId = Shader.PropertyToID("_WakeNeedleSharpness");
-
-        // Bubble interior property ID
-        private static readonly int WakeBubbleInteriorDistortionId = Shader.PropertyToID("_WakeBubbleInteriorDistortion");
+        private static readonly int WakeFrontOffsetId = Shader.PropertyToID("_WakeFrontOffset");
 
         // Energy glow property IDs
         private static readonly int WakeEnergyGlowEnabledId = Shader.PropertyToID("_WakeEnergyGlowEnabled");
@@ -129,7 +128,8 @@ namespace Starfire.Core.Cam.Effects
             float modulatedStrength = config.distortionStrength * intensityMultiplier;
 
             // Set all wake shader globals
-            Shader.SetGlobalFloat(WakeBubbleRadiusId, config.bubbleRadius);
+            Shader.SetGlobalFloat(WakeExclusionRadiusId, config.exclusionRadius);
+            Shader.SetGlobalFloat(WakeExclusionSoftnessId, config.exclusionSoftness);
             Shader.SetGlobalFloat(WakeRingWidthId, config.ringWidth);
             Shader.SetGlobalFloat(WakeTrailLengthId, config.trailLength);
             Shader.SetGlobalFloat(WakeDistortionStrengthId, modulatedStrength);
@@ -165,9 +165,7 @@ namespace Starfire.Core.Cam.Effects
             // Ellipse shape
             Shader.SetGlobalFloat(WakeEllipseRatioId, config.ellipseRatio);
             Shader.SetGlobalFloat(WakeNeedleSharpnessId, config.needleSharpness);
-
-            // Bubble interior
-            Shader.SetGlobalFloat(WakeBubbleInteriorDistortionId, config.bubbleInteriorDistortion);
+            Shader.SetGlobalFloat(WakeFrontOffsetId, config.frontOffset);
 
             // Energy glow
             Shader.SetGlobalFloat(WakeEnergyGlowEnabledId, config.energyGlowEnabled ? 1f : 0f);

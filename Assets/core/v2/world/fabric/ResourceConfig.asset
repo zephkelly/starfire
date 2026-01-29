@@ -29,7 +29,7 @@ MonoBehaviour:
   gasBlobRadiusMin: 60000
   gasBlobRadiusMax: 250000
   gasBlobStrength: 0.9
-  gasFalloffPower: 2
+  gasFalloffPower: 1.4
   gasThreshold: 0.3
   exoticBlobSpacing: 400000
   exoticBlobRadiusMin: 15000

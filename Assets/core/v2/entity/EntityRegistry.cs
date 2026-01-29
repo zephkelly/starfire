@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Starfire.Entity.Modules.Transponder;
 
 namespace StarfireV2
 {
@@ -12,10 +11,10 @@ namespace StarfireV2
 
         public event Action<IEntityController> OnEntityRegistered;
         public event Action<IEntityController> OnEntityUnregistered;
-        // public event Action<IEntityController, TransponderData> OnTransponderDataChanged;
+        public event Action<IEntityController, V2TransponderData> OnTransponderDataChanged;
 
         private readonly HashSet<IEntityController> _allEntities = new();
-        private readonly Dictionary<FactionData, HashSet<IEntityController>> _entitiesByFaction = new();
+        private readonly Dictionary<V2FactionData, HashSet<IEntityController>> _entitiesByFaction = new();
         private readonly Dictionary<string, IEntityController> _entitiesById = new();
         public IReadOnlyCollection<IEntityController> AllEntities => _allEntities;
         public int EntityCount => _allEntities.Count;
@@ -102,17 +101,6 @@ namespace StarfireV2
             return entity;
         }
 
-        public IEnumerable<IEntityController> GetByFaction(FactionData faction)
-        {
-            if (faction == null)
-                return Enumerable.Empty<IEntityController>();
-
-            if (_entitiesByFaction.TryGetValue(faction, out var factionSet))
-                return factionSet;
-
-            return Enumerable.Empty<IEntityController>();
-        }
-
         public IEnumerable<IEntityController> GetInRange(Vector2 position, float range)
         {
             float rangeSqr = range * range;
@@ -131,35 +119,69 @@ namespace StarfireV2
             }
         }
 
-        // public IEnumerable<EntityControllerBase> GetInRangeWithTransponder(Vector2 position, float range)
-        // {
-        //     float rangeSqr = range * range;
+        /// <summary>
+        /// Gets all registered entities.
+        /// </summary>
+        public IEnumerable<IEntityController> GetAllEntities()
+        {
+            return _allEntities.Where(e => e != null);
+        }
 
-        //     foreach (var entity in _allEntities)
-        //     {
-        //         if (entity == null) continue;
+        /// <summary>
+        /// Gets all entities in range that have an active transponder.
+        /// </summary>
+        public IEnumerable<IEntityController> GetInRangeWithTransponder(Vector2 position, float range)
+        {
+            float rangeSqr = range * range;
 
-        //         var transponder = GetTransponder(entity);
-        //         if (transponder == null || !transponder.IsTransmitting) continue;
+            foreach (var entity in _allEntities)
+            {
+                if (entity == null) continue;
 
-        //         Vector2 entityPos = entity.Transform.position;
-        //         float distSqr = (entityPos - position).sqrMagnitude;
+                var transponder = GetTransponder(entity);
+                if (transponder == null || !transponder.IsTransmitting) continue;
 
-        //         if (distSqr <= rangeSqr)
-        //         {
-        //             yield return entity;
-        //         }
-        //     }
-        // }
+                Vector2 entityPos = entity.Transform.position;
+                float distSqr = (entityPos - position).sqrMagnitude;
 
-        // public void NotifyTransponderDataChanged(EntityControllerBase entity, TransponderData data)
-        // {
-        //     OnTransponderDataChanged?.Invoke(entity, data);
-        // }
+                if (distSqr <= rangeSqr)
+                {
+                    yield return entity;
+                }
+            }
+        }
 
-        // private static ITransponderShipModule GetTransponder(EntityControllerBase entity)
-        // {
-        //     return entity.Systems?.GetAllModulesOfType<ITransponderShipModule>().FirstOrDefault();
-        // }
+        /// <summary>
+        /// Gets entities by v2 faction.
+        /// </summary>
+        public IEnumerable<IEntityController> GetByFaction(V2FactionData faction)
+        {
+            if (faction == null)
+                return Enumerable.Empty<IEntityController>();
+
+            if (_entitiesByFaction.TryGetValue(faction, out var factionSet))
+                return factionSet;
+
+            return Enumerable.Empty<IEntityController>();
+        }
+
+        /// <summary>
+        /// Notifies the registry that an entity's transponder data has changed.
+        /// </summary>
+        public void NotifyTransponderDataChanged(IEntityController entity, V2TransponderData data)
+        {
+            OnTransponderDataChanged?.Invoke(entity, data);
+        }
+
+        private static ITransponderModule GetTransponder(IEntityController entity)
+        {
+            if (entity is ShipController shipController)
+            {
+                return shipController.Ship?.Modules
+                    ?.GetAllModulesOfType<ITransponderModule>()
+                    ?.FirstOrDefault();
+            }
+            return null;
+        }
     }
 }

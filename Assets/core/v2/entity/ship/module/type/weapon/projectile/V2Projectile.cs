@@ -1,3 +1,5 @@
+using Starfire.Core.V3.Cam.Effects;
+using StarfireV2.Pooling;
 using UnityEngine;
 
 namespace StarfireV2
@@ -5,10 +7,11 @@ namespace StarfireV2
     /// <summary>
     /// Physics-based projectile component. Attach to projectile prefabs.
     /// Uses Rigidbody2D for movement and trigger collisions for hit detection.
+    /// Implements IPoolable for object pooling support.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
-    public class V2Projectile : MonoBehaviour
+    public class V2Projectile : MonoBehaviour, IPoolable
     {
         private IEntityController _owner;
         private float _damage;
@@ -17,15 +20,114 @@ namespace StarfireV2
         private LayerMask _hitLayers;
         private bool _destroyOnHit;
         private int _remainingPenetrations;
+        private int _initialPenetrations;
         private float _lifetime;
+        private float _elapsedTime;
 
         private Rigidbody2D _rigidbody;
+        private Collider2D _collider;
+        private TrailRenderer _trail;
+        private SpriteRenderer _spriteRenderer;
         private bool _consumed;
+        private bool _isActive;
+
+        // Pool tracking
+        private GameObject _sourcePrefab;
+        private bool _usePooling = true;
 
         /// <summary>
         /// The entity controller that fired this projectile.
         /// </summary>
         public IEntityController Owner => _owner;
+
+        /// <summary>
+        /// Whether this projectile is currently active (not in pool).
+        /// </summary>
+        public bool IsActive => _isActive;
+
+        /// <summary>
+        /// The source prefab this projectile was instantiated from.
+        /// Used for returning to the correct pool.
+        /// </summary>
+        public GameObject SourcePrefab => _sourcePrefab;
+
+        #region IPoolable Implementation
+
+        public bool OnPoolGet()
+        {
+            _isActive = true;
+            _consumed = false;
+            _elapsedTime = 0f;
+            return true;
+        }
+
+        public void OnPoolReturn()
+        {
+            _isActive = false;
+            ResetState();
+        }
+
+        private void ResetState()
+        {
+            _owner = null;
+            _damage = 0f;
+            _damageConfig = null;
+            _impactConfig = null;
+            _hitLayers = default;
+            _destroyOnHit = true;
+            _remainingPenetrations = 0;
+            _lifetime = 0f;
+            _elapsedTime = 0f;
+            _consumed = false;
+
+            // Reset physics
+            if (_rigidbody == null)
+            {
+                _rigidbody = GetComponent<Rigidbody2D>();
+            }
+
+            if (_rigidbody != null)
+            {
+                _rigidbody.linearVelocity = Vector2.zero;
+                _rigidbody.angularVelocity = 0f;
+            }
+
+            // Clear trail
+            if (_trail == null)
+            {
+                _trail = GetComponent<TrailRenderer>();
+            }
+
+            if (_trail != null)
+            {
+                _trail.Clear();
+            }
+
+            // Reset transform
+            transform.position = Vector3.zero;
+            transform.rotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Sets the source prefab for pool return tracking.
+        /// Call this immediately after getting from pool.
+        /// </summary>
+        public void SetSourcePrefab(GameObject prefab)
+        {
+            _sourcePrefab = prefab;
+        }
+
+        /// <summary>
+        /// Disables pooling for this projectile instance.
+        /// It will be destroyed instead of returned to pool.
+        /// </summary>
+        public void DisablePooling()
+        {
+            _usePooling = false;
+        }
 
         /// <summary>
         /// Initializes the projectile with spawn context data.
@@ -52,9 +154,27 @@ namespace StarfireV2
             _hitLayers = hitLayers;
             _destroyOnHit = destroyOnHit;
             _remainingPenetrations = maxPenetrations;
+            _initialPenetrations = maxPenetrations;
             _lifetime = lifetime;
+            _elapsedTime = 0f;
+            _consumed = false;
+            _isActive = true;
 
-            _rigidbody = GetComponent<Rigidbody2D>();
+            // Cache components
+            if (_rigidbody == null)
+            {
+                _rigidbody = GetComponent<Rigidbody2D>();
+            }
+
+            if (_collider == null)
+            {
+                _collider = GetComponent<Collider2D>();
+            }
+
+            if (_trail == null)
+            {
+                _trail = GetComponent<TrailRenderer>();
+            }
 
             if (_rigidbody == null)
             {
@@ -77,18 +197,57 @@ namespace StarfireV2
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
 
             // Ensure collider is trigger
-            var collider = GetComponent<Collider2D>();
-            if (collider != null)
+            if (_collider != null)
             {
-                collider.isTrigger = true;
+                _collider.isTrigger = true;
             }
             else
             {
                 Debug.LogWarning("[V2Projectile] No Collider2D found on projectile!");
             }
 
-            // Schedule destruction
-            Destroy(gameObject, lifetime);
+            // Note: No longer using Destroy(gameObject, lifetime)
+            // Lifetime is tracked in Update() for pooling support
+        }
+
+        private void Update()
+        {
+            if (!_isActive) return;
+
+            _elapsedTime += Time.deltaTime;
+
+            if (_elapsedTime >= _lifetime)
+            {
+                ReturnToPool();
+            }
+        }
+
+        /// <summary>
+        /// Forces the projectile to be destroyed or returned to pool immediately.
+        /// Called externally when the projectile should be removed (e.g., missile shot down by point defense).
+        /// </summary>
+        public void ForceDestroy()
+        {
+            ReturnToPool();
+        }
+
+        /// <summary>
+        /// Returns this projectile to its pool, or destroys it if pooling is disabled.
+        /// </summary>
+        private void ReturnToPool()
+        {
+            if (_consumed) return;
+            _consumed = true;
+
+            if (_usePooling && ProjectilePoolManager.Instance != null && _sourcePrefab != null)
+            {
+                ProjectilePoolManager.Instance.ReturnPhysicsProjectile(gameObject, _sourcePrefab);
+            }
+            else
+            {
+                // Fallback to destroy if no pooling available
+                Destroy(gameObject);
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -138,15 +297,9 @@ namespace StarfireV2
             }
             else if (_destroyOnHit)
             {
-                Debug.Log($"[V2Projectile] Destroying projectile after hit");
-                _consumed = true;
-                Destroy(gameObject);
+                Debug.Log($"[V2Projectile] Returning projectile to pool after hit");
+                ReturnToPool();
             }
-        }
-
-        private void OnDestroy()
-        {
-            Debug.Log($"[V2Projectile] OnDestroy - consumed={_consumed}, lifetime={_lifetime}, position={transform.position}");
         }
 
         private void ApplyDamage(IV2DamageReceiver receiver, Collider2D collider)
@@ -192,6 +345,12 @@ namespace StarfireV2
             if (_impactConfig.impactSound != null)
             {
                 AudioSource.PlayClipAtPoint(_impactConfig.impactSound, hitPoint, _impactConfig.soundVolume);
+            }
+
+            // Trigger screen shake
+            if (_impactConfig.screenShakeConfig != null)
+            {
+                V3CameraShakeService.Instance?.TriggerImpactShake(hitPoint, hitNormal, _impactConfig.screenShakeConfig);
             }
         }
 

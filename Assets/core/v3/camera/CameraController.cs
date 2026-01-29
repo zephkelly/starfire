@@ -1,6 +1,6 @@
 using Starfire.Core.Cam;
-using Starfire.Core.Cam.Effects;
 using Starfire.Core.V3.Cam.Config;
+using Starfire.Core.V3.Cam.Effects;
 using UnityEngine;
 
 namespace Starfire.Core.V3.Cam
@@ -19,17 +19,17 @@ namespace Starfire.Core.V3.Cam
         private Vector2 _currentAimOffset;
         private Vector2 _aimOffsetVelocity;
 
-        // Wake exclusion
-        private WakeExclusionSource _exclusionSource;
-
         // Zoom
         private float _targetZoom;
         private float _zoomVelocity;
 
-        // Wake effect position
+        // Effects
+        private V3CameraEffectsManager _effectsManager;
+        private V3CameraShakeService _shakeService;
+
+        // Wake effect
         private static readonly int WakeCenterPositionId = Shader.PropertyToID("_WakeCenterPosition");
         private static readonly int WakeOrthoSizeId = Shader.PropertyToID("_WakeOrthoSize");
-        private static readonly int WakeShipExclusionRadiusId = Shader.PropertyToID("_WakeShipExclusionRadius");
 
         // Starfield shader globals
         private static readonly int CameraOrthoSizeId = Shader.PropertyToID("_CameraOrthoSize");
@@ -40,6 +40,10 @@ namespace Starfire.Core.V3.Cam
         {
             _camera = GetComponent<Camera>();
             _targetZoom = _camera.orthographicSize;
+
+            // Initialize effects system
+            _effectsManager = new V3CameraEffectsManager();
+            _shakeService = gameObject.AddComponent<V3CameraShakeService>();
         }
 
         private void Start()
@@ -61,10 +65,16 @@ namespace Starfire.Core.V3.Cam
             {
                 _targetZoom = preset.orthographicSize;
                 _camera.orthographicSize = _targetZoom;
+
+                // Configure effects from preset
+                if (preset.screenShakeConfig != null)
+                {
+                    _effectsManager.SetConfig(preset.screenShakeConfig);
+                }
             }
 
-            // Find wake exclusion source (typically on player ship)
-            _exclusionSource = FindFirstObjectByType<WakeExclusionSource>();
+            // Initialize shake service with references
+            _shakeService.Initialize(_effectsManager, _camera);
         }
 
         private void LateUpdate()
@@ -116,7 +126,15 @@ namespace Starfire.Core.V3.Cam
                 pos += _currentAimOffset;
             }
 
-            transform.position = new Vector3(pos.x, pos.y, transform.position.z);
+            // Update and apply camera effects (shake, punch)
+            _effectsManager.Update(Time.deltaTime);
+
+            Vector3 finalPos = new Vector3(pos.x, pos.y, transform.position.z);
+            float rotation = 0f;
+            _effectsManager.ApplyEffects(ref finalPos, ref rotation);
+
+            transform.position = finalPos;
+            transform.rotation = Quaternion.Euler(0f, 0f, rotation);
 
             // Zoom
             UpdateZoom();
@@ -138,7 +156,6 @@ namespace Starfire.Core.V3.Cam
         private void UpdateWakePosition()
         {
             // Ship is offset from screen center by the inverse of aim offset
-            // Convert world-space offset to normalized screen space (0-1)
             Vector2 aimOffsetScreen = _currentAimOffset / (_camera.orthographicSize * 2f);
             aimOffsetScreen.x /= _camera.aspect;
 
@@ -147,17 +164,6 @@ namespace Starfire.Core.V3.Cam
 
             // Pass orthographic size for wake effect zoom scaling
             Shader.SetGlobalFloat(WakeOrthoSizeId, _camera.orthographicSize);
-
-            // Ship exclusion radius - convert world radius to screen-space
-            float exclusionRadius = 0f;
-            if (_exclusionSource != null)
-            {
-                float worldRadius = _exclusionSource.WorldRadius;
-                // Convert world radius to normalized screen space (0-1 range)
-                // Screen height in world units = orthographicSize * 2
-                exclusionRadius = worldRadius / (_camera.orthographicSize * 2f);
-            }
-            Shader.SetGlobalFloat(WakeShipExclusionRadiusId, exclusionRadius);
         }
 
         private void UpdateZoom()

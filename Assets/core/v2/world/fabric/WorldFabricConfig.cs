@@ -10,6 +10,7 @@ namespace StarfireV2
     {
         [Header("Layer Configs")]
         public SpaceZoneConfig spaceZoneConfig;
+        public ColorDistributionConfig colorDistributionConfig;
         public ResourceConfig resourceConfig;
         public FactionConfig factionConfig;
         // Future: StarSystemConfig, POIConfig, HazardConfig

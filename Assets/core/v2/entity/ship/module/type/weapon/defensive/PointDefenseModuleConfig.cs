@@ -46,6 +46,24 @@ namespace StarfireV2
         [Tooltip("How often to scan for new threats (seconds).")]
         [SerializeField] private float scanInterval = 0.1f;
 
+        [Header("Accuracy")]
+        [Tooltip("Base accuracy percentage (0-100). At 100%, shots are perfectly aimed. At 0%, shots deviate by max spread angle.")]
+        [Range(0f, 100f)]
+        [SerializeField] private float accuracyPercent = 72f;
+
+        [Tooltip("Maximum angular deviation in degrees when accuracy is 0%.")]
+        [SerializeField] private float maxSpreadAngle = 15f;
+
+        [Tooltip("Whether accuracy decreases with distance to target.")]
+        [SerializeField] private bool accuracyDecayOverRange = false;
+
+        [Tooltip("Curve defining how accuracy falls off with range (0 = point blank, 1 = max range). Only used if accuracyDecayOverRange is true.")]
+        [SerializeField] private AnimationCurve rangeAccuracyFalloff = AnimationCurve.Linear(0f, 1f, 1f, 0.8f);
+
+        [Header("Sensor Integration")]
+        [Tooltip("Whether to use sensor module for threat detection. Falls back to direct physics if no sensor is available.")]
+        [SerializeField] private bool useSensorIntegration = true;
+
         [Header("Turret Settings")]
         [Tooltip("Configuration for turret rotation. Point defense is typically always a turret.")]
         [SerializeField] private V2TurretSettings turretSettings;
@@ -61,6 +79,10 @@ namespace StarfireV2
         [Tooltip("Prefab for the point defense visual instantiated at hardpoint.")]
         [SerializeField] private GameObject weaponVisualPrefab;
 
+        [Header("Screen Shake")]
+        [Tooltip("Configuration for camera screen shake when firing.")]
+        [SerializeField] private V2FireShakeConfig fireShakeConfig;
+
         // Public accessors
         public string ModuleId => moduleId;
         public string DisplayName => displayName;
@@ -73,10 +95,16 @@ namespace StarfireV2
         public int MaxTrackedTargets => maxTrackedTargets;
         public LayerMask ThreatLayers => threatLayers;
         public float ScanInterval => scanInterval;
+        public float AccuracyPercent => accuracyPercent;
+        public float MaxSpreadAngle => maxSpreadAngle;
+        public bool AccuracyDecayOverRange => accuracyDecayOverRange;
+        public AnimationCurve RangeAccuracyFalloff => rangeAccuracyFalloff;
+        public bool UseSensorIntegration => useSensorIntegration;
         public V2TurretSettings TurretSettings => turretSettings ?? GetDefaultTurretSettings();
         public V2ProjectileConfig ProjectileConfig => projectileConfig;
         public GameObject ProjectilePrefab => projectilePrefab;
         public GameObject WeaponVisualPrefab => weaponVisualPrefab;
+        public V2FireShakeConfig FireShakeConfig => fireShakeConfig;
 
         // IShipModuleConfig implementation
         public ShipModuleTypeId TypeId => ShipModuleTypeId.PointDefense;
@@ -118,6 +146,14 @@ namespace StarfireV2
             if (trackingSpeed <= 0) trackingSpeed = 1f;
             if (maxTrackedTargets <= 0) maxTrackedTargets = 1;
             if (scanInterval <= 0) scanInterval = 0.1f;
+            if (maxSpreadAngle < 0) maxSpreadAngle = 0f;
+            if (maxSpreadAngle > 90f) maxSpreadAngle = 90f;
+
+            // Ensure falloff curve exists with sensible defaults
+            if (rangeAccuracyFalloff == null || rangeAccuracyFalloff.keys.Length == 0)
+            {
+                rangeAccuracyFalloff = AnimationCurve.Linear(0f, 1f, 1f, 0.8f);
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 using UnityEngine;
 using Starfire.Core;
-using Starfire.Core.Cam.Effects;
 using Starfire.Entity.Modules;
 using Starfire.Entity.Modules.Shield;
 using Starfire.Entity.Modules.Weapon;
@@ -38,12 +37,6 @@ namespace Starfire.Entity
 
             playerDriver = new PlayerDriver(inputProvider, priority: 10);
             shipController.DriverStack.Push(playerDriver);
-
-            // Add wake distortion exclusion so the ship isn't affected by gravitational lensing
-            if (GetComponent<WakeExclusionSource>() == null)
-            {
-                gameObject.AddComponent<WakeExclusionSource>();
-            }
         }
 
         private void OnDestroy()

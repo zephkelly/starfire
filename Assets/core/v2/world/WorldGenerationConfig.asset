@@ -20,6 +20,8 @@ MonoBehaviour:
   chunksPerFrame: 2
   maxLoadedChunks: 100
   nebulaConfig: {fileID: 11400000, guid: 728fd23ab32a8a942a57f47824d1b424, type: 2}
+  fabricNebulaConfig: {fileID: 11400000, guid: 27b501ac04207ed42b4ce0249b6f7792, type: 2}
+  useFabricNebulaGeneration: 1
   enableDebugGizmos: 1
   chunkBoundsColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.3}
   loadedChunkColor: {r: 0, g: 1, b: 0, a: 0.2}
