@@ -10,10 +10,10 @@ namespace Starfire.Core.V2.World.Chunk
     /// </summary>
     public readonly struct ChunkCoord : IEquatable<ChunkCoord>
     {
-        public readonly int X;
-        public readonly int Y;
+        public readonly long X;
+        public readonly long Y;
 
-        public ChunkCoord(int x, int y)
+        public ChunkCoord(long x, long y)
         {
             X = x;
             Y = y;
@@ -26,8 +26,8 @@ namespace Starfire.Core.V2.World.Chunk
         /// <param name="chunkSize">Size of each chunk in world units</param>
         public static ChunkCoord FromWorldPosition(Vector2 worldPos, float chunkSize)
         {
-            int x = Mathf.FloorToInt(worldPos.x / chunkSize);
-            int y = Mathf.FloorToInt(worldPos.y / chunkSize);
+            long x = (long)Math.Floor(worldPos.x / chunkSize);
+            long y = (long)Math.Floor(worldPos.y / chunkSize);
             return new ChunkCoord(x, y);
         }
 
@@ -38,8 +38,8 @@ namespace Starfire.Core.V2.World.Chunk
         /// <param name="chunkSize">Size of each chunk in world units</param>
         public static ChunkCoord FromAbsolutePosition(Vector2D absolutePos, double chunkSize)
         {
-            int x = (int)Math.Floor(absolutePos.X / chunkSize);
-            int y = (int)Math.Floor(absolutePos.Y / chunkSize);
+            long x = (long)Math.Floor(absolutePos.X / chunkSize);
+            long y = (long)Math.Floor(absolutePos.Y / chunkSize);
             return new ChunkCoord(x, y);
         }
 
@@ -123,7 +123,7 @@ namespace Starfire.Core.V2.World.Chunk
         /// <summary>
         /// Calculate Manhattan distance to another chunk coordinate.
         /// </summary>
-        public int ManhattanDistance(ChunkCoord other)
+        public long ManhattanDistance(ChunkCoord other)
         {
             return Math.Abs(X - other.X) + Math.Abs(Y - other.Y);
         }
@@ -131,7 +131,7 @@ namespace Starfire.Core.V2.World.Chunk
         /// <summary>
         /// Calculate Chebyshev distance (max of x/y difference) to another chunk coordinate.
         /// </summary>
-        public int ChebyshevDistance(ChunkCoord other)
+        public long ChebyshevDistance(ChunkCoord other)
         {
             return Math.Max(Math.Abs(X - other.X), Math.Abs(Y - other.Y));
         }
@@ -150,8 +150,8 @@ namespace Starfire.Core.V2.World.Chunk
         {
             unchecked
             {
-                // Optimized hash for grid coordinates
-                return (X * 397) ^ Y;
+                // Delegate to long's GetHashCode for proper distribution at large coords
+                return (X.GetHashCode() * 397) ^ Y.GetHashCode();
             }
         }
 

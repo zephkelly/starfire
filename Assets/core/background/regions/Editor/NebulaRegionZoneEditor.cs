@@ -48,14 +48,14 @@ namespace Starfire.Core.Background.Regions.Editor
                 // Show config info
                 EditorGUI.indentLevel++;
                 EditorGUILayout.LabelField("Edge Behavior", zone.Config.edgeBehavior.ToString());
-                EditorGUILayout.LabelField("Nebula Type", zone.Config.useStylizedNebula ? "Stylized" : "Basic");
-                if (zone.Config.useStylizedNebula && zone.Config.stylizedPreset != null)
-                {
-                    EditorGUILayout.LabelField("Preset", zone.Config.stylizedPreset.name);
-                }
-                else if (!zone.Config.useStylizedNebula && zone.Config.nebulaPreset != null)
+                EditorGUILayout.LabelField("Nebula Type", zone.Config.useNebula ? "Nebula" : "Gas Cloud");
+                if (zone.Config.useNebula && zone.Config.nebulaPreset != null)
                 {
                     EditorGUILayout.LabelField("Preset", zone.Config.nebulaPreset.name);
+                }
+                else if (!zone.Config.useNebula && zone.Config.gasCloudPreset != null)
+                {
+                    EditorGUILayout.LabelField("Preset", zone.Config.gasCloudPreset.name);
                 }
                 EditorGUI.indentLevel--;
             }

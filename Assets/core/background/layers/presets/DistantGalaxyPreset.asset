@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a4543efd5d394341a620c3fc38d57bc, type: 3}
+  m_Name: DistantGalaxyPreset
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Background.Presets.GalaxyLayerPreset
+  parallaxDepth: 0.000001
+  galaxyCellSize: 1.88
+  galaxySpawnChance: 1
+  galaxySizeMin: 0.071
+  galaxySizeMax: 0.54
+  armCount: 2.53
+  armWinding: 0.73
+  armSpread: 0.3
+  armFalloff: 1.91
+  coreSize: 0.012
+  coreBrightness: 0.5
+  coreFalloff: 1
+  starDensity: 20
+  starBrightness: 0.17
+  starSizeMin: 0.0188
+  starSizeMax: 0.119
+  starFalloff: 2.12
+  starConcentration: 9.92
+  supergiantChance: 0
+  supergiantSize: 0.1
+  supergiantBrightness: 1
+  spikeLength: 0
+  spikeWidth: 0.001
+  blueStarChance: 0.3
+  redStarChance: 0.15
+  yellowStarChance: 0.25
+  colorBlue: {r: 0.6, g: 0.7, b: 1, a: 1}
+  colorRed: {r: 1, g: 0.5, b: 0.3, a: 1}
+  colorYellow: {r: 1, g: 0.95, b: 0.7, a: 1}
+  colorWhite: {r: 1, g: 1, b: 1, a: 1}
+  dustIntensity: 0.221
+  dustNoiseScale: 1
+  dustWarpStrength: 0.512
+  haloSize: 0.898
+  haloIntensity: 0.036
+  haloFalloff: 2.78
+  colorCore: {r: 1, g: 0.8, b: 0.91989934, a: 1}
+  colorMid: {r: 0.3820755, g: 0.5335276, b: 1, a: 1}
+  colorOuter: {r: 0.31118724, g: 0.3589921, b: 0.5943396, a: 1}
+  overallBrightness: 1.05
+  opacity: 0.263
+  ellipticityRange: 0.3
+  tiltRange: 1
+  zoomResponse: 0
+  renderBackground: 0
+  backgroundColor: {r: 0, g: 0, b: 0, a: 1}
+  seed: 0

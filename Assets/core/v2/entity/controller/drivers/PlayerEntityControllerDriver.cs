@@ -117,6 +117,8 @@ namespace StarfireV2
         private void HandleHyperdrivePressed() => hyperdrivePressed = true;
         private void HandleHyperdriveReleased() => hyperdrivePressed = false;
 
+        public bool HasAimTarget => true; // Player always has mouse/stick aim
+
         public Vector2 GetMovementDirection() => movementDirection;
         public float GetThrottle() => 1f;
         public Vector2 GetDesiredAcceleration() => Vector2.zero;  // Player uses direction/throttle

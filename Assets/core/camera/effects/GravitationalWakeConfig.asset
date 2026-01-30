@@ -51,10 +51,10 @@ MonoBehaviour:
   chromaEnabled: 1
   chromaStrength: 0.01269
   activationThreshold: 0.073
-  pulseSpeed: 0.82
+  pulseSpeed: 1.01
   pulseAmount: 0.0553
   rippleCount: 2.06
-  rippleSpeed: 0.182
+  rippleSpeed: 0.193
   rippleStrength: 0.139
   noiseScale: 10.63
   noiseSpeed: 0.913

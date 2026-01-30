@@ -178,11 +178,8 @@ namespace StarfireV2
         {
             if (!CanFire)
             {
-                Debug.Log($"[V2Weapon] Fire failed: CanFire=false (IsEnabled={IsEnabled}, Cooldown={_cooldownTimer:F2}, IsTurret={IsTurret})");
                 return false;
             }
-
-            Debug.Log($"[V2Weapon] Firing '{_config.DisplayName}'");
 
             // Set cooldown
             _cooldownTimer = 1f / FireRate;
@@ -202,9 +199,6 @@ namespace StarfireV2
                 return;
             }
 
-            Debug.Log($"[V2Weapon] ProjectileConfig mode: {projConfig.mode}");
-
-            // Physics mode requires a prefab
             if (projConfig.mode == V2ProjectileMode.Physics && _config.ProjectilePrefab == null)
             {
                 Debug.LogWarning($"[V2Weapon] '{_config.DisplayName}' has no projectile prefab for Physics mode");
@@ -219,20 +213,17 @@ namespace StarfireV2
             {
                 spawnPos = _visual.GetMuzzlePosition();
                 direction = _visual.GetMuzzleDirection();
-                Debug.Log($"[V2Weapon] Using visual: pos={spawnPos}, dir={direction}");
             }
             else if (_hardpoint != null)
             {
                 spawnPos = _hardpoint.MountPoint.position;
                 direction = _hardpoint.WorldFiringDirection;
-                Debug.Log($"[V2Weapon] Using hardpoint: pos={spawnPos}, dir={direction}");
             }
             else if (_controller != null)
             {
                 // Fallback: spawn from controller position, fire in aim direction
                 spawnPos = _controller.Transform.position;
                 direction = _aimDirection;
-                Debug.Log($"[V2Weapon] Using controller fallback: pos={spawnPos}, dir={direction}");
             }
             else
             {
@@ -245,7 +236,6 @@ namespace StarfireV2
             if (turretSettings != null && turretSettings.targetingMode == V2TargetingMode.MouseCursor)
             {
                 direction = _aimDirection;
-                Debug.Log($"[V2Weapon] Mouse targeting override: dir={direction}");
             }
 
             // Calculate inherited velocity if enabled
@@ -268,7 +258,6 @@ namespace StarfireV2
                 ProjectilePrefab = _config.ProjectilePrefab
             };
 
-            Debug.Log($"[V2Weapon] Calling V2ProjectileSpawner.Spawn() at {spawnPos}");
             V2ProjectileSpawner.Spawn(context);
 
             // Trigger fire shake (recoil)

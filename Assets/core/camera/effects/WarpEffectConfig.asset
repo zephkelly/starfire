@@ -45,9 +45,9 @@ MonoBehaviour:
   trailingFadeStart: 0.1
   blendTransitionRange: 0.2337
   tailTaperPower: 0.449
-  wobbleIntensity: 0.048
+  wobbleIntensity: 0
   wobbleFrequency: 11.62
-  wobbleSpeed: 1.24
+  wobbleSpeed: 0
   distantLayerMinEffect: 1
   parallaxDepthMultiplier: 1.47
   maxLensDistortion: -0.353

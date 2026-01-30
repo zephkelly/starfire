@@ -127,11 +127,14 @@ Shader "Starfire/StarfieldMultiLayer"
             // Per-depth seeds
             float _DepthSeeds[MAX_DEPTHS];
 
-            // Set from script
-            float2 _CameraWorldPos;
+            // Set from script (globals)
+            float2 _CameraWorldPos; // Local Unity camera pos (near origin)
             float _ScreenAspect;
             float _CameraOrthoSize;
             float _ReferenceZoom;
+
+            // Per-depth parallax offsets (computed in double precision on CPU)
+            float4 _DepthParallaxOffsets[MAX_DEPTHS];
 
             // PCG-style hash functions
             float hash1(float2 p)
@@ -319,9 +322,8 @@ Shader "Starfire/StarfieldMultiLayer"
                     // Scale UVs around center point
                     float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
 
-                    // Apply parallax offset
-                    float2 parallaxOffset = _CameraWorldPos * parallax;
-                    float2 parallaxUV = scaledUV + parallaxOffset;
+                    // Apply parallax offset (pre-computed on CPU in double precision)
+                    float2 parallaxUV = scaledUV + _DepthParallaxOffsets[d].xy;
 
                     // Warp star density reduction — parallax-aware per depth
                     float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,

@@ -15,7 +15,7 @@ MonoBehaviour:
   moduleId: shield_module
   displayName: Shield Module
   tier: 1
-  maxShield: 1000
+  maxShield: 10000
   regenRate: 5
   rechargeDelay: 3
   damageResistances: {fileID: 0}

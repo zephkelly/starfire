@@ -134,6 +134,9 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(ClusterAmountID, clusterAmount);
             material.SetFloat(ClusterScaleID, clusterScale);
 
+            // Per-layer parallax offset (double-precision, fmod'd for float safety)
+            ApplyParallaxOffset(material);
+
             // Per-layer fabric sampling
             ApplyFabricProperties(material);
         }

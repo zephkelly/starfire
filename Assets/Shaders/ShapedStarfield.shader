@@ -2,6 +2,9 @@ Shader "Starfire/ShapedStarfield"
 {
     Properties
     {
+        [Header(MultiDepth Configuration)]
+        [IntRange] _DepthCount ("Active Depth Count", Range(0, 8)) = 0
+
         [Header(Star Field)]
         _StarDensity ("Star Density", Range(1, 100)) = 20
         _SpawnChance ("Spawn Chance", Range(0, 1)) = 0.8
@@ -88,6 +91,7 @@ Shader "Starfire/ShapedStarfield"
             };
 
             #define MAX_SHAPES 4
+            #define MAX_DEPTHS 8
 
             CBUFFER_START(UnityPerMaterial)
                 float _StarDensity;
@@ -110,6 +114,7 @@ Shader "Starfire/ShapedStarfield"
                 float _ClusterAmount;
                 float _ClusterScale;
                 int _ShapeCount;
+                float _DepthCount;
 
                 // World Fabric properties (set per-material by WorldFabricBridge)
                 float _FabricNebulaDensity;
@@ -123,6 +128,14 @@ Shader "Starfire/ShapedStarfield"
                 float _FabricAnomalyShift;
             CBUFFER_END
 
+            // Per-depth arrays (set from C#, outside CBUFFER for compatibility)
+            // x = parallax, y = density, z = sizeMin, w = sizeMax
+            float4 _DepthParams[MAX_DEPTHS];
+            // Per-depth colors
+            float4 _DepthColors[MAX_DEPTHS];
+            // Per-depth seeds
+            float _DepthSeeds[MAX_DEPTHS];
+
             // Per-shape arrays (set from C#)
             // x = shapeType, y = spawnWeight, z = sizeMin, w = sizeMax
             float4 _ShapeParams[MAX_SHAPES];
@@ -133,11 +146,15 @@ Shader "Starfire/ShapedStarfield"
             // Cumulative weights for shape selection (precomputed on CPU)
             float4 _CumulativeWeights;
 
-            // Set from script
-            float2 _CameraWorldPos;
+            // Set from script (globals)
+            float2 _CameraWorldPos; // Local Unity camera pos (near origin)
             float _ScreenAspect;
             float _CameraOrthoSize;
             float _ReferenceZoom;
+
+            // Per-material parallax offset (computed in double precision on CPU)
+            float2 _ParallaxOffset;
+            float4 _DepthParallaxOffsets[MAX_DEPTHS];
 
             // Warp effect globals (set by WarpEffectController)
             float _WarpIntensity;
@@ -295,7 +312,9 @@ Shader "Starfire/ShapedStarfield"
             }
 
             // Generate stars with multiple shapes
-            float3 shapedStars(float2 uv, float density, float spawnChance, float twinkleSpeed, float twinkleAmount, float time, float aspect, float warmCool, float layerSeed, float clusterAmount, float clusterScale, int shapeCount)
+            // sizeMinOverride/sizeMaxOverride: when >= 0, override per-shape sizes
+            // colorTint: multiplied into per-shape colors
+            float3 shapedStars(float2 uv, float density, float spawnChance, float twinkleSpeed, float twinkleAmount, float time, float aspect, float warmCool, float layerSeed, float clusterAmount, float clusterScale, int shapeCount, float sizeMinOverride, float sizeMaxOverride, float3 colorTint, float parallaxFactor)
             {
                 float3 result = float3(0, 0, 0);
 
@@ -344,8 +363,8 @@ Shader "Starfire/ShapedStarfield"
                         float4 shapeColor = _ShapeColors[shapeIndex];
 
                         int shapeType = (int)shapeParams.x;
-                        float sizeMin = shapeParams.z;
-                        float sizeMax = shapeParams.w;
+                        float sizeMin = (sizeMinOverride >= 0.0) ? sizeMinOverride : shapeParams.z;
+                        float sizeMax = (sizeMaxOverride >= 0.0) ? sizeMaxOverride : shapeParams.w;
                         float edgeSharpness = shapeVisuals.x;
                         float colorVariation = shapeVisuals.y;
                         float brightnessMin = shapeVisuals.z;
@@ -390,7 +409,7 @@ Shader "Starfire/ShapedStarfield"
                             // During warp, all shapes become streaks (SDF shapes don't make sense when stretched)
 
                             // Depth-based warp scaling: distant layers (low parallax) streak less
-                            float depthWarpScale = lerp(_WarpDistantMinEffect, 1.0, saturate(_ParallaxFactor * _WarpParallaxMultiplier));
+                            float depthWarpScale = lerp(_WarpDistantMinEffect, 1.0, saturate(parallaxFactor * _WarpParallaxMultiplier));
                             float effectiveStretch = lerp(1.0, _WarpStretch, depthWarpScale);
                             float effectiveIntensity = _WarpIntensity * depthWarpScale;
 
@@ -475,8 +494,8 @@ Shader "Starfire/ShapedStarfield"
                             star = lerp(normalStar, streakStar, blendFactor);
                         }
 
-                        // Get per-star color
-                        float3 starColorFinal = getStarColor(neighborCell, shapeColor.rgb, colorVariation, warmCool);
+                        // Get per-star color (apply depth color tint)
+                        float3 starColorFinal = getStarColor(neighborCell, shapeColor.rgb * colorTint, colorVariation, warmCool);
 
                         // Minimal brightness boost during warp (keeps streaks clean)
                         float brightnessBoost = _WarpBrightnessBoost > 0.001 ? _WarpBrightnessBoost : 1.0;
@@ -500,42 +519,92 @@ Shader "Starfire/ShapedStarfield"
             half4 frag(Varyings IN) : SV_Target
             {
                 float2 uv = IN.uv;
-
-                // Calculate zoom factor
                 float zoomFactor = _CameraOrthoSize / _ReferenceZoom;
+                float3 starValue = float3(0, 0, 0);
 
-                // Depth-aware zoom: distant layers (low parallax) zoom less, nearby layers zoom more
-                float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
+                int depthCount = (int)_DepthCount;
 
-                // Scale UVs around center
-                float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+                if (depthCount > 0)
+                {
+                    // Multi-depth mode: loop through depth layers
+                    depthCount = min(depthCount, MAX_DEPTHS);
+                    for (int d = 0; d < depthCount; d++)
+                    {
+                        float parallax = _DepthParams[d].x;
+                        float dDensity = _DepthParams[d].y;
+                        float dSizeMin = _DepthParams[d].z;
+                        float dSizeMax = _DepthParams[d].w;
+                        float3 depthColor = _DepthColors[d].rgb;
+                        float dSeed = _DepthSeeds[d];
 
-                // Apply parallax offset
-                float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
-                float2 parallaxUV = scaledUV + parallaxOffset;
+                        // Depth-aware zoom
+                        float depthZoomFactor = lerp(1.0, zoomFactor, saturate(parallax * 10.0));
+                        float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
 
-                // Warp star density reduction — parallax-aware
-                float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,
-                    lerp(saturate(1.0 - _ParallaxFactor * _WarpParallaxMultiplier),
-                         saturate(_ParallaxFactor * _WarpParallaxMultiplier),
-                         _WarpStarFadeNearBias));
-                float warpSpawnChance = _SpawnChance * (1.0 - _WarpStarFade * depthFadeFactor);
+                        // Parallax offset (pre-computed on CPU in double precision)
+                        float2 parallaxUV = scaledUV + _DepthParallaxOffsets[d].xy;
 
-                // Generate shaped starfield
-                float3 starValue = shapedStars(
-                    parallaxUV,
-                    _StarDensity,
-                    warpSpawnChance,
-                    _TwinkleSpeed,
-                    _TwinkleAmount,
-                    _Time.y,
-                    _ScreenAspect,
-                    _WarmCoolMix,
-                    _LayerSeed,
-                    _ClusterAmount,
-                    _ClusterScale,
-                    _ShapeCount
-                );
+                        // Warp star density reduction — parallax-aware
+                        float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,
+                            lerp(saturate(1.0 - parallax * _WarpParallaxMultiplier),
+                                 saturate(parallax * _WarpParallaxMultiplier),
+                                 _WarpStarFadeNearBias));
+                        float warpSpawnChance = _SpawnChance * (1.0 - _WarpStarFade * depthFadeFactor);
+
+                        float3 depthStars = shapedStars(
+                            parallaxUV,
+                            dDensity,
+                            warpSpawnChance,
+                            _TwinkleSpeed,
+                            _TwinkleAmount,
+                            _Time.y,
+                            _ScreenAspect,
+                            _WarmCoolMix,
+                            dSeed,
+                            _ClusterAmount,
+                            _ClusterScale,
+                            _ShapeCount,
+                            dSizeMin,
+                            dSizeMax,
+                            depthColor,
+                            parallax
+                        );
+
+                        starValue += depthStars;
+                    }
+                }
+                else
+                {
+                    // Single-depth mode (backward compatible)
+                    float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
+                    float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
+                    float2 parallaxUV = scaledUV + _ParallaxOffset;
+
+                    float depthFadeFactor = lerp(_WarpStarFadeMinDepth, 1.0,
+                        lerp(saturate(1.0 - _ParallaxFactor * _WarpParallaxMultiplier),
+                             saturate(_ParallaxFactor * _WarpParallaxMultiplier),
+                             _WarpStarFadeNearBias));
+                    float warpSpawnChance = _SpawnChance * (1.0 - _WarpStarFade * depthFadeFactor);
+
+                    starValue = shapedStars(
+                        parallaxUV,
+                        _StarDensity,
+                        warpSpawnChance,
+                        _TwinkleSpeed,
+                        _TwinkleAmount,
+                        _Time.y,
+                        _ScreenAspect,
+                        _WarmCoolMix,
+                        _LayerSeed,
+                        _ClusterAmount,
+                        _ClusterScale,
+                        _ShapeCount,
+                        -1.0,
+                        -1.0,
+                        float3(1, 1, 1),
+                        _ParallaxFactor
+                    );
+                }
 
                 // === World Fabric modulation ===
                 // Void: fade stars

@@ -1,0 +1,271 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d95c57b44b693c44b047f56ebe6745f, type: 3}
+  m_Name: PatrolBehaviorBasic
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.BehaviorTreeAsset
+  nodes:
+  - id: root-sequence
+    nodeType: 1
+    actionType:
+    editorPosition: {x: 395, y: 163}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: update-heuristics
+    nodeType: 4
+    actionType: UpdateHeuristics
+    editorPosition: {x: 470, y: 237}
+    parameters:
+      rid: 1013
+    tickInterval: 1
+  - id: init-waypoint-stack
+    nodeType: 4
+    actionType: InitWaypointStack
+    editorPosition: {x: 470, y: 311}
+    parameters:
+      rid: 1000
+    tickInterval: 1
+  - id: set-cruise-speed
+    nodeType: 4
+    actionType: SetCruiseSpeed
+    editorPosition: {x: 470, y: 473}
+    parameters:
+      rid: 1001
+    tickInterval: 1
+  - id: set-target-waypoints
+    nodeType: 4
+    actionType: SetTargetFromWaypoints
+    editorPosition: {x: 445, y: 620}
+    parameters:
+      rid: 1002
+    tickInterval: 1
+  - id: calc-prediction
+    nodeType: 4
+    actionType: CalculateTrajectoryPrediction
+    editorPosition: {x: 433, y: 782}
+    parameters:
+      rid: 1003
+    tickInterval: 1
+  - id: subtree-approach-steering
+    nodeType: 5
+    actionType: 
+    editorPosition: {x: 433, y: 953}
+    parameters:
+      rid: 1004
+    tickInterval: 1
+  - id: apply-steering
+    nodeType: 4
+    actionType: ApplySteering
+    editorPosition: {x: 445, y: 1150}
+    parameters:
+      rid: 1005
+    tickInterval: 1
+  - id: subtree-rotation-control
+    nodeType: 5
+    actionType: 
+    editorPosition: {x: 433, y: 1330}
+    parameters:
+      rid: 1006
+    tickInterval: 1
+  - id: subtree-arrival-detection
+    nodeType: 5
+    actionType: 
+    editorPosition: {x: 430, y: 1482}
+    parameters:
+      rid: 1007
+    tickInterval: 1
+  - id: waypoint-behavior-selector
+    nodeType: 0
+    actionType: 
+    editorPosition: {x: 445, y: 1646}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: extended-stop-sequence
+    nodeType: 1
+    actionType: 
+    editorPosition: {x: 547, y: 1835}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: random-chance
+    nodeType: 4
+    actionType: RandomChance
+    editorPosition: {x: 809, y: 2011}
+    parameters:
+      rid: 1008
+    tickInterval: 1
+  - id: exploration-type-selector
+    nodeType: 0
+    actionType: 
+    editorPosition: {x: 622, y: 2011}
+    parameters:
+      rid: -2
+    tickInterval: 1
+  - id: subtree-random-exploration
+    nodeType: 5
+    actionType: 
+    editorPosition: {x: 697, y: 2205}
+    parameters:
+      rid: 1009
+    tickInterval: 1
+  - id: subtree-hold-position
+    nodeType: 5
+    actionType:
+    editorPosition: {x: 933, y: 2205}
+    parameters:
+      rid: 1010
+    tickInterval: 1
+  - id: skip-stop
+    nodeType: 4
+    actionType: SetTargetPosition
+    editorPosition: {x: 722, y: 1835}
+    parameters:
+      rid: 1011
+    tickInterval: 1
+  - id: subtree-waypoint-completion
+    nodeType: 5
+    actionType: 
+    editorPosition: {x: 399, y: 2415}
+    parameters:
+      rid: 1012
+    tickInterval: 1
+  connections:
+  - parentId: root-sequence
+    childId: update-heuristics
+    childIndex: 0
+  - parentId: root-sequence
+    childId: init-waypoint-stack
+    childIndex: 1
+  - parentId: root-sequence
+    childId: set-cruise-speed
+    childIndex: 2
+  - parentId: root-sequence
+    childId: set-target-waypoints
+    childIndex: 3
+  - parentId: root-sequence
+    childId: calc-prediction
+    childIndex: 4
+  - parentId: root-sequence
+    childId: subtree-approach-steering
+    childIndex: 5
+  - parentId: root-sequence
+    childId: apply-steering
+    childIndex: 6
+  - parentId: root-sequence
+    childId: subtree-rotation-control
+    childIndex: 7
+  - parentId: root-sequence
+    childId: subtree-arrival-detection
+    childIndex: 8
+  - parentId: root-sequence
+    childId: waypoint-behavior-selector
+    childIndex: 9
+  - parentId: root-sequence
+    childId: subtree-waypoint-completion
+    childIndex: 10
+  - parentId: waypoint-behavior-selector
+    childId: extended-stop-sequence
+    childIndex: 0
+  - parentId: waypoint-behavior-selector
+    childId: skip-stop
+    childIndex: 1
+  - parentId: extended-stop-sequence
+    childId: random-chance
+    childIndex: 0
+  - parentId: extended-stop-sequence
+    childId: exploration-type-selector
+    childIndex: 1
+  - parentId: exploration-type-selector
+    childId: subtree-random-exploration
+    childIndex: 0
+  - parentId: exploration-type-selector
+    childId: subtree-hold-position
+    childIndex: 1
+  rootNodeId: root-sequence
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 1013
+      type: {class: UpdateHeuristicsParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        writeIndividualKeys: 1
+    - rid: 1000
+      type: {class: InitWaypointStackParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        waypointsKey: waypoint_list
+        transformsKey: waypoint_transforms
+        stackKey: waypoint_stack
+        mode: 0
+        maxDepth: 5
+    - rid: 1001
+      type: {class: SetCruiseSpeedParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        speed: 30
+        acceleration: -1
+        speedKey: cruise_speed
+        accelKey: cruise_acceleration
+    - rid: 1002
+      type: {class: SetTargetFromWaypointsParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        waypointsKey: waypoint_list
+        indexKey: waypoint_index
+        targetKey: steering_target
+        stackKey: waypoint_stack
+    - rid: 1003
+      type: {class: CalculateTrajectoryPredictionParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        targetKey: steering_target
+        predictionKey: trajectory_prediction
+        missThreshold: 2
+    - rid: 1004
+      type: {class: SubtreeParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: e9ffc99843a1c1e4ab2e1a136e54485f, type: 2}
+    - rid: 1005
+      type: {class: ApplySteeringParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        forceKey: steering_force
+    - rid: 1006
+      type: {class: SubtreeParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: 8aa6afa1d73a1cc4bbe74fc6e6adca57, type: 2}
+    - rid: 1007
+      type: {class: SubtreeParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: 8ed43565173898847b3be0d2468d3af0, type: 2}
+    - rid: 1008
+      type: {class: RandomChanceParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        chance: 0.3
+        evaluateOnce: 0
+        resultKey: waypoint_stop_decision
+        resetTriggerKey: waypoint_index
+    - rid: 1009
+      type: {class: SubtreeParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: 6943db3857cbae84893fceb60457a158, type: 2}
+    - rid: 1010
+      type: {class: SubtreeParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: 5518c61f58667e74e8ad153d0979313a, type: 2}
+    - rid: 1011
+      type: {class: SetTargetPositionParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        position: {x: 0, y: 0}
+        targetKey: _dummy_always_succeed
+    - rid: 1012
+      type: {class: SubtreeParameters, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        subtreeAsset: {fileID: 11400000, guid: e167477207bda57498353e21866e7194, type: 2}

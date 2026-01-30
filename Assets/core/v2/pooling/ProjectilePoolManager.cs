@@ -120,11 +120,6 @@ namespace StarfireV2.Pooling
 
             var instance = pool.Get();
 
-            if (config.logPoolEvents)
-            {
-                Debug.Log($"[Pool] Get physics projectile: {prefab.name} (pooled={pool.PooledCount}, active={pool.ActiveCount})");
-            }
-
             OnPoolStatsChanged?.Invoke(prefab, pool.PooledCount, pool.ActiveCount);
 
             return instance;
@@ -144,11 +139,6 @@ namespace StarfireV2.Pooling
             if (_physicsPools.TryGetValue(prefabId, out var pool))
             {
                 pool.Return(instance);
-
-                if (config.logPoolEvents)
-                {
-                    Debug.Log($"[Pool] Return physics projectile: {prefab.name} (pooled={pool.PooledCount}, active={pool.ActiveCount})");
-                }
 
                 OnPoolStatsChanged?.Invoke(prefab, pool.PooledCount, pool.ActiveCount);
             }
@@ -199,11 +189,6 @@ namespace StarfireV2.Pooling
             if (_raycastPools.TryGetValue(prefabId, out var pool))
             {
                 pool.Return(instance);
-
-                if (config.logPoolEvents)
-                {
-                    Debug.Log($"[Pool] Return raycast projectile: {prefab.name} (pooled={pool.PooledCount}, active={pool.ActiveCount})");
-                }
             }
             else
             {
@@ -282,10 +267,6 @@ namespace StarfireV2.Pooling
                 }
             }
 
-            if (config.logPoolEvents)
-            {
-                Debug.Log($"[Pool] Pre-warmed pool for {prefab.name}: {count} instances");
-            }
         }
 
         /// <summary>
@@ -322,11 +303,6 @@ namespace StarfireV2.Pooling
                 if (neededSize > currentSize)
                 {
                     pool.ExpandPool(neededSize - currentSize);
-
-                    if (config.logPoolEvents)
-                    {
-                        Debug.Log($"[Pool] Expanded pool for {projectilePrefab.name}: {currentSize} -> {neededSize}");
-                    }
                 }
             }
             else
@@ -412,11 +388,6 @@ namespace StarfireV2.Pooling
             }
 
             _hitscanBeamPool?.ReturnAll();
-
-            if (config.logPoolEvents)
-            {
-                Debug.Log("[Pool] Returned all active projectiles to pools");
-            }
         }
 
         #endregion
@@ -432,11 +403,6 @@ namespace StarfireV2.Pooling
             _physicsPools[prefabId] = pool;
             _prefabLookup[prefabId] = prefab;
 
-            if (config.logPoolEvents)
-            {
-                Debug.Log($"[Pool] Created physics pool for {prefab.name} with {size} instances");
-            }
-
             OnPoolCreated?.Invoke(prefab, size);
 
             return pool;
@@ -450,11 +416,6 @@ namespace StarfireV2.Pooling
             var pool = new PrefabPool(prefab, _poolContainer, size);
             _raycastPools[prefabId] = pool;
             _prefabLookup[prefabId] = prefab;
-
-            if (config.logPoolEvents)
-            {
-                Debug.Log($"[Pool] Created raycast pool for {prefab.name} with {size} instances");
-            }
 
             OnPoolCreated?.Invoke(prefab, size);
 
@@ -479,11 +440,6 @@ namespace StarfireV2.Pooling
             beamPrefab.AddComponent<HitscanBeamPoolable>();
 
             _hitscanBeamPool = new PrefabPool(beamPrefab, _poolContainer, config.hitscanBeamPoolSize);
-
-            if (config.logPoolEvents)
-            {
-                Debug.Log($"[Pool] Created hitscan beam pool with {config.hitscanBeamPoolSize} instances");
-            }
         }
 
         private void HandleEntityRegistered(IEntityController entity)
@@ -530,11 +486,6 @@ namespace StarfireV2.Pooling
             {
                 int targetSize = Mathf.CeilToInt(pool.TotalCreated * config.shrinkThreshold);
                 pool.ShrinkPool(Mathf.Max(targetSize, config.defaultInitialSize));
-            }
-
-            if (config.logPoolEvents)
-            {
-                Debug.Log("[Pool] Shrunk all pools after scene unload");
             }
         }
 

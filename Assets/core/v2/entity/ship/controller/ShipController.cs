@@ -109,6 +109,9 @@ namespace StarfireV2
             var rotationModule = Ship.Rotation;
             if (rotationModule == null) return;
 
+            // Skip rotation if driver has no aim target (e.g. AI with no BT output)
+            if (!driver.HasAimTarget) return;
+
             Vector2 aimWorld = driver.IsWorldSpaceAim
                 ? driver.GetAimDirection()
                 : ScreenToWorldPosition(driver.GetAimDirection());

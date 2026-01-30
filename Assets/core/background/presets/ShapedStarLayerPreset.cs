@@ -90,6 +90,10 @@ namespace Starfire.Core.Background.Presets
         [Min(0.01f)]
         public float clusterScale = 0.05f;
 
+        [Header("Multi-Depth Configuration")]
+        [Tooltip("When populated, renders multiple depth layers in a single draw call. Leave empty for single-depth mode.")]
+        public List<ShapedDepthConfig> depths = new List<ShapedDepthConfig>();
+
         /// <summary>
         /// Apply all preset values to the given layer.
         /// </summary>
@@ -123,6 +127,13 @@ namespace Starfire.Core.Background.Presets
             layer.layerSeed = layerSeed;
             layer.clusterAmount = clusterAmount;
             layer.clusterScale = clusterScale;
+
+            // Clear and copy depths
+            layer.depths.Clear();
+            foreach (var depth in depths)
+            {
+                layer.depths.Add(depth);
+            }
         }
     }
 }

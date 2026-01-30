@@ -17,7 +17,7 @@ MonoBehaviour:
   inheritVelocity: 1
   hitLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 3840
   destroyOnHit: 1
   maxPenetrations: 1
   scale: 2
@@ -50,7 +50,7 @@ MonoBehaviour:
     soundVolume: 1
     effectDuration: 1
     screenShakeConfig:
-      traumaAmount: 0.056
+      traumaAmount: 0.013
       enablePunch: 0
       punchForce: 0.5
       punchDuration: 0.15

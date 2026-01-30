@@ -150,7 +150,6 @@ namespace Starfire.Core.Background
 
             if (!_loggedInit)
             {
-                Debug.Log("[WorldFabricBridge] Initialized — fabricService found, camera found");
                 _loggedInit = true;
             }
 
@@ -170,7 +169,6 @@ namespace Starfire.Core.Background
             // Diagnostic: log fabric values every 2 seconds
             if (Time.time >= _nextLogTime)
             {
-                Debug.Log($"[WorldFabricBridge] cam=({_lastCamWorldPos.x:F0},{_lastCamWorldPos.y:F0}) raw nebula={sample.NebulaDensity:F3} smooth={_smoothNebulaDensity:F3} void={_smoothVoidFactor:F3} anomaly={_smoothAnomalyStrength:F3}");
                 _nextLogTime = Time.time + 2f;
             }
 
@@ -342,7 +340,7 @@ namespace Starfire.Core.Background
             {
                 // Offset sample position by parallax depth — deeper layers sample at a slightly different position
                 // This creates a subtle parallax effect in zone transitions
-                Vector2 samplePos = camWorldPos + camWorldPos.normalized * ParallaxDepth * depthInfluence;
+                Vector2 samplePos = camWorldPos + new Vector2(ParallaxDepth, ParallaxDepth * 0.7f) * depthInfluence;
                 SpaceFabricSample raw = fabricService.SampleFabricAtWorldPosition(samplePos);
 
                 Sample = new SpaceFabricSample
@@ -372,7 +370,7 @@ namespace Starfire.Core.Background
             public void Update(WorldFabricService fabricService, Vector2 camWorldPos, float depthInfluence, float lerpRate)
             {
                 // Offset sample position by parallax depth
-                Vector2 samplePos = camWorldPos + camWorldPos.normalized * ParallaxDepth * depthInfluence;
+                Vector2 samplePos = camWorldPos + new Vector2(ParallaxDepth, ParallaxDepth * 0.7f) * depthInfluence;
                 var colorSample = fabricService.SampleColorsAtWorldPosition(samplePos);
 
                 // Smooth interpolation using HSV for natural color transitions

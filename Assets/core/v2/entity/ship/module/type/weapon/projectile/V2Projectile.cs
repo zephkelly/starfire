@@ -145,8 +145,6 @@ namespace StarfireV2
             V2WeaponDamageConfig damageConfig = null,
             V2ImpactConfig impactConfig = null)
         {
-            Debug.Log($"[V2Projectile] Initialize called: dir={direction}, speed={speed}, lifetime={lifetime}");
-
             _owner = owner;
             _damage = damage;
             _damageConfig = damageConfig ?? V2WeaponDamageConfig.Default;
@@ -189,8 +187,6 @@ namespace StarfireV2
             // Set velocity
             Vector2 velocity = direction.normalized * speed + inheritedVelocity;
             _rigidbody.linearVelocity = velocity;
-
-            Debug.Log($"[V2Projectile] Velocity set to {velocity} (magnitude: {velocity.magnitude})");
 
             // Rotate to face direction of travel
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
@@ -252,21 +248,17 @@ namespace StarfireV2
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            Debug.Log($"[V2Projectile] OnTriggerEnter2D: hit '{other.gameObject.name}' (layer: {LayerMask.LayerToName(other.gameObject.layer)})");
-
             if (_consumed && _destroyOnHit) return;
 
             // Check layer mask
             if ((_hitLayers.value & (1 << other.gameObject.layer)) == 0)
             {
-                Debug.Log($"[V2Projectile] Ignoring - layer not in hitLayers mask");
                 return;
             }
 
             // Prevent self-hitting owner
             if (_owner != null && other.transform.IsChildOf(_owner.Transform))
             {
-                Debug.Log($"[V2Projectile] Ignoring - collider belongs to owner");
                 return;
             }
 
@@ -274,11 +266,8 @@ namespace StarfireV2
             var otherProjectile = other.GetComponent<V2Projectile>();
             if (otherProjectile != null && _owner != null && otherProjectile._owner == _owner)
             {
-                Debug.Log($"[V2Projectile] Ignoring - projectile from same owner");
                 return;
             }
-
-            Debug.Log($"[V2Projectile] Valid hit! destroyOnHit={_destroyOnHit}, penetrations={_remainingPenetrations}");
 
             // Try to deal damage
             var damageReceiver = other.GetComponentInParent<IV2DamageReceiver>();
@@ -297,7 +286,6 @@ namespace StarfireV2
             }
             else if (_destroyOnHit)
             {
-                Debug.Log($"[V2Projectile] Returning projectile to pool after hit");
                 ReturnToPool();
             }
         }

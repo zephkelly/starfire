@@ -31,9 +31,13 @@ namespace Starfire.Core.V2.World
         [Range(2, 15)]
         public int unloadRadius = 5;
 
-        [Tooltip("Maximum chunks to process (load/unload) per frame")]
+        [Tooltip("Maximum chunks to load per frame")]
         [Range(1, 10)]
         public int chunksPerFrame = 2;
+
+        [Tooltip("Maximum chunks to unload per frame (higher than load since unloading is cheap)")]
+        [Range(1, 50)]
+        public int maxUnloadsPerFrame = 10;
 
         [Tooltip("Maximum loaded chunks (memory limit)")]
         [Min(10)]

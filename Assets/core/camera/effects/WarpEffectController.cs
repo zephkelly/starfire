@@ -351,7 +351,6 @@ namespace Starfire.Core.Cam.Effects
             // Log state transitions
             if (enableConsoleLogging && CurrentState != _previousState)
             {
-                Debug.Log($"[Warp] State changed: {_previousState} → {CurrentState} (speed: {speed:F1})");
                 _previousState = CurrentState;
             }
 
@@ -359,7 +358,6 @@ namespace Starfire.Core.Cam.Effects
             if (enableConsoleLogging && Time.time - _lastLogTime >= LogInterval)
             {
                 _lastLogTime = Time.time;
-                Debug.Log($"[Warp] Speed: {speed:F1} | Intensity: {WarpIntensity:F2} | Dir: ({_warpDirection.x:F2}, {_warpDirection.y:F2}) | State: {CurrentState}");
             }
         }
 

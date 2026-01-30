@@ -27,15 +27,15 @@ namespace Starfire.Core.Background.Regions
         public float falloffPower = 2f;
 
         [Header("Nebula Type")]
-        [Tooltip("Use the stylized nebula shader instead of the basic one")]
-        public bool useStylizedNebula = false;
+        [Tooltip("Use the nebula shader instead of the gas cloud one")]
+        public bool useNebula = false;
 
         [Header("Visual Settings")]
-        [Tooltip("Preset for basic nebula appearance (used when useStylizedNebula is false)")]
-        public NebulaLayerPreset nebulaPreset;
+        [Tooltip("Preset for gas cloud appearance (used when useNebula is false)")]
+        public GasCloudLayerPreset gasCloudPreset;
 
-        [Tooltip("Preset for stylized nebula appearance (used when useStylizedNebula is true)")]
-        public StylizedNebulaLayerPreset stylizedPreset;
+        [Tooltip("Preset for nebula appearance (used when useNebula is true)")]
+        public NebulaLayerPreset nebulaPreset;
 
         [Header("Rendering")]
         [Tooltip("Parallax depth for this region (lower = farther/slower)")]
@@ -48,6 +48,6 @@ namespace Starfire.Core.Background.Regions
         /// <summary>
         /// Gets the appropriate preset based on the nebula type setting.
         /// </summary>
-        public ScriptableObject ActivePreset => useStylizedNebula ? (ScriptableObject)stylizedPreset : nebulaPreset;
+        public ScriptableObject ActivePreset => useNebula ? (ScriptableObject)nebulaPreset : gasCloudPreset;
     }
 }

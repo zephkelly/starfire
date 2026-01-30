@@ -23,9 +23,25 @@ namespace StarfireV2
         public float Throttle { get; set; } = 1f;
 
         /// <summary>
-        /// World position to aim at. Set by behavior system.
+        /// Whether the BT has explicitly set an aim target.
+        /// When false, rotation is not applied (ship maintains heading).
         /// </summary>
-        public Vector2 AimPosition { get; set; }
+        public bool HasAimTarget { get; set; }
+
+        /// <summary>
+        /// World position to aim at. Set by behavior system.
+        /// Setting this also marks HasAimTarget as true.
+        /// </summary>
+        public Vector2 AimPosition
+        {
+            get => _aimPosition;
+            set
+            {
+                _aimPosition = value;
+                HasAimTarget = true;
+            }
+        }
+        private Vector2 _aimPosition;
 
         /// <summary>
         /// Desired acceleration for physics-based steering. Set by behavior system.

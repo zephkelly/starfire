@@ -144,8 +144,6 @@ namespace Starfire.Core.V2.World
             if (seed == 0f)
             {
                 seed = UnityEngine.Random.Range(1f, 100000f);
-                if (config.logChunkEvents)
-                    Debug.Log($"WorldGenerationService: Generated random seed: {seed}");
             }
 
             // Create chunk manager
@@ -154,7 +152,8 @@ namespace Starfire.Core.V2.World
                 LoadRadius = config.loadRadius,
                 UnloadRadius = config.unloadRadius,
                 MaxLoadedChunks = config.maxLoadedChunks,
-                ChunksPerFrame = config.chunksPerFrame
+                ChunksPerFrame = config.chunksPerFrame,
+                MaxUnloadsPerFrame = config.maxUnloadsPerFrame
             };
 
             // Subscribe to chunk events
@@ -179,9 +178,6 @@ namespace Starfire.Core.V2.World
 
             // Create built-in consumers
             InitializeConsumers();
-
-            if (config.logChunkEvents)
-                Debug.Log($"WorldGenerationService initialized with seed {seed}, chunk size {config.chunkSize}");
         }
 
         private void Cleanup()
@@ -209,18 +205,12 @@ namespace Starfire.Core.V2.World
                 // Use fabric-integrated generator (queries SpaceZoneLayer data)
                 var fabricNebulaGenerator = new FabricNebulaChunkGenerator(config.fabricNebulaConfig);
                 RegisterGenerator(fabricNebulaGenerator);
-
-                if (config.logChunkEvents)
-                    Debug.Log("WorldGenerationService: Using fabric-integrated nebula generation");
             }
             else if (config.nebulaConfig != null)
             {
                 // Fall back to legacy independent generator
                 var nebulaGenerator = new NebulaChunkGenerator(config.nebulaConfig);
                 RegisterGenerator(nebulaGenerator);
-
-                if (config.logChunkEvents)
-                    Debug.Log("WorldGenerationService: Using legacy independent nebula generation");
             }
 
             // Sort generators by priority
@@ -301,9 +291,6 @@ namespace Starfire.Core.V2.World
             // Update tracking to match new camera position
             _lastCameraPosition = targetCamera.transform.position;
 
-            if (config.logChunkEvents)
-                Debug.Log($"WorldGenerationService: Origin shifted by {shiftAmount}");
-
             // Notify all consumers (nebulas, etc.)
             foreach (var consumer in _consumers)
             {
@@ -373,8 +360,7 @@ namespace Starfire.Core.V2.World
 
         private void HandleChunkLoading(Chunk.Chunk chunk)
         {
-            if (config.logChunkEvents)
-                Debug.Log($"Chunk loading: {chunk.Coord}");
+   
         }
 
         private void HandleChunkLoaded(Chunk.Chunk chunk)
@@ -418,9 +404,6 @@ namespace Starfire.Core.V2.World
             }
 
             OnChunkGenerated?.Invoke(chunk);
-
-            if (config.logChunkEvents)
-                Debug.Log($"Chunk loaded: {chunk.Coord}");
         }
 
         private void HandleChunkUnloading(Chunk.Chunk chunk)
@@ -456,17 +439,11 @@ namespace Starfire.Core.V2.World
                     }
                 }
             }
-
-            if (config.logChunkEvents)
-                Debug.Log($"Chunk unloading: {chunk.Coord}");
         }
 
         private void HandleChunkUnloaded(Chunk.Chunk chunk)
         {
             OnChunkDestroyed?.Invoke(chunk);
-
-            if (config.logChunkEvents)
-                Debug.Log($"Chunk unloaded: {chunk.Coord}");
         }
 
         #endregion
@@ -483,9 +460,6 @@ namespace Starfire.Core.V2.World
 
             _generators.Add(generator);
             _generators.Sort((a, b) => a.Priority.CompareTo(b.Priority));
-
-            if (config.logChunkEvents)
-                Debug.Log($"Registered generator: {generator.GetType().Name}");
         }
 
         /// <summary>
@@ -505,9 +479,6 @@ namespace Starfire.Core.V2.World
             if (_consumers.Contains(consumer)) return;
 
             _consumers.Add(consumer);
-
-            if (config.logChunkEvents)
-                Debug.Log($"Registered consumer: {consumer.GetType().Name}");
         }
 
         /// <summary>

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b5ca7cf199a3754a8e1fbe16d8e61dc, type: 3}
   m_Name: FlakPointDefense
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.PointDefenseModuleConfig
-  moduleId: FlakPointDefense
+  moduleId: point_df_1
   displayName: Flak Cannon
   weightClass: 0
   damage: 5
@@ -23,9 +23,9 @@ MonoBehaviour:
   maxTrackedTargets: 3
   threatLayers:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 3840
   scanInterval: 0.1
-  accuracyPercent: 100
+  accuracyPercent: 70
   maxSpreadAngle: 5
   accuracyDecayOverRange: 0
   rangeAccuracyFalloff:

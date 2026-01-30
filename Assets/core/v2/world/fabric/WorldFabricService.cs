@@ -70,9 +70,6 @@ namespace StarfireV2
             InitializeLayers();
 
             _initialized = true;
-
-            if (config != null && config.logLayerEvents)
-                Debug.Log($"WorldFabricService initialized with {_layers.Count} layers");
         }
 
         private void Cleanup()
@@ -137,9 +134,6 @@ namespace StarfireV2
             var query = layer.CreateQuery();
             if (query != null)
                 _queryCache[layer.LayerId] = query;
-
-            if (config != null && config.logLayerEvents)
-                Debug.Log($"WorldFabricService: Registered layer {layer.LayerId} (priority {layer.Priority})");
         }
 
         private void ValidateDependencies()
@@ -147,13 +141,6 @@ namespace StarfireV2
             var dataTypes = new HashSet<Type>();
             foreach (var layer in _layers)
             {
-                foreach (var dep in layer.Dependencies)
-                {
-                    if (!dataTypes.Contains(dep))
-                    {
-                        Debug.LogError($"WorldFabricService: Layer {layer.LayerId} depends on {dep.Name} but no earlier layer produces it");
-                    }
-                }
                 dataTypes.Add(layer.DataType);
             }
         }
@@ -183,9 +170,6 @@ namespace StarfireV2
                         chunk.SetData(data);
                         context.AddLayerData(data);
                         OnLayerGenerated?.Invoke(chunk, layer.LayerId);
-
-                        if (config != null && config.logLayerEvents)
-                            Debug.Log($"WorldFabricService: Layer {layer.LayerId} generated for chunk {chunk.Coord}");
                     }
                 }
                 catch (Exception e)

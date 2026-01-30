@@ -30,11 +30,11 @@ namespace Starfire.Core.Background.Regions
         [SerializeField] private float scaleMultiplier = 1.1f;
 
         [Header("Shaders")]
-        [Tooltip("Shader for basic nebula regions")]
-        [SerializeField] private Shader nebulaShader;
+        [Tooltip("Shader for gas cloud regions")]
+        [SerializeField] private Shader gasCloudShader;
 
-        [Tooltip("Shader for stylized nebula regions")]
-        [SerializeField] private Shader stylizedNebulaShader;
+        [Tooltip("Shader for nebula regions")]
+        [SerializeField] private Shader nebulaShader;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugGizmos = true;
@@ -48,8 +48,8 @@ namespace Starfire.Core.Background.Regions
         // Runtime state
         private readonly List<NebulaRegion> _allRegions = new List<NebulaRegion>();
         private readonly List<NebulaRegion> _visibleRegions = new List<NebulaRegion>();
-        private readonly Queue<Material> _basicMaterialPool = new Queue<Material>();
-        private readonly Queue<Material> _stylizedMaterialPool = new Queue<Material>();
+        private readonly Queue<Material> _gasCloudMaterialPool = new Queue<Material>();
+        private readonly Queue<Material> _nebulaMaterialPool = new Queue<Material>();
 
         private Camera _camera;
         private Mesh _sharedQuadMesh;
@@ -217,8 +217,8 @@ namespace Starfire.Core.Background.Regions
             if (nebulaShader == null)
                 nebulaShader = Shader.Find("Starfire/Nebula");
 
-            if (stylizedNebulaShader == null)
-                stylizedNebulaShader = Shader.Find("Starfire/StylizedNebula");
+            if (gasCloudShader == null)
+                gasCloudShader = Shader.Find("Starfire/GasCloud");
         }
 
         private void Initialize()
@@ -244,15 +244,15 @@ namespace Starfire.Core.Background.Regions
             }
 
             // Clear material pools
-            while (_basicMaterialPool.Count > 0)
+            while (_gasCloudMaterialPool.Count > 0)
             {
-                var mat = _basicMaterialPool.Dequeue();
+                var mat = _gasCloudMaterialPool.Dequeue();
                 if (mat != null) DestroyMaterial(mat);
             }
 
-            while (_stylizedMaterialPool.Count > 0)
+            while (_nebulaMaterialPool.Count > 0)
             {
-                var mat = _stylizedMaterialPool.Dequeue();
+                var mat = _nebulaMaterialPool.Dequeue();
                 if (mat != null) DestroyMaterial(mat);
             }
 
@@ -453,7 +453,7 @@ namespace Starfire.Core.Background.Regions
             region.Renderer.receiveShadows = false;
 
             // Create or get material from pool
-            region.Material = GetOrCreateMaterial(region.Config.useStylizedNebula);
+            region.Material = GetOrCreateMaterial(region.Config.useNebula);
             region.Renderer.sharedMaterial = region.Material;
 
             // Apply preset to material
@@ -468,7 +468,7 @@ namespace Starfire.Core.Background.Regions
             if (region.Material != null)
             {
                 // Return material to pool
-                var pool = region.Config.useStylizedNebula ? _stylizedMaterialPool : _basicMaterialPool;
+                var pool = region.Config.useNebula ? _nebulaMaterialPool : _gasCloudMaterialPool;
                 pool.Enqueue(region.Material);
                 region.Material = null;
             }
@@ -485,10 +485,10 @@ namespace Starfire.Core.Background.Regions
             region.Renderer = null;
         }
 
-        private Material GetOrCreateMaterial(bool useStylized)
+        private Material GetOrCreateMaterial(bool useNebula)
         {
-            var pool = useStylized ? _stylizedMaterialPool : _basicMaterialPool;
-            var shader = useStylized ? stylizedNebulaShader : nebulaShader;
+            var pool = useNebula ? _nebulaMaterialPool : _gasCloudMaterialPool;
+            var shader = useNebula ? nebulaShader : gasCloudShader;
 
             if (pool.Count > 0)
             {
@@ -505,17 +505,17 @@ namespace Starfire.Core.Background.Regions
         {
             if (region.Material == null) return;
 
-            if (region.Config.useStylizedNebula && region.Config.stylizedPreset != null)
+            if (region.Config.useNebula && region.Config.nebulaPreset != null)
             {
-                ApplyStylizedPresetToMaterial(region.Material, region.Config.stylizedPreset);
+                ApplyNebulaPresetToMaterial(region.Material, region.Config.nebulaPreset);
             }
-            else if (!region.Config.useStylizedNebula && region.Config.nebulaPreset != null)
+            else if (!region.Config.useNebula && region.Config.gasCloudPreset != null)
             {
-                ApplyBasicPresetToMaterial(region.Material, region.Config.nebulaPreset);
+                ApplyGasCloudPresetToMaterial(region.Material, region.Config.gasCloudPreset);
             }
         }
 
-        private void ApplyBasicPresetToMaterial(Material material, NebulaLayerPreset preset)
+        private void ApplyGasCloudPresetToMaterial(Material material, GasCloudLayerPreset preset)
         {
             material.SetFloat("_NoiseScale", preset.noiseScale);
             material.SetInt("_Octaves", preset.octaves);
@@ -541,7 +541,7 @@ namespace Starfire.Core.Background.Regions
             material.SetFloat("_Seed", preset.seed);
         }
 
-        private void ApplyStylizedPresetToMaterial(Material material, StylizedNebulaLayerPreset preset)
+        private void ApplyNebulaPresetToMaterial(Material material, NebulaLayerPreset preset)
         {
             // Style features
             material.SetFloat("_EnablePillars", preset.enablePillars ? 1f : 0f);
@@ -752,10 +752,6 @@ namespace Starfire.Core.Background.Regions
                 service.OnOriginShift += HandleOriginShift;
                 _subscribedToOriginShift = true;
 
-                if (logRegionEvents)
-                {
-                    Debug.Log("[Nebula] Subscribed to origin shift events");
-                }
             }
         }
 
@@ -780,11 +776,6 @@ namespace Starfire.Core.Background.Regions
             // Uses [-WRAP_PERIOD/2, +WRAP_PERIOD/2) range to avoid zero-crossing discontinuity
             _originShiftAccumulator.x = WrapCoordinateSymmetric(_originShiftAccumulator.x, WRAP_PERIOD);
             _originShiftAccumulator.y = WrapCoordinateSymmetric(_originShiftAccumulator.y, WRAP_PERIOD);
-
-            if (logRegionEvents)
-            {
-                Debug.Log($"[Nebula] Origin shift: {shiftAmount}, accumulator now: {_originShiftAccumulator}");
-            }
 
             // Mark all regions dirty so they update their shader properties with new virtual positions
             foreach (var region in _allRegions)

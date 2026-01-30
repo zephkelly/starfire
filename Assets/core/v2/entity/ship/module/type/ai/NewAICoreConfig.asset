@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c199f42559ac2848b990537ac1d5edc, type: 3}
+  m_Name: NewAICoreConfig
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2AICoreModuleConfig
+  moduleId: ai_core
+  processingPower: 1
+  behaviorTree: {fileID: 11400000, guid: ef7faecb15af7cc46a4d70bdea2bb3fe, type: 2}
+  enableGoalSystem: 1
+  defaultGoals:
+  - {fileID: 11400000, guid: 0e92d49c8dea74441adc65368d1bc037, type: 2}
+  - {fileID: 11400000, guid: 9a8c269d6b31b9c4a9d3752b56c66251, type: 2}

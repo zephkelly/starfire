@@ -395,6 +395,9 @@ namespace Starfire.Core.Background.Layers
             material.SetVectorArray(CometParams2ID, _params2Array);
             material.SetVectorArray(CometParams3ID, _params3Array);
 
+            // Per-layer parallax offset (double-precision, fmod'd for float safety)
+            ApplyParallaxOffset(material);
+
             // Per-layer fabric sampling
             ApplyFabricProperties(material);
         }

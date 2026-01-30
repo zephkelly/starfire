@@ -39,15 +39,20 @@ namespace Starfire.Core.Background
         private Mesh _sharedQuadMesh;
         private bool _initialized = false;
 
-        // Floating origin tracking
-        [System.NonSerialized] private Vector2 _originShiftAccumulator = Vector2.zero;
+        // Floating origin tracking — double precision to support 471M+ unit worlds
+        [System.NonSerialized] private Vector2D _originShiftAccumulator = Vector2D.Zero;
         [System.NonSerialized] private bool _subscribedToOriginShift = false;
-        private const float WRAP_PERIOD = 100000f; // Large enough to avoid visible tiling
 
         private static readonly int CameraWorldPosID = Shader.PropertyToID("_CameraWorldPos");
         private static readonly int ScreenAspectID = Shader.PropertyToID("_ScreenAspect");
         private static readonly int CameraOrthoSizeID = Shader.PropertyToID("_CameraOrthoSize");
         private static readonly int ReferenceZoomID = Shader.PropertyToID("_ReferenceZoom");
+
+        /// <summary>
+        /// Double-precision virtual position for parallax calculations.
+        /// Layers use this to compute per-material parallax offsets with fmod precision control.
+        /// </summary>
+        public Vector2D VirtualPosition { get; private set; }
 
         private void Awake()
         {
@@ -112,13 +117,9 @@ namespace Starfire.Core.Background
 
         private void HandleOriginShift(Vector2 shiftAmount)
         {
-            // Add inverse of shift to maintain visual continuity
-            _originShiftAccumulator -= shiftAmount;
-
-            // Wrap symmetrically to prevent precision loss at extreme values
-            // Uses [-WRAP_PERIOD/2, +WRAP_PERIOD/2) range to avoid zero-crossing discontinuity
-            _originShiftAccumulator.x = WrapCoordinateSymmetric(_originShiftAccumulator.x, WRAP_PERIOD);
-            _originShiftAccumulator.y = WrapCoordinateSymmetric(_originShiftAccumulator.y, WRAP_PERIOD);
+            // Add inverse of shift to maintain visual continuity.
+            // Double precision handles 471M+ units without precision loss.
+            _originShiftAccumulator -= Vector2D.FromVector2(shiftAmount);
 
             // Notify layers with runtime state
             foreach (var layer in layers)
@@ -130,19 +131,6 @@ namespace Starfire.Core.Background
             }
         }
 
-        /// <summary>
-        /// Symmetric wrapping: keeps value in [-halfPeriod, +halfPeriod) range.
-        /// This prevents discontinuity when crossing zero, unlike asymmetric [0, period) wrapping.
-        /// </summary>
-        private static float WrapCoordinateSymmetric(float value, float period)
-        {
-            float halfPeriod = period * 0.5f;
-            value = value % period;
-            if (value < -halfPeriod) value += period;
-            else if (value >= halfPeriod) value -= period;
-            return value;
-        }
-
         private void InitializeLayers()
         {
             if (_initialized) return;
@@ -152,6 +140,7 @@ namespace Starfire.Core.Background
 
             // Sort layers by parallax depth (farthest first = lowest depth values first)
             var sortedLayers = new List<StarfieldLayer>(layers);
+            sortedLayers.RemoveAll(l => l == null);
             sortedLayers.Sort((a, b) => a.parallaxDepth.CompareTo(b.parallaxDepth));
 
             for (int i = 0; i < sortedLayers.Count; i++)
@@ -238,15 +227,15 @@ namespace Starfire.Core.Background
 
             Vector3 camPos = _camera.transform.position;
 
-            // Calculate virtual position (actual + accumulated offset) for floating origin continuity
-            // Do NOT wrap virtualPos every frame - this caused zero-crossing discontinuity!
-            // The position stays bounded because:
-            // - camPos is always near origin (floating origin resets at ~2560 units)
-            // - accumulator is wrapped symmetrically during origin shifts
-            // - Combined result stays well within float precision limits
-            Vector2 virtualPos = new Vector2(camPos.x, camPos.y) + _originShiftAccumulator;
+            // Double-precision virtual position for parallax calculations.
+            // This can grow to 471M+ without precision loss in double.
+            // Layers read VirtualPosition and compute per-material offsets with fmod.
+            VirtualPosition = new Vector2D(camPos.x, camPos.y) + _originShiftAccumulator;
 
-            Shader.SetGlobalVector(CameraWorldPosID, new Vector4(virtualPos.x, virtualPos.y, 0, 0));
+            // _CameraWorldPos is the actual Unity camera position (always near origin
+            // due to floating origin). Used by ShootingStars, Comets, FluidVisualization
+            // for world-space reconstruction, and by Nebula/GasCloud for region masking.
+            Shader.SetGlobalVector(CameraWorldPosID, new Vector4(camPos.x, camPos.y, 0, 0));
             Shader.SetGlobalFloat(ScreenAspectID, _camera.aspect);
             Shader.SetGlobalFloat(CameraOrthoSizeID, _camera.orthographicSize);
             Shader.SetGlobalFloat(ReferenceZoomID, referenceZoom);
@@ -258,6 +247,7 @@ namespace Starfire.Core.Background
             {
                 if (layer != null && layer.IsInitialized)
                 {
+                    layer.SetVirtualPosition(VirtualPosition);
                     layer.Update();
                 }
             }
@@ -286,6 +276,7 @@ namespace Starfire.Core.Background
 
             // Sort layers by parallax depth for proper Z ordering
             var sortedLayers = new List<StarfieldLayer>(layers);
+            sortedLayers.RemoveAll(l => l == null);
             sortedLayers.Sort((a, b) => a.parallaxDepth.CompareTo(b.parallaxDepth));
 
             for (int i = 0; i < sortedLayers.Count; i++)
@@ -452,13 +443,38 @@ namespace Starfire.Core.Background
             UnityEditor.EditorUtility.SetDirty(this);
         }
 
+        [ContextMenu("Add Gas Cloud Layer")]
+        private void AddGasCloudLayer()
+        {
+            var layer = new GasCloudLayer
+            {
+                layerName = $"Gas Cloud {layers.Count + 1}",
+                renderBackground = false
+            };
+            layers.Add(layer);
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+
+        [ContextMenu("Add Galaxy Layer")]
+        private void AddGalaxyLayer()
+        {
+            var layer = new GalaxyLayer
+            {
+                layerName = $"Galaxy {layers.Count + 1}",
+                parallaxDepth = 0.001f,
+                renderBackground = false
+            };
+            layers.Add(layer);
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+
         [ContextMenu("Add Nebula Layer")]
         private void AddNebulaLayer()
         {
             var layer = new NebulaLayer
             {
                 layerName = $"Nebula {layers.Count + 1}",
-                renderBackground = false // Nebula typically layers on top
+                renderBackground = false
             };
             layers.Add(layer);
             UnityEditor.EditorUtility.SetDirty(this);

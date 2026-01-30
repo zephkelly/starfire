@@ -147,6 +147,9 @@ namespace Starfire.Core.Background.Layers
         private Vector4[] _depthParams = new Vector4[8];
         private Vector4[] _depthColors = new Vector4[8];
         private float[] _depthSeeds = new float[8];
+        private Vector4[] _depthParallaxOffsets = new Vector4[8];
+
+        private static readonly int DepthParallaxOffsetsID = Shader.PropertyToID("_DepthParallaxOffsets");
 
         public override Shader GetShader()
         {
@@ -179,6 +182,10 @@ namespace Starfire.Core.Background.Layers
                     );
                     _depthColors[i] = depth.colorTint;
                     _depthSeeds[i] = depth.seed;
+
+                    // Per-depth parallax offset computed in double precision
+                    Vector2 offset = ComputeParallaxOffset(depth.parallaxDepth);
+                    _depthParallaxOffsets[i] = new Vector4(offset.x, offset.y, 0, 0);
                 }
                 else
                 {
@@ -186,12 +193,14 @@ namespace Starfire.Core.Background.Layers
                     _depthParams[i] = Vector4.zero;
                     _depthColors[i] = Vector4.zero;
                     _depthSeeds[i] = 0;
+                    _depthParallaxOffsets[i] = Vector4.zero;
                 }
             }
 
             material.SetVectorArray(DepthParamsID, _depthParams);
             material.SetVectorArray(DepthColorsID, _depthColors);
             material.SetFloatArray(DepthSeedsID, _depthSeeds);
+            material.SetVectorArray(DepthParallaxOffsetsID, _depthParallaxOffsets);
 
             // Set shared parameters
             material.SetFloat(SpawnChanceID, spawnChance);

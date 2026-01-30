@@ -164,10 +164,13 @@ Shader "Starfire/Comet"
             SAMPLER(sampler_GradientTex);
 
             // Set from script - camera data
-            float2 _CameraWorldPos;
+            float2 _CameraWorldPos; // Local Unity camera pos (near origin)
             float _ScreenAspect;
             float _CameraOrthoSize;
             float _ReferenceZoom;
+
+            // Per-material parallax offset (computed in double precision on CPU)
+            float2 _ParallaxOffset;
 
             // Set from script - sun direction for ion tail
             float2 _SunDirection;
@@ -659,10 +662,10 @@ Shader "Starfire/Comet"
                 float depthZoomFactor = lerp(1.0, zoomFactor, saturate(_ParallaxFactor * 10.0));
                 float effectiveOrthoSize = _ReferenceZoom * depthZoomFactor;
 
-                // Parallax coordinate space
+                // Parallax coordinate space (offset pre-computed on CPU in double precision)
                 float2 worldPos;
-                worldPos.x = centeredUV.x * effectiveOrthoSize * _ScreenAspect + _CameraWorldPos.x * _ParallaxFactor;
-                worldPos.y = centeredUV.y * effectiveOrthoSize + _CameraWorldPos.y * _ParallaxFactor;
+                worldPos.x = centeredUV.x * effectiveOrthoSize * _ScreenAspect + _ParallaxOffset.x;
+                worldPos.y = centeredUV.y * effectiveOrthoSize + _ParallaxOffset.y;
 
                 float3 result = float3(0, 0, 0);
 

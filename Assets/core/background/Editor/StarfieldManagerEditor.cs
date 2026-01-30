@@ -78,17 +78,21 @@ namespace Starfire.Core.Background.Editor
             {
                 AddShapedStarLayer();
             }
+            if (GUILayout.Button("+ Gas Cloud Layer", GUILayout.Height(25)))
+            {
+                AddGasCloudLayer();
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // Add layer buttons - fourth row
+            EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("+ Nebula Layer", GUILayout.Height(25)))
             {
                 AddNebulaLayer();
             }
-            EditorGUILayout.EndHorizontal();
-
-            // Add layer buttons - fourth row (nebula variants)
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("+ Stylized Nebula", GUILayout.Height(25)))
+            if (GUILayout.Button("+ Galaxy Layer", GUILayout.Height(25)))
             {
-                AddStylizedNebulaLayer();
+                AddGalaxyLayer();
             }
             EditorGUILayout.EndHorizontal();
 
@@ -191,8 +195,39 @@ namespace Starfire.Core.Background.Editor
                     }
                     else
                     {
+                        EditorGUI.BeginChangeCheck();
                         EditorGUILayout.PropertyField(iterator, true);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            serializedObject.ApplyModifiedProperties();
+                        }
                     }
+                }
+
+                // Add depth button for ShapedStarLayer
+                if (layer is ShapedStarLayer shapedLayer)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Space(EditorGUI.indentLevel * 15);
+
+                    if (GUILayout.Button("+ Add Depth", GUILayout.Height(22)))
+                    {
+                        Undo.RecordObject(target, "Add Shaped Depth");
+                        shapedLayer.depths.Add(ShapedDepthConfig.Default(shapedLayer.depths.Count));
+                        EditorUtility.SetDirty(target);
+                    }
+
+                    GUI.enabled = shapedLayer.depths.Count > 0;
+                    if (GUILayout.Button("- Remove Last Depth", GUILayout.Height(22)))
+                    {
+                        Undo.RecordObject(target, "Remove Shaped Depth");
+                        shapedLayer.depths.RemoveAt(shapedLayer.depths.Count - 1);
+                        EditorUtility.SetDirty(target);
+                    }
+                    GUI.enabled = true;
+
+                    EditorGUILayout.EndHorizontal();
                 }
 
                 // Add spawn button for ShootingStarLayer
@@ -364,6 +399,24 @@ namespace Starfire.Core.Background.Editor
             EditorUtility.SetDirty(target);
         }
 
+        private void AddGasCloudLayer()
+        {
+            // Create a new GasCloudLayer instance
+            var newLayer = new GasCloudLayer
+            {
+                layerName = $"Gas Cloud {_layers.arraySize + 1}",
+                parallaxDepth = 0.02f
+            };
+
+            // Add to array using SerializeReference
+            _layers.arraySize++;
+            var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
+            newLayerProperty.managedReferenceValue = newLayer;
+
+            serializedObject.ApplyModifiedProperties();
+            EditorUtility.SetDirty(target);
+        }
+
         private void AddNebulaLayer()
         {
             // Create a new NebulaLayer instance
@@ -382,16 +435,14 @@ namespace Starfire.Core.Background.Editor
             EditorUtility.SetDirty(target);
         }
 
-        private void AddStylizedNebulaLayer()
+        private void AddGalaxyLayer()
         {
-            // Create a new StylizedNebulaLayer instance
-            var newLayer = new StylizedNebulaLayer
+            var newLayer = new GalaxyLayer
             {
-                layerName = $"Stylized Nebula {_layers.arraySize + 1}",
-                parallaxDepth = 0.02f
+                layerName = $"Galaxy {_layers.arraySize + 1}",
+                parallaxDepth = 0.001f
             };
 
-            // Add to array using SerializeReference
             _layers.arraySize++;
             var newLayerProperty = _layers.GetArrayElementAtIndex(_layers.arraySize - 1);
             newLayerProperty.managedReferenceValue = newLayer;

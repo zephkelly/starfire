@@ -42,6 +42,18 @@ namespace StarfireV2
         }
 
         /// <summary>
+        /// Finds the first driver of the specified type in the stack.
+        /// </summary>
+        public T Find<T>() where T : class, IEntityControllerDriver
+        {
+            foreach (var driver in drivers)
+            {
+                if (driver is T typed) return typed;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Initializes all drivers that require runtime setup.
         /// Call this from your controller's Start() method.
         /// </summary>

@@ -36,9 +36,14 @@ namespace Starfire.Core.V2.World.Chunk
         public int MaxLoadedChunks { get; set; } = 100;
 
         /// <summary>
-        /// Maximum chunks to process (load or unload) per update.
+        /// Maximum chunks to load per update.
         /// </summary>
         public int ChunksPerFrame { get; set; } = 2;
+
+        /// <summary>
+        /// Maximum chunks to unload per update. Higher than load limit since unloading is cheap.
+        /// </summary>
+        public int MaxUnloadsPerFrame { get; set; } = 10;
 
         /// <summary>
         /// Fired when a chunk begins loading.
@@ -88,8 +93,10 @@ namespace Starfire.Core.V2.World.Chunk
             {
                 CenterChunk = newCenter;
                 DetermineChunksToLoad(newCenter);
-                DetermineChunksToUnload(newCenter);
             }
+
+            // Always check for chunks to unload (critical during high-speed travel)
+            DetermineChunksToUnload(CenterChunk);
 
             ProcessLoadQueue();
             ProcessUnloadQueue();
@@ -224,7 +231,7 @@ namespace Starfire.Core.V2.World.Chunk
 
             foreach (var kvp in _loadedChunks)
             {
-                int distance = kvp.Key.ChebyshevDistance(center);
+                long distance = kvp.Key.ChebyshevDistance(center);
                 if (distance > UnloadRadius)
                 {
                     _chunksToUnload.Add(kvp.Key);
@@ -266,8 +273,8 @@ namespace Starfire.Core.V2.World.Chunk
             // Sort by distance (farthest first) and last access time
             _processingBuffer.Sort((a, b) =>
             {
-                int distA = a.ChebyshevDistance(CenterChunk);
-                int distB = b.ChebyshevDistance(CenterChunk);
+                long distA = a.ChebyshevDistance(CenterChunk);
+                long distB = b.ChebyshevDistance(CenterChunk);
                 if (distA != distB) return distB.CompareTo(distA);
 
                 // Secondary sort by last access time (oldest first)
@@ -281,7 +288,7 @@ namespace Starfire.Core.V2.World.Chunk
 
             foreach (var coord in _processingBuffer)
             {
-                if (processed >= ChunksPerFrame) break;
+                if (processed >= MaxUnloadsPerFrame) break;
 
                 if (_loadedChunks.TryGetValue(coord, out var chunk))
                 {

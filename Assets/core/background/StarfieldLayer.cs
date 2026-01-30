@@ -1,5 +1,6 @@
 using UnityEngine;
 using Starfire.Core;
+using Starfire.Core.V2.World;
 
 namespace Starfire.Core.Background
 {
@@ -26,6 +27,15 @@ namespace Starfire.Core.Background
         [System.NonSerialized] protected GameObject _quadObject;
         [System.NonSerialized] protected MeshRenderer _renderer;
 
+        // Double-precision virtual position set by StarfieldManager each frame
+        [System.NonSerialized] protected Vector2D _virtualPos;
+
+        // Fmod period for parallax-space wrapping (keeps float values precise)
+        protected const double ParallaxFmodPeriod = 100000.0;
+
+        // Shader property ID for per-material parallax offset
+        protected static readonly int ParallaxOffsetID = Shader.PropertyToID("_ParallaxOffset");
+
         /// <summary>
         /// The shader to use for this layer type.
         /// </summary>
@@ -35,6 +45,54 @@ namespace Starfire.Core.Background
         /// Apply layer-specific properties to the material.
         /// </summary>
         public abstract void ConfigureMaterial(Material material);
+
+        /// <summary>
+        /// Set the double-precision virtual position for this frame.
+        /// Called by StarfieldManager before Update().
+        /// </summary>
+        public void SetVirtualPosition(Vector2D virtualPos)
+        {
+            _virtualPos = virtualPos;
+        }
+
+        /// <summary>
+        /// Compute a float-safe parallax offset from the double-precision virtual position.
+        /// Uses fmod in parallax-UV space to keep values within float32 precision (~0.01 units).
+        /// Seam distance = ParallaxFmodPeriod / parallaxFactor (e.g., 4000km+ for parallax 0.05).
+        /// </summary>
+        protected Vector2 ComputeParallaxOffset(double parallaxFactor)
+        {
+            double offsetX = _virtualPos.X * parallaxFactor;
+            double offsetY = _virtualPos.Y * parallaxFactor;
+
+            offsetX = SymmetricFmod(offsetX, ParallaxFmodPeriod);
+            offsetY = SymmetricFmod(offsetY, ParallaxFmodPeriod);
+
+            return new Vector2((float)offsetX, (float)offsetY);
+        }
+
+        /// <summary>
+        /// Symmetric fmod: keeps value in [-period/2, +period/2) range.
+        /// Computed in double precision to avoid float truncation.
+        /// </summary>
+        protected static double SymmetricFmod(double value, double period)
+        {
+            double halfPeriod = period * 0.5;
+            value = value % period;
+            if (value < -halfPeriod) value += period;
+            else if (value >= halfPeriod) value -= period;
+            return value;
+        }
+
+        /// <summary>
+        /// Apply the per-material parallax offset to the material.
+        /// Call this in ConfigureMaterial() instead of relying on shader-side _CameraWorldPos * _ParallaxFactor.
+        /// </summary>
+        protected void ApplyParallaxOffset(Material material)
+        {
+            Vector2 offset = ComputeParallaxOffset(parallaxDepth);
+            material.SetVector(ParallaxOffsetID, new Vector4(offset.x, offset.y, 0, 0));
+        }
 
         /// <summary>
         /// Apply world fabric properties to the material based on this layer's parallax depth.

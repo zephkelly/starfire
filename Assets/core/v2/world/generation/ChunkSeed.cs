@@ -20,8 +20,8 @@ namespace Starfire.Core.V2.World.Generation
             unchecked
             {
                 int hash = 17;
-                hash = hash * 31 + coord.X;
-                hash = hash * 31 + coord.Y;
+                hash = hash * 31 + coord.X.GetHashCode();
+                hash = hash * 31 + coord.Y.GetHashCode();
                 hash = hash * 31 + worldSeed.GetHashCode();
 
                 // Normalize to 0-1 range

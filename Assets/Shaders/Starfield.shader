@@ -121,11 +121,14 @@ Shader "Starfire/Starfield"
                 float _FabricAnomalyShift;
             CBUFFER_END
 
-            // Set from script
-            float2 _CameraWorldPos;
+            // Set from script (globals)
+            float2 _CameraWorldPos; // Local Unity camera pos (near origin)
             float _ScreenAspect;
             float _CameraOrthoSize;
             float _ReferenceZoom;
+
+            // Per-material parallax offset (computed in double precision on CPU, fmod'd for float safety)
+            float2 _ParallaxOffset;
 
             // Warp effect globals (set by WarpEffectController)
             float _WarpIntensity;
@@ -435,9 +438,8 @@ Shader "Starfire/Starfield"
                 // Scale UVs around center point
                 float2 scaledUV = (uv - 0.5) * depthZoomFactor + 0.5;
 
-                // Apply parallax offset based on camera position
-                float2 parallaxOffset = _CameraWorldPos * _ParallaxFactor;
-                float2 parallaxUV = scaledUV + parallaxOffset;
+                // Apply parallax offset (pre-computed on CPU in double precision)
+                float2 parallaxUV = scaledUV + _ParallaxOffset;
 
                 // Warp star density reduction — parallax-aware
                 // nearBias controls which depths fade more: 0 = background fades more, 1 = foreground fades more

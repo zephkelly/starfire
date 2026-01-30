@@ -51,8 +51,54 @@ namespace Starfire.Core.Background.Layers
     }
 
     /// <summary>
+    /// Configuration for a single depth level within the shaped star layer.
+    /// </summary>
+    [System.Serializable]
+    public struct ShapedDepthConfig
+    {
+        [Tooltip("Parallax depth - lower values = farther/slower, higher = closer/faster")]
+        [HighPrecision(5, 0.00001f)]
+        public float parallaxDepth;
+
+        [Tooltip("Star density for this depth level")]
+        [Range(1, 100)]
+        public float density;
+
+        [Tooltip("Minimum star size at this depth")]
+        [Min(0)]
+        public float sizeMin;
+
+        [Tooltip("Maximum star size at this depth")]
+        [Min(0)]
+        public float sizeMax;
+
+        [Tooltip("Color tint for stars at this depth")]
+        public Color colorTint;
+
+        [Tooltip("Random seed for star positions at this depth")]
+        public int seed;
+
+        /// <summary>
+        /// Creates a default depth configuration.
+        /// </summary>
+        public static ShapedDepthConfig Default(int index)
+        {
+            return new ShapedDepthConfig
+            {
+                parallaxDepth = 0.01f + index * 0.015f,
+                density = 30f - index * 5f,
+                sizeMin = 0.01f + index * 0.01f,
+                sizeMax = 0.05f + index * 0.03f,
+                colorTint = Color.white,
+                seed = index * 1000
+            };
+        }
+    }
+
+    /// <summary>
     /// A layer that renders procedural stars with multiple shape types.
     /// Each shape can have its own spawn probability and optional visual overrides.
+    /// Supports multiple depth levels rendered in a single draw call.
     /// </summary>
     [System.Serializable]
     public class ShapedStarLayer : StarfieldLayer
@@ -62,6 +108,7 @@ namespace Starfire.Core.Background.Layers
         public ShapedStarLayerPreset preset;
 
         private const int MaxShapes = 4;
+        private const int MaxDepths = 8;
 
         [Header("Shape Configuration")]
         [Tooltip("Up to 4 shapes with individual spawn weights and optional overrides")]
@@ -126,8 +173,12 @@ namespace Starfire.Core.Background.Layers
         public bool renderBackground = false;
         public Color backgroundColor = new Color(0, 0, 0.02f, 1);
 
+        [Header("Multi-Depth Configuration")]
+        [Tooltip("When populated, renders multiple depth layers in a single draw call. Leave empty for single-depth mode using the settings above.")]
+        public List<ShapedDepthConfig> depths = new List<ShapedDepthConfig>();
+
         [Header("Distribution")]
-        [Tooltip("Random seed for this layer's star positions")]
+        [Tooltip("Random seed for this layer's star positions (single-depth mode only)")]
         public int layerSeed = 0;
 
         [Tooltip("How much clustering affects star density (0 = uniform, 1 = heavily clustered)")]
@@ -142,6 +193,12 @@ namespace Starfire.Core.Background.Layers
         private Vector4[] _shapeParams = new Vector4[MaxShapes];
         private Vector4[] _shapeVisuals = new Vector4[MaxShapes];
         private Vector4[] _shapeColors = new Vector4[MaxShapes];
+
+        // Pre-allocated depth arrays
+        private Vector4[] _depthParams = new Vector4[MaxDepths];
+        private Vector4[] _depthColors = new Vector4[MaxDepths];
+        private float[] _depthSeeds = new float[MaxDepths];
+        private Vector4[] _depthParallaxOffsets = new Vector4[MaxDepths];
 
         // Shader property IDs (cached for performance)
         private static readonly int StarDensityID = Shader.PropertyToID("_StarDensity");
@@ -163,6 +220,13 @@ namespace Starfire.Core.Background.Layers
         private static readonly int LayerSeedID = Shader.PropertyToID("_LayerSeed");
         private static readonly int ClusterAmountID = Shader.PropertyToID("_ClusterAmount");
         private static readonly int ClusterScaleID = Shader.PropertyToID("_ClusterScale");
+
+        // Depth-specific property IDs
+        private static readonly int DepthCountID = Shader.PropertyToID("_DepthCount");
+        private static readonly int DepthParamsID = Shader.PropertyToID("_DepthParams");
+        private static readonly int DepthColorsID = Shader.PropertyToID("_DepthColors");
+        private static readonly int DepthSeedsID = Shader.PropertyToID("_DepthSeeds");
+        private static readonly int DepthParallaxOffsetsID = Shader.PropertyToID("_DepthParallaxOffsets");
 
         // Shape-specific property IDs
         private static readonly int ShapeCountID = Shader.PropertyToID("_ShapeCount");
@@ -204,6 +268,9 @@ namespace Starfire.Core.Background.Layers
             material.SetFloat(LayerSeedID, layerSeed);
             material.SetFloat(ClusterAmountID, clusterAmount);
             material.SetFloat(ClusterScaleID, clusterScale);
+
+            // Per-layer parallax offset (double-precision, fmod'd for float safety)
+            ApplyParallaxOffset(material);
 
             // Configure per-shape data
             ConfigureShapeData(material);
@@ -287,8 +354,50 @@ namespace Starfire.Core.Background.Layers
             material.SetVectorArray(ShapeColorsID, _shapeColors);
             material.SetVector(CumulativeWeightsID, cumulativeWeights);
 
+            // Configure depth arrays
+            ConfigureDepthData(material);
+
             // Per-layer fabric sampling
             ApplyFabricProperties(material);
+        }
+        private void ConfigureDepthData(Material material)
+        {
+            int depthCount = Mathf.Min(depths.Count, MaxDepths);
+            material.SetFloat(DepthCountID, depthCount);
+
+            if (depthCount == 0) return;
+
+            for (int i = 0; i < MaxDepths; i++)
+            {
+                if (i < depthCount)
+                {
+                    var depth = depths[i];
+                    _depthParams[i] = new Vector4(
+                        depth.parallaxDepth,
+                        depth.density,
+                        depth.sizeMin,
+                        depth.sizeMax
+                    );
+                    _depthColors[i] = depth.colorTint;
+                    _depthSeeds[i] = depth.seed;
+
+                    // Per-depth parallax offset computed in double precision
+                    Vector2 offset = ComputeParallaxOffset(depth.parallaxDepth);
+                    _depthParallaxOffsets[i] = new Vector4(offset.x, offset.y, 0, 0);
+                }
+                else
+                {
+                    _depthParams[i] = Vector4.zero;
+                    _depthColors[i] = Vector4.zero;
+                    _depthSeeds[i] = 0;
+                    _depthParallaxOffsets[i] = Vector4.zero;
+                }
+            }
+
+            material.SetVectorArray(DepthParamsID, _depthParams);
+            material.SetVectorArray(DepthColorsID, _depthColors);
+            material.SetFloatArray(DepthSeedsID, _depthSeeds);
+            material.SetVectorArray(DepthParallaxOffsetsID, _depthParallaxOffsets);
         }
     }
 }

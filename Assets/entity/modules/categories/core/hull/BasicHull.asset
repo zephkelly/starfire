@@ -15,6 +15,6 @@ MonoBehaviour:
   moduleId: hull_module
   displayName: Hull Module
   tier: 1
-  maxHealth: 100
+  maxHealth: 10000
   damageResistance: 0
   damageResistances: {fileID: 0}

@@ -18,6 +18,12 @@ namespace StarfireV2
         float GetRotationInput();
         Vector2 GetAimDirection();
 
+        /// <summary>
+        /// Whether the driver has an active aim target.
+        /// When false, rotation should not be applied (ship maintains current heading).
+        /// </summary>
+        bool HasAimTarget { get; }
+
         bool IsFirePressed();
         bool IsWarpPressed();
         bool IsHyperdrivePressed();

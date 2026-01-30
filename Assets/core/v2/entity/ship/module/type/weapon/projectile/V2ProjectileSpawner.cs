@@ -59,8 +59,6 @@ namespace StarfireV2
 
             var config = context.ProjectileConfig;
 
-            Debug.Log($"[V2Spawner] Spawning physics projectile at {context.SpawnPosition}, dir={context.Direction}, speed={config.speed}");
-
             GameObject projectileGO;
             bool fromPool = false;
 
@@ -69,7 +67,6 @@ namespace StarfireV2
             {
                 projectileGO = ProjectilePoolManager.Instance.GetPhysicsProjectile(context.ProjectilePrefab);
                 fromPool = true;
-                Debug.Log($"[V2Spawner] Got projectile from pool: {projectileGO.name}");
             }
             else
             {
@@ -79,7 +76,6 @@ namespace StarfireV2
                     context.SpawnPosition,
                     Quaternion.identity
                 );
-                Debug.Log($"[V2Spawner] Instantiated projectile (no pool): {projectileGO.name}");
             }
 
             // Position (pool objects start at origin)
@@ -131,7 +127,6 @@ namespace StarfireV2
             var projectile = projectileGO.GetComponent<V2Projectile>();
             if (projectile == null)
             {
-                Debug.Log("[V2Spawner] Adding V2Projectile component to prefab");
                 projectile = projectileGO.AddComponent<V2Projectile>();
                 // Disable pooling for dynamically added components
                 projectile.DisablePooling();
@@ -338,9 +333,6 @@ namespace StarfireV2
             // Calculate angled launch direction based on volley bloom
             float angleOffset = missileConfig.GetLaunchAngleOffset(context.MissileIndex, context.VolleyCount);
             Vector2 launchDirection = RotateVector(context.Direction, angleOffset);
-
-            Debug.Log($"[V2Spawner] Spawning missile {context.MissileIndex + 1}/{context.VolleyCount} at {context.SpawnPosition}, " +
-                      $"angle offset={angleOffset:F1}, dir={launchDirection}");
 
             GameObject projectileGO;
             bool fromPool = false;
