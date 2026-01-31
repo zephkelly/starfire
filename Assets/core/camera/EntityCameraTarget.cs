@@ -1,5 +1,6 @@
 using Starfire.Core.V2.World;
 using Starfire.Entity;
+using StarfireV2;
 using UnityEngine;
 
 namespace Starfire.Core.Cam
@@ -9,6 +10,7 @@ namespace Starfire.Core.Cam
         [SerializeField] private float priority = 1f;
 
         private EntityControllerBase _controller;
+        private StarfireV2.ShipController _v2Controller;
         private Rigidbody2D _rigidbody;
         private Camera _mainCamera;
 
@@ -53,17 +55,25 @@ namespace Starfire.Core.Cam
         {
             get
             {
-                if (_controller == null || _mainCamera == null) return Vector2.zero;
+                if (_mainCamera == null) return Vector2.zero;
 
-                var driver = _controller.DriverStack.GetActiveDriver();
-                if (driver == null) return Vector2.zero;
+                // Try V1 controller
+                if (_controller != null)
+                {
+                    var driver = _controller.DriverStack.GetActiveDriver();
+                    if (driver != null)
+                        return ComputeFocusDirection(driver.GetAimDirection(), driver.IsWorldSpaceAim);
+                }
 
-                Vector2 aimScreenPos = driver.GetAimDirection();
-                Vector3 worldPos = _mainCamera.ScreenToWorldPoint(new Vector3(aimScreenPos.x, aimScreenPos.y, 0f));
-                Vector2 aimWorld = new Vector2(worldPos.x, worldPos.y);
+                // Try V2 controller
+                if (_v2Controller != null)
+                {
+                    var driver = _v2Controller.DriverStack.GetActiveDriver();
+                    if (driver != null)
+                        return ComputeFocusDirection(driver.GetAimDirection(), driver.IsWorldSpaceAim);
+                }
 
-                Vector2 direction = aimWorld - Position;
-                return direction.normalized;
+                return Vector2.zero;
             }
         }
 
@@ -71,10 +81,58 @@ namespace Starfire.Core.Cam
         {
             get
             {
-                if (_controller == null) return false;
-                var driver = _controller.DriverStack.GetActiveDriver();
-                return driver != null;
+                if (_controller != null)
+                    return _controller.DriverStack.GetActiveDriver() != null;
+                if (_v2Controller != null)
+                    return _v2Controller.DriverStack.GetActiveDriver() != null;
+                return false;
             }
+        }
+
+        public Vector2 FocusDirectionRaw
+        {
+            get
+            {
+                if (_mainCamera == null) return Vector2.zero;
+
+                if (_controller != null)
+                {
+                    var driver = _controller.DriverStack.GetActiveDriver();
+                    if (driver != null)
+                        return ComputeFocusDirectionRaw(driver.GetAimDirection(), driver.IsWorldSpaceAim);
+                }
+
+                if (_v2Controller != null)
+                {
+                    var driver = _v2Controller.DriverStack.GetActiveDriver();
+                    if (driver != null)
+                        return ComputeFocusDirectionRaw(driver.GetAimDirection(), driver.IsWorldSpaceAim);
+                }
+
+                return Vector2.zero;
+            }
+        }
+
+        private Vector2 ComputeFocusDirectionRaw(Vector2 aimRaw, bool isWorldSpace)
+        {
+            Vector2 aimWorld;
+            if (isWorldSpace)
+            {
+                aimWorld = aimRaw;
+            }
+            else
+            {
+                Vector3 worldPos = _mainCamera.ScreenToWorldPoint(new Vector3(aimRaw.x, aimRaw.y, 0f));
+                aimWorld = new Vector2(worldPos.x, worldPos.y);
+            }
+
+            return aimWorld - Position;
+        }
+
+        private Vector2 ComputeFocusDirection(Vector2 aimRaw, bool isWorldSpace)
+        {
+            Vector2 raw = ComputeFocusDirectionRaw(aimRaw, isWorldSpace);
+            return raw.sqrMagnitude > 0.001f ? raw.normalized : Vector2.zero;
         }
 
         public bool IsValid => this != null && gameObject.activeInHierarchy;
@@ -100,6 +158,7 @@ namespace Starfire.Core.Cam
         private void Awake()
         {
             _controller = GetComponent<EntityControllerBase>();
+            _v2Controller = GetComponent<StarfireV2.ShipController>();
             _rigidbody = GetComponent<Rigidbody2D>();
             _mainCamera = Camera.main;
         }

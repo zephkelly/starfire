@@ -18,11 +18,13 @@ namespace StarfireV2
         private bool firePressed;
         private bool warpPressed;
         private bool hyperdrivePressed;
+        private bool isUsingGamepad;
+        private AimReticle aimReticle;
 
         [field: SerializeField]
         public int Priority { get; private set; } = 10;
         public bool IsActive { get; set; } = true;
-        public bool IsWorldSpaceAim => false;
+        public bool IsWorldSpaceAim => isUsingGamepad;
 
         // Parameterless constructor for serialization
         public PlayerEntityControllerDriver() { }
@@ -90,6 +92,7 @@ namespace StarfireV2
             inputProvider.OnWarpReleased += HandleWarpReleased;
             inputProvider.OnHyperdrivePressed += HandleHyperdrivePressed;
             inputProvider.OnHyperdriveReleased += HandleHyperdriveReleased;
+            inputProvider.OnInputDeviceChanged += HandleInputDeviceChanged;
         }
 
         public void Unsubscribe()
@@ -104,18 +107,40 @@ namespace StarfireV2
             inputProvider.OnWarpReleased -= HandleWarpReleased;
             inputProvider.OnHyperdrivePressed -= HandleHyperdrivePressed;
             inputProvider.OnHyperdriveReleased -= HandleHyperdriveReleased;
+            inputProvider.OnInputDeviceChanged -= HandleInputDeviceChanged;
 
             isInitialized = false;
         }
 
         private void HandleMove(Vector2 direction) => movementDirection = direction;
         private void HandleRotate(float rotation) => rotationInput = rotation;
-        private void HandleAim(Vector2 aim) => aimDirection = aim;
+        private void HandleAim(Vector2 aim)
+        {
+            if (isUsingGamepad && aimReticle != null)
+            {
+                aimReticle.SetStickInput(aim);
+            }
+            else
+            {
+                aimDirection = aim;
+            }
+        }
         private void HandleFire(bool pressed) => firePressed = pressed;
         private void HandleWarpPressed() => warpPressed = true;
         private void HandleWarpReleased() => warpPressed = false;
         private void HandleHyperdrivePressed() => hyperdrivePressed = true;
         private void HandleHyperdriveReleased() => hyperdrivePressed = false;
+        private void HandleInputDeviceChanged(bool gamepad)
+        {
+            isUsingGamepad = gamepad;
+            if (aimReticle != null)
+                aimReticle.SetVisible(gamepad);
+        }
+
+        public void SetAimReticle(AimReticle reticle)
+        {
+            aimReticle = reticle;
+        }
 
         public bool HasAimTarget => true; // Player always has mouse/stick aim
 
@@ -123,7 +148,12 @@ namespace StarfireV2
         public float GetThrottle() => 1f;
         public Vector2 GetDesiredAcceleration() => Vector2.zero;  // Player uses direction/throttle
         public float GetRotationInput() => rotationInput;
-        public Vector2 GetAimDirection() => aimDirection;
+        public Vector2 GetAimDirection()
+        {
+            if (isUsingGamepad && aimReticle != null)
+                return aimReticle.WorldPosition;
+            return aimDirection;
+        }
         public bool IsFirePressed() => firePressed;
         public bool IsWarpPressed() => warpPressed;
         public bool IsHyperdrivePressed() => hyperdrivePressed;

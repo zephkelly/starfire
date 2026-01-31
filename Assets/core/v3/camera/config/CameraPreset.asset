@@ -43,8 +43,9 @@ MonoBehaviour:
   lookAheadSmoothing: 0.15
   orthographicSize: 25
   minZoom: 25
-  maxZoom: 80
+  maxZoom: 120
   scrollSensitivity: 2
+  gamepadZoomSpeed: 20
   zoomRateCurve:
     serializedVersion: 2
     m_Curve:
@@ -79,3 +80,9 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   zoomSmoothing: 0
+  screenShakeConfig:
+    shakeMultiplier: 1
+    maxOffset: 0.5
+    maxRotation: 3
+    traumaDecay: 1.5
+    frequency: 25

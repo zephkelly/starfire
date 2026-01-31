@@ -14,5 +14,8 @@ namespace StarfireV2
         event Action OnWarpReleased;
         event Action OnHyperdrivePressed;
         event Action OnHyperdriveReleased;
+
+        event Action<float> OnZoom; // positive = zoom in, negative = zoom out
+        event Action<bool> OnInputDeviceChanged; // true = gamepad, false = keyboard/mouse
     }
 }

@@ -652,6 +652,7 @@ namespace Starfire.Core.V2.Cam
             public Vector2 InterpolatedPosition => _position;
             public Vector2 Velocity => Vector2.zero;
             public Vector2 FocusDirection => Vector2.zero;
+            public Vector2 FocusDirectionRaw => Vector2.zero;
             public bool HasFocus => false;
             public bool IsValid => true;
             public float Priority => 1f;

@@ -13,6 +13,8 @@ namespace StarfireV2
         public event Action OnWarpReleased;
         public event Action OnHyperdrivePressed;
         public event Action OnHyperdriveReleased;
+        public event Action<bool> OnInputDeviceChanged; // never fires — always keyboard/mouse
+        public event Action<float> OnZoom;
 
         [SerializeField] private string horizontalAxis = "Horizontal";
         [SerializeField] private string verticalAxis = "Vertical";
@@ -30,6 +32,7 @@ namespace StarfireV2
             UpdateFire();
             UpdateWarp();
             UpdateHyperdrive();
+            UpdateZoom();
         }
 
         private void UpdateMovement()
@@ -84,6 +87,15 @@ namespace StarfireV2
             if (Input.GetKeyUp(hyperdriveKey))
             {
                 OnHyperdriveReleased?.Invoke();
+            }
+        }
+
+        private void UpdateZoom()
+        {
+            float scroll = Input.mouseScrollDelta.y;
+            if (Mathf.Abs(scroll) > 0.001f)
+            {
+                OnZoom?.Invoke(scroll);
             }
         }
     }

@@ -1,6 +1,7 @@
 using Starfire.Core.Cam;
 using Starfire.Core.V3.Cam.Config;
 using Starfire.Core.V3.Cam.Effects;
+using StarfireV2;
 using UnityEngine;
 
 namespace Starfire.Core.V3.Cam
@@ -22,6 +23,10 @@ namespace Starfire.Core.V3.Cam
         // Zoom
         private float _targetZoom;
         private float _zoomVelocity;
+        private float _zoomContinuousInput; // held value (d-pad): persists until canceled
+        private float _zoomImpulseInput;    // impulse value (scroll): consumed each frame
+        private IInputProvider _inputProvider;
+        private bool _isUsingGamepad;
 
         // Effects
         private V3CameraEffectsManager _effectsManager;
@@ -75,37 +80,104 @@ namespace Starfire.Core.V3.Cam
 
             // Initialize shake service with references
             _shakeService.Initialize(_effectsManager, _camera);
+
+            // Subscribe to input provider for zoom
+            if (InputProviderRegistry.Instance != null)
+            {
+                _inputProvider = InputProviderRegistry.Instance.GetProvider();
+                if (_inputProvider != null)
+                {
+                    _inputProvider.OnZoom += HandleZoom;
+                    _inputProvider.OnInputDeviceChanged += HandleDeviceChanged;
+                }
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_inputProvider != null)
+            {
+                _inputProvider.OnZoom -= HandleZoom;
+                _inputProvider.OnInputDeviceChanged -= HandleDeviceChanged;
+            }
+        }
+
+        private void HandleDeviceChanged(bool isGamepad)
+        {
+            _isUsingGamepad = isGamepad;
+        }
+
+        private void HandleZoom(float value)
+        {
+            if (_isUsingGamepad)
+            {
+                // D-pad: ±1 on press, 0 on release
+                _zoomContinuousInput = Mathf.Abs(value) < 0.001f ? 0f : value;
+            }
+            else
+            {
+                // Mouse scroll: impulse per tick, ignore zero (PassThrough noise)
+                if (Mathf.Abs(value) > 0.001f)
+                    _zoomImpulseInput += value;
+            }
+        }
+
+        private void TrySubscribeZoom()
+        {
+            if (_inputProvider != null) return;
+            if (InputProviderRegistry.Instance == null) return;
+            _inputProvider = InputProviderRegistry.Instance.GetProvider();
+            if (_inputProvider != null)
+            {
+                _inputProvider.OnZoom += HandleZoom;
+                _inputProvider.OnInputDeviceChanged += HandleDeviceChanged;
+            }
         }
 
         private void LateUpdate()
         {
+            if (_inputProvider == null) TrySubscribeZoom();
             if (_target == null || !_target.IsValid) return;
 
             Vector2 pos = _target.Position;
 
-            // Aim offset: use screen center (entity is always centered)
+            // Aim offset
             if (preset != null && preset.maxLookAhead > 0f)
             {
-                Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-                Vector2 mouseOffset = (Vector2)Input.mousePosition - screenCenter;
-
-                // Normalize distance to half-screen (use smaller dimension for consistent feel)
-                float halfScreen = Mathf.Min(Screen.width, Screen.height) * 0.5f;
-                float normalizedDist = mouseOffset.magnitude / halfScreen;
-
-                // Map to inner/outer limits
-                float t = Mathf.InverseLerp(preset.innerLimit, preset.outerLimit, normalizedDist);
-                t = Mathf.Clamp01(t);
-
-                // Apply curve and calculate final look-ahead
-                float curveValue = preset.lookAheadCurve.Evaluate(t);
-                float lookAhead = Mathf.Lerp(preset.minLookAhead, preset.maxLookAhead, curveValue);
-
-                // Calculate target aim offset
                 Vector2 targetAimOffset = Vector2.zero;
-                if (lookAhead > 0f && mouseOffset.sqrMagnitude > 0.001f)
+
+                if (_target.HasFocus)
                 {
-                    targetAimOffset = mouseOffset.normalized * lookAhead;
+                    // Use raw (unnormalized) focus direction — avoids WorldToScreenPoint feedback loop
+                    Vector2 focusRaw = _target.FocusDirectionRaw;
+                    float aimDist = focusRaw.magnitude;
+
+                    if (aimDist > 0.001f)
+                    {
+                        // Map aim distance to curve using ortho size as reference scale
+                        float refDist = _camera.orthographicSize * 2f;
+                        float normalizedDist = aimDist / refDist;
+                        float t = Mathf.InverseLerp(preset.innerLimit, preset.outerLimit, normalizedDist);
+                        t = Mathf.Clamp01(t);
+                        float curveValue = preset.lookAheadCurve.Evaluate(t);
+                        float lookAhead = Mathf.Lerp(preset.minLookAhead, preset.maxLookAhead, curveValue);
+                        targetAimOffset = (focusRaw / aimDist) * lookAhead;
+                    }
+                }
+                else
+                {
+                    Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+                    Vector2 mouseOffset = (Vector2)Input.mousePosition - screenCenter;
+                    float halfScreen = Mathf.Min(Screen.width, Screen.height) * 0.5f;
+                    float normalizedDist = mouseOffset.magnitude / halfScreen;
+                    float t = Mathf.InverseLerp(preset.innerLimit, preset.outerLimit, normalizedDist);
+                    t = Mathf.Clamp01(t);
+                    float curveValue = preset.lookAheadCurve.Evaluate(t);
+                    float lookAhead = Mathf.Lerp(preset.minLookAhead, preset.maxLookAhead, curveValue);
+                    if (lookAhead > 0f && mouseOffset.sqrMagnitude > 0.001f)
+                    {
+                        targetAimOffset = mouseOffset.normalized * lookAhead;
+                    }
                 }
 
                 // Smooth the aim offset
@@ -170,15 +242,19 @@ namespace Starfire.Core.V3.Cam
         {
             if (preset == null) return;
 
-            float scrollInput = Input.mouseScrollDelta.y;
+            // Combine continuous (d-pad) + impulse (scroll) with separate sensitivities
+            float scrollInput = _zoomContinuousInput * preset.gamepadZoomSpeed * Time.deltaTime
+                              + _zoomImpulseInput * preset.scrollSensitivity;
+            _zoomImpulseInput = 0f;
+
             if (Mathf.Abs(scrollInput) > 0.001f)
             {
                 // Calculate rate multiplier based on current zoom level
                 float normalizedZoom = Mathf.InverseLerp(preset.minZoom, preset.maxZoom, _targetZoom);
                 float rateMultiplier = preset.zoomRateCurve.Evaluate(normalizedZoom);
 
-                // Apply scroll (negative because scroll up = zoom in = smaller ortho size)
-                float zoomDelta = -scrollInput * preset.scrollSensitivity * rateMultiplier;
+                // Apply zoom (negative because scroll up / d-pad up = zoom in = smaller ortho size)
+                float zoomDelta = -scrollInput * rateMultiplier;
                 float newTargetZoom = Mathf.Clamp(_targetZoom + zoomDelta, preset.minZoom, preset.maxZoom);
 
                 // Reset velocity if zoom direction changes to prevent fighting

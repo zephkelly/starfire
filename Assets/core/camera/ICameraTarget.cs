@@ -14,6 +14,7 @@ namespace Starfire.Core.Cam
         Vector2 InterpolatedPosition { get; }
         Vector2 Velocity { get; }
         Vector2 FocusDirection { get; }
+        Vector2 FocusDirectionRaw { get; }
         bool HasFocus { get; }
         bool IsValid { get; }
         float Priority { get; }

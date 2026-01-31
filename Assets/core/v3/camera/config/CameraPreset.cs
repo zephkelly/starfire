@@ -32,8 +32,11 @@ namespace Starfire.Core.V3.Cam.Config
         public float minZoom = 5f;
         public float maxZoom = 20f;
 
-        [Tooltip("Base scroll sensitivity")]
+        [Tooltip("Mouse scroll sensitivity (ortho-size units per scroll tick)")]
         public float scrollSensitivity = 2f;
+
+        [Tooltip("Gamepad d-pad zoom speed (ortho-size units per second)")]
+        public float gamepadZoomSpeed = 10f;
 
         [Tooltip("Curve controlling zoom rate based on current zoom level (X: 0-1 normalized zoom, Y: multiplier)")]
         public AnimationCurve zoomRateCurve = AnimationCurve.Linear(0f, 0.5f, 1f, 2f);

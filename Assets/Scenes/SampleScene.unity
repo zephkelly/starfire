@@ -1418,6 +1418,7 @@ GameObject:
   - component: {fileID: 673270243}
   - component: {fileID: 673270244}
   - component: {fileID: 673270245}
+  - component: {fileID: 673270246}
   m_Layer: 0
   m_Name: InputManager
   m_TagString: Untagged
@@ -1447,7 +1448,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 673270242}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54b7e7109e100504d99f8138d293d341, type: 3}
   m_Name: 
@@ -1469,7 +1470,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 330ebcf3028cf694b9c69f745ceb0bc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.InputProviderRegistry
-  inputProviderComponent: {fileID: 673270244}
+  inputProviderComponent: {fileID: 673270246}
+--- !u!114 &673270246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 673270242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5189c3aa91401e44faa85055bae6b3e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.NewInputSystemProvider
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!1 &760823828
 GameObject:
   m_ObjectHideFlags: 0
@@ -1995,6 +2009,7 @@ MonoBehaviour:
   _driverStack:
     drivers:
     - rid: 2281391656326398025
+  aimReticlePrefab: {fileID: 0}
   references:
     version: 2
     RefIds:
@@ -2700,7 +2715,7 @@ MonoBehaviour:
   - slotId: point_df_1
     typeId: 210
     isRequired: 0
-    isAvailable: 0
+    isAvailable: 1
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
     overrideData:
       rid: 2281391674931806293
@@ -2732,7 +2747,7 @@ MonoBehaviour:
   - slotId: point_df_2
     typeId: 210
     isRequired: 0
-    isAvailable: 0
+    isAvailable: 1
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
     overrideData:
       rid: 2281391674931806303
@@ -2740,7 +2755,7 @@ MonoBehaviour:
   - slotId: point_df_3
     typeId: 210
     isRequired: 0
-    isAvailable: 0
+    isAvailable: 1
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
     overrideData:
       rid: 2281391674931806294
@@ -2748,7 +2763,7 @@ MonoBehaviour:
   - slotId: point_df_4
     typeId: 210
     isRequired: 0
-    isAvailable: 0
+    isAvailable: 1
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
     overrideData:
       rid: 2281391674931806295
@@ -2764,6 +2779,7 @@ MonoBehaviour:
   _driverStack:
     drivers:
     - rid: 2281391393534640203
+  aimReticlePrefab: {fileID: 0}
   references:
     version: 2
     RefIds:
