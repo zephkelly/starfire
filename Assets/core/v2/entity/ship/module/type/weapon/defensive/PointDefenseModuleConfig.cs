@@ -60,6 +60,14 @@ namespace StarfireV2
         [Tooltip("Curve defining how accuracy falls off with range (0 = point blank, 1 = max range). Only used if accuracyDecayOverRange is true.")]
         [SerializeField] private AnimationCurve rangeAccuracyFalloff = AnimationCurve.Linear(0f, 1f, 1f, 0.8f);
 
+        [Header("Collision Course")]
+        [Tooltip("Radius around the ship used for collision course checks on simple projectiles. Projectiles not on a collision course are ignored.")]
+        [SerializeField] private float collisionCourseRadius = 2f;
+
+        [Header("Targeting Mode")]
+        [Tooltip("Auto = engage threats first then hostiles. Defensive = threats only. Offensive = hostile entities only.")]
+        [SerializeField] private PointDefenseTargetingMode targetingMode = PointDefenseTargetingMode.Auto;
+
         [Header("Sensor Integration")]
         [Tooltip("Whether to use sensor module for threat detection. Falls back to direct physics if no sensor is available.")]
         [SerializeField] private bool useSensorIntegration = true;
@@ -99,6 +107,8 @@ namespace StarfireV2
         public float MaxSpreadAngle => maxSpreadAngle;
         public bool AccuracyDecayOverRange => accuracyDecayOverRange;
         public AnimationCurve RangeAccuracyFalloff => rangeAccuracyFalloff;
+        public float CollisionCourseRadius => collisionCourseRadius;
+        public PointDefenseTargetingMode TargetingMode => targetingMode;
         public bool UseSensorIntegration => useSensorIntegration;
         public V2TurretSettings TurretSettings => turretSettings ?? GetDefaultTurretSettings();
         public V2ProjectileConfig ProjectileConfig => projectileConfig;
@@ -109,9 +119,44 @@ namespace StarfireV2
         // IShipModuleConfig implementation
         public ShipModuleTypeId TypeId => ShipModuleTypeId.PointDefense;
 
+        public IModuleRuntimeData ToData()
+        {
+            return new PointDefenseModuleData
+            {
+                moduleId = moduleId,
+                displayName = displayName,
+                weightClass = weightClass,
+                damage = damage,
+                fireRate = fireRate,
+                range = range,
+                engagementRange = engagementRange,
+                trackingSpeed = trackingSpeed,
+                maxTrackedTargets = maxTrackedTargets,
+                threatLayers = threatLayers,
+                scanInterval = scanInterval,
+                accuracyPercent = accuracyPercent,
+                maxSpreadAngle = maxSpreadAngle,
+                accuracyDecayOverRange = accuracyDecayOverRange,
+                rangeAccuracyFalloff = rangeAccuracyFalloff,
+                collisionCourseRadius = collisionCourseRadius,
+                targetingMode = targetingMode,
+                useSensorIntegration = useSensorIntegration,
+                turretSettings = turretSettings,
+                projectileConfig = projectileConfig,
+                projectilePrefab = projectilePrefab,
+                weaponVisualPrefab = weaponVisualPrefab,
+                fireShakeConfig = fireShakeConfig
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new PointDefenseModule((PointDefenseModuleData)data);
+        }
+
         public IShipModule CreateModule()
         {
-            return new PointDefenseModule(this);
+            return new PointDefenseModule((PointDefenseModuleData)ToData());
         }
 
         private static V2TurretSettings GetDefaultTurretSettings()
@@ -146,6 +191,7 @@ namespace StarfireV2
             if (trackingSpeed <= 0) trackingSpeed = 1f;
             if (maxTrackedTargets <= 0) maxTrackedTargets = 1;
             if (scanInterval <= 0) scanInterval = 0.1f;
+            if (collisionCourseRadius < 0.1f) collisionCourseRadius = 0.1f;
             if (maxSpreadAngle < 0) maxSpreadAngle = 0f;
             if (maxSpreadAngle > 90f) maxSpreadAngle = 90f;
 

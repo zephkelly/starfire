@@ -70,9 +70,33 @@ namespace StarfireV2
         // IShipModuleConfig implementation
         public ShipModuleTypeId TypeId => ShipModuleTypeId.Weapon;
 
+        public IModuleRuntimeData ToData()
+        {
+            return new OffensiveWeaponModuleData
+            {
+                moduleId = moduleId,
+                displayName = displayName,
+                weightClass = weightClass,
+                damage = damage,
+                fireRate = fireRate,
+                range = range,
+                damageConfig = damageConfig,
+                turretSettings = turretSettings,
+                projectileConfig = projectileConfig,
+                projectilePrefab = projectilePrefab,
+                weaponVisualPrefab = weaponVisualPrefab,
+                fireShakeConfig = fireShakeConfig
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new OffensiveWeaponModule((OffensiveWeaponModuleData)data);
+        }
+
         public IShipModule CreateModule()
         {
-            return new OffensiveWeaponModule(this);
+            return new OffensiveWeaponModule((OffensiveWeaponModuleData)ToData());
         }
 
         private void OnValidate()

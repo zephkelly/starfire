@@ -9,7 +9,7 @@ namespace StarfireV2
     /// </summary>
     public class V2TransponderModule : ITransponderModule
     {
-        private readonly V2TransponderModuleConfig _config;
+        private readonly TransponderModuleData _data;
         private IEntityController _controller;
         private readonly string _shipId;
         private V2CommChannel _activeChannels;
@@ -17,7 +17,7 @@ namespace StarfireV2
         private bool _isTransmitting;
 
         // IEntityModule
-        public string ModuleId => _config.ModuleId;
+        public string ModuleId => _data.moduleId;
         public bool IsEnabled { get; set; } = true;
 
         // IShipModule
@@ -26,8 +26,8 @@ namespace StarfireV2
 
         // ITransponderModule
         public string ShipId => _shipId;
-        public V2FactionData Faction => _config.DefaultFaction;
-        public ShipClassDefinition ShipClass => _config.ShipClass;
+        public V2FactionData Faction => _data.defaultFaction;
+        public ShipClassDefinition ShipClass => _data.shipClass;
 
         public bool IsTransmitting
         {
@@ -41,7 +41,7 @@ namespace StarfireV2
             set => _activeChannels = value;
         }
 
-        public V2CommChannel MonitoredChannels => _config.MonitoredChannels;
+        public V2CommChannel MonitoredChannels => _data.monitoredChannels;
 
         public int CrewComplement
         {
@@ -49,13 +49,13 @@ namespace StarfireV2
             set => _crewComplement = Mathf.Max(0, value);
         }
 
-        public V2TransponderModule(V2TransponderModuleConfig config)
+        public V2TransponderModule(TransponderModuleData data)
         {
-            _config = config;
+            _data = data;
             _shipId = GenerateShipId();
-            _activeChannels = config.DefaultActiveChannels;
-            _crewComplement = config.DefaultCrewComplement;
-            _isTransmitting = true; // Transponders default to transmitting
+            _activeChannels = data.defaultActiveChannels;
+            _crewComplement = data.defaultCrewComplement;
+            _isTransmitting = true;
         }
 
         public void OnAttach(IEntityController controller)

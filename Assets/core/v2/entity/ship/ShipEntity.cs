@@ -43,7 +43,11 @@ namespace StarfireV2
                 slot.SetSlotId(config.slotId);
                 Modules.RegisterSlot(config.slotId, config.typeId, slot);
 
-                if (config.defaultModule != null)
+                if (config.hasOverrides && config.overrideData != null)
+                {
+                    slot.EquipFromData(config.overrideData);
+                }
+                else if (config.defaultModule != null)
                 {
                     slot.EquipFromConfig(config.defaultModule);
                 }

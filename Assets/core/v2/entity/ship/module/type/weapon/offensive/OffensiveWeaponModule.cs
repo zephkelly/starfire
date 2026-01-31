@@ -9,7 +9,7 @@ namespace StarfireV2
     /// </summary>
     public class OffensiveWeaponModule : IOffensiveWeaponModule
     {
-        private readonly OffensiveWeaponModuleConfig _config;
+        private readonly OffensiveWeaponModuleData _data;
         private IEntityController _controller;
         private V2HardpointMarker _hardpoint;
         private V2WeaponVisual _visual;
@@ -17,7 +17,7 @@ namespace StarfireV2
         private Vector2 _aimDirection = Vector2.up;
 
         // IEntityModule
-        public string ModuleId => _config.ModuleId;
+        public string ModuleId => _data.moduleId;
         public bool IsEnabled { get; set; } = true;
 
         // IShipModule
@@ -25,10 +25,10 @@ namespace StarfireV2
         public ShipModuleType Type => ShipModuleType.Weapon;
 
         // IWeaponModule
-        public WeaponWeightClass WeightClass => _config.WeightClass;
-        public float FireRate => _config.FireRate;
-        public float Range => _config.Range;
-        public bool IsTurret => _config.TurretSettings?.isTurret ?? false;
+        public WeaponWeightClass WeightClass => _data.weightClass;
+        public float FireRate => _data.fireRate;
+        public float Range => _data.range;
+        public bool IsTurret => _data.turretSettings?.isTurret ?? false;
         public float CooldownRemaining => Mathf.Max(0f, _cooldownTimer);
 
         public bool CanFire
@@ -41,7 +41,7 @@ namespace StarfireV2
                 // For turrets, check if aimed at target
                 if (_visual != null && IsTurret)
                 {
-                    var turretSettings = _config.TurretSettings;
+                    var turretSettings = _data.turretSettings;
                     if (turretSettings != null && !turretSettings.canFireWhileRotating && !_visual.IsAimedAtTarget())
                     {
                         return false;
@@ -53,13 +53,13 @@ namespace StarfireV2
         }
 
         // IOffensiveWeaponModule
-        public float Damage => _config.Damage;
-        public V2WeaponDamageConfig DamageConfig => _config.DamageConfig;
-        public V2ProjectileConfig ProjectileConfig => _config.ProjectileConfig;
+        public float Damage => _data.damage;
+        public V2WeaponDamageConfig DamageConfig => _data.damageConfig ?? V2WeaponDamageConfig.Default;
+        public V2ProjectileConfig ProjectileConfig => _data.projectileConfig;
 
-        public OffensiveWeaponModule(OffensiveWeaponModuleConfig config)
+        public OffensiveWeaponModule(OffensiveWeaponModuleData data)
         {
-            _config = config;
+            _data = data;
         }
 
         public void OnAttach(IEntityController controller)
@@ -82,7 +82,7 @@ namespace StarfireV2
             }
 
             // Calculate mouse targeting direction (works for both turret and non-turret)
-            var turretSettings = _config.TurretSettings;
+            var turretSettings = _data.turretSettings;
             if (turretSettings != null && turretSettings.targetingMode == V2TargetingMode.MouseCursor)
             {
                 var mainCamera = Camera.main;
@@ -119,17 +119,17 @@ namespace StarfireV2
             // Validate weight class compatibility
             if (!hardpoint.CanMount(WeightClass))
             {
-                Debug.LogWarning($"Cannot mount {WeightClass} weapon '{_config.DisplayName}' on {hardpoint.WeightClass} hardpoint '{hardpoint.SlotId}'");
+                Debug.LogWarning($"Cannot mount {WeightClass} weapon '{_data.displayName}' on {hardpoint.WeightClass} hardpoint '{hardpoint.SlotId}'");
                 return;
             }
 
             _hardpoint = hardpoint;
 
             // Instantiate visual if we have a prefab
-            if (_config.WeaponVisualPrefab != null)
+            if (_data.weaponVisualPrefab != null)
             {
                 var visualGO = Object.Instantiate(
-                    _config.WeaponVisualPrefab,
+                    _data.weaponVisualPrefab,
                     _hardpoint.MountPoint
                 );
                 visualGO.transform.localPosition = Vector3.zero;
@@ -138,11 +138,11 @@ namespace StarfireV2
                 _visual = visualGO.GetComponent<V2WeaponVisual>();
                 if (_visual != null)
                 {
-                    _visual.Initialize(_config.TurretSettings);
+                    _visual.Initialize(_data.turretSettings);
                 }
                 else
                 {
-                    Debug.LogWarning($"Weapon visual prefab '{_config.WeaponVisualPrefab.name}' is missing V2WeaponVisual component");
+                    Debug.LogWarning($"Weapon visual prefab '{_data.weaponVisualPrefab.name}' is missing V2WeaponVisual component");
                 }
             }
         }
@@ -192,16 +192,16 @@ namespace StarfireV2
 
         private void SpawnProjectile()
         {
-            var projConfig = _config.ProjectileConfig;
+            var projConfig = _data.projectileConfig;
             if (projConfig == null)
             {
-                Debug.LogWarning($"[V2Weapon] '{_config.DisplayName}' has no ProjectileConfig assigned");
+                Debug.LogWarning($"[V2Weapon] '{_data.displayName}' has no ProjectileConfig assigned");
                 return;
             }
 
-            if (projConfig.mode == V2ProjectileMode.Physics && _config.ProjectilePrefab == null)
+            if (projConfig.mode == V2ProjectileMode.Physics && _data.projectilePrefab == null)
             {
-                Debug.LogWarning($"[V2Weapon] '{_config.DisplayName}' has no projectile prefab for Physics mode");
+                Debug.LogWarning($"[V2Weapon] '{_data.displayName}' has no projectile prefab for Physics mode");
                 return;
             }
 
@@ -227,12 +227,12 @@ namespace StarfireV2
             }
             else
             {
-                Debug.LogWarning($"[V2Weapon] Cannot spawn projectile for '{_config.DisplayName}': no position reference available");
+                Debug.LogWarning($"[V2Weapon] Cannot spawn projectile for '{_data.displayName}': no position reference available");
                 return;
             }
 
             // Override direction for mouse targeting mode
-            var turretSettings = _config.TurretSettings;
+            var turretSettings = _data.turretSettings;
             if (turretSettings != null && turretSettings.targetingMode == V2TargetingMode.MouseCursor)
             {
                 direction = _aimDirection;
@@ -253,17 +253,17 @@ namespace StarfireV2
                 Direction = direction,
                 InheritedVelocity = inheritedVelocity,
                 Damage = Damage,
-                DamageConfig = _config.DamageConfig,
+                DamageConfig = _data.damageConfig,
                 ProjectileConfig = projConfig,
-                ProjectilePrefab = _config.ProjectilePrefab
+                ProjectilePrefab = _data.projectilePrefab
             };
 
             V2ProjectileSpawner.Spawn(context);
 
             // Trigger fire shake (recoil)
-            if (_config.FireShakeConfig != null)
+            if (_data.fireShakeConfig != null)
             {
-                V3CameraShakeService.Instance?.TriggerFireShake(spawnPos, direction, _config.FireShakeConfig);
+                V3CameraShakeService.Instance?.TriggerFireShake(spawnPos, direction, _data.fireShakeConfig);
             }
         }
     }

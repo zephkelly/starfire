@@ -10,6 +10,7 @@ namespace StarfireV2
 
         void SetSlotId(string slotId);
         void EquipFromConfig(ScriptableObject config);
+        void EquipFromData(IModuleRuntimeData data);
         void Unequip();
         void Update(float deltaTime);
     }

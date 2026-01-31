@@ -8,6 +8,8 @@ namespace StarfireV2
     {
         public ShipModuleTypeId TypeId => ShipModuleTypeId.RotationalThrusters;
         IShipModule IShipModuleConfig.CreateModule() => CreateModule();
+        IModuleRuntimeData IShipModuleConfig.ToData() => ToData();
+        IShipModule IShipModuleConfig.CreateModuleFromData(IModuleRuntimeData data) => CreateModuleFromData(data);
 
         [Header("Module Identity")]
         [SerializeField] private string moduleId = "rotation_module";
@@ -188,9 +190,55 @@ namespace StarfireV2
         public bool EnableDirectionOptimization => enableDirectionOptimization;
         public float DirectionOptimizationVelocityThreshold => directionOptimizationVelocityThreshold;
 
+        public RotationModuleData ToData()
+        {
+            return new RotationModuleData
+            {
+                moduleId = moduleId,
+                displayName = displayName,
+                rotationMode = rotationMode,
+                rotationSpeed = rotationSpeed,
+                spriteOffset = spriteOffset,
+                respectMaxSpeed = respectMaxSpeed,
+                smoothingFactor = smoothingFactor,
+                smoothDeadzone = smoothDeadzone,
+                useSmoothDamp = useSmoothDamp,
+                maxTorque = maxTorque,
+                maxAngularVelocity = maxAngularVelocity,
+                angularDrag = angularDrag,
+                physicsDeadzone = physicsDeadzone,
+                proportionalGain = proportionalGain,
+                derivativeGain = derivativeGain,
+                thrusters = thrusters,
+                thrusterVisualConfig = thrusterVisualConfig,
+                autoDiscoverThrusters = autoDiscoverThrusters,
+                defaultThrusterThrust = defaultThrusterThrust,
+                defaultThrusterResponseTime = defaultThrusterResponseTime,
+                stateTransitionHysteresis = stateTransitionHysteresis,
+                minimumCoastVelocity = minimumCoastVelocity,
+                brakingSafetyMargin = brakingSafetyMargin,
+                velocityDeadzone = velocityDeadzone,
+                referenceVelocity = referenceVelocity,
+                referenceAngle = referenceAngle,
+                settlingAngleThreshold = settlingAngleThreshold,
+                settlingVelocityThreshold = settlingVelocityThreshold,
+                settlingProportionalGain = settlingProportionalGain,
+                settlingDerivativeGain = settlingDerivativeGain,
+                settlingAcceptanceThreshold = settlingAcceptanceThreshold,
+                minimumThrustFraction = minimumThrustFraction,
+                enableDirectionOptimization = enableDirectionOptimization,
+                directionOptimizationVelocityThreshold = directionOptimizationVelocityThreshold
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new RotationModule((RotationModuleData)data);
+        }
+
         public IShipRotationModule CreateModule()
         {
-            return new RotationModule(this);
+            return new RotationModule(ToData());
         }
     }
 }

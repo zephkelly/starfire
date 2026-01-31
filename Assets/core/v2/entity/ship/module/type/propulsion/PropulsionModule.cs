@@ -2,23 +2,23 @@ namespace StarfireV2
 {
     public class PropulsionModule : IShipPropulsionModule
     {
-        private readonly PropulsionModuleConfig _config;
+        private readonly PropulsionModuleData _data;
         private IEntityController _controller;
 
         public ShipModuleCategory Category => ShipModuleCategory.Propulsion;
         public ShipModuleType Type => ShipModuleType.ManeuveringThrusters;
 
-        public string ModuleId => _config.ModuleId;
-        public string DisplayName => _config.DisplayName;
+        public string ModuleId => _data.moduleId;
+        public string DisplayName => _data.displayName;
         public bool IsEnabled { get; set; } = true;
 
-        public float MaxSpeed => _config.MaxSpeed;
-        public float Acceleration => _config.Acceleration;
-        public float Drag => _config.Drag;
+        public float MaxSpeed => _data.maxSpeed;
+        public float Acceleration => _data.acceleration;
+        public float Drag => _data.drag;
 
-        public PropulsionModule(PropulsionModuleConfig config)
+        public PropulsionModule(PropulsionModuleData data)
         {
-            _config = config;
+            _data = data;
         }
 
         public void OnAttach(IEntityController controller)

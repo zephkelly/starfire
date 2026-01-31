@@ -63,9 +63,29 @@ namespace StarfireV2
         // IShipModuleConfig implementation
         public ShipModuleTypeId TypeId => ShipModuleTypeId.SensorArray;
 
+        public IModuleRuntimeData ToData()
+        {
+            return new SensorModuleData
+            {
+                moduleId = moduleId,
+                displayName = displayName,
+                tier = tier,
+                rangeConfig = rangeConfig,
+                pollingInterval = pollingInterval,
+                targetingAccuracy = targetingAccuracy,
+                filterConfig = filterConfig,
+                threatLayers = threatLayers
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new V2SensorModule((SensorModuleData)data);
+        }
+
         public IShipModule CreateModule()
         {
-            return new V2SensorModule(this);
+            return new V2SensorModule((SensorModuleData)ToData());
         }
 
         private void OnValidate()

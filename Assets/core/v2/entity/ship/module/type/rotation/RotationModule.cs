@@ -14,7 +14,7 @@ namespace StarfireV2
 
     public class RotationModule : IShipRotationModule
     {
-        private readonly ShipRotationModuleConfig _config;
+        private readonly RotationModuleData _data;
         private IEntityController _controller;
 
         // Smooth mode state
@@ -34,28 +34,28 @@ namespace StarfireV2
         public ShipModuleCategory Category => ShipModuleCategory.Propulsion;
         public ShipModuleType Type => ShipModuleType.RotationalThrusters;
 
-        public string ModuleId => _config.ModuleId;
-        public string DisplayName => _config.DisplayName;
+        public string ModuleId => _data.moduleId;
+        public string DisplayName => _data.displayName;
         public bool IsEnabled { get; set; } = true;
 
-        public float RotationSpeed => _config.RotationSpeed;
+        public float RotationSpeed => _data.rotationSpeed;
 
-        public RotationModule(ShipRotationModuleConfig config)
+        public RotationModule(RotationModuleData data)
         {
-            _config = config;
+            _data = data;
         }
 
         public void OnAttach(IEntityController controller)
         {
             _controller = controller;
 
-            if (_config.RotationMode == RotationMode.Physics && _controller?.Rigid2D != null)
+            if (_data.rotationMode == RotationMode.Physics && _controller?.Rigid2D != null)
             {
                 _originalAngularDrag = _controller.Rigid2D.angularDamping;
-                _controller.Rigid2D.angularDamping = _config.AngularDrag;
+                _controller.Rigid2D.angularDamping = _data.angularDrag;
             }
 
-            if (_config.RotationMode == RotationMode.ThrusterBased)
+            if (_data.rotationMode == RotationMode.ThrusterBased)
             {
                 InitializeThrusters();
             }
@@ -63,12 +63,12 @@ namespace StarfireV2
 
         public void OnDetach()
         {
-            if (_config.RotationMode == RotationMode.Physics && _controller?.Rigid2D != null)
+            if (_data.rotationMode == RotationMode.Physics && _controller?.Rigid2D != null)
             {
                 _controller.Rigid2D.angularDamping = _originalAngularDrag;
             }
 
-            if (_config.RotationMode == RotationMode.ThrusterBased)
+            if (_data.rotationMode == RotationMode.ThrusterBased)
             {
                 CleanupThrusters();
             }
@@ -86,7 +86,7 @@ namespace StarfireV2
         {
             if (!IsEnabled || _controller?.Rigid2D == null) return;
 
-            switch (_config.RotationMode)
+            switch (_data.rotationMode)
             {
                 case RotationMode.Instant:
                     ProcessInstantRotation(input, deltaTime);
@@ -108,9 +108,9 @@ namespace StarfireV2
 
         private void ProcessInstantRotation(RotationInputData input, float deltaTime)
         {
-            float targetAngle = input.GetTargetAngle(_config.SpriteOffset);
+            float targetAngle = input.GetTargetAngle(_data.spriteOffset);
 
-            if (_config.RespectMaxSpeed)
+            if (_data.respectMaxSpeed)
             {
                 float maxDelta = RotationSpeed * deltaTime;
                 float angleDelta = Mathf.DeltaAngle(input.CurrentRotation, targetAngle);
@@ -123,27 +123,27 @@ namespace StarfireV2
 
         private void ProcessSmoothRotation(RotationInputData input, float deltaTime)
         {
-            float targetAngle = input.GetTargetAngle(_config.SpriteOffset);
+            float targetAngle = input.GetTargetAngle(_data.spriteOffset);
 
             float angleDelta = Mathf.Abs(Mathf.DeltaAngle(input.CurrentRotation, targetAngle));
-            if (angleDelta < _config.SmoothDeadzone) return;
+            if (angleDelta < _data.smoothDeadzone) return;
 
             float newAngle;
 
-            if (_config.UseSmoothDamp)
+            if (_data.useSmoothDamp)
             {
                 newAngle = Mathf.SmoothDampAngle(
                     input.CurrentRotation,
                     targetAngle,
                     ref _smoothDampVelocity,
-                    1f / _config.SmoothingFactor,
+                    1f / _data.smoothingFactor,
                     RotationSpeed,
                     deltaTime
                 );
             }
             else
             {
-                float t = _config.SmoothingFactor * deltaTime;
+                float t = _data.smoothingFactor * deltaTime;
                 newAngle = Mathf.LerpAngle(input.CurrentRotation, targetAngle, t);
             }
 
@@ -152,11 +152,11 @@ namespace StarfireV2
 
         private void ProcessPhysicsRotation(RotationInputData input, float deltaTime)
         {
-            float error = input.GetAngleDelta(_config.SpriteOffset);
+            float error = input.GetAngleDelta(_data.spriteOffset);
             float currentVel = _controller.Rigid2D.angularVelocity;
 
             // Deadzone - skip applying torque, let angular drag slow naturally
-            if (Mathf.Abs(error) < _config.PhysicsDeadzone)
+            if (Mathf.Abs(error) < _data.physicsDeadzone)
             {
                 _previousError = error;
                 ClampAngularVelocity();
@@ -164,11 +164,11 @@ namespace StarfireV2
             }
 
             float torque = CalculatePIDTorque(error, deltaTime);
-            torque = Mathf.Clamp(torque, -_config.MaxTorque, _config.MaxTorque);
+            torque = Mathf.Clamp(torque, -_data.maxTorque, _data.maxTorque);
 
             // Don't apply torque that would increase velocity beyond max
             bool wouldIncreaseVelocity = (torque > 0 && currentVel > 0) || (torque < 0 && currentVel < 0);
-            if (wouldIncreaseVelocity && Mathf.Abs(currentVel) >= _config.MaxAngularVelocity)
+            if (wouldIncreaseVelocity && Mathf.Abs(currentVel) >= _data.maxAngularVelocity)
             {
                 torque = 0f;
             }
@@ -182,9 +182,9 @@ namespace StarfireV2
         private void ClampAngularVelocity()
         {
             float currentVel = _controller.Rigid2D.angularVelocity;
-            if (Mathf.Abs(currentVel) > _config.MaxAngularVelocity)
+            if (Mathf.Abs(currentVel) > _data.maxAngularVelocity)
             {
-                _controller.Rigid2D.angularVelocity = Mathf.Sign(currentVel) * _config.MaxAngularVelocity;
+                _controller.Rigid2D.angularVelocity = Mathf.Sign(currentVel) * _data.maxAngularVelocity;
             }
         }
 
@@ -218,7 +218,7 @@ namespace StarfireV2
             }
             else
             {
-                maxTorque = _config.MaxTorque;
+                maxTorque = _data.maxTorque;
             }
 
             // Get moment of inertia from Rigidbody2D
@@ -256,20 +256,20 @@ namespace StarfireV2
             float absVelocity = Mathf.Abs(angularVelocity);
 
             // 1. IDLE: Both error AND velocity are tiny - all thrusters off
-            if (absError < _config.PhysicsDeadzone && absVelocity < _config.VelocityDeadzone)
+            if (absError < _data.physicsDeadzone && absVelocity < _data.velocityDeadzone)
             {
                 return ThrusterControlState.Idle;
             }
 
             // 2. HIGH VELOCITY: Must handle braking BEFORE settling
             // Only enter settling when velocity is low enough for PD controller to handle
-            if (absVelocity > _config.SettlingVelocityThreshold)
+            if (absVelocity > _data.settlingVelocityThreshold)
             {
                 return DetermineHighVelocityState(error, angularVelocity, absError, absVelocity);
             }
 
             // 3. LOW VELOCITY + CLOSE TO TARGET: Safe to use settling PD controller
-            if (absError < _config.SettlingAngleThreshold)
+            if (absError < _data.settlingAngleThreshold)
             {
                 return ThrusterControlState.Settling;
             }
@@ -307,17 +307,17 @@ namespace StarfireV2
 
             // Calculate stopping angle using physics formula: theta = omega^2 / (2 * alpha)
             float stoppingAngle = (absVelocity * absVelocity) / (2f * maxBrakingAcceleration);
-            stoppingAngle *= _config.BrakingSafetyMargin; // Apply safety margin
+            stoppingAngle *= _data.brakingSafetyMargin; // Apply safety margin
 
             // Apply hysteresis to prevent state chatter
             float threshold = stoppingAngle;
             if (_currentState == ThrusterControlState.Coast)
             {
-                threshold += _config.StateTransitionHysteresis;
+                threshold += _data.stateTransitionHysteresis;
             }
             else if (_currentState == ThrusterControlState.Brake)
             {
-                threshold -= _config.StateTransitionHysteresis;
+                threshold -= _data.stateTransitionHysteresis;
             }
 
             // Determine brake vs accelerate vs coast
@@ -329,7 +329,7 @@ namespace StarfireV2
 
             // Keep accelerating until near max angular velocity
             // Only coast when at max velocity (waiting to reach braking point)
-            if (absVelocity < _config.MaxAngularVelocity * 0.95f)
+            if (absVelocity < _data.maxAngularVelocity * 0.95f)
             {
                 return ThrusterControlState.Accelerate;
             }
@@ -350,7 +350,7 @@ namespace StarfireV2
             float absVelocity = Mathf.Abs(angularVelocity);
 
             // Check if we're already at max angular velocity going the right direction
-            if (absVelocity >= _config.MaxAngularVelocity)
+            if (absVelocity >= _data.maxAngularVelocity)
             {
                 if (Mathf.Sign(angularVelocity) == direction)
                 {
@@ -365,16 +365,16 @@ namespace StarfireV2
 
             // FIX: Proportional acceleration based on error
             // Scale thrust: larger error = more thrust, small error = less thrust
-            float accelFactor = Mathf.Clamp01(absError / _config.ReferenceAngle);
+            float accelFactor = Mathf.Clamp01(absError / _data.referenceAngle);
 
             // Apply minimum thrust fraction to prevent thruster stutter at low values
-            if (accelFactor > 0f && accelFactor < _config.MinimumThrustFraction)
+            if (accelFactor > 0f && accelFactor < _data.minimumThrustFraction)
             {
-                accelFactor = _config.MinimumThrustFraction;
+                accelFactor = _data.minimumThrustFraction;
             }
 
             // Also reduce thrust as we approach max velocity to prevent overshoot
-            float velocityHeadroom = 1f - Mathf.Clamp01(absVelocity / _config.MaxAngularVelocity);
+            float velocityHeadroom = 1f - Mathf.Clamp01(absVelocity / _data.maxAngularVelocity);
             accelFactor *= Mathf.Lerp(0.2f, 1f, velocityHeadroom);
 
             return direction * maxTorque * accelFactor;
@@ -388,7 +388,7 @@ namespace StarfireV2
         {
             float absVelocity = Mathf.Abs(angularVelocity);
 
-            if (absVelocity < _config.VelocityDeadzone)
+            if (absVelocity < _data.velocityDeadzone)
             {
                 return 0f; // Already stopped
             }
@@ -413,7 +413,7 @@ namespace StarfireV2
             float absVelocity = Mathf.Abs(angularVelocity);
 
             // Accept position as "good enough" - use wider threshold to prevent repeated micro-corrections
-            if (absError < _config.SettlingAcceptanceThreshold && absVelocity < _config.VelocityDeadzone)
+            if (absError < _data.settlingAcceptanceThreshold && absVelocity < _data.velocityDeadzone)
             {
                 return 0f;
             }
@@ -438,16 +438,16 @@ namespace StarfireV2
             else if (movingTowardTarget && willOvershoot)
             {
                 // About to overshoot - apply gentle braking
-                float brakeFactor = Mathf.Clamp01(absVelocity / _config.SettlingVelocityThreshold);
+                float brakeFactor = Mathf.Clamp01(absVelocity / _data.settlingVelocityThreshold);
                 settlingFactor = -Mathf.Sign(angularVelocity) * brakeFactor * 0.5f;
             }
             else
             {
                 // Moving away from target or stopped - apply proportional correction with strong burst
                 // Use minimum floor of 0.5 so small corrections still get meaningful thrust
-                float normalizedError = Mathf.Clamp01(absError / _config.SettlingAngleThreshold);
+                float normalizedError = Mathf.Clamp01(absError / _data.settlingAngleThreshold);
                 normalizedError = Mathf.Max(normalizedError, 0.5f);
-                settlingFactor = Mathf.Sign(error) * normalizedError * _config.SettlingProportionalGain * 0.8f;
+                settlingFactor = Mathf.Sign(error) * normalizedError * _data.settlingProportionalGain * 0.8f;
                 settlingFactor = Mathf.Clamp(settlingFactor, -1f, 1f);
             }
 
@@ -461,9 +461,9 @@ namespace StarfireV2
             float absTorque = Mathf.Abs(desiredTorque);
 
             // Apply minimum thrust fraction
-            if (absTorque > 0.001f && absTorque < maxTorque * _config.MinimumThrustFraction)
+            if (absTorque > 0.001f && absTorque < maxTorque * _data.minimumThrustFraction)
             {
-                return Mathf.Sign(desiredTorque) * maxTorque * _config.MinimumThrustFraction;
+                return Mathf.Sign(desiredTorque) * maxTorque * _data.minimumThrustFraction;
             }
 
             return desiredTorque;
@@ -471,10 +471,10 @@ namespace StarfireV2
 
         private float CalculatePIDTorque(float error, float deltaTime)
         {
-            float pTerm = error * _config.ProportionalGain;
+            float pTerm = error * _data.proportionalGain;
 
             float derivative = deltaTime > 0f ? (error - _previousError) / deltaTime : 0f;
-            float dTerm = derivative * _config.DerivativeGain;
+            float dTerm = derivative * _data.derivativeGain;
 
             _previousError = error;
 
@@ -493,8 +493,8 @@ namespace StarfireV2
             // Only optimize when:
             // 1. Feature is enabled
             // 2. Ship is spinning fast enough that reversal would be costly
-            if (!_config.EnableDirectionOptimization ||
-                absVelocity < _config.DirectionOptimizationVelocityThreshold)
+            if (!_data.enableDirectionOptimization ||
+                absVelocity < _data.directionOptimizationVelocityThreshold)
             {
                 return shortPathError;
             }
@@ -533,7 +533,7 @@ namespace StarfireV2
         {
             float maxAccel = CalculateMaxAngularAcceleration(forBraking: false, angleError);
             float maxBrake = CalculateMaxAngularAcceleration(forBraking: true, angleError);
-            float maxVel = _config.MaxAngularVelocity;
+            float maxVel = _data.maxAngularVelocity;
 
             // Guard against division by zero
             if (maxAccel < 0.001f) maxAccel = 0.001f;
@@ -622,8 +622,8 @@ namespace StarfireV2
 
         private void InitializeThrusters()
         {
-            var definitions = _config.Thrusters;
-            var markers = _config.AutoDiscoverThrusters && _controller?.Transform != null
+            var definitions = _data.thrusters;
+            var markers = _data.autoDiscoverThrusters && _controller?.Transform != null
                 ? _controller.Transform.GetComponentsInChildren<ThrusterMarker>()
                 : new ThrusterMarker[0];
 
@@ -667,8 +667,8 @@ namespace StarfireV2
                     slotId = marker.SlotId ?? $"auto_{marker.GetInstanceID()}",
                     localPosition = _controller.Transform.InverseTransformPoint(marker.WorldPosition),
                     thrustDirection = marker.ThrustDirection,
-                    maxThrust = marker.MaxThrust > 0 ? marker.MaxThrust : _config.DefaultThrusterThrust,
-                    responseTime = _config.DefaultThrusterResponseTime
+                    maxThrust = marker.MaxThrust > 0 ? marker.MaxThrust : _data.defaultThrusterThrust,
+                    responseTime = _data.defaultThrusterResponseTime
                 };
 
                 var state = new ThrusterState(def);
@@ -687,7 +687,7 @@ namespace StarfireV2
             _thrusterStates = thrusterList.ToArray();
 
             // Initialize visual effects if configured
-            if (_config.ThrusterVisualConfig != null)
+            if (_data.thrusterVisualConfig != null)
             {
                 InitializeThrusterVisuals();
             }
@@ -700,7 +700,7 @@ namespace StarfireV2
 
         private void InitializeThrusterVisuals()
         {
-            var visualConfig = _config.ThrusterVisualConfig;
+            var visualConfig = _data.thrusterVisualConfig;
             if (visualConfig == null) return;
 
             foreach (var state in _thrusterStates)
@@ -774,7 +774,7 @@ namespace StarfireV2
                 return;
             }
 
-            float shortPathError = input.GetAngleDelta(_config.SpriteOffset);
+            float shortPathError = input.GetAngleDelta(_data.spriteOffset);
             float angularVelocity = _controller.Rigid2D.angularVelocity;
 
             // Optimize rotation direction - may choose to continue spinning instead of reversing

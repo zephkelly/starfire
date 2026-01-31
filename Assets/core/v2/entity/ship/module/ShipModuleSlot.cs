@@ -92,6 +92,24 @@ namespace StarfireV2
             }
         }
 
+        public void EquipFromData(IModuleRuntimeData data)
+        {
+            if (data == null) return;
+
+            // Find the config SO type that can create a module from this data
+            // We need the config to call CreateModuleFromData
+            // Since we don't have a direct reference, we use a registry approach
+            var module = ModuleDataFactory.CreateModuleFromData(data);
+            if (module is T typedModule)
+            {
+                Equip(typedModule);
+            }
+            else
+            {
+                Debug.LogWarning($"Module type mismatch from data: expected {typeof(T).Name}, got {module?.GetType().Name}");
+            }
+        }
+
         public void Unequip()
         {
             Equip(null);

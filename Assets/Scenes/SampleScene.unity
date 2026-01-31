@@ -518,6 +518,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &387296419
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 387296420}
+  - component: {fileID: 387296421}
+  m_Layer: 8
+  m_Name: point_df_1 (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &387296420
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 387296419}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.98, y: 0.58, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1400094710}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &387296421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 387296419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca34b550d780b7142b8321d20908ae97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2HardpointMarker
+  slotId: point_df_2
+  weightClass: 0
+  firingDirection: {x: 0, y: 0}
+  firingArc: 0
 --- !u!1 &393036791
 GameObject:
   m_ObjectHideFlags: 0
@@ -610,6 +658,54 @@ MonoBehaviour:
   enableColorDistribution: 1
   colorTransitionSpeed: 2
   showDebugValues: 0
+--- !u!1 &436907651
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 436907652}
+  - component: {fileID: 436907653}
+  m_Layer: 8
+  m_Name: point_df_1 (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &436907652
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 436907651}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 2, y: -0.37, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1400094710}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &436907653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 436907651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca34b550d780b7142b8321d20908ae97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2HardpointMarker
+  slotId: point_df_4
+  weightClass: 0
+  firingDirection: {x: 0, y: 0}
+  firingArc: 0
 --- !u!1 &476317741
 GameObject:
   m_ObjectHideFlags: 0
@@ -1127,7 +1223,7 @@ MonoBehaviour:
         opacity: 0.263
         ellipticityRange: 0.3
         tiltRange: 1
-        zoomResponse: 0
+        zoomResponse: 0.004
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
         seed: 0
@@ -1263,6 +1359,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -967.525}
+--- !u!1 &646494769
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 646494770}
+  - component: {fileID: 646494771}
+  m_Layer: 8
+  m_Name: point_df_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &646494770
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646494769}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.95, y: 1.33, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1400094710}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &646494771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646494769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca34b550d780b7142b8321d20908ae97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2HardpointMarker
+  slotId: point_df_1
+  weightClass: 0
+  firingDirection: {x: 0, y: 0}
+  firingArc: 0
 --- !u!1 &673270242
 GameObject:
   m_ObjectHideFlags: 0
@@ -1707,6 +1851,7 @@ Transform:
   m_Children:
   - {fileID: 1489513477}
   - {fileID: 1893249098}
+  - {fileID: 1400094710}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!70 &982980078
@@ -1764,46 +1909,545 @@ MonoBehaviour:
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 0}
+    overrideData:
+      rid: -2
+    hasOverrides: 0
   - slotId: maneuvering_thrusters
     typeId: 100
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: d4e1871bdfed3ac4a8a8f4e026c7d660, type: 2}
+    overrideData:
+      rid: 2281391674931806283
+    hasOverrides: 0
   - slotId: shield
     typeId: 10
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 0}
+    overrideData:
+      rid: -2
+    hasOverrides: 0
   - slotId: aicore
     typeId: 320
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 5bfd347c9ee7e0a40bce24e7ef625d71, type: 2}
+    overrideData:
+      rid: 2281391674931806285
+    hasOverrides: 0
   - slotId: rotational_thrusters
     typeId: 101
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 387af1bed8f93f4449c0e14924ff7b6d, type: 2}
+    overrideData:
+      rid: 2281391674931806284
+    hasOverrides: 0
   - slotId: transponder
     typeId: 310
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 55075d52f7b1e774fb74f97fc069e085, type: 2}
+    overrideData:
+      rid: 2281391674931806287
+    hasOverrides: 0
   - slotId: sensor_array
     typeId: 300
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 5a6f0cb28e004ae449c10c99cf56187f, type: 2}
+    overrideData:
+      rid: 2281391674931806286
+    hasOverrides: 0
+  - slotId: point_df_1
+    typeId: 210
+    isRequired: 0
+    isAvailable: 1
+    defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806292
+    hasOverrides: 0
+  - slotId: point_df_2
+    typeId: 210
+    isRequired: 0
+    isAvailable: 1
+    defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806304
+    hasOverrides: 0
+  - slotId: point_df_3
+    typeId: 210
+    isRequired: 0
+    isAvailable: 1
+    defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806288
+    hasOverrides: 0
+  - slotId: point_df_4
+    typeId: 210
+    isRequired: 0
+    isAvailable: 1
+    defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806282
+    hasOverrides: 0
   _driverStack:
     drivers:
     - rid: 2281391656326398025
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 2281391656326398025
       type: {class: AIEntityControllerDriver, ns: StarfireV2, asm: Assembly-CSharp}
       data:
         <Priority>k__BackingField: 5
+    - rid: 2281391674931806282
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 2
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806283
+      type: {class: PropulsionModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: propulsion_module
+        displayName: Propulsion Module
+        maxSpeed: 1000
+        acceleration: 30
+        drag: 0
+    - rid: 2281391674931806284
+      type: {class: RotationModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: rotation_module
+        displayName: Rotation Module
+        rotationMode: 3
+        rotationSpeed: 1
+        spriteOffset: 0
+        respectMaxSpeed: 0
+        smoothingFactor: 8
+        smoothDeadzone: 0.5
+        useSmoothDamp: 1
+        maxTorque: 10
+        maxAngularVelocity: 360
+        angularDrag: 0
+        physicsDeadzone: 0.2
+        proportionalGain: 1
+        derivativeGain: 5
+        thrusters: []
+        thrusterVisualConfig: {fileID: 11400000, guid: 9ce9e8a189f68cb4497ab87934204026, type: 2}
+        autoDiscoverThrusters: 1
+        defaultThrusterThrust: 1
+        defaultThrusterResponseTime: 0.05
+        stateTransitionHysteresis: 2
+        minimumCoastVelocity: 5
+        brakingSafetyMargin: 1.1
+        velocityDeadzone: 1
+        referenceVelocity: 90
+        referenceAngle: 45
+        settlingAngleThreshold: 15
+        settlingVelocityThreshold: 15
+        settlingProportionalGain: 2
+        settlingDerivativeGain: 3
+        settlingAcceptanceThreshold: 3
+        minimumThrustFraction: 0.02
+        enableDirectionOptimization: 1
+        directionOptimizationVelocityThreshold: 60
+    - rid: 2281391674931806285
+      type: {class: AICoreModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: ai_core
+        processingPower: 1
+        behaviorTree: {fileID: 11400000, guid: ef7faecb15af7cc46a4d70bdea2bb3fe, type: 2}
+        enableGoalSystem: 1
+        defaultGoals:
+        - {fileID: 11400000, guid: 0e92d49c8dea74441adc65368d1bc037, type: 2}
+        - {fileID: 11400000, guid: 9a8c269d6b31b9c4a9d3752b56c66251, type: 2}
+    - rid: 2281391674931806286
+      type: {class: SensorModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: sensor
+        displayName: Sensor
+        tier: 1
+        rangeConfig:
+          maxRange: 10000
+          silhouetteRangePercent: 0.7
+          fullRangePercent: 0.4
+          passiveSilhouettePercent: 0.7
+          passiveFullPercent: 0.3
+        pollingInterval: 0.1
+        targetingAccuracy: 1
+        filterConfig:
+          factionFilterMode: 0
+          factionList: []
+          classFilterMode: 0
+          classList: []
+          excludeAllied: 0
+          excludeFriendly: 0
+          excludeNeutral: 0
+          excludeHostile: 0
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 1536
+    - rid: 2281391674931806287
+      type: {class: TransponderModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: PirateTransponder
+        displayName: PirateTransponder
+        defaultFaction: {fileID: 11400000, guid: 0f4bc7a35d371e44fa3bb2b39fdd636f, type: 2}
+        shipClass: {fileID: 11400000, guid: 7fa63de2202ea2c45954580249ce2f15, type: 2}
+        defaultActiveChannels: 67
+        monitoredChannels: -1
+        defaultCrewComplement: 0
+        tier: 1
+    - rid: 2281391674931806288
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806292
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806304
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
 --- !u!114 &982980080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2026,72 +2670,668 @@ MonoBehaviour:
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 0}
+    overrideData:
+      rid: -2
+    hasOverrides: 0
   - slotId: phaser
     typeId: 200
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 59a43e32774e4a745a396bd118aa8c29, type: 2}
+    overrideData:
+      rid: 2281391674931806296
+    hasOverrides: 0
   - slotId: maneuvering_thrusters
     typeId: 100
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: d4e1871bdfed3ac4a8a8f4e026c7d660, type: 2}
+    overrideData:
+      rid: 2281391674931806298
+    hasOverrides: 0
   - slotId: rotational_thrusters
     typeId: 101
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 387af1bed8f93f4449c0e14924ff7b6d, type: 2}
+    overrideData:
+      rid: 2281391674931806299
+    hasOverrides: 0
   - slotId: point_df_1
     typeId: 210
     isRequired: 0
-    isAvailable: 1
+    isAvailable: 0
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806293
+    hasOverrides: 0
   - slotId: missle
     typeId: 200
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: f54883377bf2be8499c9f5ffa0d45de2, type: 2}
+    overrideData:
+      rid: 2281391674931806297
+    hasOverrides: 0
   - slotId: sensor_array
     typeId: 300
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 5a6f0cb28e004ae449c10c99cf56187f, type: 2}
+    overrideData:
+      rid: 2281391674931806301
+    hasOverrides: 0
   - slotId: transponder
     typeId: 310
     isRequired: 0
     isAvailable: 1
     defaultModule: {fileID: 11400000, guid: 2adfda08043ff45469ff9d99203f2db7, type: 2}
+    overrideData:
+      rid: 2281391674931806302
+    hasOverrides: 0
   - slotId: point_df_2
     typeId: 210
     isRequired: 0
-    isAvailable: 1
+    isAvailable: 0
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806303
+    hasOverrides: 0
   - slotId: point_df_3
     typeId: 210
     isRequired: 0
-    isAvailable: 1
+    isAvailable: 0
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806294
+    hasOverrides: 0
   - slotId: point_df_4
     typeId: 210
     isRequired: 0
-    isAvailable: 1
+    isAvailable: 0
     defaultModule: {fileID: 11400000, guid: a469e2ff5f356854aacf0c5d496763c4, type: 2}
+    overrideData:
+      rid: 2281391674931806295
+    hasOverrides: 0
   - slotId: aicore
     typeId: 320
     isRequired: 0
     isAvailable: 0
     defaultModule: {fileID: 11400000, guid: 5bfd347c9ee7e0a40bce24e7ef625d71, type: 2}
+    overrideData:
+      rid: 2281391674931806300
+    hasOverrides: 0
   _driverStack:
     drivers:
     - rid: 2281391393534640203
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 2281391393534640203
       type: {class: PlayerEntityControllerDriver, ns: StarfireV2, asm: Assembly-CSharp}
       data:
         inputProviderReference: {fileID: 0}
         <Priority>k__BackingField: 10
+    - rid: 2281391674931806293
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806294
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806295
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806296
+      type: {class: OffensiveWeaponModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: OffensiveWeapon
+        displayName: OffensiveWeapon
+        weightClass: 0
+        damage: 10
+        fireRate: 4
+        range: 500
+        damageConfig:
+          damageType: 1
+          shieldDamageMultiplier: 1
+          hullDamageMultiplier: 1
+          bypassesShield: 0
+          shieldPenetration: 0
+        turretSettings:
+          isTurret: 0
+          targetingMode: 1
+          rotationSpeed: 180
+          firingArc: 360
+          canFireWhileRotating: 0
+          firingTolerance: 5
+          predictTargetPosition: 0
+        projectileConfig: {fileID: 11400000, guid: d4eda8fcd0ce8564695c6c77848ebe60, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: ed9dd1d09849057488e9bd728ce5b6f1, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.05
+          enablePunch: 1
+          punchForce: 0.1
+          punchDuration: 0.1
+          maxEffectDistance: 30
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806297
+      type: {class: OffensiveWeaponModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: missle
+        displayName: MissleWeapon
+        weightClass: 1
+        damage: 100
+        fireRate: 1
+        range: 1000
+        damageConfig:
+          damageType: 2
+          shieldDamageMultiplier: 1
+          hullDamageMultiplier: 1
+          bypassesShield: 0
+          shieldPenetration: 0
+        turretSettings:
+          isTurret: 0
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 0
+          firingTolerance: 5
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: f073920fad9c3e44f9ef4c153cff5d78, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: dced67f042444174e9f3faf26168e41d, type: 3}
+        weaponVisualPrefab: {fileID: 0}
+        fireShakeConfig:
+          traumaAmount: 0.1
+          enablePunch: 1
+          punchForce: 0.2
+          punchDuration: 0.1
+          maxEffectDistance: 30
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
+    - rid: 2281391674931806298
+      type: {class: PropulsionModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: propulsion_module
+        displayName: Propulsion Module
+        maxSpeed: 1000
+        acceleration: 30
+        drag: 0
+    - rid: 2281391674931806299
+      type: {class: RotationModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: rotation_module
+        displayName: Rotation Module
+        rotationMode: 3
+        rotationSpeed: 1
+        spriteOffset: 0
+        respectMaxSpeed: 0
+        smoothingFactor: 8
+        smoothDeadzone: 0.5
+        useSmoothDamp: 1
+        maxTorque: 10
+        maxAngularVelocity: 360
+        angularDrag: 0
+        physicsDeadzone: 0.2
+        proportionalGain: 1
+        derivativeGain: 5
+        thrusters: []
+        thrusterVisualConfig: {fileID: 11400000, guid: 9ce9e8a189f68cb4497ab87934204026, type: 2}
+        autoDiscoverThrusters: 1
+        defaultThrusterThrust: 1
+        defaultThrusterResponseTime: 0.05
+        stateTransitionHysteresis: 2
+        minimumCoastVelocity: 5
+        brakingSafetyMargin: 1.1
+        velocityDeadzone: 1
+        referenceVelocity: 90
+        referenceAngle: 45
+        settlingAngleThreshold: 15
+        settlingVelocityThreshold: 15
+        settlingProportionalGain: 2
+        settlingDerivativeGain: 3
+        settlingAcceptanceThreshold: 3
+        minimumThrustFraction: 0.02
+        enableDirectionOptimization: 1
+        directionOptimizationVelocityThreshold: 60
+    - rid: 2281391674931806300
+      type: {class: AICoreModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: ai_core
+        processingPower: 1
+        behaviorTree: {fileID: 11400000, guid: ef7faecb15af7cc46a4d70bdea2bb3fe, type: 2}
+        enableGoalSystem: 1
+        defaultGoals:
+        - {fileID: 11400000, guid: 0e92d49c8dea74441adc65368d1bc037, type: 2}
+        - {fileID: 11400000, guid: 9a8c269d6b31b9c4a9d3752b56c66251, type: 2}
+    - rid: 2281391674931806301
+      type: {class: SensorModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: sensor
+        displayName: Sensor
+        tier: 1
+        rangeConfig:
+          maxRange: 10000
+          silhouetteRangePercent: 0.7
+          fullRangePercent: 0.4
+          passiveSilhouettePercent: 0.7
+          passiveFullPercent: 0.3
+        pollingInterval: 0.1
+        targetingAccuracy: 1
+        filterConfig:
+          factionFilterMode: 0
+          factionList: []
+          classFilterMode: 0
+          classList: []
+          excludeAllied: 0
+          excludeFriendly: 0
+          excludeNeutral: 0
+          excludeHostile: 0
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 1536
+    - rid: 2281391674931806302
+      type: {class: TransponderModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: Transponder
+        displayName: Transponder
+        defaultFaction: {fileID: 11400000, guid: 2b85fb0c7165e8f40bafdbfc8e4ba73d, type: 2}
+        shipClass: {fileID: 11400000, guid: 6356341620e46a440894f5dec7e4d397, type: 2}
+        defaultActiveChannels: 67
+        monitoredChannels: 111
+        defaultCrewComplement: 0
+        tier: 1
+    - rid: 2281391674931806303
+      type: {class: PointDefenseModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: point_df_1
+        displayName: Flak Cannon
+        weightClass: 0
+        damage: 5
+        fireRate: 5
+        range: 500
+        engagementRange: 500
+        trackingSpeed: 360
+        maxTrackedTargets: 3
+        threatLayers:
+          serializedVersion: 2
+          m_Bits: 3840
+        scanInterval: 0.1
+        accuracyPercent: 70
+        maxSpreadAngle: 5
+        accuracyDecayOverRange: 0
+        rangeAccuracyFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        collisionCourseRadius: 10
+        targetingMode: 0
+        useSensorIntegration: 1
+        turretSettings:
+          isTurret: 1
+          targetingMode: 0
+          rotationSpeed: 360
+          firingArc: 360
+          canFireWhileRotating: 1
+          firingTolerance: 10
+          predictTargetPosition: 1
+        projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}
+        projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
+        weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
+        fireShakeConfig:
+          traumaAmount: 0.016
+          enablePunch: 1
+          punchForce: 0.02
+          punchDuration: 0.1
+          maxEffectDistance: 10
+          attenuationCurve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+          scaleWithOrthoSize: 1
 --- !u!114 &1155963048
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2501,6 +3741,54 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.Lighting.EdgeLightSource
   _edgeIntensityMultiplier: 1
   _rangeOverride: 0
+--- !u!1 &1359639231
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1359639232}
+  - component: {fileID: 1359639233}
+  m_Layer: 8
+  m_Name: point_df_1 (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1359639232
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359639231}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.95, y: -1.2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1400094710}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1359639233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359639231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca34b550d780b7142b8321d20908ae97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2HardpointMarker
+  slotId: point_df_3
+  weightClass: 0
+  firingDirection: {x: 0, y: 0}
+  firingArc: 0
 --- !u!1 &1373436792
 GameObject:
   m_ObjectHideFlags: 0
@@ -2547,6 +3835,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.Pooling.ProjectilePoolManager
   config: {fileID: 11400000, guid: 3e167640617c6eb499bf776a588a649b, type: 2}
   showDebugInfo: 0
+--- !u!1 &1400094709
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1400094710}
+  m_Layer: 8
+  m_Name: hardpoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1400094710
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400094709}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1773762262}
+  - {fileID: 646494770}
+  - {fileID: 1359639232}
+  - {fileID: 387296420}
+  - {fileID: 436907652}
+  m_Father: {fileID: 982980075}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1479519681
 GameObject:
   m_ObjectHideFlags: 0
@@ -3016,6 +4340,54 @@ MonoBehaviour:
   thrustDirection: {x: 0, y: -1}
   maxThrust: 0
   visualPrefabOverride: {fileID: 0}
+--- !u!1 &1773762261
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1773762262}
+  - component: {fileID: 1773762263}
+  m_Layer: 8
+  m_Name: weapon_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1773762262
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1773762261}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.4, y: 0.15, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1400094710}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1773762263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1773762261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca34b550d780b7142b8321d20908ae97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.V2HardpointMarker
+  slotId: phaser
+  weightClass: 1
+  firingDirection: {x: 1, y: 0}
+  firingArc: 0
 --- !u!1 &1781539332
 GameObject:
   m_ObjectHideFlags: 0

@@ -41,6 +41,13 @@ namespace StarfireV2
         [Tooltip("Inline shader-based trail configuration. Used when trailPrefab is null and enabled.")]
         public V2TrailConfig trailConfig;
 
+        [Header("Health")]
+        [Tooltip("Whether this projectile can be damaged and destroyed by other projectiles.")]
+        public bool canBeDamaged = false;
+
+        [Tooltip("Maximum health of the projectile. Only used if canBeDamaged is true.")]
+        public float maxHealth = 1f;
+
         [Header("Mode")]
         [Tooltip("How the projectile handles collision detection and movement.")]
         public V2ProjectileMode mode = V2ProjectileMode.Physics;

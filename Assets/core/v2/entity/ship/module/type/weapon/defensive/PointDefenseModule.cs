@@ -12,7 +12,7 @@ namespace StarfireV2
     /// </summary>
     public class PointDefenseModule : IDefensiveWeaponModule
     {
-        private readonly PointDefenseModuleConfig _config;
+        private readonly PointDefenseModuleData _data;
         private IEntityController _controller;
         private V2HardpointMarker _hardpoint;
         private V2WeaponVisual _visual;
@@ -26,13 +26,16 @@ namespace StarfireV2
         private ISensorModule _sensorModule;
         private bool _usingSensorData;
 
+        // Multi-PD coordination
+        private PointDefenseCoordinator _coordinator;
+
         private readonly List<Transform> _trackedTargets = new();
         private readonly List<V2DetectedEntity> _sensorTrackedThreats = new();
         private Transform _currentTarget;
         private V2DetectedEntity? _currentSensorTarget;
 
         // IEntityModule
-        public string ModuleId => _config.ModuleId;
+        public string ModuleId => _data.moduleId;
         public bool IsEnabled { get; set; } = true;
 
         // IShipModule
@@ -40,9 +43,9 @@ namespace StarfireV2
         public ShipModuleType Type => ShipModuleType.PointDefense;
 
         // IWeaponModule
-        public WeaponWeightClass WeightClass => _config.WeightClass;
-        public float FireRate => _config.FireRate;
-        public float Range => _config.Range;
+        public WeaponWeightClass WeightClass => _data.weightClass;
+        public float FireRate => _data.fireRate;
+        public float Range => _data.range;
         public bool IsTurret => true; // Point defense is always a turret
         public float CooldownRemaining => Mathf.Max(0f, _cooldownTimer);
 
@@ -62,32 +65,52 @@ namespace StarfireV2
         }
 
         // IDefensiveWeaponModule
-        public float EngagementRange => _config.EngagementRange;
-        public float TrackingSpeed => _config.TrackingSpeed;
+        public float EngagementRange => _data.engagementRange;
+        public float TrackingSpeed => _data.trackingSpeed;
         public bool IsEngaged => _currentTarget != null;
 
-        public PointDefenseModule(PointDefenseModuleConfig config)
+        public PointDefenseModule(PointDefenseModuleData data)
         {
-            _config = config;
+            _data = data;
         }
 
         /// <summary>
         /// Checks if a Unity Transform reference is valid (not null and not destroyed).
-        /// Uses Unity's implicit bool operator which catches both null and destroyed objects,
-        /// preventing access to destroyed objects that return (0,0) for position.
         /// </summary>
         private static bool IsValidTarget(Transform target)
         {
             if (!(bool)target) return false;
-            // Pooled projectiles are still valid Transforms but their GameObject is inactive
-            // and their position is reset to (0,0). Check activeInHierarchy to filter them.
             return target.gameObject.activeInHierarchy;
         }
 
         /// <summary>
-        /// Checks if a transform belongs to a projectile owned by this module's controller.
-        /// Prevents point defense from targeting its own ship's projectiles.
+        /// Checks if a projectile is on a collision course with the ship.
         /// </summary>
+        private static bool IsOnCollisionCourse(
+            Vector2 projectilePos,
+            Vector2 projectileVelocity,
+            Vector2 shipPos,
+            float shipRadius)
+        {
+            Vector2 toShip = shipPos - projectilePos;
+            float velSqr = Vector2.Dot(projectileVelocity, projectileVelocity);
+            if (velSqr < 0.001f) return false;
+
+            float t = Vector2.Dot(toShip, projectileVelocity) / velSqr;
+            if (t < 0f) return false;
+
+            Vector2 closestPoint = projectilePos + projectileVelocity * t;
+            float distSqr = (shipPos - closestPoint).sqrMagnitude;
+            return distSqr <= shipRadius * shipRadius;
+        }
+
+        private static bool IsGuidedThreat(V2DetectedEntityType type)
+        {
+            return type == V2DetectedEntityType.Missile
+                || type == V2DetectedEntityType.Torpedo
+                || type == V2DetectedEntityType.Mine;
+        }
+
         private bool IsOwnProjectile(Transform target)
         {
             if (_controller == null || target == null) return false;
@@ -98,17 +121,11 @@ namespace StarfireV2
         public void OnAttach(IEntityController controller)
         {
             _controller = controller;
-            // Sensor resolution is deferred to OnUpdate via TryResolveSensor()
-            // to avoid initialization order dependencies between module slots.
         }
 
-        /// <summary>
-        /// Lazily resolves the sensor module reference. Called once per update until found.
-        /// This avoids depending on module registration order in ShipEntity.InitializeModules().
-        /// </summary>
         private void TryResolveSensor()
         {
-            if (_sensorModule != null || !_config.UseSensorIntegration) return;
+            if (_sensorModule != null || !_data.useSensorIntegration) return;
             if (_controller is not ShipController shipController) return;
 
             _sensorModule = shipController.Ship?.Modules
@@ -116,10 +133,23 @@ namespace StarfireV2
                 ?.FirstOrDefault();
 
             _usingSensorData = _sensorModule != null;
+
+            if (_coordinator == null && _controller != null)
+            {
+                _coordinator = PointDefenseCoordinator.GetOrCreate(_controller);
+                _coordinator.Register(this);
+            }
         }
 
         public void OnDetach()
         {
+            if (_coordinator != null)
+            {
+                _coordinator.Unregister(this);
+                PointDefenseCoordinator.TryRemove(_controller);
+                _coordinator = null;
+            }
+
             _sensorModule = null;
             _usingSensorData = false;
             OnHardpointUnassigned();
@@ -134,16 +164,13 @@ namespace StarfireV2
         {
             TryResolveSensor();
 
-            // Update cooldown
             if (_cooldownTimer > 0f)
             {
                 _cooldownTimer -= deltaTime;
             }
 
-            // Auto-targeting logic
             if (_autoTargetingEnabled && _controller != null)
             {
-                // Both sensor and physics paths use the scan timer to avoid per-frame queries
                 _scanTimer -= deltaTime;
 
                 if (_usingSensorData && _sensorModule != null)
@@ -151,11 +178,10 @@ namespace StarfireV2
                     if (_scanTimer <= 0f)
                     {
                         UpdateSensorBasedTargeting();
-                        _scanTimer = _config.ScanInterval;
+                        _scanTimer = _data.scanInterval;
                     }
                     else
                     {
-                        // Between scans, just clean up destroyed targets and reselect
                         CleanupSensorTargets();
                         SelectSensorPriorityTarget(_controller.Transform.position);
                     }
@@ -165,14 +191,13 @@ namespace StarfireV2
                     if (_scanTimer <= 0f)
                     {
                         ScanForThreats();
-                        _scanTimer = _config.ScanInterval;
+                        _scanTimer = _data.scanInterval;
                     }
 
                     CleanupInvalidTargets();
                     SelectPriorityTarget();
                 }
 
-                // Auto-fire at current target (validate target is still alive)
                 if (IsValidTarget(_currentTarget) && CanFire)
                 {
                     UpdateAimToTarget();
@@ -188,62 +213,72 @@ namespace StarfireV2
                 }
             }
 
-            // Update turret visual
             if (_visual != null)
             {
                 if (_autoTargetingEnabled && IsValidTarget(_currentTarget))
                 {
                     Vector2 newDir = GetLeadDirection(_currentTarget);
-                    // Only update if direction is valid (non-zero)
                     if (newDir.sqrMagnitude > 0.001f)
                     {
                         _lastAimDirection = newDir;
                     }
                 }
 
-                // Use last known aim direction to prevent snapping to origin on target loss
                 _visual.SetTargetDirection(_lastAimDirection);
             }
         }
 
-        /// <summary>
-        /// Updates targeting using sensor data. Only called on scan interval.
-        /// </summary>
         private void UpdateSensorBasedTargeting()
         {
             if (_sensorModule == null || _controller == null) return;
 
             Vector2 position = _controller.Transform.position;
 
-            // Query all detected threats from sensor, then filter by engagement range
-            // using live distance from our position (not the sensor's cached Distance field,
-            // which may be stale or computed from a different position).
-            var threats = _sensorModule.GetDetectedThreats();
-
-            // Rebuild tracked threats list from snapshot
+            var mode = _data.targetingMode;
             _sensorTrackedThreats.Clear();
-            foreach (var threat in threats)
+
+            if (mode != PointDefenseTargetingMode.Offensive)
             {
-                if (!IsValidTarget(threat.Transform)) continue;
-                if (threat.Transform.IsChildOf(_controller.Transform)) continue;
-                if (IsOwnProjectile(threat.Transform)) continue;
+                var threats = _sensorModule.GetDetectedThreats();
+                foreach (var threat in threats)
+                {
+                    if (!IsValidTarget(threat.Transform)) continue;
+                    if (threat.Transform.IsChildOf(_controller.Transform)) continue;
+                    if (IsOwnProjectile(threat.Transform)) continue;
 
-                float liveDist = Vector2.Distance(position, threat.Transform.position);
-                if (liveDist > _config.EngagementRange) continue;
+                    float liveDist = Vector2.Distance(position, threat.Transform.position);
+                    if (liveDist > _data.engagementRange) continue;
 
-                _sensorTrackedThreats.Add(threat);
+                    if (threat.EntityType == V2DetectedEntityType.Projectile)
+                    {
+                        Vector2 vel = threat.Velocity;
+                        if (!IsOnCollisionCourse(threat.Position, vel, position, _data.collisionCourseRadius))
+                            continue;
+                    }
+
+                    _sensorTrackedThreats.Add(threat);
+                }
             }
 
-            // Clean up - remove destroyed targets
-            CleanupSensorTargets();
+            if (mode != PointDefenseTargetingMode.Defensive)
+            {
+                var hostiles = _sensorModule.GetHostileEntities();
+                foreach (var hostile in hostiles)
+                {
+                    if (!IsValidTarget(hostile.Transform)) continue;
+                    if (hostile.Transform.IsChildOf(_controller.Transform)) continue;
 
-            // Select priority target from sensor data
+                    float liveDist = Vector2.Distance(position, hostile.Transform.position);
+                    if (liveDist > _data.engagementRange) continue;
+
+                    _sensorTrackedThreats.Add(hostile);
+                }
+            }
+
+            CleanupSensorTargets();
             SelectSensorPriorityTarget(position);
         }
 
-        /// <summary>
-        /// Removes invalid targets from the sensor tracking list.
-        /// </summary>
         private void CleanupSensorTargets()
         {
             for (int i = _sensorTrackedThreats.Count - 1; i >= 0; i--)
@@ -254,7 +289,6 @@ namespace StarfireV2
                 }
             }
 
-            // Clear current target if invalid
             if (_currentSensorTarget.HasValue && !IsValidTarget(_currentSensorTarget.Value.Transform))
             {
                 _currentSensorTarget = null;
@@ -262,57 +296,112 @@ namespace StarfireV2
             }
         }
 
-        /// <summary>
-        /// Selects the highest priority threat from sensor data.
-        /// </summary>
         private void SelectSensorPriorityTarget(Vector2 position)
         {
             if (_sensorTrackedThreats.Count == 0)
             {
                 _currentSensorTarget = null;
                 _currentTarget = null;
+                ReportEngagementToCoordinator(null);
                 return;
             }
 
-            // Priority: closest threat within firing range
-            V2DetectedEntity? closest = null;
-            float closestDist = float.MaxValue;
+            V2DetectedEntity? bestGuided = null;
+            float bestGuidedDist = float.MaxValue;
+            V2DetectedEntity? bestGuidedUnengaged = null;
+            float bestGuidedUnengagedDist = float.MaxValue;
 
-            foreach (var threat in _sensorTrackedThreats)
+            V2DetectedEntity? bestProjectile = null;
+            float bestProjectileDist = float.MaxValue;
+            V2DetectedEntity? bestProjectileUnengaged = null;
+            float bestProjectileUnengagedDist = float.MaxValue;
+
+            V2DetectedEntity? bestHostile = null;
+            float bestHostileDist = float.MaxValue;
+            V2DetectedEntity? bestHostileUnengaged = null;
+            float bestHostileUnengagedDist = float.MaxValue;
+
+            foreach (var entity in _sensorTrackedThreats)
             {
-                if (!IsValidTarget(threat.Transform)) continue;
+                if (!IsValidTarget(entity.Transform)) continue;
 
-                float dist = Vector2.Distance(position, threat.Transform.position);
+                float dist = Vector2.Distance(position, entity.Transform.position);
+                if (dist > Range) continue;
 
-                if (dist <= Range && dist < closestDist)
+                bool engaged = _coordinator != null
+                    && _coordinator.IsTargetEngagedByOther(this, entity.Transform);
+
+                if (IsGuidedThreat(entity.EntityType))
                 {
-                    closestDist = dist;
-                    closest = threat;
+                    if (dist < bestGuidedDist)
+                    {
+                        bestGuidedDist = dist;
+                        bestGuided = entity;
+                    }
+                    if (!engaged && dist < bestGuidedUnengagedDist)
+                    {
+                        bestGuidedUnengagedDist = dist;
+                        bestGuidedUnengaged = entity;
+                    }
+                }
+                else if (entity.EntityType == V2DetectedEntityType.Projectile)
+                {
+                    if (dist < bestProjectileDist)
+                    {
+                        bestProjectileDist = dist;
+                        bestProjectile = entity;
+                    }
+                    if (!engaged && dist < bestProjectileUnengagedDist)
+                    {
+                        bestProjectileUnengagedDist = dist;
+                        bestProjectileUnengaged = entity;
+                    }
+                }
+                else
+                {
+                    if (dist < bestHostileDist)
+                    {
+                        bestHostileDist = dist;
+                        bestHostile = entity;
+                    }
+                    if (!engaged && dist < bestHostileUnengagedDist)
+                    {
+                        bestHostileUnengagedDist = dist;
+                        bestHostileUnengaged = entity;
+                    }
                 }
             }
 
-            _currentSensorTarget = closest;
-            _currentTarget = closest?.Transform;
+            var selected = bestGuidedUnengaged ?? bestGuided
+                ?? bestProjectileUnengaged ?? bestProjectile
+                ?? bestHostileUnengaged ?? bestHostile;
+
+            _currentSensorTarget = selected;
+            _currentTarget = selected?.Transform;
+            ReportEngagementToCoordinator(selected?.Transform);
+        }
+
+        private void ReportEngagementToCoordinator(Transform target)
+        {
+            _coordinator?.ReportEngagement(this, target);
         }
 
         public void OnHardpointAssigned(V2HardpointMarker hardpoint)
         {
             if (hardpoint == null) return;
 
-            // Validate weight class compatibility
             if (!hardpoint.CanMount(WeightClass))
             {
-                Debug.LogWarning($"Cannot mount {WeightClass} weapon '{_config.DisplayName}' on {hardpoint.WeightClass} hardpoint '{hardpoint.SlotId}'");
+                Debug.LogWarning($"Cannot mount {WeightClass} weapon '{_data.displayName}' on {hardpoint.WeightClass} hardpoint '{hardpoint.SlotId}'");
                 return;
             }
 
             _hardpoint = hardpoint;
 
-            // Instantiate visual if we have a prefab
-            if (_config.WeaponVisualPrefab != null)
+            if (_data.weaponVisualPrefab != null)
             {
                 var visualGO = Object.Instantiate(
-                    _config.WeaponVisualPrefab,
+                    _data.weaponVisualPrefab,
                     _hardpoint.MountPoint
                 );
                 visualGO.transform.localPosition = Vector3.zero;
@@ -321,11 +410,11 @@ namespace StarfireV2
                 _visual = visualGO.GetComponent<V2WeaponVisual>();
                 if (_visual != null)
                 {
-                    _visual.Initialize(_config.TurretSettings);
+                    _visual.Initialize(_data.turretSettings);
                 }
                 else
                 {
-                    Debug.LogWarning($"Weapon visual prefab '{_config.WeaponVisualPrefab.name}' is missing V2WeaponVisual component");
+                    Debug.LogWarning($"Weapon visual prefab '{_data.weaponVisualPrefab.name}' is missing V2WeaponVisual component");
                 }
             }
         }
@@ -353,10 +442,7 @@ namespace StarfireV2
         {
             if (!CanFire) return false;
 
-            // Set cooldown
             _cooldownTimer = 1f / FireRate;
-
-            // Spawn projectile
             SpawnProjectile();
 
             return true;
@@ -383,27 +469,20 @@ namespace StarfireV2
 
             Vector2 position = _controller.Transform.position;
 
-            // Find all threats in engagement range
             var results = Physics2D.OverlapCircleAll(
                 position,
-                _config.EngagementRange,
-                _config.ThreatLayers
+                _data.engagementRange,
+                _data.threatLayers
             );
 
-            // Add new threats to tracking list
             foreach (var collider in results)
             {
                 if (collider == null) continue;
-
-                // Skip if already tracking
                 if (_trackedTargets.Contains(collider.transform)) continue;
-
-                // Skip if owned by us
                 if (collider.transform.IsChildOf(_controller.Transform)) continue;
                 if (IsOwnProjectile(collider.transform)) continue;
 
-                // Add to tracking (up to max)
-                if (_trackedTargets.Count < _config.MaxTrackedTargets)
+                if (_trackedTargets.Count < _data.maxTrackedTargets)
                 {
                     _trackedTargets.Add(collider.transform);
                 }
@@ -420,23 +499,20 @@ namespace StarfireV2
             {
                 var target = _trackedTargets[i];
 
-                // Remove destroyed targets
                 if (!IsValidTarget(target))
                 {
                     _trackedTargets.RemoveAt(i);
                     continue;
                 }
 
-                // Remove targets out of engagement range
                 float distance = Vector2.Distance(position, target.position);
-                if (distance > _config.EngagementRange)
+                if (distance > _data.engagementRange)
                 {
                     _trackedTargets.RemoveAt(i);
                     continue;
                 }
             }
 
-            // Clear current target if invalid
             if (!IsValidTarget(_currentTarget) || !_trackedTargets.Contains(_currentTarget))
             {
                 _currentTarget = null;
@@ -455,7 +531,6 @@ namespace StarfireV2
 
             Vector2 position = _controller.Transform.position;
 
-            // Priority: closest target
             Transform closest = null;
             float closestDist = float.MaxValue;
 
@@ -465,7 +540,6 @@ namespace StarfireV2
 
                 float dist = Vector2.Distance(position, target.position);
 
-                // Only consider targets within firing range
                 if (dist <= Range && dist < closestDist)
                 {
                     closestDist = dist;
@@ -498,25 +572,23 @@ namespace StarfireV2
             Vector2 myPosition = GetFirePosition();
             Vector2 targetPosition = target.position;
 
-            // Validate target position isn't at origin due to destroyed object
             Vector2 toTarget = targetPosition - myPosition;
             if (toTarget.sqrMagnitude < 0.001f)
             {
                 return _lastAimDirection;
             }
 
-            // Calculate intercept if prediction is enabled
-            if (_config.TurretSettings != null && _config.TurretSettings.predictTargetPosition)
+            if (_data.turretSettings != null && _data.turretSettings.predictTargetPosition)
             {
                 var targetRb = target.GetComponent<Rigidbody2D>();
-                if (targetRb != null && _config.ProjectileConfig != null)
+                if (targetRb != null && _data.projectileConfig != null)
                 {
                     Vector2 shooterVelocity = _controller.Rigid2D != null
                         ? _controller.Rigid2D.linearVelocity
                         : Vector2.zero;
                     Vector2 targetVelocity = targetRb.linearVelocity;
-                    float projectileSpeed = _config.ProjectileConfig.speed;
-                    bool inheritVelocity = _config.ProjectileConfig.inheritVelocity;
+                    float projectileSpeed = _data.projectileConfig.speed;
+                    bool inheritVelocity = _data.projectileConfig.inheritVelocity;
 
                     Vector2? interceptDir = CalculateInterceptDirection(
                         myPosition,
@@ -537,10 +609,6 @@ namespace StarfireV2
             return toTarget.normalized;
         }
 
-        /// <summary>
-        /// Calculates the direction to fire to intercept a moving target.
-        /// Uses quadratic solution accounting for both shooter and target velocities.
-        /// </summary>
         private Vector2? CalculateInterceptDirection(
             Vector2 shooterPos,
             Vector2 shooterVelocity,
@@ -549,22 +617,11 @@ namespace StarfireV2
             float projectileSpeed,
             bool inheritVelocity)
         {
-            // Relative position: target relative to shooter
             Vector2 relativePos = targetPos - shooterPos;
 
-            // Relative velocity depends on whether projectile inherits shooter velocity
-            // If inheritVelocity = true: projectile moves at 'speed' relative to shooter
-            //   so we work in shooter's reference frame, using relative velocity
-            // If inheritVelocity = false: projectile moves at 'speed' in world space
-            //   so we use target's absolute velocity
             Vector2 relativeVel = inheritVelocity
                 ? (targetVelocity - shooterVelocity)
                 : targetVelocity;
-
-            // Solve: |relativePos + relativeVel * t| = projectileSpeed * t
-            // Expanding: (R + V*t)·(R + V*t) = s²t²
-            // R·R + 2(R·V)t + (V·V)t² = s²t²
-            // (V·V - s²)t² + 2(R·V)t + R·R = 0
 
             float a = Vector2.Dot(relativeVel, relativeVel) - projectileSpeed * projectileSpeed;
             float b = 2f * Vector2.Dot(relativePos, relativeVel);
@@ -572,7 +629,6 @@ namespace StarfireV2
 
             float discriminant = b * b - 4f * a * c;
 
-            // No real solution - target is unreachable
             if (discriminant < 0f)
             {
                 return null;
@@ -581,12 +637,11 @@ namespace StarfireV2
             float sqrtDiscriminant = Mathf.Sqrt(discriminant);
             float t1, t2;
 
-            // Handle special case where a ≈ 0 (projectile speed equals relative velocity magnitude)
             if (Mathf.Abs(a) < 0.0001f)
             {
                 if (Mathf.Abs(b) < 0.0001f)
                 {
-                    return null; // Degenerate case
+                    return null;
                 }
                 t1 = t2 = -c / b;
             }
@@ -596,7 +651,6 @@ namespace StarfireV2
                 t2 = (-b - sqrtDiscriminant) / (2f * a);
             }
 
-            // Choose smallest positive time
             float interceptTime;
             if (t1 > 0.001f && t2 > 0.001f)
             {
@@ -612,47 +666,38 @@ namespace StarfireV2
             }
             else
             {
-                return null; // No positive solution - target is behind us or unreachable
+                return null;
             }
 
-            // Calculate intercept point and direction
             Vector2 interceptPoint = relativePos + relativeVel * interceptTime;
 
             if (interceptPoint.sqrMagnitude < 0.0001f)
             {
-                return null; // Target is at our position
+                return null;
             }
 
             return interceptPoint.normalized;
         }
 
-        /// <summary>
-        /// Applies accuracy-based spread to a firing direction.
-        /// </summary>
         private Vector2 ApplyAccuracySpread(Vector2 perfectDirection, float distanceToTarget)
         {
-            // Calculate effective accuracy (0-1 range)
-            float effectiveAccuracy = _config.AccuracyPercent / 100f;
+            float effectiveAccuracy = _data.accuracyPercent / 100f;
 
-            // Apply range-based accuracy decay if enabled
-            if (_config.AccuracyDecayOverRange && _config.RangeAccuracyFalloff != null)
+            if (_data.accuracyDecayOverRange && _data.rangeAccuracyFalloff != null)
             {
-                float rangeRatio = Mathf.Clamp01(distanceToTarget / _config.Range);
-                effectiveAccuracy *= _config.RangeAccuracyFalloff.Evaluate(rangeRatio);
+                float rangeRatio = Mathf.Clamp01(distanceToTarget / _data.range);
+                effectiveAccuracy *= _data.rangeAccuracyFalloff.Evaluate(rangeRatio);
             }
 
-            // Calculate max spread based on accuracy (0% accuracy = max spread, 100% = no spread)
-            float maxSpreadRadians = _config.MaxSpreadAngle * Mathf.Deg2Rad * (1f - effectiveAccuracy);
+            float maxSpreadRadians = _data.maxSpreadAngle * Mathf.Deg2Rad * (1f - effectiveAccuracy);
 
             if (maxSpreadRadians < 0.0001f)
             {
                 return perfectDirection;
             }
 
-            // Apply random angular deviation
             float randomAngle = Random.Range(-maxSpreadRadians, maxSpreadRadians);
 
-            // Rotate direction by random angle
             float cos = Mathf.Cos(randomAngle);
             float sin = Mathf.Sin(randomAngle);
             return new Vector2(
@@ -681,21 +726,19 @@ namespace StarfireV2
 
         private void SpawnProjectile()
         {
-            var projConfig = _config.ProjectileConfig;
+            var projConfig = _data.projectileConfig;
             if (projConfig == null)
             {
-                Debug.LogWarning($"Point defense '{_config.DisplayName}' has no ProjectileConfig assigned");
+                Debug.LogWarning($"Point defense '{_data.displayName}' has no ProjectileConfig assigned");
                 return;
             }
 
-            // Physics mode requires a prefab
-            if (projConfig.mode == V2ProjectileMode.Physics && _config.ProjectilePrefab == null)
+            if (projConfig.mode == V2ProjectileMode.Physics && _data.projectilePrefab == null)
             {
-                Debug.LogWarning($"Point defense '{_config.DisplayName}' has no projectile prefab for Physics mode");
+                Debug.LogWarning($"Point defense '{_data.displayName}' has no projectile prefab for Physics mode");
                 return;
             }
 
-            // Determine spawn position and direction
             Vector2 spawnPos;
             Vector2 direction;
             float distanceToTarget = 0f;
@@ -737,39 +780,35 @@ namespace StarfireV2
             }
             else
             {
-                Debug.LogWarning($"Cannot spawn projectile for '{_config.DisplayName}': no position reference available");
+                Debug.LogWarning($"Cannot spawn projectile for '{_data.displayName}': no position reference available");
                 return;
             }
 
-            // Apply accuracy spread to the firing direction
             direction = ApplyAccuracySpread(direction, distanceToTarget);
 
-            // Calculate inherited velocity if enabled
             Vector2 inheritedVelocity = Vector2.zero;
             if (projConfig.inheritVelocity && _controller?.Rigid2D != null)
             {
                 inheritedVelocity = _controller.Rigid2D.linearVelocity;
             }
 
-            // Build spawn context and delegate to spawner
             var context = new V2ProjectileSpawnContext
             {
                 Owner = _controller,
                 SpawnPosition = spawnPos,
                 Direction = direction,
                 InheritedVelocity = inheritedVelocity,
-                Damage = _config.Damage,
-                DamageConfig = null, // Point defense typically uses default damage
+                Damage = _data.damage,
+                DamageConfig = null,
                 ProjectileConfig = projConfig,
-                ProjectilePrefab = _config.ProjectilePrefab
+                ProjectilePrefab = _data.projectilePrefab
             };
 
             V2ProjectileSpawner.Spawn(context);
 
-            // Trigger fire shake (recoil)
-            if (_config.FireShakeConfig != null)
+            if (_data.fireShakeConfig != null)
             {
-                V3CameraShakeService.Instance?.TriggerFireShake(spawnPos, direction, _config.FireShakeConfig);
+                V3CameraShakeService.Instance?.TriggerFireShake(spawnPos, direction, _data.fireShakeConfig);
             }
         }
     }

@@ -32,9 +32,26 @@ namespace StarfireV2
 
         public ShipModuleTypeId TypeId => ShipModuleTypeId.AICore;
 
+        public IModuleRuntimeData ToData()
+        {
+            return new AICoreModuleData
+            {
+                moduleId = moduleId,
+                processingPower = processingPower,
+                behaviorTree = behaviorTree,
+                enableGoalSystem = enableGoalSystem,
+                defaultGoals = new System.Collections.Generic.List<GoalParameters>(defaultGoals)
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new V2AICoreModule((AICoreModuleData)data);
+        }
+
         public IShipModule CreateModule()
         {
-            return new V2AICoreModule(this);
+            return new V2AICoreModule((AICoreModuleData)ToData());
         }
     }
 }

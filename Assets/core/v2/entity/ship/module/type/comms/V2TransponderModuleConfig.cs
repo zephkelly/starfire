@@ -62,9 +62,29 @@ namespace StarfireV2
         // IShipModuleConfig implementation
         public ShipModuleTypeId TypeId => ShipModuleTypeId.Transponder;
 
+        public IModuleRuntimeData ToData()
+        {
+            return new TransponderModuleData
+            {
+                moduleId = moduleId,
+                displayName = displayName,
+                defaultFaction = defaultFaction,
+                shipClass = shipClass,
+                defaultActiveChannels = defaultActiveChannels,
+                monitoredChannels = monitoredChannels,
+                defaultCrewComplement = defaultCrewComplement,
+                tier = tier
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new V2TransponderModule((TransponderModuleData)data);
+        }
+
         public IShipModule CreateModule()
         {
-            return new V2TransponderModule(this);
+            return new V2TransponderModule((TransponderModuleData)ToData());
         }
 
         private void OnValidate()

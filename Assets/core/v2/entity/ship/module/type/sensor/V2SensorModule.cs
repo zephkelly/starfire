@@ -11,7 +11,7 @@ namespace StarfireV2
     /// </summary>
     public class V2SensorModule : ISensorModule
     {
-        private readonly V2SensorModuleConfig _config;
+        private readonly SensorModuleData _data;
         private IEntityController _controller;
         private ITransponderModule _ownTransponder;
 
@@ -21,7 +21,7 @@ namespace StarfireV2
         private float _tierMultiplier;
 
         // IEntityModule
-        public string ModuleId => _config.ModuleId;
+        public string ModuleId => _data.moduleId;
         public bool IsEnabled { get; set; } = true;
 
         // IShipModule
@@ -29,11 +29,13 @@ namespace StarfireV2
         public ShipModuleType Type => ShipModuleType.SensorArray;
 
         // ISensorModule
-        public float DetectionRange => _config.RangeConfig.MaxRange * _tierMultiplier;
-        public float SilhouetteRange => _config.RangeConfig.SilhouetteRange * _tierMultiplier;
-        public float FullRange => _config.RangeConfig.FullRange * _tierMultiplier;
-        public float TargetingAccuracy => _config.TargetingAccuracy;
-        public float PollingRate => _config.PollingInterval;
+        public float DetectionRange => RangeConfig.MaxRange * _tierMultiplier;
+        public float SilhouetteRange => RangeConfig.SilhouetteRange * _tierMultiplier;
+        public float FullRange => RangeConfig.FullRange * _tierMultiplier;
+        public float TargetingAccuracy => _data.targetingAccuracy;
+        public float PollingRate => _data.pollingInterval;
+
+        private V2DetectionRangeConfig RangeConfig => _data.rangeConfig ?? V2DetectionRangeConfig.CreateDefault();
 
         public IReadOnlyList<V2DetectedEntity> DetectedEntities => _detectedEntities;
         public int DetectedCount => _detectedEntities.Count;
@@ -42,10 +44,10 @@ namespace StarfireV2
         public event Action<V2DetectedEntity> OnEntityLost;
         public event Action<V2DetectedEntity> OnThreatDetected;
 
-        public V2SensorModule(V2SensorModuleConfig config)
+        public V2SensorModule(SensorModuleData data)
         {
-            _config = config;
-            _tierMultiplier = config.Tier switch
+            _data = data;
+            _tierMultiplier = data.tier switch
             {
                 ModuleTier.Basic => 0.75f,
                 ModuleTier.Standard => 1.0f,
@@ -94,7 +96,7 @@ namespace StarfireV2
             if (_controller == null) return;
 
             Vector2 position = _controller.Transform.position;
-            float effectiveRange = _config.RangeConfig.MaxRange * _tierMultiplier;
+            float effectiveRange = RangeConfig.MaxRange * _tierMultiplier;
 
             // Cache own transponder
             _ownTransponder ??= GetOwnTransponder();
@@ -139,19 +141,19 @@ namespace StarfireV2
                 V2DetectionLevel level;
                 if (hasActiveTransponder)
                 {
-                    level = _config.RangeConfig.GetLevelForDistance(distance, _tierMultiplier);
+                    level = RangeConfig.GetLevelForDistance(distance, _tierMultiplier);
                 }
                 else
                 {
-                    level = _config.RangeConfig.GetPassiveLevelForDistance(distance, _tierMultiplier);
+                    level = RangeConfig.GetPassiveLevelForDistance(distance, _tierMultiplier);
                 }
 
                 if (level == V2DetectionLevel.None) continue;
 
                 // Apply filters if we have faction info
-                if (transponder != null && _config.FilterConfig != null)
+                if (transponder != null && _data.filterConfig != null)
                 {
-                    if (!_config.FilterConfig.PassesFilter(transponder.Faction, transponder.ShipClass, ownFaction))
+                    if (!_data.filterConfig.PassesFilter(transponder.Faction, transponder.ShipClass, ownFaction))
                         continue;
                 }
 
@@ -198,9 +200,9 @@ namespace StarfireV2
 
         private void ScanThreats(Vector2 position, float effectiveRange)
         {
-            if (_config.ThreatLayers == 0) return;
+            if (_data.threatLayers == 0) return;
 
-            var results = Physics2D.OverlapCircleAll(position, effectiveRange, _config.ThreatLayers);
+            var results = Physics2D.OverlapCircleAll(position, effectiveRange, _data.threatLayers);
 
             foreach (var collider in results)
             {

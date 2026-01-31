@@ -11,10 +11,12 @@ namespace StarfireV2
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Collider2D))]
-    public class V2Projectile : MonoBehaviour, IPoolable
+    public class V2Projectile : MonoBehaviour, IPoolable, IV2DamageReceiver
     {
         private IEntityController _owner;
         private float _damage;
+        private bool _canBeDamaged;
+        private float _currentHealth;
         private V2WeaponDamageConfig _damageConfig;
         private V2ImpactConfig _impactConfig;
         private LayerMask _hitLayers;
@@ -58,6 +60,16 @@ namespace StarfireV2
             _isActive = true;
             _consumed = false;
             _elapsedTime = 0f;
+
+            // Ensure collider is trigger-ready immediately (before first physics step)
+            if (_collider == null)
+                _collider = GetComponent<Collider2D>();
+            if (_collider != null)
+            {
+                _collider.enabled = true;
+                _collider.isTrigger = true;
+            }
+
             return true;
         }
 
@@ -79,6 +91,8 @@ namespace StarfireV2
             _lifetime = 0f;
             _elapsedTime = 0f;
             _consumed = false;
+            _canBeDamaged = false;
+            _currentHealth = 0f;
 
             // Reset physics
             if (_rigidbody == null)
@@ -143,7 +157,9 @@ namespace StarfireV2
             int maxPenetrations = 0,
             Vector2 inheritedVelocity = default,
             V2WeaponDamageConfig damageConfig = null,
-            V2ImpactConfig impactConfig = null)
+            V2ImpactConfig impactConfig = null,
+            bool canBeDamaged = false,
+            float maxHealth = 1f)
         {
             _owner = owner;
             _damage = damage;
@@ -202,6 +218,10 @@ namespace StarfireV2
                 Debug.LogWarning("[V2Projectile] No Collider2D found on projectile!");
             }
 
+            // Health for projectile-vs-projectile damage
+            _canBeDamaged = canBeDamaged;
+            _currentHealth = maxHealth;
+
             // Note: No longer using Destroy(gameObject, lifetime)
             // Lifetime is tracked in Update() for pooling support
         }
@@ -227,6 +247,20 @@ namespace StarfireV2
             ReturnToPool();
         }
 
+        public void ReceiveDamage(V2DamageInfo damageInfo)
+        {
+            if (!_canBeDamaged || _consumed) return;
+
+            // Prevent damage from own owner
+            if (_owner != null && damageInfo.Source == _owner) return;
+
+            _currentHealth -= damageInfo.BaseDamage;
+            if (_currentHealth <= 0f)
+            {
+                ReturnToPool();
+            }
+        }
+
         /// <summary>
         /// Returns this projectile to its pool, or destroys it if pooling is disabled.
         /// </summary>
@@ -248,8 +282,6 @@ namespace StarfireV2
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (_consumed && _destroyOnHit) return;
-
             // Check layer mask
             if ((_hitLayers.value & (1 << other.gameObject.layer)) == 0)
             {
@@ -269,12 +301,15 @@ namespace StarfireV2
                 return;
             }
 
-            // Try to deal damage
+            // Try to deal damage (even if we're already consumed — outgoing damage still applies)
             var damageReceiver = other.GetComponentInParent<IV2DamageReceiver>();
             if (damageReceiver != null)
             {
                 ApplyDamage(damageReceiver, other);
             }
+
+            // Don't process effects or self-destruction if already consumed
+            if (_consumed) return;
 
             // Spawn impact effects
             SpawnImpactEffects(other);

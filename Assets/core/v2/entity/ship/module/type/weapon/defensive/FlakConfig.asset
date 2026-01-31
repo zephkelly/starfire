@@ -19,7 +19,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 3840
   destroyOnHit: 1
-  maxPenetrations: 1
+  maxPenetrations: 0
   scale: 2
   color: {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 1}
   trailPrefab: {fileID: 0}
@@ -37,14 +37,16 @@ MonoBehaviour:
     customMaterial: {fileID: 0}
     sortingOrderOffset: -1
     minVelocityThreshold: 1
+  canBeDamaged: 1
+  maxHealth: 5
   mode: 0
   impactConfig:
     impactParticlePrefab: {fileID: 0}
     particleScale: 1
-    spawnLight: 1
-    lightColor: {r: 1, g: 1, b: 1, a: 1}
-    lightIntensity: 1
-    lightRadius: 2
+    spawnLight: 0
+    lightColor: {r: 1, g: 0, b: 0.8575926, a: 1}
+    lightIntensity: 13.82
+    lightRadius: 19.23
     lightDuration: 0.2
     impactSound: {fileID: 0}
     soundVolume: 1

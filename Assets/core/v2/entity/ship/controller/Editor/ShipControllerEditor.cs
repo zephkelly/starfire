@@ -13,9 +13,11 @@ namespace StarfireV2.Editor
         private SerializedProperty _slotConfigurations;
         private readonly Dictionary<ShipModuleCategory, bool> _categoryFoldouts = new();
         private readonly List<int> _indicesToRemove = new();
+        private readonly Dictionary<int, bool> _overrideFoldouts = new();
 
         private GUIStyle _categoryBoxStyle;
         private GUIStyle _categoryHeaderStyle;
+        private GUIStyle _overrideBoxStyle;
 
         private void OnEnable()
         {
@@ -42,6 +44,15 @@ namespace StarfireV2.Editor
                 {
                     fontStyle = FontStyle.Bold,
                     fontSize = 12
+                };
+            }
+
+            if (_overrideBoxStyle == null)
+            {
+                _overrideBoxStyle = new GUIStyle(EditorStyles.helpBox)
+                {
+                    padding = new RectOffset(10, 6, 4, 4),
+                    margin = new RectOffset(16, 4, 2, 2)
                 };
             }
         }
@@ -205,6 +216,7 @@ namespace StarfireV2.Editor
                         slotIdProp.stringValue = GenerateUniqueSlotId(GenerateBaseSlotId(typeId));
                     }
 
+                    // Draw all fields except overrideData and hasOverrides (we handle those below)
                     EditorGUILayout.PropertyField(slotProp, GUIContent.none, true);
 
                     // Delete button
@@ -218,10 +230,107 @@ namespace StarfireV2.Editor
 
                     EditorGUILayout.EndHorizontal();
 
+                    // Draw override foldout if slot is expanded and has a default module
                     if (slotProp.isExpanded)
+                    {
+                        DrawOverrideSection(slotProp, idx);
                         EditorGUILayout.Space(4);
+                    }
                     else
+                    {
                         EditorGUILayout.Space(2);
+                    }
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawOverrideSection(SerializedProperty slotProp, int index)
+        {
+            var defaultModuleProp = slotProp.FindPropertyRelative("defaultModule");
+            var overrideDataProp = slotProp.FindPropertyRelative("overrideData");
+            var hasOverridesProp = slotProp.FindPropertyRelative("hasOverrides");
+
+            // No default module assigned — nothing to override
+            if (defaultModuleProp.objectReferenceValue == null)
+            {
+                // Clear override data if module was removed
+                if (overrideDataProp.managedReferenceValue != null)
+                {
+                    overrideDataProp.managedReferenceValue = null;
+                    hasOverridesProp.boolValue = false;
+                }
+                return;
+            }
+
+            var configSO = defaultModuleProp.objectReferenceValue;
+            if (configSO is not IShipModuleConfig moduleConfig)
+                return;
+
+            // Auto-populate override data if it's null or type changed
+            if (overrideDataProp.managedReferenceValue == null)
+            {
+                overrideDataProp.managedReferenceValue = moduleConfig.ToData();
+                serializedObject.ApplyModifiedProperties();
+                serializedObject.Update();
+            }
+
+            // Draw the override section
+            EditorGUILayout.BeginVertical(_overrideBoxStyle);
+
+            EditorGUILayout.BeginHorizontal();
+
+            // Foldout
+            if (!_overrideFoldouts.ContainsKey(index))
+                _overrideFoldouts[index] = false;
+
+            _overrideFoldouts[index] = EditorGUILayout.Foldout(
+                _overrideFoldouts[index],
+                "Overrides",
+                true
+            );
+
+            // hasOverrides toggle
+            var prevEnabled = hasOverridesProp.boolValue;
+            hasOverridesProp.boolValue = EditorGUILayout.Toggle(hasOverridesProp.boolValue, GUILayout.Width(16));
+
+            // Label to clarify the toggle
+            var labelStyle = new GUIStyle(EditorStyles.miniLabel);
+            if (!hasOverridesProp.boolValue)
+                labelStyle.normal.textColor = Color.gray;
+            EditorGUILayout.LabelField(hasOverridesProp.boolValue ? "Active" : "Inactive", labelStyle, GUILayout.Width(44));
+
+            // Reset button
+            if (GUILayout.Button("Reset", EditorStyles.miniButton, GUILayout.Width(50)))
+            {
+                overrideDataProp.managedReferenceValue = moduleConfig.ToData();
+                serializedObject.ApplyModifiedProperties();
+                serializedObject.Update();
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            // Draw override data fields when expanded
+            if (_overrideFoldouts[index] && overrideDataProp.managedReferenceValue != null)
+            {
+                EditorGUI.indentLevel++;
+
+                // Dim the fields if overrides are inactive
+                using (new EditorGUI.DisabledScope(!hasOverridesProp.boolValue))
+                {
+                    // Iterate through visible children of the SerializeReference property
+                    var iter = overrideDataProp.Copy();
+                    var endProp = overrideDataProp.GetEndProperty();
+                    bool enterChildren = true;
+
+                    while (iter.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iter, endProp))
+                    {
+                        enterChildren = false;
+                        EditorGUILayout.PropertyField(iter, true);
+                    }
                 }
 
                 EditorGUI.indentLevel--;
@@ -272,6 +381,8 @@ namespace StarfireV2.Editor
             newSlot.FindPropertyRelative("isRequired").boolValue = false;
             newSlot.FindPropertyRelative("isAvailable").boolValue = true;
             newSlot.FindPropertyRelative("defaultModule").objectReferenceValue = null;
+            newSlot.FindPropertyRelative("hasOverrides").boolValue = false;
+            newSlot.FindPropertyRelative("overrideData").managedReferenceValue = null;
 
             serializedObject.ApplyModifiedProperties();
         }

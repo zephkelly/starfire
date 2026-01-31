@@ -7,6 +7,8 @@ namespace StarfireV2
     {
         public ShipModuleTypeId TypeId => ShipModuleTypeId.ManeuveringThrusters;
         IShipModule IShipModuleConfig.CreateModule() => CreateModule();
+        IModuleRuntimeData IShipModuleConfig.ToData() => ToData();
+        IShipModule IShipModuleConfig.CreateModuleFromData(IModuleRuntimeData data) => CreateModuleFromData(data);
 
         [Header("Module Identity")]
         [SerializeField] private string moduleId = "propulsion_module";
@@ -23,9 +25,26 @@ namespace StarfireV2
         public float Acceleration => acceleration;
         public float Drag => drag;
 
+        public IModuleRuntimeData ToData()
+        {
+            return new PropulsionModuleData
+            {
+                moduleId = moduleId,
+                displayName = displayName,
+                maxSpeed = maxSpeed,
+                acceleration = acceleration,
+                drag = drag
+            };
+        }
+
+        public IShipModule CreateModuleFromData(IModuleRuntimeData data)
+        {
+            return new PropulsionModule((PropulsionModuleData)data);
+        }
+
         public IShipPropulsionModule CreateModule()
         {
-            return new PropulsionModule(this);
+            return new PropulsionModule((PropulsionModuleData)ToData());
         }
     }
 }

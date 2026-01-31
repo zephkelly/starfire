@@ -55,7 +55,7 @@ MonoBehaviour:
   opacity: 0.263
   ellipticityRange: 0.3
   tiltRange: 1
-  zoomResponse: 0
+  zoomResponse: 0.004
   renderBackground: 0
   backgroundColor: {r: 0, g: 0, b: 0, a: 1}
   seed: 0

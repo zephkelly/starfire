@@ -8,18 +8,18 @@ namespace StarfireV2
     /// </summary>
     public class V2AICoreModule : IAICoreModule
     {
-        private readonly V2AICoreModuleConfig _config;
+        private readonly AICoreModuleData _data;
         private IEntityController _controller;
         private BTContext _btContext;
         private GoalManager _goalManager;
         private GoalParameters _currentGoalParameters;
 
-        public string ModuleId => _config.ModuleId;
+        public string ModuleId => _data.moduleId;
         public bool IsEnabled { get; set; } = true;
         public ShipModuleCategory Category => ShipModuleCategory.Utility;
         public ShipModuleType Type => ShipModuleType.AICore;
 
-        public float ProcessingPower => _config.ProcessingPower;
+        public float ProcessingPower => _data.processingPower;
         public bool IsAutonomous { get; set; }
 
         public AIEntityControllerDriver Driver { get; private set; }
@@ -29,9 +29,9 @@ namespace StarfireV2
         public GoalManager GoalManager => _goalManager;
         public GoalParameters CurrentGoalParameters => _currentGoalParameters;
 
-        public V2AICoreModule(V2AICoreModuleConfig config)
+        public V2AICoreModule(AICoreModuleData data)
         {
-            _config = config;
+            _data = data;
         }
 
         public void OnAttach(IEntityController controller)
@@ -50,16 +50,16 @@ namespace StarfireV2
             IsAutonomous = true;
 
             // Initialize goal system if enabled
-            if (_config.EnableGoalSystem)
+            if (_data.enableGoalSystem)
             {
                 _goalManager = new GoalManager();
-                _goalManager.Initialize(_btContext, _config.DefaultGoals);
+                _goalManager.Initialize(_btContext, _data.defaultGoals);
             }
 
-            // Create behavior tree from config
-            if (BehaviorTree == null && _config.BehaviorTree != null)
+            // Create behavior tree from data
+            if (BehaviorTree == null && _data.behaviorTree != null)
             {
-                BehaviorTree = _config.BehaviorTree.CreateRuntimeTree();
+                BehaviorTree = _data.behaviorTree.CreateRuntimeTree();
             }
 
             BehaviorTree?.Initialize(_btContext);

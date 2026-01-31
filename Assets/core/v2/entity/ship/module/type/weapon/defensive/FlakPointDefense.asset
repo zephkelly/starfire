@@ -52,13 +52,15 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  collisionCourseRadius: 10
+  targetingMode: 0
   useSensorIntegration: 1
   turretSettings:
     isTurret: 1
     targetingMode: 0
     rotationSpeed: 360
     firingArc: 360
-    canFireWhileRotating: 0
+    canFireWhileRotating: 1
     firingTolerance: 10
     predictTargetPosition: 1
   projectileConfig: {fileID: 11400000, guid: 7bd3a9daeb6d6b74a9c9a4da64120a08, type: 2}

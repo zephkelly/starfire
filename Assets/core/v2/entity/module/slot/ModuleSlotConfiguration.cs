@@ -12,6 +12,9 @@ namespace StarfireV2
         public bool isAvailable = true;
         public ScriptableObject defaultModule;
 
+        [SerializeReference] public IModuleRuntimeData overrideData;
+        public bool hasOverrides;
+
         public ModuleSlotConfiguration()
         {
             isAvailable = true;

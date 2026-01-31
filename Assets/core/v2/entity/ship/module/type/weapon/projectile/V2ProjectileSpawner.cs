@@ -155,7 +155,9 @@ namespace StarfireV2
                 maxPenetrations: config.maxPenetrations,
                 inheritedVelocity: config.inheritVelocity ? context.InheritedVelocity : Vector2.zero,
                 damageConfig: context.DamageConfig,
-                impactConfig: config.impactConfig
+                impactConfig: config.impactConfig,
+                canBeDamaged: config.canBeDamaged,
+                maxHealth: config.maxHealth
             );
         }
 
