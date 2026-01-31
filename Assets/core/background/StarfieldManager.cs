@@ -357,6 +357,11 @@ namespace Starfire.Core.Background
             // Update existing layers
             if (_initialized && _camera != null)
             {
+                // Mark all layers dirty since inspector values may have changed
+                foreach (var layer in layers)
+                {
+                    layer?.MarkDirty();
+                }
                 UpdateAllLayers();
                 UpdateAllLayerTransforms();
             }

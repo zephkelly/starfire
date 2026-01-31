@@ -143,6 +143,9 @@ namespace Starfire.Core.Background.Layers
         private static readonly int ClusterAmountID = Shader.PropertyToID("_ClusterAmount");
         private static readonly int ClusterScaleID = Shader.PropertyToID("_ClusterScale");
 
+        // Tracks whether depth config arrays need re-uploading to GPU
+        [System.NonSerialized] private bool _configDirty = true;
+
         // Pre-allocated arrays to avoid GC allocations
         private Vector4[] _depthParams = new Vector4[8];
         private Vector4[] _depthColors = new Vector4[8];
@@ -151,6 +154,12 @@ namespace Starfire.Core.Background.Layers
 
         private static readonly int DepthParallaxOffsetsID = Shader.PropertyToID("_DepthParallaxOffsets");
 
+        public override void MarkDirty()
+        {
+            base.MarkDirty();
+            _configDirty = true;
+        }
+
         public override Shader GetShader()
         {
             return Shader.Find("Starfire/StarfieldMultiLayer");
@@ -158,68 +167,87 @@ namespace Starfire.Core.Background.Layers
 
         public override void ConfigureMaterial(Material material)
         {
-            // Apply preset if assigned
-            if (preset != null)
+            // Config-dependent properties — only set when config actually changes
+            if (_configDirty)
             {
-                preset.ApplyTo(this);
+                // Apply preset if assigned
+                if (preset != null)
+                {
+                    preset.ApplyTo(this);
+                }
+
+                // Set depth count (clamped to max 8)
+                int depthCount = Mathf.Min(depths.Count, 8);
+                material.SetInt(DepthCountID, depthCount);
+
+                // Populate depth config arrays (static data, not position-dependent)
+                for (int i = 0; i < 8; i++)
+                {
+                    if (i < depths.Count)
+                    {
+                        var depth = depths[i];
+                        _depthParams[i] = new Vector4(
+                            depth.parallaxDepth,
+                            depth.density,
+                            depth.sizeMin,
+                            depth.sizeMax
+                        );
+                        _depthColors[i] = depth.colorTint;
+                        _depthSeeds[i] = depth.seed;
+                    }
+                    else
+                    {
+                        _depthParams[i] = Vector4.zero;
+                        _depthColors[i] = Vector4.zero;
+                        _depthSeeds[i] = 0;
+                    }
+                }
+
+                material.SetVectorArray(DepthParamsID, _depthParams);
+                material.SetVectorArray(DepthColorsID, _depthColors);
+                material.SetFloatArray(DepthSeedsID, _depthSeeds);
+
+                // Set shared parameters
+                material.SetFloat(SpawnChanceID, spawnChance);
+                material.SetFloat(StarBrightnessMinID, brightnessMin);
+                material.SetFloat(StarBrightnessMaxID, brightnessMax);
+                material.SetFloat(BrightnessDistributionID, brightnessDistribution);
+                material.SetFloat(TwinkleSpeedID, twinkleSpeed);
+                material.SetFloat(TwinkleAmountID, twinkleAmount);
+                material.SetFloat(ColorVariationID, colorVariation);
+                material.SetFloat(WarmCoolMixID, warmCoolMix);
+                material.SetFloat(EdgeSharpnessID, edgeSharpness);
+                material.SetFloat(SizeDistributionID, sizeDistribution);
+                material.SetColor(BackgroundColorID, renderBackground ? backgroundColor : Color.clear);
+                material.SetFloat(RenderBackgroundID, renderBackground ? 1f : 0f);
+                material.SetFloat(ClusterAmountID, clusterAmount);
+                material.SetFloat(ClusterScaleID, clusterScale);
+
+                _configDirty = false;
             }
 
-            // Set depth count (clamped to max 8)
-            int depthCount = Mathf.Min(depths.Count, 8);
-            material.SetInt(DepthCountID, depthCount);
+            // Position-dependent properties — updated every dirty frame
+            UpdateDepthParallaxOffsets(material);
+            ApplyFabricProperties(material);
+        }
 
-            // Populate depth arrays
+        private void UpdateDepthParallaxOffsets(Material material)
+        {
+            int depthCount = Mathf.Min(depths.Count, 8);
             for (int i = 0; i < 8; i++)
             {
-                if (i < depths.Count)
+                if (i < depthCount)
                 {
-                    var depth = depths[i];
-                    _depthParams[i] = new Vector4(
-                        depth.parallaxDepth,
-                        depth.density,
-                        depth.sizeMin,
-                        depth.sizeMax
-                    );
-                    _depthColors[i] = depth.colorTint;
-                    _depthSeeds[i] = depth.seed;
-
-                    // Per-depth parallax offset computed in double precision
-                    Vector2 offset = ComputeParallaxOffset(depth.parallaxDepth);
+                    Vector2 offset = ComputeParallaxOffset(depths[i].parallaxDepth);
                     _depthParallaxOffsets[i] = new Vector4(offset.x, offset.y, 0, 0);
                 }
                 else
                 {
-                    // Zero out unused slots
-                    _depthParams[i] = Vector4.zero;
-                    _depthColors[i] = Vector4.zero;
-                    _depthSeeds[i] = 0;
                     _depthParallaxOffsets[i] = Vector4.zero;
                 }
             }
 
-            material.SetVectorArray(DepthParamsID, _depthParams);
-            material.SetVectorArray(DepthColorsID, _depthColors);
-            material.SetFloatArray(DepthSeedsID, _depthSeeds);
             material.SetVectorArray(DepthParallaxOffsetsID, _depthParallaxOffsets);
-
-            // Set shared parameters
-            material.SetFloat(SpawnChanceID, spawnChance);
-            material.SetFloat(StarBrightnessMinID, brightnessMin);
-            material.SetFloat(StarBrightnessMaxID, brightnessMax);
-            material.SetFloat(BrightnessDistributionID, brightnessDistribution);
-            material.SetFloat(TwinkleSpeedID, twinkleSpeed);
-            material.SetFloat(TwinkleAmountID, twinkleAmount);
-            material.SetFloat(ColorVariationID, colorVariation);
-            material.SetFloat(WarmCoolMixID, warmCoolMix);
-            material.SetFloat(EdgeSharpnessID, edgeSharpness);
-            material.SetFloat(SizeDistributionID, sizeDistribution);
-            material.SetColor(BackgroundColorID, renderBackground ? backgroundColor : Color.clear);
-            material.SetFloat(RenderBackgroundID, renderBackground ? 1f : 0f);
-            material.SetFloat(ClusterAmountID, clusterAmount);
-            material.SetFloat(ClusterScaleID, clusterScale);
-
-            // Per-layer fabric sampling
-            ApplyFabricProperties(material);
         }
 
         /// <summary>

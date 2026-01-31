@@ -30,6 +30,9 @@ namespace Starfire.Core.Background
         // Double-precision virtual position set by StarfieldManager each frame
         [System.NonSerialized] protected Vector2D _virtualPos;
 
+        // Dirty flag to avoid redundant material updates (prevents GPU resource handle leak)
+        [System.NonSerialized] protected bool _isDirty = true;
+
         // Fmod period for parallax-space wrapping (keeps float values precise)
         protected const double ParallaxFmodPeriod = 100000.0;
 
@@ -52,7 +55,20 @@ namespace Starfire.Core.Background
         /// </summary>
         public void SetVirtualPosition(Vector2D virtualPos)
         {
-            _virtualPos = virtualPos;
+            if (_virtualPos != virtualPos)
+            {
+                _virtualPos = virtualPos;
+                _isDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// Mark this layer as needing a material update on the next frame.
+        /// Override in subclasses to also mark config-specific dirty flags.
+        /// </summary>
+        public virtual void MarkDirty()
+        {
+            _isDirty = true;
         }
 
         /// <summary>
@@ -149,7 +165,9 @@ namespace Starfire.Core.Background
         public virtual void Update()
         {
             if (_material == null) return;
+            if (!_isDirty) return;
             ConfigureMaterial(_material);
+            _isDirty = false;
         }
 
         /// <summary>
