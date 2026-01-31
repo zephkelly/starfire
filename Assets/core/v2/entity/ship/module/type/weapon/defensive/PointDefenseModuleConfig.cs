@@ -60,6 +60,19 @@ namespace StarfireV2
         [Tooltip("Curve defining how accuracy falls off with range (0 = point blank, 1 = max range). Only used if accuracyDecayOverRange is true.")]
         [SerializeField] private AnimationCurve rangeAccuracyFalloff = AnimationCurve.Linear(0f, 1f, 1f, 0.8f);
 
+        [Header("Burst Fire")]
+        [Tooltip("Enable burst fire mode. Fires multiple shots rapidly then enters a longer cooldown.")]
+        [SerializeField] private bool useBurstFire;
+
+        [Tooltip("Number of shots per burst.")]
+        [SerializeField] private int burstCount = 5;
+
+        [Tooltip("Delay between shots within a burst (seconds).")]
+        [SerializeField] private float burstInterval = 0.05f;
+
+        [Tooltip("Cooldown after a burst completes before the next burst can begin (seconds).")]
+        [SerializeField] private float burstCooldown = 2f;
+
         [Header("Collision Course")]
         [Tooltip("Radius around the ship used for collision course checks on simple projectiles. Projectiles not on a collision course are ignored.")]
         [SerializeField] private float collisionCourseRadius = 2f;
@@ -107,6 +120,10 @@ namespace StarfireV2
         public float MaxSpreadAngle => maxSpreadAngle;
         public bool AccuracyDecayOverRange => accuracyDecayOverRange;
         public AnimationCurve RangeAccuracyFalloff => rangeAccuracyFalloff;
+        public bool UseBurstFire => useBurstFire;
+        public int BurstCount => burstCount;
+        public float BurstInterval => burstInterval;
+        public float BurstCooldown => burstCooldown;
         public float CollisionCourseRadius => collisionCourseRadius;
         public PointDefenseTargetingMode TargetingMode => targetingMode;
         public bool UseSensorIntegration => useSensorIntegration;
@@ -138,6 +155,10 @@ namespace StarfireV2
                 maxSpreadAngle = maxSpreadAngle,
                 accuracyDecayOverRange = accuracyDecayOverRange,
                 rangeAccuracyFalloff = rangeAccuracyFalloff,
+                useBurstFire = useBurstFire,
+                burstCount = burstCount,
+                burstInterval = burstInterval,
+                burstCooldown = burstCooldown,
                 collisionCourseRadius = collisionCourseRadius,
                 targetingMode = targetingMode,
                 useSensorIntegration = useSensorIntegration,
@@ -191,6 +212,9 @@ namespace StarfireV2
             if (trackingSpeed <= 0) trackingSpeed = 1f;
             if (maxTrackedTargets <= 0) maxTrackedTargets = 1;
             if (scanInterval <= 0) scanInterval = 0.1f;
+            if (burstCount < 1) burstCount = 1;
+            if (burstInterval < 0f) burstInterval = 0f;
+            if (burstCooldown < 0f) burstCooldown = 0f;
             if (collisionCourseRadius < 0.1f) collisionCourseRadius = 0.1f;
             if (maxSpreadAngle < 0) maxSpreadAngle = 0f;
             if (maxSpreadAngle > 90f) maxSpreadAngle = 90f;

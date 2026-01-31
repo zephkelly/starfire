@@ -18,6 +18,8 @@ namespace StarfireV2
         private V2WeaponVisual _visual;
         private float _cooldownTimer;
         private float _scanTimer;
+        private int _burstShotsRemaining;
+        private float _burstIntervalTimer;
         private bool _autoTargetingEnabled = true;
         private Vector2 _manualAimDirection = Vector2.up;
         private Vector2 _lastAimDirection = Vector2.up;
@@ -54,7 +56,16 @@ namespace StarfireV2
             get
             {
                 if (!IsEnabled) return false;
-                if (_cooldownTimer > 0f) return false;
+
+                // During a burst, use burst interval timer
+                if (_data.useBurstFire && _burstShotsRemaining > 0)
+                {
+                    if (_burstIntervalTimer > 0f) return false;
+                }
+                else if (_cooldownTimer > 0f)
+                {
+                    return false;
+                }
 
                 // Don't fire until turret is aimed at target
                 if (_visual != null && !_visual.IsAimedAtTarget())
@@ -167,6 +178,11 @@ namespace StarfireV2
             if (_cooldownTimer > 0f)
             {
                 _cooldownTimer -= deltaTime;
+            }
+
+            if (_burstIntervalTimer > 0f)
+            {
+                _burstIntervalTimer -= deltaTime;
             }
 
             if (_autoTargetingEnabled && _controller != null)
@@ -442,8 +458,34 @@ namespace StarfireV2
         {
             if (!CanFire) return false;
 
-            _cooldownTimer = 1f / FireRate;
             SpawnProjectile();
+
+            if (_data.useBurstFire)
+            {
+                // Start a new burst if not already bursting
+                if (_burstShotsRemaining <= 0)
+                {
+                    _burstShotsRemaining = _data.burstCount - 1; // -1 because we just fired one
+                }
+                else
+                {
+                    _burstShotsRemaining--;
+                }
+
+                if (_burstShotsRemaining > 0)
+                {
+                    _burstIntervalTimer = _data.burstInterval;
+                }
+                else
+                {
+                    // Burst complete, apply burst cooldown
+                    _cooldownTimer = _data.burstCooldown;
+                }
+            }
+            else
+            {
+                _cooldownTimer = 1f / FireRate;
+            }
 
             return true;
         }

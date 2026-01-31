@@ -29,6 +29,12 @@ namespace StarfireV2
         public bool accuracyDecayOverRange;
         public AnimationCurve rangeAccuracyFalloff;
 
+        [Header("Burst Fire")]
+        public bool useBurstFire;
+        public int burstCount = 5;
+        public float burstInterval = 0.05f;
+        public float burstCooldown = 2f;
+
         [Header("Collision Course")]
         public float collisionCourseRadius = 2f;
 
