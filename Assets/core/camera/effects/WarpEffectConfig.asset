@@ -41,7 +41,7 @@ MonoBehaviour:
   streakWidthAtFullWarp: 1
   edgeSoftnessMin: 0.5
   edgeSoftnessMax: 0.5
-  leadingEdgeRatio: 0.2084
+  leadingEdgeRatio: 0.3
   trailingFadeStart: 0.1
   blendTransitionRange: 0.2337
   tailTaperPower: 0.449
@@ -49,7 +49,7 @@ MonoBehaviour:
   wobbleFrequency: 11.62
   wobbleSpeed: 0
   distantLayerMinEffect: 1
-  parallaxDepthMultiplier: 1.47
+  parallaxDepthMultiplier: 2.12
   maxLensDistortion: -0.353
   lensDistortionCurve:
     serializedVersion: 2
@@ -75,7 +75,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxZoomMultiplier: 1.461
+  maxZoomMultiplier: 1.525
   zoomCurve:
     serializedVersion: 2
     m_Curve:
@@ -100,8 +100,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  nebulaStretchRatio: 0.039
-  nebulaFadeAtFullWarp: 0.3
+  nebulaStretchRatio: 0.529
+  nebulaFadeAtFullWarp: 0.232
   minSpeedForEffect: 200
   maxSpeedForEffect: 1000
   speedToIntensityCurve:
@@ -128,7 +128,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  intensitySmoothing: 0.15
+  intensitySmoothing: 0.308
   defaultWarpInDuration: 1.5
   defaultWarpOutDuration: 1
   transitionCurve:

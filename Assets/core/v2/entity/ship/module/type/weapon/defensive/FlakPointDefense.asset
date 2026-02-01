@@ -52,6 +52,10 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  useBurstFire: 0
+  burstCount: 10
+  burstInterval: 0.05
+  burstCooldown: 5
   collisionCourseRadius: 10
   targetingMode: 0
   useSensorIntegration: 1

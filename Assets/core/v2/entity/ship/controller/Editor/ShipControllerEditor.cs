@@ -276,6 +276,10 @@ namespace StarfireV2.Editor
                 overrideDataProp.managedReferenceValue = moduleConfig.ToData();
                 serializedObject.ApplyModifiedProperties();
                 serializedObject.Update();
+
+                // Re-fetch properties since Update() invalidates previous references
+                overrideDataProp = slotProp.FindPropertyRelative("overrideData");
+                hasOverridesProp = slotProp.FindPropertyRelative("hasOverrides");
             }
 
             // Draw the override section
@@ -318,19 +322,15 @@ namespace StarfireV2.Editor
             {
                 EditorGUI.indentLevel++;
 
-                // Dim the fields if overrides are inactive
-                using (new EditorGUI.DisabledScope(!hasOverridesProp.boolValue))
-                {
-                    // Iterate through visible children of the SerializeReference property
-                    var iter = overrideDataProp.Copy();
-                    var endProp = overrideDataProp.GetEndProperty();
-                    bool enterChildren = true;
+                // Iterate through visible children of the SerializeReference property
+                var iter = overrideDataProp.Copy();
+                var endProp = overrideDataProp.GetEndProperty();
+                bool enterChildren = true;
 
-                    while (iter.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iter, endProp))
-                    {
-                        enterChildren = false;
-                        EditorGUILayout.PropertyField(iter, true);
-                    }
+                while (iter.NextVisible(enterChildren) && !SerializedProperty.EqualContents(iter, endProp))
+                {
+                    enterChildren = false;
+                    EditorGUILayout.PropertyField(iter, true);
                 }
 
                 EditorGUI.indentLevel--;

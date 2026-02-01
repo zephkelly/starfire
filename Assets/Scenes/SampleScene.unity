@@ -931,6 +931,7 @@ MonoBehaviour:
   - rid: 2281391661324697680
   - rid: 2281391661324697681
   - rid: 2281391661324697682
+  - rid: 2281391674931806306
   references:
     version: 2
     RefIds:
@@ -1227,6 +1228,32 @@ MonoBehaviour:
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
         seed: 0
+    - rid: 2281391674931806306
+      type: {class: StarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
+      data:
+        enabled: 1
+        layerName: Stars 6
+        parallaxDepth: 0.02
+        preset: {fileID: 0}
+        density: 20
+        spawnChance: 0.8
+        brightnessMin: 0.3
+        brightnessMax: 1
+        brightnessDistribution: 0.5
+        sizeMin: 0.02
+        sizeMax: 0.15
+        sizeDistribution: 0.5
+        twinkleSpeed: 1
+        twinkleAmount: 0.3
+        starColor: {r: 1, g: 1, b: 1, a: 1}
+        colorVariation: 0.3
+        warmCoolMix: 0.5
+        edgeSharpness: 0
+        renderBackground: 0
+        backgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
+        layerSeed: 5
+        clusterAmount: 0.3
+        clusterScale: 0.05
 --- !u!1 &595357236
 GameObject:
   m_ObjectHideFlags: 0
@@ -2026,7 +2053,7 @@ MonoBehaviour:
         displayName: Flak Cannon
         weightClass: 0
         damage: 5
-        fireRate: 5
+        fireRate: 3
         range: 500
         engagementRange: 500
         trackingSpeed: 360
@@ -2062,6 +2089,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 2
         targetingMode: 0
         useSensorIntegration: 1
@@ -2206,7 +2237,7 @@ MonoBehaviour:
         displayName: Flak Cannon
         weightClass: 0
         damage: 5
-        fireRate: 5
+        fireRate: 3
         range: 500
         engagementRange: 500
         trackingSpeed: 360
@@ -2242,6 +2273,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1
@@ -2294,7 +2329,7 @@ MonoBehaviour:
         displayName: Flak Cannon
         weightClass: 0
         damage: 5
-        fireRate: 5
+        fireRate: 3
         range: 500
         engagementRange: 500
         trackingSpeed: 360
@@ -2330,6 +2365,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1
@@ -2382,7 +2421,7 @@ MonoBehaviour:
         displayName: Flak Cannon
         weightClass: 0
         damage: 5
-        fireRate: 5
+        fireRate: 3
         range: 500
         engagementRange: 500
         trackingSpeed: 360
@@ -2418,6 +2457,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1
@@ -2833,6 +2876,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1
@@ -2921,6 +2968,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1
@@ -3009,6 +3060,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1
@@ -3303,6 +3358,10 @@ MonoBehaviour:
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
+        useBurstFire: 0
+        burstCount: 5
+        burstInterval: 0.05
+        burstCooldown: 2
         collisionCourseRadius: 10
         targetingMode: 0
         useSensorIntegration: 1

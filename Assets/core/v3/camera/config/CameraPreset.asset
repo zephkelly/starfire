@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CameraPreset
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V3.Cam.Config.CameraPreset
   minLookAhead: 1
-  maxLookAhead: 10
+  maxLookAhead: 20
   innerLimit: 0.3
   outerLimit: 1
   lookAheadCurve:

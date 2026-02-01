@@ -75,7 +75,7 @@ MonoBehaviour:
   energyFlowBands: 3.87
   deflectorGlowEnabled: 1
   deflectorGlowColor: {r: 0.5019608, g: 0.51245046, b: 1, a: 1}
-  deflectorGlowIntensity: 0.05
+  deflectorGlowIntensity: 0.39
   deflectorGlowSize: 0.0397
   deflectorPulseSpeed: 1.18
   turbBoundaryEnabled: 1
