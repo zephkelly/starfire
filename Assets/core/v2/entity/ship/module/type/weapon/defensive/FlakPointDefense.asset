@@ -56,7 +56,7 @@ MonoBehaviour:
   burstCount: 10
   burstInterval: 0.05
   burstCooldown: 5
-  collisionCourseRadius: 10
+  collisionCourseRadius: 3
   targetingMode: 0
   useSensorIntegration: 1
   turretSettings:
@@ -71,7 +71,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4886334230931569842, guid: 6ff098ce986f85a428c162f57221860e, type: 3}
   weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
   fireShakeConfig:
-    traumaAmount: 0.016
+    traumaAmount: 0.001
     enablePunch: 1
     punchForce: 0.02
     punchDuration: 0.1

@@ -74,6 +74,14 @@ namespace StarfireV2
         [Range(0.1f, 5f)] public float impactVisibilityFalloff = 2.0f;
         [Range(0.2f, 5f)] public float impactVisibilitySpeed = 1.0f;
 
+        [Header("Impact Radius Scaling")]
+        [Tooltip("Minimum visibility circle radius around each impact")]
+        [Range(0.1f, 3f)] public float baseImpactRadius = 0.5f;
+        [Tooltip("Additional radius per point of damage dealt")]
+        [Range(0f, 0.1f)] public float damageRadiusScale = 0.01f;
+        [Tooltip("Maximum visibility circle radius")]
+        [Range(0.5f, 5f)] public float maxImpactRadius = 2.0f;
+
         [Header("Dome Curvature (3D appearance)")]
         [Range(0f, 1f)] public float domeCurvature = 0.5f;
         [Range(0f, 1f)] public float domeHighlight = 0.3f;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Starfire.Core.V3.Cam.Effects;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 

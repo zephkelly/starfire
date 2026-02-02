@@ -36,11 +36,11 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4886334230931569842, guid: ed9dd1d09849057488e9bd728ce5b6f1, type: 3}
   weaponVisualPrefab: {fileID: 2566432209290788301, guid: a187e91c948e9754bb71cc7509b61a8b, type: 3}
   fireShakeConfig:
-    traumaAmount: 0.05
-    enablePunch: 1
+    traumaAmount: 0.001
+    enablePunch: 0
     punchForce: 0.1
     punchDuration: 0.1
-    maxEffectDistance: 30
+    maxEffectDistance: 100
     attenuationCurve:
       serializedVersion: 2
       m_Curve:

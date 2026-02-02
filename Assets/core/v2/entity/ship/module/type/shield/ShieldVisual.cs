@@ -213,8 +213,8 @@ namespace StarfireV2
                     break;
 
                 case ShieldVisibilityMode.OnlyOnHit:
-                    _currentOpacity = 0f;
-                    _meshRenderer.enabled = false;
+                    _currentOpacity = 1f;
+                    _meshRenderer.enabled = true;
                     break;
             }
 
@@ -250,8 +250,10 @@ namespace StarfireV2
                     break;
 
                 case ShieldVisibilityMode.OnlyOnHit:
-                    targetOpacity = isRecentlyHit ? _config.activeOpacity : 0f;
-                    _meshRenderer.enabled = _currentOpacity > 0.01f || isRecentlyHit;
+                    // Shader handles per-pixel visibility via impact proximity circles.
+                    // Keep renderer enabled and opacity at 1 so the shader can mask.
+                    targetOpacity = 1f;
+                    _meshRenderer.enabled = true;
                     break;
 
                 case ShieldVisibilityMode.Both:
@@ -292,13 +294,13 @@ namespace StarfireV2
             _meshRenderer.SetPropertyBlock(_propertyBlock);
         }
 
-        public void RegisterImpact(Vector2 worldPosition)
+        public void RegisterImpact(Vector2 worldPosition, float radius)
         {
             if (_config == null) return;
 
             Vector2 localPos = transform.InverseTransformPoint(worldPosition);
 
-            _impactData[_currentImpactIndex] = new Vector4(localPos.x, localPos.y, Time.time, 0);
+            _impactData[_currentImpactIndex] = new Vector4(localPos.x, localPos.y, Time.time, radius);
             _currentImpactIndex = (_currentImpactIndex + 1) % MaxImpacts;
 
             _lastHitTime = Time.time;

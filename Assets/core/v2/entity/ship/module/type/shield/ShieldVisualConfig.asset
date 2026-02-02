@@ -41,6 +41,9 @@ MonoBehaviour:
   impactVisibilityRadius: 1
   impactVisibilityFalloff: 2
   impactVisibilitySpeed: 1
+  baseImpactRadius: 3
+  damageRadiusScale: 0.01
+  maxImpactRadius: 5
   domeCurvature: 0.5
   domeHighlight: 0.3
   domeShadow: 0.2

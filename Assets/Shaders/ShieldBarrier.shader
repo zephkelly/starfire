@@ -380,35 +380,32 @@ Shader "Starfire/ShieldBarrier"
             }
 
             // Calculate how visible this pixel should be based on proximity to active impacts
-            // Creates a localized bubble effect - fades in quickly, stays briefly, fades out
+            // Each impact stores its own radius in _ImpactPositions[i].w
             float CalculateImpactProximity(float2 localPos, float time)
             {
                 float maxProximity = 0.0;
 
-                // Always iterate all slots - impacts are stored in circular buffer
                 for (int i = 0; i < MAX_IMPACTS; i++)
                 {
                     float2 impactPos = _ImpactPositions[i].xy;
                     float impactTime = _ImpactPositions[i].z;
+                    float impactRadius = _ImpactPositions[i].w;
 
                     float elapsed = time - impactTime;
                     if (elapsed < 0 || elapsed > _RippleDuration)
                         continue;
 
-                    // Normalized time for fade calculation
-                    float normalizedTime = elapsed / _RippleDuration;
+                    // Use per-impact radius, fall back to global if zero
+                    float radius = impactRadius > 0.001 ? impactRadius : _ImpactVisibilityRadius;
 
-                    // Distance from impact point (fixed radius, no expansion)
+                    float normalizedTime = elapsed / _RippleDuration;
                     float dist = length(localPos - impactPos);
 
-                    // Visibility falls off with distance from impact
-                    float proximity = 1.0 - saturate(dist / _ImpactVisibilityRadius);
+                    float proximity = 1.0 - saturate(dist / radius);
                     proximity = pow(proximity, _ImpactVisibilityFalloff);
 
-                    // Fade out over time - no delay, immediately visible like ripples
-                    // Use _ImpactVisibilitySpeed to control fade rate
                     float fadeOut = 1.0 - normalizedTime * _ImpactVisibilitySpeed;
-                    float timeFade = saturate(fadeOut * fadeOut); // Quadratic fadeout for natural decay
+                    float timeFade = saturate(fadeOut * fadeOut);
 
                     maxProximity = max(maxProximity, proximity * timeFade);
                 }
@@ -582,10 +579,10 @@ Shader "Starfire/ShieldBarrier"
 
                 if (_VisibilityMode == 1) // OnlyOnHit
                 {
-                    // Shield visual (edge, patterns) only visible near impact centers
+                    // Shield only visible inside per-impact proximity circles
                     alpha = alpha * impactProximity;
-                    // Ripples always visible - they expand outward and have their own fade
-                    alpha = max(alpha, ripples);
+                    // Ripples render independently with their own fade
+                    alpha = max(alpha, ripples * _RippleOpacity);
                 }
                 else if (_VisibilityMode == 2) // Both
                 {

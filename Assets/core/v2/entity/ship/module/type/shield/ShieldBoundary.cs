@@ -94,8 +94,19 @@ namespace StarfireV2
             // Notify shield visual for ripple effect
             if (_shieldVisual != null)
             {
-                _shieldVisual.RegisterImpact(damageInfo.HitPoint);
+                float impactRadius = CalculateImpactRadius(damageInfo);
+                _shieldVisual.RegisterImpact(damageInfo.HitPoint, impactRadius);
             }
+        }
+
+        private float CalculateImpactRadius(V2DamageInfo damageInfo)
+        {
+            var visualConfig = _shieldVisual != null && _shield != null ? _shield.VisualConfig : null;
+            if (visualConfig == null) return 1f;
+
+            float shieldDamage = damageInfo.CalculateShieldDamage();
+            float radius = visualConfig.baseImpactRadius + shieldDamage * visualConfig.damageRadiusScale;
+            return Mathf.Min(radius, visualConfig.maxImpactRadius);
         }
 
         /// <summary>
