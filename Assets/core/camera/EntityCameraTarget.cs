@@ -89,6 +89,37 @@ namespace Starfire.Core.Cam
             }
         }
 
+        public bool IsWorldSpaceAim
+        {
+            get
+            {
+                if (_controller != null)
+                {
+                    var driver = _controller.DriverStack.GetActiveDriver();
+                    if (driver != null) return driver.IsWorldSpaceAim;
+                }
+                if (_v2Controller != null)
+                {
+                    var driver = _v2Controller.DriverStack.GetActiveDriver();
+                    if (driver != null) return driver.IsWorldSpaceAim;
+                }
+                return false;
+            }
+        }
+
+        public float AimMaxRadius
+        {
+            get
+            {
+                if (_v2Controller != null)
+                {
+                    var driver = _v2Controller.DriverStack.GetActiveDriver();
+                    if (driver != null) return driver.AimMaxRadius;
+                }
+                return 0f;
+            }
+        }
+
         public Vector2 FocusDirectionRaw
         {
             get

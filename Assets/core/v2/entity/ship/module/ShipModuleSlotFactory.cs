@@ -12,7 +12,7 @@ namespace StarfireV2
             { ShipModuleTypeId.Hull, c => new ShipModuleSlot<IShipHullModule>(c) },
 
             // Defense
-            { ShipModuleTypeId.Shield, c => new ShipModuleSlot<IShipModule>(c) },
+            { ShipModuleTypeId.Shield, c => new ShipModuleSlot<IShipShieldModule>(c) },
             { ShipModuleTypeId.Deflector, c => new ShipModuleSlot<IShipModule>(c) },
 
             // Propulsion - Maneuvering

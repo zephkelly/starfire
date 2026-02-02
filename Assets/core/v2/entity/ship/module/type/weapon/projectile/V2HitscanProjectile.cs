@@ -228,7 +228,13 @@ namespace StarfireV2
         {
             if (config == null) return;
 
-            // Spawn particle effect
+            if (ImpactEffectManager.Instance != null)
+            {
+                ImpactEffectManager.Instance.SpawnFromConfig(hitPoint, normal, config);
+                return;
+            }
+
+            // Legacy fallback
             if (config.impactParticlePrefab != null)
             {
                 var particles = Instantiate(
@@ -240,7 +246,6 @@ namespace StarfireV2
                 Destroy(particles, config.effectDuration);
             }
 
-            // Spawn impact light
             if (config.spawnLight)
             {
                 var lightGO = new GameObject("HitscanImpactLight");
@@ -255,17 +260,11 @@ namespace StarfireV2
                 Destroy(lightGO, config.lightDuration);
             }
 
-            // Play impact sound
             if (config.impactSound != null)
-            {
                 AudioSource.PlayClipAtPoint(config.impactSound, hitPoint, config.soundVolume);
-            }
 
-            // Trigger screen shake
             if (config.screenShakeConfig != null)
-            {
                 V3CameraShakeService.Instance?.TriggerImpactShake(hitPoint, normal, config.screenShakeConfig);
-            }
         }
     }
 }

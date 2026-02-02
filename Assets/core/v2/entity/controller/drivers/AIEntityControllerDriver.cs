@@ -10,6 +10,7 @@ namespace StarfireV2
         public int Priority { get; private set; } = 5;
         public bool IsActive { get; set; } = true;
         public bool IsWorldSpaceAim => true;
+        public float AimMaxRadius => 0f;
 
         /// <summary>
         /// Normalized movement direction. Set by behavior system.

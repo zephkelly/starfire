@@ -81,30 +81,6 @@ namespace StarfireV2
                 _cooldownTimer -= deltaTime;
             }
 
-            // Calculate mouse targeting direction (works for both turret and non-turret)
-            var turretSettings = _data.turretSettings;
-            if (turretSettings != null && turretSettings.targetingMode == V2TargetingMode.MouseCursor)
-            {
-                var mainCamera = Camera.main;
-                if (mainCamera != null)
-                {
-                    // Get weapon position from visual, hardpoint, or controller
-                    Vector2 weaponPos = _visual != null
-                        ? (Vector2)_visual.transform.position
-                        : (_hardpoint != null
-                            ? (Vector2)_hardpoint.MountPoint.position
-                            : (_controller != null ? (Vector2)_controller.Transform.position : Vector2.zero));
-
-                    Vector2 mouseWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-                    Vector2 toMouse = mouseWorld - weaponPos;
-
-                    if (toMouse.sqrMagnitude > 0.001f)
-                    {
-                        _aimDirection = toMouse.normalized;
-                    }
-                }
-            }
-
             // Update turret visual rotation (if turret)
             if (_visual != null && IsTurret)
             {

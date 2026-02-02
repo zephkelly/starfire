@@ -13,6 +13,7 @@ namespace StarfireV2
         private SpriteRenderer spriteRenderer;
 
         public Vector2 WorldPosition => transform.position;
+        public float MaxDistance => maxDistance;
 
         private void Awake()
         {

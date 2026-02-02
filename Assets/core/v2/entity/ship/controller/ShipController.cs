@@ -3,6 +3,7 @@ using Starfire.Entity.Modules.Rotation;
 
 namespace StarfireV2
 {
+    [DefaultExecutionOrder(100)] // Run after CameraController in LateUpdate
     public class ShipController : MonoBehaviour, IEntityController
     {
         [SerializeField] private ModuleSlotConfiguration[] _slotConfigurations;
@@ -94,7 +95,7 @@ namespace StarfireV2
             return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 16f);
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             var driver = DriverStack.GetActiveDriver();
             if (driver == null || Ship == null) return;

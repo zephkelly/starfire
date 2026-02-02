@@ -44,6 +44,10 @@ namespace StarfireV2
         [Tooltip("How long impact effects persist before cleanup.")]
         public float effectDuration = 1f;
 
+        [Header("Preset System")]
+        [Tooltip("Impact preset (new system). When set, overrides impactParticlePrefab and light settings.")]
+        public ImpactPreset impactPreset;
+
         [Header("Screen Shake")]
         [Tooltip("Configuration for camera screen shake on impact.")]
         public V2ScreenShakeConfig screenShakeConfig;

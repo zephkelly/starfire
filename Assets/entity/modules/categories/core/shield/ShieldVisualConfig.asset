@@ -28,8 +28,8 @@ MonoBehaviour:
   patternScale: 10
   patternSpeed: 1.132
   patternIntensity: 0.275
-  pulseAmount: 0.692
-  pulseSpeed: 0.184
+  pulseAmount: 0.1
+  pulseSpeed: 1
   rippleSpeed: 3
   rippleDuration: 0.5
   rippleWidth: 0.1

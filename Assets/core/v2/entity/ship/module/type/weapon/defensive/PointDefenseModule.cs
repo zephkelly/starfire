@@ -36,6 +36,9 @@ namespace StarfireV2
         private Transform _currentTarget;
         private V2DetectedEntity? _currentSensorTarget;
 
+        // Shared buffer for non-allocating physics queries
+        private static readonly Collider2D[] _scanBuffer = new Collider2D[64];
+
         // IEntityModule
         public string ModuleId => _data.moduleId;
         public bool IsEnabled { get; set; } = true;
@@ -511,14 +514,16 @@ namespace StarfireV2
 
             Vector2 position = _controller.Transform.position;
 
-            var results = Physics2D.OverlapCircleAll(
+            int count = Physics2D.OverlapCircleNonAlloc(
                 position,
                 _data.engagementRange,
+                _scanBuffer,
                 _data.threatLayers
             );
 
-            foreach (var collider in results)
+            for (int i = 0; i < count; i++)
             {
+                var collider = _scanBuffer[i];
                 if (collider == null) continue;
                 if (_trackedTargets.Contains(collider.transform)) continue;
                 if (collider.transform.IsChildOf(_controller.Transform)) continue;

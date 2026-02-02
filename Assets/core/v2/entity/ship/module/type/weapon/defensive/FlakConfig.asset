@@ -20,6 +20,7 @@ MonoBehaviour:
     m_Bits: 3840
   destroyOnHit: 1
   maxPenetrations: 0
+  useContinuousCollision: 1
   scale: 2
   color: {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 1}
   trailPrefab: {fileID: 0}

@@ -19,7 +19,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 3840
   destroyOnHit: 1
-  maxPenetrations: 1
+  maxPenetrations: 0
+  useContinuousCollision: 1
   scale: 0.2
   color: {r: 1, g: 0.3820755, b: 0.3820755, a: 1}
   trailPrefab: {fileID: 0}
@@ -28,6 +29,7 @@ MonoBehaviour:
     length: 1.64
     width: 10
     widthMultiplier: 1
+    growTime: 0.1
     useProjectileColor: 1
     color: {r: 1, g: 0, b: 0, a: 1}
     glowIntensity: 1.09
@@ -36,6 +38,8 @@ MonoBehaviour:
     customMaterial: {fileID: 0}
     sortingOrderOffset: -1
     minVelocityThreshold: 1
+  canBeDamaged: 0
+  maxHealth: 1
   mode: 0
   impactConfig:
     impactParticlePrefab: {fileID: 0}
@@ -84,3 +88,5 @@ MonoBehaviour:
   hitscanWidth: 0.1
   hitscanColor: {r: 1, g: 0, b: 0, a: 1}
   hitscanMaterial: {fileID: 0}
+  missileConfig: {fileID: 0}
+  thrustMissileConfig: {fileID: 0}

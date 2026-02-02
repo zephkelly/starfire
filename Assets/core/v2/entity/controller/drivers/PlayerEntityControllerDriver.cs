@@ -25,6 +25,7 @@ namespace StarfireV2
         public int Priority { get; private set; } = 10;
         public bool IsActive { get; set; } = true;
         public bool IsWorldSpaceAim => isUsingGamepad;
+        public float AimMaxRadius => isUsingGamepad && aimReticle != null ? aimReticle.MaxDistance : 0f;
 
         // Parameterless constructor for serialization
         public PlayerEntityControllerDriver() { }

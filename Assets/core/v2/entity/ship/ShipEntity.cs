@@ -15,6 +15,7 @@ namespace StarfireV2
         public IShipHullModule Hull => Modules.GetModulesOfType<IShipHullModule>().FirstOrDefault();
         public IShipPropulsionModule Propulsion => Modules.GetModulesOfType<IShipPropulsionModule>().FirstOrDefault();
         public IShipRotationModule Rotation => Modules.GetModulesOfType<IShipRotationModule>().FirstOrDefault();
+        public IShipShieldModule Shield => Modules.GetModulesOfType<IShipShieldModule>().FirstOrDefault();
 
         // Category-based accessors
         public IEnumerable<IShipModule> DefenseModules => Modules.GetModulesOfType<IShipModule>().Where(m => m.Category == ShipModuleCategory.Defense);

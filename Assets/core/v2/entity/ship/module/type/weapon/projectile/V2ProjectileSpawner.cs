@@ -157,8 +157,12 @@ namespace StarfireV2
                 damageConfig: context.DamageConfig,
                 impactConfig: config.impactConfig,
                 canBeDamaged: config.canBeDamaged,
-                maxHealth: config.maxHealth
+                maxHealth: config.maxHealth,
+                useContinuousCollision: config.useContinuousCollision
             );
+
+            // Register for batch lifetime updates
+            ProjectilePoolManager.Instance?.RegisterActiveProjectile(projectile);
         }
 
         private static void SpawnRaycastProjectile(V2ProjectileSpawnContext context)
@@ -244,6 +248,20 @@ namespace StarfireV2
                     context.SpawnPosition,
                     Quaternion.identity
                 );
+            }
+
+            // Disable physics projectile component if present (prefab may be shared with Physics mode)
+            var physicsProjectile = projectileGO.GetComponent<V2Projectile>();
+            if (physicsProjectile != null)
+            {
+                physicsProjectile.enabled = false;
+            }
+
+            // Disable Rigidbody2D to prevent physics simulation
+            var rb = projectileGO.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.simulated = false;
             }
 
             // Position
@@ -432,8 +450,12 @@ namespace StarfireV2
                 maxPenetrations: config.maxPenetrations,
                 inheritedVelocity: config.inheritVelocity ? context.InheritedVelocity : Vector2.zero,
                 damageConfig: context.DamageConfig,
-                impactConfig: config.impactConfig
+                impactConfig: config.impactConfig,
+                useContinuousCollision: config.useContinuousCollision
             );
+
+            // Register for batch lifetime updates
+            ProjectilePoolManager.Instance?.RegisterActiveProjectile(projectile);
 
             // Add or get missile behavior component for homing/weaving
             var missileBehavior = projectileGO.GetComponent<V2MissileBehavior>();
@@ -571,8 +593,12 @@ namespace StarfireV2
                 maxPenetrations: config.maxPenetrations,
                 inheritedVelocity: config.inheritVelocity ? context.InheritedVelocity : Vector2.zero,
                 damageConfig: context.DamageConfig,
-                impactConfig: config.impactConfig
+                impactConfig: config.impactConfig,
+                useContinuousCollision: config.useContinuousCollision
             );
+
+            // Register for batch lifetime updates
+            ProjectilePoolManager.Instance?.RegisterActiveProjectile(projectile);
 
             // Add or get thrust missile behavior
             var thrustBehavior = projectileGO.GetComponent<V2ThrustMissileBehavior>();
@@ -645,6 +671,19 @@ namespace StarfireV2
             _sourcePrefab = null;
             transform.position = Vector3.zero;
             transform.rotation = Quaternion.identity;
+
+            // Re-enable physics components for potential reuse in Physics mode
+            var physicsProjectile = GetComponent<V2Projectile>();
+            if (physicsProjectile != null)
+            {
+                physicsProjectile.enabled = true;
+            }
+
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.simulated = true;
+            }
         }
 
         public void Initialize(
@@ -732,7 +771,13 @@ namespace StarfireV2
 
             Vector2 hitNormal = (_startPosition - _targetPoint).normalized;
 
-            // Spawn particle effect
+            if (ImpactEffectManager.Instance != null)
+            {
+                ImpactEffectManager.Instance.SpawnFromConfig(_targetPoint, hitNormal, _impactConfig);
+                return;
+            }
+
+            // Legacy fallback
             if (_impactConfig.impactParticlePrefab != null)
             {
                 var particles = Instantiate(
@@ -744,7 +789,6 @@ namespace StarfireV2
                 Destroy(particles, _impactConfig.effectDuration);
             }
 
-            // Spawn impact light
             if (_impactConfig.spawnLight)
             {
                 var lightGO = new GameObject("ImpactLight");
@@ -759,17 +803,11 @@ namespace StarfireV2
                 Destroy(lightGO, _impactConfig.lightDuration);
             }
 
-            // Play impact sound
             if (_impactConfig.impactSound != null)
-            {
                 AudioSource.PlayClipAtPoint(_impactConfig.impactSound, _targetPoint, _impactConfig.soundVolume);
-            }
 
-            // Trigger screen shake
             if (_impactConfig.screenShakeConfig != null)
-            {
                 V3CameraShakeService.Instance?.TriggerImpactShake(_targetPoint, hitNormal, _impactConfig.screenShakeConfig);
-            }
         }
     }
 }

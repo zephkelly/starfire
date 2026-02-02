@@ -100,8 +100,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  nebulaStretchRatio: 0.529
-  nebulaFadeAtFullWarp: 0.232
+  nebulaStretchRatio: 0.046
+  nebulaFadeAtFullWarp: 0.265
   minSpeedForEffect: 200
   maxSpeedForEffect: 1000
   speedToIntensityCurve:

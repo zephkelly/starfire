@@ -8,6 +8,7 @@ namespace StarfireV2
         bool IsActive { get; }
 
         bool IsWorldSpaceAim { get; }
+        float AimMaxRadius { get; }
 
         Vector2 GetMovementDirection();
 

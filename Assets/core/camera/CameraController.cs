@@ -738,6 +738,8 @@ namespace Starfire.Core.Cam
             public Vector2 FocusDirection => Vector2.zero;
             public Vector2 FocusDirectionRaw => Vector2.zero;
             public bool HasFocus => false;
+            public bool IsWorldSpaceAim => false;
+            public float AimMaxRadius => 0f;
             public bool IsValid => true;
             public float Priority => 1f;
             public CameraTargetType TargetType => CameraTargetType.Transform;

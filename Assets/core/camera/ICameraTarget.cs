@@ -16,6 +16,8 @@ namespace Starfire.Core.Cam
         Vector2 FocusDirection { get; }
         Vector2 FocusDirectionRaw { get; }
         bool HasFocus { get; }
+        bool IsWorldSpaceAim { get; }
+        float AimMaxRadius { get; }
         bool IsValid { get; }
         float Priority { get; }
         CameraTargetType TargetType { get; }

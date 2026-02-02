@@ -19,6 +19,7 @@ namespace StarfireV2
                 TransponderModuleData d => new V2TransponderModule(d),
                 RotationModuleData d => new RotationModule(d),
                 AICoreModuleData d => new V2AICoreModule(d),
+                ShieldModuleData d => new ShieldModule(d),
                 _ => null
             };
         }

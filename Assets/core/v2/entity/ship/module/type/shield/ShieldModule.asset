@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c022ae54ca7b6341b6397a55eb63b67, type: 3}
+  m_Name: ShieldModule
+  m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.ShieldModuleConfig
+  moduleId: shield_module
+  maxShield: 1000
+  regenRate: 5
+  rechargeDelay: 3
+  damageResistances: {fileID: 11400000, guid: 9592e5914038e2a40862ff649d7a1be6, type: 2}
+  enableBoundary: 1
+  boundarySize: {x: 3, y: 2.5}
+  boundaryOffset: {x: 0, y: 0}
+  boundaryResolution: 24
+  shieldImpactConfig: {fileID: 11400000, guid: 330961eea1abf3649a33f07d38e1b209, type: 2}
+  visualConfig: {fileID: 11400000, guid: cd5aac1b5d1451641983ab8d1d7b8979, type: 2}

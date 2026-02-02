@@ -628,7 +628,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.WorldFabricService
   config: {fileID: 11400000, guid: 656bedcf5d2932e4c85d3dcfbf66c6b0, type: 2}
-  enablePreview: 1
+  enablePreview: 0
   previewMode: 5
   previewResolution: 64
   previewWorldSize: 500000
@@ -931,7 +931,6 @@ MonoBehaviour:
   - rid: 2281391661324697680
   - rid: 2281391661324697681
   - rid: 2281391661324697682
-  - rid: 2281391674931806306
   references:
     version: 2
     RefIds:
@@ -1228,32 +1227,6 @@ MonoBehaviour:
         renderBackground: 0
         backgroundColor: {r: 0, g: 0, b: 0, a: 1}
         seed: 0
-    - rid: 2281391674931806306
-      type: {class: StarLayer, ns: Starfire.Core.Background.Layers, asm: Assembly-CSharp}
-      data:
-        enabled: 1
-        layerName: Stars 6
-        parallaxDepth: 0.02
-        preset: {fileID: 0}
-        density: 20
-        spawnChance: 0.8
-        brightnessMin: 0.3
-        brightnessMax: 1
-        brightnessDistribution: 0.5
-        sizeMin: 0.02
-        sizeMax: 0.15
-        sizeDistribution: 0.5
-        twinkleSpeed: 1
-        twinkleAmount: 0.3
-        starColor: {r: 1, g: 1, b: 1, a: 1}
-        colorVariation: 0.3
-        warmCoolMix: 0.5
-        edgeSharpness: 0
-        renderBackground: 0
-        backgroundColor: {r: 0, g: 0, b: 0.02, a: 1}
-        layerSeed: 5
-        clusterAmount: 0.3
-        clusterScale: 0.05
 --- !u!1 &595357236
 GameObject:
   m_ObjectHideFlags: 0
@@ -1957,7 +1930,7 @@ MonoBehaviour:
     typeId: 100
     isRequired: 0
     isAvailable: 1
-    defaultModule: {fileID: 11400000, guid: d4e1871bdfed3ac4a8a8f4e026c7d660, type: 2}
+    defaultModule: {fileID: 11400000, guid: a5588e40f078e1a468202b4c644ae27e, type: 2}
     overrideData:
       rid: 2281391674931806283
     hasOverrides: 0
@@ -1965,14 +1938,14 @@ MonoBehaviour:
     typeId: 10
     isRequired: 0
     isAvailable: 1
-    defaultModule: {fileID: 0}
+    defaultModule: {fileID: 11400000, guid: 6b270ebfb7b77df49abf5d4715342240, type: 2}
     overrideData:
-      rid: -2
+      rid: 1876180301084098633
     hasOverrides: 0
   - slotId: aicore
     typeId: 320
     isRequired: 0
-    isAvailable: 1
+    isAvailable: 0
     defaultModule: {fileID: 11400000, guid: 5bfd347c9ee7e0a40bce24e7ef625d71, type: 2}
     overrideData:
       rid: 2281391674931806285
@@ -2042,6 +2015,17 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
+    - rid: 1876180301084098633
+      type: {class: ShieldModuleData, ns: StarfireV2, asm: Assembly-CSharp}
+      data:
+        moduleId: shield_module
+        maxShield: 1000
+        regenRate: 5
+        rechargeDelay: 3
+        enableBoundary: 1
+        boundarySize: {x: 2, y: 1.5}
+        boundaryOffset: {x: 0, y: 0}
+        boundaryResolution: 24
     - rid: 2281391656326398025
       type: {class: AIEntityControllerDriver, ns: StarfireV2, asm: Assembly-CSharp}
       data:
@@ -2189,7 +2173,7 @@ MonoBehaviour:
         moduleId: ai_core
         processingPower: 1
         behaviorTree: {fileID: 11400000, guid: ef7faecb15af7cc46a4d70bdea2bb3fe, type: 2}
-        enableGoalSystem: 1
+        enableGoalSystem: 0
         defaultGoals:
         - {fileID: 11400000, guid: 0e92d49c8dea74441adc65368d1bc037, type: 2}
         - {fileID: 11400000, guid: 9a8c269d6b31b9c4a9d3752b56c66251, type: 2}

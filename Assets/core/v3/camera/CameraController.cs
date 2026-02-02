@@ -154,9 +154,18 @@ namespace Starfire.Core.V3.Cam
 
                     if (aimDist > 0.001f)
                     {
-                        // Map aim distance to curve using ortho size as reference scale
-                        float refDist = _camera.orthographicSize * 2f;
-                        float normalizedDist = aimDist / refDist;
+                        float normalizedDist;
+                        if (_target.IsWorldSpaceAim && _target.AimMaxRadius > 0f)
+                        {
+                            // Gamepad: normalize against reticle max radius
+                            normalizedDist = aimDist / _target.AimMaxRadius;
+                        }
+                        else
+                        {
+                            // Mouse: normalize against camera view size
+                            float refDist = _camera.orthographicSize * 2f;
+                            normalizedDist = aimDist / refDist;
+                        }
                         float t = Mathf.InverseLerp(preset.innerLimit, preset.outerLimit, normalizedDist);
                         t = Mathf.Clamp01(t);
                         float curveValue = preset.lookAheadCurve.Evaluate(t);

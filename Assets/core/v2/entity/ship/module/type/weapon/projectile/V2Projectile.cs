@@ -159,7 +159,8 @@ namespace StarfireV2
             V2WeaponDamageConfig damageConfig = null,
             V2ImpactConfig impactConfig = null,
             bool canBeDamaged = false,
-            float maxHealth = 1f)
+            float maxHealth = 1f,
+            bool useContinuousCollision = true)
         {
             _owner = owner;
             _damage = damage;
@@ -198,7 +199,9 @@ namespace StarfireV2
 
             // Configure rigidbody
             _rigidbody.gravityScale = 0f;
-            _rigidbody.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            _rigidbody.collisionDetectionMode = useContinuousCollision
+                ? CollisionDetectionMode2D.Continuous
+                : CollisionDetectionMode2D.Discrete;
 
             // Set velocity
             Vector2 velocity = direction.normalized * speed + inheritedVelocity;
@@ -226,16 +229,35 @@ namespace StarfireV2
             // Lifetime is tracked in Update() for pooling support
         }
 
-        private void Update()
-        {
-            if (!_isActive) return;
+        /// <summary>
+        /// Whether this projectile's lifetime is managed externally by a batch updater.
+        /// When true, Update() is skipped to avoid redundant per-object calls.
+        /// </summary>
+        public bool IsBatchManaged { get; set; }
 
-            _elapsedTime += Time.deltaTime;
+        /// <summary>
+        /// Ticks the projectile lifetime. Called by ProjectilePoolManager in batch mode,
+        /// or by Update() in standalone mode. Returns true if the projectile expired.
+        /// </summary>
+        public bool TickLifetime(float deltaTime)
+        {
+            if (!_isActive) return false;
+
+            _elapsedTime += deltaTime;
 
             if (_elapsedTime >= _lifetime)
             {
                 ReturnToPool();
+                return true;
             }
+
+            return false;
+        }
+
+        private void Update()
+        {
+            if (IsBatchManaged || !_isActive) return;
+            TickLifetime(Time.deltaTime);
         }
 
         /// <summary>
@@ -268,6 +290,12 @@ namespace StarfireV2
         {
             if (_consumed) return;
             _consumed = true;
+
+            // Unregister from batch updates
+            if (IsBatchManaged)
+            {
+                ProjectilePoolManager.Instance?.UnregisterActiveProjectile(this);
+            }
 
             if (_usePooling && ProjectilePoolManager.Instance != null && _sourcePrefab != null)
             {
@@ -346,7 +374,13 @@ namespace StarfireV2
             Vector2 hitPoint = collider.ClosestPoint(transform.position);
             Vector2 hitNormal = ((Vector2)transform.position - hitPoint).normalized;
 
-            // Spawn particle effect
+            if (ImpactEffectManager.Instance != null)
+            {
+                ImpactEffectManager.Instance.SpawnFromConfig(hitPoint, hitNormal, _impactConfig);
+                return;
+            }
+
+            // Legacy fallback when manager is not present
             if (_impactConfig.impactParticlePrefab != null)
             {
                 var particles = Instantiate(
@@ -358,23 +392,14 @@ namespace StarfireV2
                 Destroy(particles, _impactConfig.effectDuration);
             }
 
-            // Spawn impact light
             if (_impactConfig.spawnLight)
-            {
                 SpawnImpactLight(hitPoint);
-            }
 
-            // Play impact sound
             if (_impactConfig.impactSound != null)
-            {
                 AudioSource.PlayClipAtPoint(_impactConfig.impactSound, hitPoint, _impactConfig.soundVolume);
-            }
 
-            // Trigger screen shake
             if (_impactConfig.screenShakeConfig != null)
-            {
                 V3CameraShakeService.Instance?.TriggerImpactShake(hitPoint, hitNormal, _impactConfig.screenShakeConfig);
-            }
         }
 
         private void SpawnImpactLight(Vector2 position)

@@ -34,6 +34,10 @@ namespace StarfireV2.Pooling
         // Pool container for organization
         private Transform _poolContainer;
 
+        // Batch update tracking for active physics projectiles
+        private readonly List<V2Projectile> _activeProjectiles = new();
+        private bool _batchUpdateEnabled = true;
+
         // Events for monitoring
         public event Action<GameObject, int> OnPoolCreated;
         public event Action<GameObject, int, int> OnPoolStatsChanged; // prefab, pooled, active
@@ -84,6 +88,27 @@ namespace StarfireV2.Pooling
             {
                 EntityRegistry.Instance.OnEntityRegistered -= HandleEntityRegistered;
                 EntityRegistry.Instance.OnEntityUnregistered -= HandleEntityUnregistered;
+            }
+        }
+
+        private void Update()
+        {
+            if (!_batchUpdateEnabled || _activeProjectiles.Count == 0) return;
+
+            float dt = Time.deltaTime;
+            for (int i = _activeProjectiles.Count - 1; i >= 0; i--)
+            {
+                var proj = _activeProjectiles[i];
+                if (proj == null || !proj.IsActive)
+                {
+                    _activeProjectiles.RemoveAt(i);
+                    continue;
+                }
+
+                if (proj.TickLifetime(dt))
+                {
+                    _activeProjectiles.RemoveAt(i);
+                }
             }
         }
 
@@ -228,6 +253,31 @@ namespace StarfireV2.Pooling
             {
                 Destroy(instance);
             }
+        }
+
+        #endregion
+
+        #region Batch Projectile Management
+
+        /// <summary>
+        /// Registers a physics projectile for batch lifetime updates.
+        /// The projectile's Update() will be skipped in favour of the manager's batched tick.
+        /// </summary>
+        public void RegisterActiveProjectile(V2Projectile projectile)
+        {
+            if (projectile == null || !_batchUpdateEnabled) return;
+            projectile.IsBatchManaged = true;
+            _activeProjectiles.Add(projectile);
+        }
+
+        /// <summary>
+        /// Removes a projectile from batch tracking (called on pool return).
+        /// </summary>
+        public void UnregisterActiveProjectile(V2Projectile projectile)
+        {
+            if (projectile == null) return;
+            projectile.IsBatchManaged = false;
+            // Don't search-remove here; the Update loop handles nulls/inactive entries
         }
 
         #endregion

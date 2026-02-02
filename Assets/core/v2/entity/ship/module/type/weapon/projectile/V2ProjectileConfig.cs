@@ -28,6 +28,9 @@ namespace StarfireV2
         [Tooltip("Number of targets the projectile can penetrate before being destroyed. 0 = no penetration.")]
         public int maxPenetrations = 0;
 
+        [Tooltip("Use continuous collision detection. Disable for slow/large projectiles to improve performance.")]
+        public bool useContinuousCollision = true;
+
         [Header("Visual")]
         [Tooltip("Scale multiplier for the projectile sprite.")]
         public float scale = 1f;
