@@ -20,7 +20,7 @@ MonoBehaviour:
   ringAsteroidsPerSegment: 8
   ringSegments: 64
   ringSizeRange: {x: 2, y: 20}
-  scatterChance: 0.603
+  scatterChance: 0.371
   scatterCountRange: {x: 1, y: 5}
   scatterSizeRange: {x: 3, y: 30}
   jitterNoiseScale: 0.42

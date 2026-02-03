@@ -11,6 +11,7 @@ namespace Starfire.Core.V2.Save.Tracking
         AsteroidsModified = 1 << 2,
         NebulaModified = 1 << 3,
         CelestialBodyModified = 1 << 4,
+        EntitiesMigrated = 1 << 5,
     }
 
     [Flags]

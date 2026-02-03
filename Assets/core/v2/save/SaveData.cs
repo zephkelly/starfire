@@ -88,6 +88,16 @@ namespace Starfire.Core.V2.Save
         public EntityModificationFlags ModificationFlags;
         public List<ModuleSaveData> Modules;
 
+        // Background simulation fields
+        public double LastSimulationTime;
+        public float Mass;
+        public float Radius;
+        public float Drag;
+        public int Variant;
+        public float Seed;
+        public int SourceType;
+        public bool IsSimulated;
+
         public Vector2D AbsolutePosition
         {
             get => new Vector2D(AbsolutePositionX, AbsolutePositionY);
@@ -113,6 +123,7 @@ namespace Starfire.Core.V2.Save
         public long ChunkY;
         public ChunkModificationFlags ModificationFlags;
         public List<AsteroidModification> AsteroidModifications;
+        public List<EntityMigration> EntityMigrations;
 
         public ChunkCoord ChunkCoord
         {
@@ -139,6 +150,16 @@ namespace Starfire.Core.V2.Save
         Removed = 0,
         Added = 1,
         Modified = 2
+    }
+
+    [Serializable]
+    public class EntityMigration
+    {
+        public int EntityId;
+        public long SourceChunkX;
+        public long SourceChunkY;
+        public long DestinationChunkX;
+        public long DestinationChunkY;
     }
 
     // ── Root Save Container ──────────────────────────────────────────────

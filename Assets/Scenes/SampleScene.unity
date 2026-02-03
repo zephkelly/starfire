@@ -579,6 +579,7 @@ GameObject:
   - component: {fileID: 393036794}
   - component: {fileID: 393036795}
   - component: {fileID: 393036796}
+  - component: {fileID: 393036797}
   m_Layer: 0
   m_Name: WorldGeneration
   m_TagString: Untagged
@@ -614,6 +615,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.WorldGenerationService
   config: {fileID: 11400000, guid: 9804fbc4af7c4444092223a4e8668776, type: 2}
+  simulationConfig: {fileID: 0}
   targetCamera: {fileID: 519420031}
   autoFindCamera: 1
 --- !u!114 &393036794
@@ -672,6 +674,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarfireV2.Pooling.WorldObjectPoolManager
   defaultInitialSize: 10
+--- !u!114 &393036797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 393036791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f8843ea9ec4e194fbe6445c653d7cde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.Simulation.BackgroundSimulationManager
+  config: {fileID: 11400000, guid: d8d4c3cd48fdcf54e9f22ad2cb0076a4, type: 2}
 --- !u!1 &436907651
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,6 +7,8 @@ using Starfire.Core.V2.Save.Migration;
 using Starfire.Core.V2.Save.Serialization;
 using Starfire.Core.V2.Save.Tracking;
 using Starfire.Core.V2.World;
+using Starfire.Core.V2.World.Chunk;
+using Starfire.Core.V2.World.Simulation;
 using StarfireV2;
 using UnityEngine;
 
@@ -291,6 +293,9 @@ namespace Starfire.Core.V2.Save
                 data.ModifiedChunks.Add(mod);
             }
 
+            // Collect background-simulated entities
+            CollectSimulatedEntities(data);
+
             return data;
         }
 
@@ -371,6 +376,39 @@ namespace Starfire.Core.V2.Save
             }
         }
 
+        private void CollectSimulatedEntities(SaveData data)
+        {
+            var simManager = BackgroundSimulationManager.Instance;
+            if (simManager == null) return;
+
+            foreach (var simEntity in simManager.GetAllSimulatedEntities())
+            {
+                if (!simEntity.HasBeenModified) continue;
+
+                data.Entities.Add(new EntitySaveData
+                {
+                    EntityId = simEntity.EntityId,
+                    EntityTypeId = (int)simEntity.EntityType,
+                    AbsolutePosition = simEntity.AbsolutePosition,
+                    Rotation = simEntity.Rotation,
+                    VelocityX = (float)simEntity.Velocity.X,
+                    VelocityY = (float)simEntity.Velocity.Y,
+                    AngularVelocity = simEntity.AngularVelocity,
+                    IsProcedural = true,
+                    ModificationFlags = EntityModificationFlags.PositionChanged,
+                    Modules = new List<ModuleSaveData>(),
+                    IsSimulated = true,
+                    LastSimulationTime = simEntity.LastSimulationTime,
+                    Mass = simEntity.Mass,
+                    Radius = simEntity.Radius,
+                    Drag = simEntity.Drag,
+                    Variant = simEntity.Variant,
+                    Seed = simEntity.Seed,
+                    SourceType = simEntity.SourceType
+                });
+            }
+        }
+
         private async Task<SaveResult> LoadFromBytesAsync(byte[] bytes)
         {
             // Deserialize header first
@@ -447,6 +485,10 @@ namespace Starfire.Core.V2.Save
             _chunkTracker.Clear();
             _entityTracker.Clear();
 
+            // Clear background simulation
+            var simManager = BackgroundSimulationManager.Instance;
+            simManager?.Clear();
+
             // Restore chunk modifications into tracker
             foreach (var mod in data.ModifiedChunks)
             {
@@ -475,6 +517,43 @@ namespace Starfire.Core.V2.Save
             if (entityData.ModificationFlags != EntityModificationFlags.None)
             {
                 _entityTracker.MarkModified(entityData.EntityId, entityData.ModificationFlags);
+            }
+
+            // Restore simulated entities into the background simulation manager
+            if (entityData.IsSimulated)
+            {
+                var simManager = BackgroundSimulationManager.Instance;
+                var worldGen = WorldGenerationService.Instance;
+                if (simManager != null && worldGen != null)
+                {
+                    var chunkSize = worldGen.ChunkSize;
+                    var absPos = entityData.AbsolutePosition;
+                    var currentChunk = ChunkCoord.FromAbsolutePosition(absPos, chunkSize);
+                    var playerChunk = ChunkCoord.FromAbsolutePosition(worldGen.AbsolutePosition, chunkSize);
+
+                    var simEntity = new SimulatedEntity
+                    {
+                        EntityId = entityData.EntityId,
+                        EntityType = (EntityType)entityData.EntityTypeId,
+                        CurrentChunk = currentChunk,
+                        OriginChunk = currentChunk,
+                        AbsolutePosition = absPos,
+                        Velocity = new Vector2D(entityData.VelocityX, entityData.VelocityY),
+                        Rotation = entityData.Rotation,
+                        AngularVelocity = entityData.AngularVelocity,
+                        Mass = entityData.Mass,
+                        Radius = entityData.Radius,
+                        Drag = entityData.Drag,
+                        HasBeenModified = true,
+                        LastSimulationTime = entityData.LastSimulationTime,
+                        Variant = entityData.Variant,
+                        Seed = entityData.Seed,
+                        SourceType = entityData.SourceType
+                    };
+
+                    simManager.RestoreEntity(simEntity, playerChunk);
+                }
+                return;
             }
 
             // Actual entity spawning/restoration would be handled by the entity system.

@@ -44,6 +44,21 @@ namespace Starfire.Core.V2.Save.Tracking
             });
         }
 
+        public void OnEntityMigrated(int entityId, ChunkCoord from, ChunkCoord to)
+        {
+            var mod = GetOrCreate(from);
+            mod.ModificationFlags |= ChunkModificationFlags.EntitiesMigrated;
+            mod.EntityMigrations ??= new List<EntityMigration>();
+            mod.EntityMigrations.Add(new EntityMigration
+            {
+                EntityId = entityId,
+                SourceChunkX = from.X,
+                SourceChunkY = from.Y,
+                DestinationChunkX = to.X,
+                DestinationChunkY = to.Y
+            });
+        }
+
         public bool IsChunkModified(ChunkCoord coord) => _modifications.ContainsKey(coord);
 
         public IEnumerable<ChunkModificationData> GetAllModifications() => _modifications.Values;
