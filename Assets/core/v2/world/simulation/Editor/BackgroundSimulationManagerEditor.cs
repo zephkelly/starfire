@@ -17,7 +17,12 @@ namespace Starfire.Core.V2.World.Simulation.Editor
         private SerializedProperty _previewUpdateInterval;
         private SerializedProperty _previewTexture;
 
+        // Behavior System properties
+        private SerializedProperty _enableBehaviorSystem;
+        private SerializedProperty _entityTypeConfigPath;
+
         private bool _showPreviewFoldout = true;
+        private bool _showBehaviorSystemFoldout = true;
         private float _previewSize = 300f;
 
         private void OnEnable()
@@ -31,6 +36,10 @@ namespace Starfire.Core.V2.World.Simulation.Editor
             _previewCenter = serializedObject.FindProperty("previewCenter");
             _previewUpdateInterval = serializedObject.FindProperty("previewUpdateInterval");
             _previewTexture = serializedObject.FindProperty("previewTexture");
+
+            // Behavior System properties
+            _enableBehaviorSystem = serializedObject.FindProperty("enableBehaviorSystem");
+            _entityTypeConfigPath = serializedObject.FindProperty("entityTypeConfigPath");
         }
 
         public override void OnInspectorGUI()
@@ -43,18 +52,83 @@ namespace Starfire.Core.V2.World.Simulation.Editor
             EditorGUILayout.PropertyField(_config);
             EditorGUILayout.Space();
 
+            // Behavior System section
+            _showBehaviorSystemFoldout = EditorGUILayout.Foldout(_showBehaviorSystemFoldout, "Behavior System", true, EditorStyles.foldoutHeader);
+            if (_showBehaviorSystemFoldout)
+            {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.PropertyField(_enableBehaviorSystem, new GUIContent("Enable Behavior System"));
+
+                if (_enableBehaviorSystem.boolValue)
+                {
+                    EditorGUILayout.PropertyField(_entityTypeConfigPath, new GUIContent("Entity Type Config Path"));
+                    EditorGUILayout.HelpBox(
+                        "Place SimulationEntityTypeConfig assets in:\nResources/" + _entityTypeConfigPath.stringValue,
+                        MessageType.Info);
+                }
+
+                // Show runtime status
+                if (Application.isPlaying)
+                {
+                    EditorGUILayout.Space(5);
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.LabelField("Runtime Status", EditorStyles.boldLabel);
+
+                    bool behaviorActive = manager.BehaviorSystemActive;
+                    var registry = manager.Registry;
+
+                    EditorGUILayout.LabelField($"Behavior System Active: {(behaviorActive ? "Yes" : "No")}");
+
+                    if (registry != null)
+                    {
+                        EditorGUILayout.LabelField($"Registered Entity Types: {registry.Count}");
+
+                        if (registry.Count > 0)
+                        {
+                            EditorGUI.indentLevel++;
+                            foreach (var config in registry.AllConfigs)
+                            {
+                                EditorGUILayout.LabelField($"• {config.DisplayName} ({config.EntityType})", EditorStyles.miniLabel);
+                            }
+                            EditorGUI.indentLevel--;
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField("Registry: Not initialized");
+                    }
+
+                    EditorGUILayout.EndVertical();
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.Space();
+
             // Statistics
             if (Application.isPlaying)
             {
                 var (tier1Count, tier2Count) = manager.GetEntityCounts();
+                var loadedCount = manager.GetLoadedEntityCount();
+                var (asteroids, ships, stations, projectiles, other) = manager.GetEntityCountsByType();
                 var (totalEvents, collisions, destructions) = manager.GetEventStats();
                 var (lastCollisions, lastDestructions) = manager.GetLastFrameStats();
 
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.LabelField("Entity Simulation", EditorStyles.boldLabel);
-                EditorGUILayout.LabelField($"Tier 1 (Active):     {tier1Count} entities");
-                EditorGUILayout.LabelField($"Tier 2 (Ballistic):  {tier2Count} snapshots");
-                EditorGUILayout.LabelField($"Total:               {tier1Count + tier2Count}");
+                EditorGUILayout.LabelField("Entity Tracking", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Loaded (GameObjects): {loadedCount} entities");
+                EditorGUILayout.LabelField($"Tier 1 (Active Sim):  {tier1Count} entities");
+                EditorGUILayout.LabelField($"Tier 2 (Ballistic):   {tier2Count} snapshots");
+                EditorGUILayout.LabelField($"Total Simulated:      {tier1Count + tier2Count}");
+                EditorGUILayout.Space(5);
+                EditorGUILayout.LabelField("Simulated By Type:", EditorStyles.miniBoldLabel);
+                if (asteroids > 0) EditorGUILayout.LabelField($"  Asteroids:          {asteroids}", EditorStyles.miniLabel);
+                if (ships > 0) EditorGUILayout.LabelField($"  Ships:              {ships}", EditorStyles.miniLabel);
+                if (stations > 0) EditorGUILayout.LabelField($"  Stations:           {stations}", EditorStyles.miniLabel);
+                if (projectiles > 0) EditorGUILayout.LabelField($"  Projectiles:        {projectiles}", EditorStyles.miniLabel);
+                if (other > 0) EditorGUILayout.LabelField($"  Other:              {other}", EditorStyles.miniLabel);
                 EditorGUILayout.EndVertical();
 
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -186,10 +260,32 @@ namespace Starfire.Core.V2.World.Simulation.Editor
                 mode == SimulationPreviewMode.Entities ||
                 mode == SimulationPreviewMode.ChunkGrid)
             {
+                // Loaded entities note
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.LabelField("Entities:", EditorStyles.miniBoldLabel);
-                DrawLegendItem("Tier 1 Entity", new Color(0f, 1f, 1f));
-                DrawLegendItem("Tier 2 Entity", new Color(1f, 0.6f, 0f));
+                EditorGUILayout.LabelField("Brightness indicates state:", EditorStyles.miniBoldLabel);
+                EditorGUILayout.LabelField("  Bright = Loaded (GameObject)", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("  Normal = Tier 1 (Active Sim)", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("  Dim = Tier 2 (Ballistic)", EditorStyles.miniLabel);
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Asteroids:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("Loaded", Color.Lerp(new Color(0.6f, 0.4f, 0.2f), Color.white, 0.3f));
+                DrawLegendItem("Tier 1", new Color(0.6f, 0.4f, 0.2f));
+                DrawLegendItem("Tier 2", Color.Lerp(new Color(0.6f, 0.4f, 0.2f), Color.black, 0.3f));
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Ships:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("Loaded", Color.Lerp(new Color(0f, 0.8f, 1f), Color.white, 0.3f));
+                DrawLegendItem("Tier 1", new Color(0f, 0.8f, 1f));
+                DrawLegendItem("Tier 2", Color.Lerp(new Color(0f, 0.8f, 1f), Color.black, 0.3f));
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Other:", EditorStyles.miniBoldLabel);
+                DrawLegendItem("Station", new Color(0.8f, 0.2f, 0.8f));
+                DrawLegendItem("Projectile", new Color(1f, 0.2f, 0.2f));
                 DrawLegendItem("Player Position", Color.white);
                 EditorGUILayout.EndVertical();
             }

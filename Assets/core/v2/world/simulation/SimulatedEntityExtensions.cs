@@ -161,6 +161,39 @@ namespace Starfire.Core.V2.World.Simulation
             entity.TypeData[KeyLifetimeRemaining] = lifetime;
         }
 
+        // ── Ship Capabilities ──────────────────────────────────────────────────
+
+        private const string KeyShipCapabilities = "ShipCapabilities";
+
+        /// <summary>
+        /// Get the extracted ship capabilities for this entity.
+        /// Returns Default capabilities if not set.
+        /// </summary>
+        public static SimulatedShipCapabilities GetShipCapabilities(this SimulatedEntity entity)
+        {
+            entity.EnsureTypeData();
+            return entity.TypeData.TryGetValue(KeyShipCapabilities, out var v)
+                ? (SimulatedShipCapabilities)v
+                : SimulatedShipCapabilities.Default;
+        }
+
+        /// <summary>
+        /// Store extracted ship capabilities on this entity.
+        /// </summary>
+        public static void SetShipCapabilities(this SimulatedEntity entity, SimulatedShipCapabilities capabilities)
+        {
+            entity.EnsureTypeData();
+            entity.TypeData[KeyShipCapabilities] = capabilities;
+        }
+
+        /// <summary>
+        /// Check if this entity has ship capabilities stored.
+        /// </summary>
+        public static bool HasShipCapabilities(this SimulatedEntity entity)
+        {
+            return entity.TypeData != null && entity.TypeData.ContainsKey(KeyShipCapabilities);
+        }
+
         // ── Generic Type-Safe Accessors ─────────────────────────────────────
 
         public static T GetTypeData<T>(this SimulatedEntity entity, string key, T defaultValue = default)

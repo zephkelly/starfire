@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2720898120486360138}
   - component: {fileID: 7168017042751197979}
   - component: {fileID: 375052466734900978}
+  - component: {fileID: 262619117734974352}
   m_Layer: 0
   m_Name: Asteroid
   m_TagString: Untagged
@@ -156,3 +157,16 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.4
+--- !u!114 &262619117734974352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995980065094684368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59327b44045c2244e9f4f7d37d1f1789, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.Consumers.RuntimeAsteroidTracker
+  minModificationVelocity: 0.5

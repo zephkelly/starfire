@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3eaace7d596ea904586c7123276a611c, type: 3}
+  m_Name: BallisticBehavior
+  m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.Simulation.Behaviors.Configs.BallisticBehaviorConfig
+  BehaviorName: 
+  BehaviorType: 0
+  Description: 
+  SupportsTier2Prediction: 1
+  PredictionConfidence: 0.9
+  MaxPredictionTime: 60
+  UseEntityDrag: 1
+  DefaultDrag: 0
+  MinVelocityThreshold: 0.01
+  StopAtThreshold: 1
+  ApplyAngularVelocity: 1
+  AngularDrag: 0

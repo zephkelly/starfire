@@ -5,7 +5,11 @@ using Starfire.Core.V2.Save;
 using Starfire.Core.V2.Save.Tracking;
 using Starfire.Core.V2.World;
 using Starfire.Core.V2.World.Chunk;
+using Starfire.Core.V2.World.Consumers;
+using Starfire.Core.V2.World.Simulation.Behaviors;
+using Starfire.Core.V2.World.Simulation.Config;
 using Starfire.Core.V2.World.Simulation.Events;
+using StarfireV2;
 
 namespace Starfire.Core.V2.World.Simulation
 {
@@ -49,14 +53,28 @@ namespace Starfire.Core.V2.World.Simulation
         private Tier1ActiveSimulator _tier1;
         private Tier2BallisticTracker _tier2;
         private SimulationEventLog _eventLog;
+        private SimulationEntityTypeRegistry _registry;
         private ChunkCoord _lastPlayerChunk;
         private bool _initialized;
         private float _lastPruneTime;
+
+        [Header("Behavior System")]
+        [Tooltip("Enable the data-driven behavior system. If false, uses legacy physics.")]
+        [SerializeField] private bool enableBehaviorSystem = true;
+
+        [Tooltip("Path within Resources folder to load entity type configs from.")]
+        [SerializeField] private string entityTypeConfigPath = "Simulation/EntityTypes";
 
         public BackgroundSimulationConfig Config => config;
         public Tier1ActiveSimulator Tier1 => _tier1;
         public Tier2BallisticTracker Tier2 => _tier2;
         public Texture2D PreviewTexture => previewTexture;
+
+        /// <summary>The entity type registry (available after initialization).</summary>
+        public SimulationEntityTypeRegistry Registry => _registry;
+
+        /// <summary>Whether the behavior system is enabled and initialized.</summary>
+        public bool BehaviorSystemActive => _tier1?.UseBehaviorSystem ?? false;
 
         /// <summary>Event log containing collision and destruction events.</summary>
         public SimulationEventLog EventLog => _eventLog;
@@ -106,11 +124,17 @@ namespace Starfire.Core.V2.World.Simulation
             }
 
             double chunkSize = worldGen.ChunkSize;
-            Debug.Log($"[BackgroundSim] Self-initializing. Config={config.name}, ChunkSize={chunkSize}");
+            Debug.Log($"[BackgroundSim] Self-initializing. Config={config.name}, ChunkSize={chunkSize}, BehaviorSystem={enableBehaviorSystem}");
 
             _tier1 = new Tier1ActiveSimulator(config, chunkSize);
             _tier2 = new Tier2BallisticTracker(config);
             _eventLog = new SimulationEventLog(config.maxEvents, config.eventRetentionSeconds);
+
+            // Initialize the behavior system if enabled
+            if (enableBehaviorSystem)
+            {
+                InitializeBehaviorSystem();
+            }
 
             _tier1.OnEntityMigratedChunk += HandleEntityMigratedChunk;
 
@@ -127,7 +151,54 @@ namespace Starfire.Core.V2.World.Simulation
             };
 
             _initialized = true;
-            Debug.Log($"[BackgroundSim] Initialization complete. _initialized={_initialized}, Tier1={_tier1 != null}, Tier2={_tier2 != null}, EventLog={_eventLog != null}");
+            Debug.Log($"[BackgroundSim] Initialization complete. _initialized={_initialized}, Tier1={_tier1 != null}, Tier2={_tier2 != null}, EventLog={_eventLog != null}, BehaviorSystem={BehaviorSystemActive}");
+        }
+
+        /// <summary>
+        /// Initialize the data-driven behavior system.
+        /// Loads entity type configs from Resources and sets up the registry.
+        /// </summary>
+        private void InitializeBehaviorSystem()
+        {
+            _registry = new SimulationEntityTypeRegistry();
+
+            // Try to initialize from the configured path
+            _registry.Initialize(entityTypeConfigPath);
+
+            // If no configs were found, that's okay - the system will use legacy physics
+            if (_registry.Count == 0)
+            {
+                Debug.Log($"[BackgroundSim] No entity type configs found in Resources/{entityTypeConfigPath}. " +
+                          "Behavior system will use legacy physics for all entities. " +
+                          "Create SimulationEntityTypeConfig assets to enable data-driven behaviors.");
+            }
+            else
+            {
+                // Pass the registry to Tier 1 simulator
+                _tier1.InitializeBehaviorSystem(_registry);
+                Debug.Log($"[BackgroundSim] Behavior system initialized with {_registry.Count} entity type configs.");
+            }
+        }
+
+        /// <summary>
+        /// Manually register an entity type config at runtime.
+        /// Useful for dynamically adding new entity types.
+        /// </summary>
+        public void RegisterEntityTypeConfig(SimulationEntityTypeConfig config)
+        {
+            if (_registry == null)
+            {
+                Debug.LogWarning("[BackgroundSim] Cannot register config - behavior system not initialized.");
+                return;
+            }
+
+            _registry.RegisterConfig(config);
+
+            // Re-initialize the behavior system on tier 1 if not already done
+            if (!_tier1.UseBehaviorSystem)
+            {
+                _tier1.InitializeBehaviorSystem(_registry);
+            }
         }
 
         private void Update()
@@ -142,6 +213,15 @@ namespace Starfire.Core.V2.World.Simulation
             }
 
             double currentTime = Time.timeAsDouble;
+
+            // Update context with player state if using behavior system
+            var worldGen = WorldGenerationService.Instance;
+            if (worldGen != null && _tier1?.Context != null)
+            {
+                var playerChunk = ChunkCoord.FromAbsolutePosition(worldGen.AbsolutePosition, worldGen.ChunkSize);
+                _tier1.Context.UpdatePlayerState(playerChunk, worldGen.AbsolutePosition);
+            }
+
             _tier1.Tick(Time.deltaTime, currentTime);
 
             // Prune old events periodically (every 10 seconds)
@@ -152,14 +232,13 @@ namespace Starfire.Core.V2.World.Simulation
             }
 
             // Check tier transitions when player crosses chunk boundary
-            var worldGen = WorldGenerationService.Instance;
             if (worldGen == null) return;
 
-            var playerChunk = ChunkCoord.FromAbsolutePosition(worldGen.AbsolutePosition, worldGen.ChunkSize);
-            if (playerChunk != _lastPlayerChunk)
+            var currentPlayerChunk = ChunkCoord.FromAbsolutePosition(worldGen.AbsolutePosition, worldGen.ChunkSize);
+            if (currentPlayerChunk != _lastPlayerChunk)
             {
-                ProcessTierTransitions(playerChunk);
-                _lastPlayerChunk = playerChunk;
+                ProcessTierTransitions(currentPlayerChunk);
+                _lastPlayerChunk = currentPlayerChunk;
                 _previewDirty = true;
             }
 
@@ -512,16 +591,27 @@ namespace Starfire.Core.V2.World.Simulation
 
         private void DrawEntities(float halfSize, float step)
         {
-            // Draw Tier 1 entities (cyan)
+            // Calculate a scale factor to keep entities visible when zoomed out
+            // Uses logarithmic scaling capped at 3x to prevent markers from becoming too large
+            float scaleFactor = Mathf.Clamp(1f + Mathf.Log10(Mathf.Max(1f, previewWorldSize / 5000f)), 1f, 3f);
+
+            var worldGen = WorldGenerationService.Instance;
+
+            // Draw loaded GameObjects (entities in loaded chunks)
+            DrawLoadedEntities(halfSize, step, scaleFactor, worldGen);
+
+            // Draw Tier 1 entities
             if (_tier1 != null)
             {
                 foreach (var entity in _tier1.GetAllEntities())
                 {
-                    DrawEntityDot(entity.AbsolutePosition, halfSize, step, new Color(0f, 1f, 1f), 3);
+                    var (color, baseRadius) = GetEntityVisual(entity.EntityType, true);
+                    int radius = Mathf.Max(1, Mathf.RoundToInt(baseRadius * scaleFactor));
+                    DrawEntityDot(entity.AbsolutePosition, halfSize, step, color, radius);
                 }
             }
 
-            // Draw Tier 2 entities (orange)
+            // Draw Tier 2 entities
             if (_tier2 != null)
             {
                 double now = Time.timeAsDouble;
@@ -530,10 +620,74 @@ namespace Starfire.Core.V2.World.Simulation
                     var predicted = _tier2.PredictEntity(snapshot.EntityId, now);
                     if (predicted != null)
                     {
-                        DrawEntityDot(predicted.AbsolutePosition, halfSize, step, new Color(1f, 0.6f, 0f), 3);
+                        var (color, baseRadius) = GetEntityVisual(predicted.EntityType, false);
+                        int radius = Mathf.Max(1, Mathf.RoundToInt(baseRadius * scaleFactor));
+                        DrawEntityDot(predicted.AbsolutePosition, halfSize, step, color, radius);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Draw entities that exist as loaded GameObjects in the scene.
+        /// </summary>
+        private void DrawLoadedEntities(float halfSize, float step, float scaleFactor, WorldGenerationService worldGen)
+        {
+            if (worldGen == null) return;
+
+            // Find all entity trackers in the scene (loaded GameObjects)
+            var trackers = FindObjectsOfType<RuntimeEntityTrackerBase>();
+
+            foreach (var tracker in trackers)
+            {
+                if (tracker == null || tracker.transform == null) continue;
+
+                // Convert world position to absolute position
+                var absolutePos = worldGen.WorldToAbsolute(tracker.transform.position);
+
+                // Get visual with "loaded" brightness boost
+                var (color, baseRadius) = GetEntityVisual(tracker.EntityType, true);
+
+                // Make loaded entities brighter/more saturated to distinguish them
+                color = Color.Lerp(color, Color.white, 0.3f);
+
+                int radius = Mathf.Max(1, Mathf.RoundToInt(baseRadius * scaleFactor));
+                DrawEntityDot(absolutePos, halfSize, step, color, radius);
+            }
+        }
+
+        /// <summary>
+        /// Get the visual properties (color, radius) for an entity type and tier.
+        /// </summary>
+        private (Color color, int radius) GetEntityVisual(EntityType entityType, bool isTier1)
+        {
+            // Base colors by entity type
+            Color baseColor = entityType switch
+            {
+                EntityType.Asteroid => new Color(0.6f, 0.4f, 0.2f),   // Brown/tan for asteroids
+                EntityType.Ship => new Color(0f, 0.8f, 1f),           // Cyan for ships
+                EntityType.Station => new Color(0.8f, 0.2f, 0.8f),    // Magenta for stations
+                EntityType.Projectile => new Color(1f, 0.2f, 0.2f),   // Red for projectiles
+                _ => new Color(0.5f, 0.5f, 0.5f)                      // Gray for unknown
+            };
+
+            // Tier 2 entities are slightly dimmer to show they're predicted
+            if (!isTier1)
+            {
+                baseColor = Color.Lerp(baseColor, Color.black, 0.3f);
+            }
+
+            // Size by entity type
+            int radius = entityType switch
+            {
+                EntityType.Asteroid => 2,
+                EntityType.Ship => 4,
+                EntityType.Station => 5,
+                EntityType.Projectile => 1,
+                _ => 2
+            };
+
+            return (baseColor, radius);
         }
 
         private void DrawEntityDot(Vector2D absolutePos, float halfSize, float step, Color color, int radius)
@@ -605,6 +759,58 @@ namespace Starfire.Core.V2.World.Simulation
             int tier1 = _tier1?.EntityCount ?? 0;
             int tier2 = _tier2?.SnapshotCount ?? 0;
             return (tier1, tier2);
+        }
+
+        /// <summary>
+        /// Get entity counts broken down by type.
+        /// Returns counts for asteroids, ships, stations, projectiles, and other.
+        /// </summary>
+        public (int asteroids, int ships, int stations, int projectiles, int other) GetEntityCountsByType()
+        {
+            int asteroids = 0, ships = 0, stations = 0, projectiles = 0, other = 0;
+
+            // Count Tier 1 entities
+            if (_tier1 != null)
+            {
+                foreach (var entity in _tier1.GetAllEntities())
+                {
+                    switch (entity.EntityType)
+                    {
+                        case EntityType.Asteroid: asteroids++; break;
+                        case EntityType.Ship: ships++; break;
+                        case EntityType.Station: stations++; break;
+                        case EntityType.Projectile: projectiles++; break;
+                        default: other++; break;
+                    }
+                }
+            }
+
+            // Count Tier 2 entities
+            if (_tier2 != null)
+            {
+                foreach (var snapshot in _tier2.GetAllSnapshots())
+                {
+                    switch (snapshot.EntityType)
+                    {
+                        case EntityType.Asteroid: asteroids++; break;
+                        case EntityType.Ship: ships++; break;
+                        case EntityType.Station: stations++; break;
+                        case EntityType.Projectile: projectiles++; break;
+                        default: other++; break;
+                    }
+                }
+            }
+
+            return (asteroids, ships, stations, projectiles, other);
+        }
+
+        /// <summary>
+        /// Get count of loaded entities (GameObjects with RuntimeEntityTrackerBase).
+        /// </summary>
+        public int GetLoadedEntityCount()
+        {
+            var trackers = FindObjectsOfType<RuntimeEntityTrackerBase>();
+            return trackers?.Length ?? 0;
         }
 
         /// <summary>
