@@ -5,6 +5,7 @@ using Starfire.Core.V2.Save;
 using Starfire.Core.V2.Save.Tracking;
 using Starfire.Core.V2.World;
 using Starfire.Core.V2.World.Chunk;
+using Starfire.Core.V2.World.Simulation.Events;
 
 namespace Starfire.Core.V2.World.Simulation
 {
@@ -47,22 +48,36 @@ namespace Starfire.Core.V2.World.Simulation
 
         private Tier1ActiveSimulator _tier1;
         private Tier2BallisticTracker _tier2;
+        private SimulationEventLog _eventLog;
         private ChunkCoord _lastPlayerChunk;
         private bool _initialized;
+        private float _lastPruneTime;
 
         public BackgroundSimulationConfig Config => config;
         public Tier1ActiveSimulator Tier1 => _tier1;
         public Tier2BallisticTracker Tier2 => _tier2;
         public Texture2D PreviewTexture => previewTexture;
 
+        /// <summary>Event log containing collision and destruction events.</summary>
+        public SimulationEventLog EventLog => _eventLog;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(this);
+                Destroy(gameObject);
                 return;
             }
             Instance = this;
+        }
+
+        private void Start()
+        {
+            // Self-initialize if config is assigned via inspector and not already initialized
+            if (!_initialized && config != null)
+            {
+                TryInitialize();
+            }
         }
 
         private void OnDestroy()
@@ -72,27 +87,69 @@ namespace Starfire.Core.V2.World.Simulation
         }
 
         /// <summary>
-        /// Initialize with a config. Called by WorldGenerationService after chunk manager is ready.
+        /// Attempt to initialize using inspector-assigned config and WorldGenerationService chunk size.
         /// </summary>
-        public void Initialize(BackgroundSimulationConfig cfg, double chunkSize)
+        private void TryInitialize()
         {
-            Debug.Log($"[BackgroundSim] Initialize called. Config={cfg?.name ?? "NULL"}, ChunkSize={chunkSize}");
+            if (_initialized) return;
+            if (config == null)
+            {
+                Debug.LogWarning("[BackgroundSim] Cannot initialize - config not assigned in inspector!");
+                return;
+            }
 
-            config = cfg;
+            var worldGen = WorldGenerationService.Instance;
+            if (worldGen == null || !worldGen.IsInitialized)
+            {
+                Debug.LogWarning("[BackgroundSim] Cannot initialize - WorldGenerationService not ready. Will retry next frame.");
+                return;
+            }
+
+            double chunkSize = worldGen.ChunkSize;
+            Debug.Log($"[BackgroundSim] Self-initializing. Config={config.name}, ChunkSize={chunkSize}");
+
             _tier1 = new Tier1ActiveSimulator(config, chunkSize);
             _tier2 = new Tier2BallisticTracker(config);
+            _eventLog = new SimulationEventLog(config.maxEvents, config.eventRetentionSeconds);
 
             _tier1.OnEntityMigratedChunk += HandleEntityMigratedChunk;
 
+            // Wire collision and destruction events to the event log
+            _tier1.OnCollision += evt =>
+            {
+                _eventLog.RecordEvent(evt);
+                _previewDirty = true;
+            };
+            _tier1.OnDestruction += evt =>
+            {
+                _eventLog.RecordEvent(evt);
+                _previewDirty = true;
+            };
+
             _initialized = true;
-            Debug.Log($"[BackgroundSim] Initialization complete. _initialized={_initialized}, Tier1={_tier1 != null}, Tier2={_tier2 != null}");
+            Debug.Log($"[BackgroundSim] Initialization complete. _initialized={_initialized}, Tier1={_tier1 != null}, Tier2={_tier2 != null}, EventLog={_eventLog != null}");
         }
 
         private void Update()
         {
-            if (!_initialized || !Application.isPlaying) return;
+            if (!Application.isPlaying) return;
 
-            _tier1.Tick(Time.deltaTime);
+            // Retry initialization if not yet initialized (WorldGenerationService may not have been ready)
+            if (!_initialized)
+            {
+                TryInitialize();
+                if (!_initialized) return;
+            }
+
+            double currentTime = Time.timeAsDouble;
+            _tier1.Tick(Time.deltaTime, currentTime);
+
+            // Prune old events periodically (every 10 seconds)
+            if (Time.time - _lastPruneTime > 10f)
+            {
+                _eventLog?.Prune(currentTime);
+                _lastPruneTime = Time.time;
+            }
 
             // Check tier transitions when player crosses chunk boundary
             var worldGen = WorldGenerationService.Instance;
@@ -318,7 +375,7 @@ namespace Starfire.Core.V2.World.Simulation
         }
 
         /// <summary>
-        /// Clear all simulated entities (called on load).
+        /// Clear all simulated entities and events (called on load).
         /// </summary>
         public void Clear()
         {
@@ -333,6 +390,7 @@ namespace Starfire.Core.V2.World.Simulation
             }
 
             _tier2?.Clear();
+            _eventLog?.Clear();
         }
 
         // ── Debug Preview ──────────────────────────────────────────────────
@@ -547,6 +605,28 @@ namespace Starfire.Core.V2.World.Simulation
             int tier1 = _tier1?.EntityCount ?? 0;
             int tier2 = _tier2?.SnapshotCount ?? 0;
             return (tier1, tier2);
+        }
+
+        /// <summary>
+        /// Get event statistics for display.
+        /// </summary>
+        public (int totalEvents, int collisions, int destructions) GetEventStats()
+        {
+            if (_eventLog == null)
+                return (0, 0, 0);
+
+            return (_eventLog.EventCount, _eventLog.CollisionCount, _eventLog.DestructionCount);
+        }
+
+        /// <summary>
+        /// Get collision statistics from last frame.
+        /// </summary>
+        public (int collisions, int destructions) GetLastFrameStats()
+        {
+            if (_tier1 == null)
+                return (0, 0);
+
+            return (_tier1.LastFrameCollisionCount, _tier1.LastFrameDestructionCount);
         }
     }
 }

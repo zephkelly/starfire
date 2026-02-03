@@ -12,10 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6abaf90da202594ca5e765d0b652a29, type: 3}
   m_Name: BackgroundSimulationConfig
   m_EditorClassIdentifier: Assembly-CSharp::Starfire.Core.V2.World.Simulation.BackgroundSimulationConfig
-  tier1ChunkRadius: 2
+  tier1ChunkRadius: 4
   tier1MaxEntities: 500
   minVelocitySqrToSimulate: 0.01
   tier2StartDistance: 5
   tier2MaxEntities: 2000
   defaultAsteroidMass: 100
   defaultDrag: 0
+  spatialHashCellSize: 100
+  collisionRestitution: 0.8
+  minCollisionIntensity: 1
+  structuralIntegrityMultiplier: 10
+  minDestructionEnergy: 100
+  spawnDebrisOnDestruction: 0
+  maxDebrisPerDestruction: 3
+  maxEvents: 1000
+  eventRetentionSeconds: 600

@@ -143,6 +143,11 @@ namespace Starfire.Core.V2.Save
         public int Variant;
         public float Seed;
         public int SourceType;
+
+        // Velocity state for Modified type (asteroid was pushed/collided)
+        public float VelocityX;
+        public float VelocityY;
+        public float AngularVelocity;
     }
 
     public enum AsteroidModificationType : byte

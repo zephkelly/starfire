@@ -47,12 +47,27 @@ namespace Starfire.Core.V2.World.Simulation.Editor
             if (Application.isPlaying)
             {
                 var (tier1Count, tier2Count) = manager.GetEntityCounts();
+                var (totalEvents, collisions, destructions) = manager.GetEventStats();
+                var (lastCollisions, lastDestructions) = manager.GetLastFrameStats();
+
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.LabelField("Simulation Statistics", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Entity Simulation", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField($"Tier 1 (Active):     {tier1Count} entities");
                 EditorGUILayout.LabelField($"Tier 2 (Ballistic):  {tier2Count} snapshots");
                 EditorGUILayout.LabelField($"Total:               {tier1Count + tier2Count}");
                 EditorGUILayout.EndVertical();
+
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                EditorGUILayout.LabelField("Collision System", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Total Events:        {totalEvents}");
+                EditorGUILayout.LabelField($"  Collisions:        {collisions}");
+                EditorGUILayout.LabelField($"  Destructions:      {destructions}");
+                if (lastCollisions > 0 || lastDestructions > 0)
+                {
+                    EditorGUILayout.LabelField($"Last Frame: {lastCollisions} collisions, {lastDestructions} destructions", EditorStyles.miniLabel);
+                }
+                EditorGUILayout.EndVertical();
+
                 EditorGUILayout.Space();
             }
 

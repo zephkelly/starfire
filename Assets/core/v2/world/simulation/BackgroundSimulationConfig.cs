@@ -28,5 +28,36 @@ namespace Starfire.Core.V2.World.Simulation
 
         [Tooltip("Default linear drag for simulated entities")]
         public float defaultDrag = 0f;
+
+        [Header("Collision Detection")]
+        [Tooltip("Cell size for spatial hash grid (larger = fewer cells, more comparisons per cell)")]
+        public float spatialHashCellSize = 100f;
+
+        [Tooltip("Coefficient of restitution for collisions (1 = perfectly elastic, 0 = inelastic)")]
+        [Range(0f, 1f)]
+        public float collisionRestitution = 0.8f;
+
+        [Tooltip("Minimum relative velocity to record a collision event")]
+        public float minCollisionIntensity = 1f;
+
+        [Header("Destruction")]
+        [Tooltip("Structural integrity = mass * this multiplier. Higher = harder to destroy.")]
+        public float structuralIntegrityMultiplier = 10f;
+
+        [Tooltip("Minimum impact energy required for destruction to occur")]
+        public float minDestructionEnergy = 100f;
+
+        [Tooltip("Whether to spawn debris when entities are destroyed")]
+        public bool spawnDebrisOnDestruction = false;
+
+        [Tooltip("Maximum debris entities to spawn per destruction")]
+        public int maxDebrisPerDestruction = 3;
+
+        [Header("Event Storage")]
+        [Tooltip("Maximum number of events to store in the log")]
+        public int maxEvents = 1000;
+
+        [Tooltip("How long to retain events (seconds of game time)")]
+        public float eventRetentionSeconds = 600f;
     }
 }

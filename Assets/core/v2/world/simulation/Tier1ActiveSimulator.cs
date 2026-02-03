@@ -3,18 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using Starfire.Core.V2.World;
 using Starfire.Core.V2.World.Chunk;
+using Starfire.Core.V2.World.Simulation.Collision;
+using Starfire.Core.V2.World.Simulation.Events;
 
 namespace Starfire.Core.V2.World.Simulation
 {
     /// <summary>
     /// Performs lightweight per-frame physics simulation for entities in nearby unloaded chunks.
     /// Uses simple Euler integration — no Unity physics engine involvement.
+    /// Includes collision detection and resolution.
     /// </summary>
     public class Tier1ActiveSimulator
     {
         private readonly Dictionary<int, SimulatedEntity> _entities = new();
         private readonly List<int> _removalBuffer = new();
         private readonly BackgroundSimulationConfig _config;
+        private readonly SimulationCollisionDetector _collisionDetector;
         private double _chunkSize;
 
         /// <summary>Fired when an entity crosses a chunk boundary.</summary>
@@ -23,22 +27,73 @@ namespace Starfire.Core.V2.World.Simulation
         /// <summary>Fired when an entity should be promoted back to a real GameObject (chunk reloaded).</summary>
         public event Action<SimulatedEntity> OnEntityPromoted;
 
+        /// <summary>Fired when a collision occurs.</summary>
+        public event Action<CollisionEvent> OnCollision;
+
+        /// <summary>Fired when an entity is destroyed.</summary>
+        public event Action<DestructionEvent> OnDestruction;
+
         public int EntityCount => _entities.Count;
+
+        /// <summary>Number of collisions detected last frame.</summary>
+        public int LastFrameCollisionCount => _collisionDetector?.LastFrameCollisionCount ?? 0;
+
+        /// <summary>Number of destructions last frame.</summary>
+        public int LastFrameDestructionCount => _collisionDetector?.LastFrameDestructionCount ?? 0;
 
         public Tier1ActiveSimulator(BackgroundSimulationConfig config, double chunkSize)
         {
             _config = config;
             _chunkSize = chunkSize;
+
+            // Initialize collision detector
+            _collisionDetector = new SimulationCollisionDetector(
+                config.spatialHashCellSize,
+                config.collisionRestitution,
+                config.minCollisionIntensity,
+                config.structuralIntegrityMultiplier,
+                config.minDestructionEnergy,
+                chunkSize);
+
+            // Wire up collision events
+            _collisionDetector.OnCollision += evt => OnCollision?.Invoke(evt);
+            _collisionDetector.OnDestruction += evt => OnDestruction?.Invoke(evt);
         }
 
-        public void Tick(float deltaTime)
+        public void Tick(float deltaTime, double currentTime)
         {
+            // Phase 1: Update physics for all entities
             foreach (var kvp in _entities)
             {
                 var entity = kvp.Value;
                 UpdatePhysics(entity, deltaTime);
-                CheckChunkMigration(entity);
             }
+
+            // Phase 2: Detect and resolve collisions
+            var destroyedIds = _collisionDetector.DetectAndResolve(
+                _entities.Values,
+                _entities,
+                currentTime);
+
+            // Phase 3: Remove destroyed entities
+            foreach (int id in destroyedIds)
+            {
+                _entities.Remove(id);
+            }
+
+            // Phase 4: Check chunk migrations (after collision resolution)
+            foreach (var kvp in _entities)
+            {
+                CheckChunkMigration(kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Legacy overload for backward compatibility.
+        /// </summary>
+        public void Tick(float deltaTime)
+        {
+            Tick(deltaTime, Time.timeAsDouble);
         }
 
         private void UpdatePhysics(SimulatedEntity entity, float dt)

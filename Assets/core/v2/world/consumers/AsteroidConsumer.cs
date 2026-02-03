@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Starfire.Core.V2.Save;
 using Starfire.Core.V2.World.Chunk;
 using Starfire.Core.V2.World.Data;
 using Starfire.Core.V2.World.Generation.Generators;
@@ -21,6 +22,10 @@ namespace Starfire.Core.V2.World.Consumers
         private readonly AsteroidGenerationConfig _config;
         private readonly List<AsteroidChunkData> _activeChunkData = new List<AsteroidChunkData>();
         private Transform _containerParent;
+
+        // Track active trackers for self-unload handling
+        private readonly Dictionary<RuntimeAsteroidTracker, (AsteroidChunkData data, GameObject prefab)> _trackerMap
+            = new Dictionary<RuntimeAsteroidTracker, (AsteroidChunkData, GameObject)>();
 
         public Type DataType => typeof(AsteroidChunkData);
 
@@ -48,22 +53,65 @@ namespace Starfire.Core.V2.World.Consumers
                 simulatedEntities = simManager.PromoteEntitiesForChunk(chunk.Coord);
             }
 
+            // Get chunk modifications from save system (if any)
+            var chunkTracker = SaveSystem.Instance?.ChunkTracker;
+            var chunkMod = chunkTracker?.GetModification(chunk.Coord);
+            var modifications = chunkMod?.AsteroidModifications;
+
             // Spawn procedural asteroids
             if (data.Asteroids.Count > 0)
             {
-                foreach (var definition in data.Asteroids)
+                for (int i = 0; i < data.Asteroids.Count; i++)
                 {
+                    var definition = data.Asteroids[i];
+
+                    // Check if this asteroid was removed (migrated away or destroyed)
+                    if (IsAsteroidRemoved(definition, modifications))
+                    {
+                        Debug.Log($"[AsteroidConsumer] Skipping removed asteroid at ({definition.LocalPosition.x:F1}, {definition.LocalPosition.y:F1})");
+                        continue;
+                    }
+
                     Vector2 worldPos = worldChunkCenter + definition.LocalPosition;
                     var result = CreateAsteroidVisual(definition, worldPos);
                     if (result.instance != null)
+                    {
+                        // Check if this asteroid was modified (has stored velocity)
+                        var velocityMod = GetAsteroidModification(definition, modifications);
+                        if (velocityMod != null)
+                        {
+                            var rb = result.instance.GetComponent<Rigidbody2D>();
+                            if (rb != null)
+                            {
+                                rb.linearVelocity = new Vector2(velocityMod.VelocityX, velocityMod.VelocityY);
+                                rb.angularVelocity = velocityMod.AngularVelocity;
+                                Debug.Log($"[AsteroidConsumer] Restored velocity ({velocityMod.VelocityX:F2}, {velocityMod.VelocityY:F2}) for asteroid");
+                            }
+                        }
+
+                        // Attach runtime tracker for modification and chunk boundary tracking
+                        var tracker = result.instance.GetComponent<RuntimeAsteroidTracker>();
+                        if (tracker == null)
+                        {
+                            tracker = result.instance.AddComponent<RuntimeAsteroidTracker>();
+                        }
+                        tracker.Initialize(chunk.Coord, definition, i);
+                        tracker.OnRequestDestroy += HandleAsteroidSelfUnload;
+                        _trackerMap[tracker] = (data, result.prefab);
+
                         data.RuntimeObjects.Add(result);
+                    }
                 }
             }
+
+            // Spawn asteroids that were added to this chunk (migrated here from elsewhere)
+            SpawnAddedAsteroids(chunk.Coord, worldChunkCenter, modifications, data);
 
             // Spawn simulated asteroids at their predicted positions
             if (simulatedEntities != null && simulatedEntities.Count > 0)
             {
                 var service = WorldGenerationService.Instance;
+                int simIndex = data.Asteroids.Count; // Start index after procedural asteroids
                 foreach (var simEntity in simulatedEntities)
                 {
                     if (simEntity.EntityType != EntityType.Asteroid) continue;
@@ -93,7 +141,29 @@ namespace Starfire.Core.V2.World.Consumers
                             rb.angularVelocity = simEntity.AngularVelocity;
                         }
 
+                        // Preserve instigator tracking if the simulated entity had one
+                        if (simEntity.InstigatorEntityId.HasValue)
+                        {
+                            var instigatorTracker = result.instance.GetComponent<InstigatorTracker>();
+                            if (instigatorTracker == null)
+                            {
+                                instigatorTracker = result.instance.AddComponent<InstigatorTracker>();
+                            }
+                            instigatorTracker.SetInstigator(simEntity.InstigatorEntityId.Value, EntityType.Unknown);
+                        }
+
+                        // Attach runtime tracker for modification and chunk boundary tracking
+                        var runtimeTracker = result.instance.GetComponent<RuntimeAsteroidTracker>();
+                        if (runtimeTracker == null)
+                        {
+                            runtimeTracker = result.instance.AddComponent<RuntimeAsteroidTracker>();
+                        }
+                        runtimeTracker.InitializeFromSimulated(simEntity.OriginChunk, chunk.Coord, def, simIndex);
+                        runtimeTracker.OnRequestDestroy += HandleAsteroidSelfUnload;
+                        _trackerMap[runtimeTracker] = (data, result.prefab);
+
                         data.RuntimeObjects.Add(result);
+                        simIndex++;
                     }
                 }
             }
@@ -156,6 +226,14 @@ namespace Starfire.Core.V2.World.Consumers
                                 size = def.Size;
                             }
 
+                            // Check for instigator tracking (who pushed this asteroid)
+                            int? instigatorId = null;
+                            var instigatorTracker = instance.GetComponent<InstigatorTracker>();
+                            if (instigatorTracker != null)
+                            {
+                                instigatorId = instigatorTracker.InstigatorEntityId;
+                            }
+
                             var simEntity = new SimulatedEntity
                             {
                                 EntityId = GenerateAsteroidId(chunk.Coord, i),
@@ -172,7 +250,8 @@ namespace Starfire.Core.V2.World.Consumers
                                 HasBeenModified = true,
                                 Variant = variant,
                                 Seed = seed,
-                                SourceType = sourceType
+                                SourceType = sourceType,
+                                InstigatorEntityId = instigatorId
                             };
 
                             Debug.Log($"[AsteroidConsumer]   [{i}] REGISTERING entity ID={simEntity.EntityId} with BackgroundSimulationManager");
@@ -183,6 +262,14 @@ namespace Starfire.Core.V2.World.Consumers
                 else
                 {
                     Debug.LogWarning($"[AsteroidConsumer]   [{i}] Cannot check velocity - simManager={(simManager != null ? "OK" : "NULL")}, service={(service != null ? "OK" : "NULL")}");
+                }
+
+                // Clean up runtime tracker if present
+                var runtimeTracker = instance.GetComponent<RuntimeAsteroidTracker>();
+                if (runtimeTracker != null)
+                {
+                    runtimeTracker.OnRequestDestroy -= HandleAsteroidSelfUnload;
+                    _trackerMap.Remove(runtimeTracker);
                 }
 
                 // Return to pool
@@ -211,6 +298,54 @@ namespace Starfire.Core.V2.World.Consumers
         public void Update(float deltaTime)
         {
             // Future: LOD transitions, entity promotion for nearby asteroids
+        }
+
+        /// <summary>
+        /// Called when a RuntimeAsteroidTracker requests destruction
+        /// (e.g., asteroid escaped into unloaded chunk territory).
+        /// </summary>
+        private void HandleAsteroidSelfUnload(RuntimeAsteroidTracker tracker)
+        {
+            if (tracker == null) return;
+
+            var go = tracker.gameObject;
+
+            // Get the tracking info and clean up
+            if (_trackerMap.TryGetValue(tracker, out var info))
+            {
+                // Remove from the runtime objects list
+                var (data, prefab) = info;
+                for (int i = data.RuntimeObjects.Count - 1; i >= 0; i--)
+                {
+                    if (data.RuntimeObjects[i].instance == go)
+                    {
+                        data.RuntimeObjects.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                // Unsubscribe from events
+                tracker.OnRequestDestroy -= HandleAsteroidSelfUnload;
+                _trackerMap.Remove(tracker);
+
+                // Return to pool or destroy
+                var poolManager = WorldObjectPoolManager.Instance;
+                if (prefab != null && poolManager != null)
+                {
+                    poolManager.Return(go, prefab);
+                }
+                else
+                {
+                    UnityEngine.Object.Destroy(go);
+                }
+
+                Debug.Log($"[AsteroidConsumer] Handled self-unload for asteroid that escaped to unloaded chunk");
+            }
+            else
+            {
+                // Fallback: just destroy if not tracked
+                UnityEngine.Object.Destroy(go);
+            }
         }
 
         private (GameObject instance, GameObject prefab) CreateAsteroidVisual(AsteroidDefinition def, Vector2 worldPosition)
@@ -261,6 +396,107 @@ namespace Starfire.Core.V2.World.Consumers
                 _ => Color.gray
             };
             return go;
+        }
+
+        /// <summary>
+        /// Check if an asteroid was removed (destroyed or migrated away) according to saved modifications.
+        /// </summary>
+        private bool IsAsteroidRemoved(AsteroidDefinition def, List<AsteroidModification> modifications)
+        {
+            if (modifications == null) return false;
+
+            foreach (var mod in modifications)
+            {
+                if (mod.Type == AsteroidModificationType.Removed &&
+                    MatchesAsteroid(def, mod))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Get the modification data for an asteroid if it was modified (velocity changed).
+        /// </summary>
+        private AsteroidModification GetAsteroidModification(AsteroidDefinition def, List<AsteroidModification> modifications)
+        {
+            if (modifications == null) return null;
+
+            foreach (var mod in modifications)
+            {
+                if (mod.Type == AsteroidModificationType.Modified &&
+                    MatchesAsteroid(def, mod))
+                {
+                    return mod;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Check if a definition matches a modification record by position.
+        /// </summary>
+        private bool MatchesAsteroid(AsteroidDefinition def, AsteroidModification mod)
+        {
+            const float tolerance = 0.01f;
+            return Mathf.Abs(def.LocalPosition.x - mod.LocalPositionX) < tolerance &&
+                   Mathf.Abs(def.LocalPosition.y - mod.LocalPositionY) < tolerance;
+        }
+
+        /// <summary>
+        /// Spawn asteroids that were added to this chunk (migrated here from elsewhere).
+        /// </summary>
+        private void SpawnAddedAsteroids(ChunkCoord coord, Vector2 worldChunkCenter,
+            List<AsteroidModification> modifications, AsteroidChunkData data)
+        {
+            if (modifications == null) return;
+
+            int addedIndex = 0;
+            foreach (var mod in modifications)
+            {
+                if (mod.Type != AsteroidModificationType.Added) continue;
+
+                // Create definition from modification data
+                var def = new AsteroidDefinition
+                {
+                    LocalPosition = new Vector2(mod.LocalPositionX, mod.LocalPositionY),
+                    Size = mod.Size,
+                    Rotation = mod.Rotation,
+                    Variant = mod.Variant,
+                    Seed = mod.Seed,
+                    Source = (AsteroidSource)mod.SourceType
+                };
+
+                Vector2 worldPos = worldChunkCenter + def.LocalPosition;
+                var result = CreateAsteroidVisual(def, worldPos);
+                if (result.instance != null)
+                {
+                    // Apply stored velocity
+                    var rb = result.instance.GetComponent<Rigidbody2D>();
+                    if (rb != null)
+                    {
+                        rb.linearVelocity = new Vector2(mod.VelocityX, mod.VelocityY);
+                        rb.angularVelocity = mod.AngularVelocity;
+                    }
+
+                    // Attach runtime tracker
+                    var tracker = result.instance.GetComponent<RuntimeAsteroidTracker>();
+                    if (tracker == null)
+                    {
+                        tracker = result.instance.AddComponent<RuntimeAsteroidTracker>();
+                    }
+                    // Added asteroids start at their current chunk (not origin)
+                    tracker.InitializeFromSimulated(coord, coord, def, data.Asteroids.Count + addedIndex);
+                    tracker.OnRequestDestroy += HandleAsteroidSelfUnload;
+                    _trackerMap[tracker] = (data, result.prefab);
+
+                    data.RuntimeObjects.Add(result);
+
+                    Debug.Log($"[AsteroidConsumer] Spawned added asteroid at ({def.LocalPosition.x:F1}, {def.LocalPosition.y:F1}) with velocity ({mod.VelocityX:F2}, {mod.VelocityY:F2})");
+                    addedIndex++;
+                }
+            }
         }
 
         private void EnsureContainer()

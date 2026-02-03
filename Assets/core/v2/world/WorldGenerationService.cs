@@ -8,7 +8,6 @@ using Starfire.Core.V2.World.Generation.Generators;
 using Starfire.Core.V2.World.Consumers;
 using Starfire.Core.V2.Cam;
 using Starfire.Core.Background.Regions;
-using Starfire.Core.V2.World.Simulation;
 using StarfireV2;
 
 namespace Starfire.Core.V2.World
@@ -24,9 +23,6 @@ namespace Starfire.Core.V2.World
 
         [Header("Configuration")]
         [SerializeField] private WorldGenerationConfig config;
-
-        [Header("Background Simulation")]
-        [SerializeField] private BackgroundSimulationConfig simulationConfig;
 
         [Header("Camera Reference")]
         [SerializeField] private Camera targetCamera;
@@ -188,9 +184,6 @@ namespace Starfire.Core.V2.World
 
             // Create built-in consumers
             InitializeConsumers();
-
-            // Initialize background simulation
-            InitializeSimulation();
         }
 
         private void Cleanup()
@@ -263,30 +256,6 @@ namespace Starfire.Core.V2.World
                 var asteroidConsumer = new AsteroidConsumer(config.asteroidConfig);
                 RegisterConsumer(asteroidConsumer);
             }
-        }
-
-        private void InitializeSimulation()
-        {
-            Debug.Log($"[WorldGenService] InitializeSimulation called. simulationConfig={(simulationConfig != null ? simulationConfig.name : "NULL")}");
-
-            if (simulationConfig == null)
-            {
-                Debug.LogWarning("[WorldGenService] simulationConfig is NULL - BackgroundSimulationManager will NOT be created!");
-                return;
-            }
-
-            // Don't create if one already exists
-            if (BackgroundSimulationManager.Instance != null)
-            {
-                Debug.Log("[WorldGenService] BackgroundSimulationManager.Instance already exists - skipping creation");
-                return;
-            }
-
-            var go = new GameObject("[BackgroundSimulation]");
-            go.transform.SetParent(transform);
-            var simManager = go.AddComponent<BackgroundSimulationManager>();
-            simManager.Initialize(simulationConfig, config.chunkSize);
-            Debug.Log($"[WorldGenService] BackgroundSimulationManager created and initialized. ChunkSize={config.chunkSize}");
         }
 
         private void UpdateCameraReference()
