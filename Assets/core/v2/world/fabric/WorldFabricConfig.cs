@@ -13,7 +13,7 @@ namespace StarfireV2
         public ColorDistributionConfig colorDistributionConfig;
         public ResourceConfig resourceConfig;
         public FactionConfig factionConfig;
-        // Future: StarSystemConfig, POIConfig, HazardConfig
+        public CelestialBodyConfig celestialBodyConfig;
 
         [Header("Debug")]
         public bool showDebugGizmos = false;

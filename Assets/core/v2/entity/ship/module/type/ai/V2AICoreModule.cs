@@ -104,5 +104,7 @@ namespace StarfireV2
                 tree?.Initialize(_btContext);
             }
         }
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

@@ -18,10 +18,13 @@ MonoBehaviour:
   loadRadius: 3
   unloadRadius: 5
   chunksPerFrame: 2
+  maxUnloadsPerFrame: 10
   maxLoadedChunks: 100
   nebulaConfig: {fileID: 11400000, guid: 728fd23ab32a8a942a57f47824d1b424, type: 2}
   fabricNebulaConfig: {fileID: 11400000, guid: 27b501ac04207ed42b4ce0249b6f7792, type: 2}
   useFabricNebulaGeneration: 1
+  celestialBodyConfig: {fileID: 11400000, guid: 7ae65fee5ae63af40888edb7c5ea8f87, type: 2}
+  asteroidConfig: {fileID: 11400000, guid: 760d1c7795e31ca4cb4d19bb52aa324c, type: 2}
   enableDebugGizmos: 1
   chunkBoundsColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.3}
   loadedChunkColor: {r: 0, g: 1, b: 0, a: 0.2}

@@ -112,5 +112,7 @@ namespace StarfireV2
         {
             return Guid.NewGuid().ToString()[..8].ToUpperInvariant();
         }
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

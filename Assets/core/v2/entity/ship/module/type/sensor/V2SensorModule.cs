@@ -339,5 +339,7 @@ namespace StarfireV2
         {
             return _detectedEntities.Where(e => e.IsThreat && e.Distance <= range);
         }
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

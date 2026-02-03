@@ -187,5 +187,7 @@ namespace StarfireV2
                 _visual = null;
             }
         }
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

@@ -242,5 +242,7 @@ namespace StarfireV2
                 V3CameraShakeService.Instance?.TriggerFireShake(spawnPos, direction, _data.fireShakeConfig);
             }
         }
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

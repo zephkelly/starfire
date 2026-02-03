@@ -110,6 +110,11 @@ namespace StarfireV2
             }
         }
 
+        public IModuleRuntimeData GetRuntimeData()
+        {
+            return _module?.GetRuntimeData();
+        }
+
         public void Unequip()
         {
             Equip(null);

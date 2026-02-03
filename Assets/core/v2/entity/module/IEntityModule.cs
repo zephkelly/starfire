@@ -8,5 +8,6 @@ namespace StarfireV2
         void OnAttach(IEntityController controller);
         void OnDetach();
         void OnUpdate(float deltaTime);
+        IModuleRuntimeData GetRuntimeData();
     }
 }

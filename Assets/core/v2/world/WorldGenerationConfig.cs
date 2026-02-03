@@ -53,9 +53,11 @@ namespace Starfire.Core.V2.World
         [Tooltip("Use fabric-integrated nebula generation when fabricNebulaConfig is assigned")]
         public bool useFabricNebulaGeneration = true;
 
-        // Future generator configs
-        // public AsteroidGenerationConfig asteroidConfig;
-        // public POIGenerationConfig poiConfig;
+        [Tooltip("Celestial body (stars/planets) chunk generation")]
+        public CelestialBodyGenerationConfig celestialBodyConfig;
+
+        [Tooltip("Asteroid placement (belts, rings, scatter)")]
+        public AsteroidGenerationConfig asteroidConfig;
 
         [Header("Debug")]
         [Tooltip("Enable debug visualization in scene view")]

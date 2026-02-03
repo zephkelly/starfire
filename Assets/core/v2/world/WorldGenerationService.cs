@@ -64,6 +64,11 @@ namespace Starfire.Core.V2.World
         public float ChunkSize => config != null ? config.chunkSize : 500f;
 
         /// <summary>
+        /// Floating origin reset distance threshold.
+        /// </summary>
+        public float FloatingOriginLimit => config != null ? config.floatingOriginLimit : 2560f;
+
+        /// <summary>
         /// Get the chunk manager for direct access.
         /// </summary>
         public ChunkManager ChunkManager => _chunkManager;
@@ -144,6 +149,7 @@ namespace Starfire.Core.V2.World
             if (seed == 0f)
             {
                 seed = UnityEngine.Random.Range(1f, 100000f);
+                config.worldSeed = seed;
             }
 
             // Create chunk manager
@@ -213,6 +219,20 @@ namespace Starfire.Core.V2.World
                 RegisterGenerator(nebulaGenerator);
             }
 
+            // Celestial body generation
+            if (config.celestialBodyConfig != null && config.celestialBodyConfig.enabled)
+            {
+                var celestialGenerator = new CelestialBodyChunkGenerator(config.celestialBodyConfig);
+                RegisterGenerator(celestialGenerator);
+            }
+
+            // Asteroid generation
+            if (config.asteroidConfig != null && config.asteroidConfig.enabled)
+            {
+                var asteroidGenerator = new AsteroidChunkGenerator(config.asteroidConfig);
+                RegisterGenerator(asteroidGenerator);
+            }
+
             // Sort generators by priority
             _generators.Sort((a, b) => a.Priority.CompareTo(b.Priority));
         }
@@ -222,6 +242,20 @@ namespace Starfire.Core.V2.World
             // Add nebula consumer
             var nebulaConsumer = new NebulaRegionConsumer();
             RegisterConsumer(nebulaConsumer);
+
+            // Add celestial body consumer
+            if (config.celestialBodyConfig != null && config.celestialBodyConfig.enabled)
+            {
+                var celestialConsumer = new CelestialBodyConsumer(config.celestialBodyConfig.fabricConfig);
+                RegisterConsumer(celestialConsumer);
+            }
+
+            // Add asteroid consumer
+            if (config.asteroidConfig != null && config.asteroidConfig.enabled)
+            {
+                var asteroidConsumer = new AsteroidConsumer(config.asteroidConfig);
+                RegisterConsumer(asteroidConsumer);
+            }
         }
 
         private void UpdateCameraReference()

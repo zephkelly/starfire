@@ -32,5 +32,7 @@ namespace StarfireV2
         }
 
         public void OnUpdate(float deltaTime) { }
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

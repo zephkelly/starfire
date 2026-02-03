@@ -111,6 +111,11 @@ namespace StarfireV2
                 RegisterLayer(new FactionTerritoryLayer(config.factionConfig));
             }
 
+            if (config.celestialBodyConfig != null && config.celestialBodyConfig.enabled)
+            {
+                RegisterLayer(new CelestialBodyLayer(config.celestialBodyConfig));
+            }
+
             // Sort by priority
             _layers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
 
@@ -239,6 +244,12 @@ namespace StarfireV2
             {
                 var layer = new FactionTerritoryLayer(config.factionConfig);
                 _editModeQueries["FactionTerritory"] = layer.CreateQuery();
+            }
+
+            if (config.celestialBodyConfig != null && config.celestialBodyConfig.enabled)
+            {
+                var layer = new CelestialBodyLayer(config.celestialBodyConfig);
+                _editModeQueries["CelestialBodies"] = layer.CreateQuery();
             }
 
             _editModeQueriesValid = true;
@@ -389,6 +400,28 @@ namespace StarfireV2
         }
 
         /// <summary>
+        /// Get the CelestialBody query for direct celestial body lookups.
+        /// </summary>
+        public CelestialBodyQuery GetCelestialBodyQuery()
+        {
+            var cache = GetActiveQueryCache();
+            if (cache.TryGetValue("CelestialBodies", out var query) && query is CelestialBodyQuery cbq)
+                return cbq;
+            return null;
+        }
+
+        /// <summary>
+        /// Sample celestial body info at a position.
+        /// </summary>
+        public CelestialBodyQueryResult SampleCelestialBodiesAt(Vector2D absolutePosition)
+        {
+            var cache = GetActiveQueryCache();
+            if (cache.TryGetValue("CelestialBodies", out var query) && query is CelestialBodyQuery cbq)
+                return cbq.QueryAt(absolutePosition, GetWorldSeed());
+            return default;
+        }
+
+        /// <summary>
         /// Query danger level at a position.
         /// </summary>
         public float GetDangerLevelAt(Vector2D absolutePosition)
@@ -496,7 +529,7 @@ namespace StarfireV2
 
         #region Debug Preview
 
-        public enum PreviewMode { SpaceZones, Factions, FactionBorders, Danger, Combined, NebulaDensity, AsteroidDensity, VoidFactor, AnomalyStrength, MineralDensity, OreDensity, GasDensity, ExoticDensity, WaterDensity, ResourceValue, ColorDistribution }
+        public enum PreviewMode { SpaceZones, Factions, FactionBorders, Danger, Combined, NebulaDensity, AsteroidDensity, VoidFactor, AnomalyStrength, MineralDensity, OreDensity, GasDensity, ExoticDensity, WaterDensity, ResourceValue, ColorDistribution, CelestialBodies, PlanetaryRings, AsteroidPlacement }
 
         [Header("Debug Preview")]
         [SerializeField] private bool enablePreview = false;
@@ -593,6 +626,9 @@ namespace StarfireV2
                         PreviewMode.WaterDensity => GetResourcePropertyColor(pos, ResourceProperty.Water),
                         PreviewMode.ResourceValue => GetResourceValueColor(pos),
                         PreviewMode.ColorDistribution => GetColorDistributionColor(pos),
+                        PreviewMode.CelestialBodies => GetCelestialBodiesColor(pos, seed),
+                        PreviewMode.PlanetaryRings => GetPlanetaryRingsColor(pos, seed),
+                        PreviewMode.AsteroidPlacement => GetAsteroidPlacementColor(pos, seed),
                         _ => Color.black
                     };
 
@@ -780,6 +816,116 @@ namespace StarfireV2
         public void MarkPreviewDirty()
         {
             _previewDirty = true;
+        }
+
+        private Color GetCelestialBodiesColor(Vector2D pos, float seed)
+        {
+            var cbQuery = GetCelestialBodyQuery();
+            if (cbQuery == null) return Color.black;
+
+            var result = cbQuery.QueryAt(pos, seed);
+            if (result.NearbyBodies == null || result.NearbyBodies.Count == 0)
+                return new Color(0.02f, 0.02f, 0.05f);
+
+            Color color = new Color(0.02f, 0.02f, 0.05f);
+
+            foreach (var body in result.NearbyBodies)
+            {
+                double distSq = (body.AbsolutePosition - pos).SqrMagnitude;
+                float dist = (float)System.Math.Sqrt(distSq);
+
+                if (body.Kind == CelestialBodyKind.Star)
+                {
+                    // Star core
+                    if (dist < body.Radius)
+                    {
+                        Color starColor = GetStarTypeColor(body.StarType);
+                        return starColor;
+                    }
+                    // Gravity glow
+                    if (dist < body.GravityRadius)
+                    {
+                        float t = 1f - dist / body.GravityRadius;
+                        Color starColor = GetStarTypeColor(body.StarType);
+                        color = Color.Lerp(color, starColor, t * t * 0.3f);
+                    }
+                }
+                else if (body.Kind == CelestialBodyKind.Planet)
+                {
+                    if (dist < body.Radius * 2f)
+                    {
+                        Color planetColor = GetPlanetTypeColor(body.PlanetType);
+                        float t = 1f - Mathf.Clamp01(dist / (body.Radius * 2f));
+                        color = Color.Lerp(color, planetColor, t);
+                    }
+                    // Ring visualization
+                    if (body.HasRing && dist >= body.RingInnerRadius && dist <= body.RingOuterRadius)
+                    {
+                        color = Color.Lerp(color, new Color(0.6f, 0.5f, 0.3f), 0.4f);
+                    }
+                }
+            }
+
+            return color;
+        }
+
+        private Color GetPlanetaryRingsColor(Vector2D pos, float seed)
+        {
+            var cbQuery = GetCelestialBodyQuery();
+            if (cbQuery == null) return Color.black;
+
+            float ringDensity = cbQuery.GetRingDensityAt(pos, seed);
+            if (ringDensity <= 0f) return Color.black;
+
+            return Color.Lerp(Color.black, new Color(0.7f, 0.5f, 0.2f), ringDensity);
+        }
+
+        private Color GetAsteroidPlacementColor(Vector2D pos, float seed)
+        {
+            // Combine belt density from SpaceZoneLayer with ring density from CelestialBodyLayer
+            float beltDensity = SampleFabricAt(pos).AsteroidDensity;
+
+            float ringDensity = 0f;
+            var cbQuery = GetCelestialBodyQuery();
+            if (cbQuery != null)
+                ringDensity = cbQuery.GetRingDensityAt(pos, seed);
+
+            float combined = Mathf.Clamp01(Mathf.Max(beltDensity, ringDensity));
+            if (combined <= 0f) return Color.black;
+
+            // Belt = brown, ring = amber, blend based on which contributes more
+            Color beltColor = new Color(0.5f, 0.35f, 0.15f);
+            Color ringColor = new Color(0.7f, 0.5f, 0.2f);
+            float ringWeight = ringDensity / Mathf.Max(combined, 0.001f);
+            Color baseColor = Color.Lerp(beltColor, ringColor, ringWeight);
+
+            return Color.Lerp(Color.black, baseColor, combined);
+        }
+
+        private static Color GetStarTypeColor(StarType type)
+        {
+            return type switch
+            {
+                StarType.RedDwarf => new Color(1f, 0.4f, 0.3f),
+                StarType.YellowStar => new Color(1f, 0.95f, 0.7f),
+                StarType.BlueGiant => new Color(0.6f, 0.7f, 1f),
+                StarType.WhiteDwarf => new Color(0.9f, 0.9f, 1f),
+                StarType.Neutron => new Color(0.8f, 0.9f, 1f),
+                _ => Color.white
+            };
+        }
+
+        private static Color GetPlanetTypeColor(PlanetType type)
+        {
+            return type switch
+            {
+                PlanetType.Rocky => new Color(0.6f, 0.5f, 0.4f),
+                PlanetType.GasGiant => new Color(0.8f, 0.6f, 0.4f),
+                PlanetType.IceGiant => new Color(0.5f, 0.7f, 0.9f),
+                PlanetType.Molten => new Color(0.9f, 0.3f, 0.1f),
+                PlanetType.Barren => new Color(0.5f, 0.5f, 0.5f),
+                _ => Color.gray
+            };
         }
 
         #endregion

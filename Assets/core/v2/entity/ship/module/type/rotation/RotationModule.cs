@@ -824,5 +824,7 @@ namespace StarfireV2
         }
 
         #endregion
+
+        public IModuleRuntimeData GetRuntimeData() => _data;
     }
 }

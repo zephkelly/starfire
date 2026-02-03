@@ -16,5 +16,6 @@ MonoBehaviour:
   colorDistributionConfig: {fileID: 11400000, guid: 51d4a5040738feb4b9be21cca3c181a0, type: 2}
   resourceConfig: {fileID: 11400000, guid: 87c39b49871c75d40b61665185346cc2, type: 2}
   factionConfig: {fileID: 11400000, guid: e1af75f657865b64e90ba7a7a1d92d6c, type: 2}
+  celestialBodyConfig: {fileID: 11400000, guid: b5e7d37186830ad4492911e5a1b83b86, type: 2}
   showDebugGizmos: 1
   logLayerEvents: 1

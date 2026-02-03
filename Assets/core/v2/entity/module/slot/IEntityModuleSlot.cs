@@ -13,5 +13,6 @@ namespace StarfireV2
         void EquipFromData(IModuleRuntimeData data);
         void Unequip();
         void Update(float deltaTime);
+        IModuleRuntimeData GetRuntimeData();
     }
 }
