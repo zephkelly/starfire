@@ -2,6 +2,8 @@
 
 This document describes the 3-mode entity control system that allows entities to be controlled via direct input, RTS-style commands, or fully autonomous AI.
 
+> **Architecture Note:** In the hybrid architecture, control modes are implemented through the `IBehaviorController` interface on ShipInstance. Direct mode uses `PlayerInputController`, Command mode uses `CommandExecutorController`, and Autonomous mode uses `BehaviorTreeController`. The DriverStack logic lives in ShipInstance, selecting which controller produces the ControlInput each frame. This only applies to Rich Entity Layer (Tier 0-1) ships.
+
 ---
 
 ## Overview
@@ -10,9 +12,9 @@ Each entity supports three distinct control modes:
 
 | Mode | Description | Active Driver |
 |------|-------------|---------------|
-| **Direct** | Frame-by-frame input from keyboard/mouse or gamepad | PlayerEntityControllerDriver |
-| **Command** | RTS-style point-and-click, AI executes commands | CommandExecutorDriver |
-| **Autonomous** | Full AI behavior tree control, no player input | AIEntityControllerDriver |
+| **Direct** | Frame-by-frame input from keyboard/mouse or gamepad | PlayerInputController |
+| **Command** | RTS-style point-and-click, AI executes commands | CommandExecutorController |
+| **Autonomous** | Full AI behavior tree control, no player input | BehaviorTreeController |
 
 **Key Design Principle:** Control modes are per-entity. In a fleet scenario, the player can directly control one ship while issuing commands to others.
 
@@ -504,3 +506,4 @@ When a controlled entity transitions to Tier 2+:
 - [[02-system-architecture]] - Input Group system execution
 - [[03-tiered-simulation]] - Tier-based control restrictions
 - [[04-archetype-strategy]] - Ship archetypes with control components
+- [[12-modding-architecture]] - Mod-defined behaviors and control overrides

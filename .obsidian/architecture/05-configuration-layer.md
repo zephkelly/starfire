@@ -1,6 +1,8 @@
 # Configuration Layer
 
-This document defines the JSON-based configuration system for Starfire, enabling moddability while maintaining Burst-compatible runtime performance through BlobAssets.
+This document defines the JSON-based configuration system for Starfire, enabling moddability and data-driven entity creation.
+
+> **Architecture Note:** In the hybrid architecture, JSON configs produce C# class instances (ShipInstance, modules, abilities) for the Rich Entity Layer, and populate SensorContact/FleetData structs for the Sensor and Strategic layers. BlobAssets are only used for Mass Entity Layer data (asteroids, gravity sources) that needs Burst compatibility. Ship configs are loaded into ScriptableObjects or plain C# config classes at startup.
 
 ---
 
@@ -18,17 +20,17 @@ flowchart LR
         CONV[Conversion]
     end
 
-    subgraph Runtime["Runtime (Burst)"]
-        BLOB[BlobAssets]
-        ECS[ECS Components]
+    subgraph Runtime["Runtime"]
+        RICH["Rich Layer\nShipInstance\nC# Classes"]
+        MASS["Mass Layer\nNativeArrays\nBurst Structs"]
     end
 
     SO -->|Export| JSON
     JSON -->|Modding| JSON
     JSON --> VAL
     VAL --> CONV
-    CONV --> BLOB
-    BLOB --> ECS
+    CONV --> RICH
+    CONV --> MASS
 ```
 
 ---

@@ -1,8 +1,18 @@
-# 5-Tier Progressive Simulation System
+# Tiered Simulation System
 
 ## Overview
 
-The simulation system uses **progressive degradation** to simulate massive numbers of entities. Entities closer to the player receive full simulation fidelity; distant entities use increasingly abstracted simulation.
+The simulation system uses **progressive degradation** across three processing layers. Entities closer to the player receive full OOP simulation with unique abilities; distant entities use increasingly abstracted representations.
+
+Each tier maps to a processing layer:
+
+| Tier | Layer | Range | Technology |
+|------|-------|-------|-----------|
+| 0 (Loaded) | Rich Entity Layer | 0-5k | C# classes + MonoBehaviour visual |
+| 1 (Active) | Rich Entity Layer | 5k-20k | C# classes (no visual) |
+| 2 (Sensor) | Sensor Simulation Layer | 20k-100k | C# structs in arrays |
+| 3 (Strategic) | Strategic Layer | 100k-200k | Fleet abstraction |
+| 4 (Dormant) | Strategic Layer | 200k+ | Existence tracking |
 
 ---
 
@@ -18,12 +28,12 @@ graph TD
         E["200,000+ units"]
     end
 
-    subgraph "Simulation Tiers"
-        T0["TIER 0: LOADED<br/>Full GameObject<br/>Unity Physics<br/>Full Rendering"]
-        T1["TIER 1: ACTIVE<br/>Full DOTS Sim<br/>Full BT Every Frame<br/>Full Collision"]
-        T2["TIER 2: TACTICAL<br/>State Machine AI<br/>Updates Every 5-10 Frames<br/>Simplified Collision"]
-        T3["TIER 3: STRATEGIC<br/>Fleet Abstraction<br/>Updates Every ~1 Second<br/>Abstract Combat"]
-        T4["TIER 4: DORMANT<br/>Existence Only<br/>No Simulation<br/>Regenerated on Approach"]
+    subgraph "Simulation Layers"
+        T0["TIER 0: LOADED\nRich Layer + Visual\nMonoBehaviour + C# Classes\nUnity Physics, Full Rendering"]
+        T1["TIER 1: ACTIVE\nRich Layer (no visual)\nC# Classes, Spatial Hash\nFull BT, Full Abilities"]
+        T2["TIER 2: SENSOR\nSensor Layer\nC# Structs, State Machine AI\nVisible on Map"]
+        T3["TIER 3: STRATEGIC\nStrategic Layer\nFleet Abstraction\nAbstract Combat"]
+        T4["TIER 4: DORMANT\nStrategic Layer\nExistence Only\nRegenerated on Approach"]
     end
 
     A --> T0
@@ -35,128 +45,84 @@ graph TD
 
 ---
 
-## Tier Comparison Table
+## Tier Comparison
 
-| Aspect | Tier 0 Loaded | Tier 1 Active | Tier 2 Tactical | Tier 3 Strategic | Tier 4 Dormant |
-|--------|---------------|---------------|-----------------|------------------|----------------|
+| Aspect | Tier 0 Loaded | Tier 1 Active | Tier 2 Sensor | Tier 3 Strategic | Tier 4 Dormant |
+|--------|---------------|---------------|---------------|------------------|----------------|
 | **Range** | 0-5k | 5k-20k | 20k-100k | 100k-200k | 200k+ |
+| **Layer** | Rich | Rich | Sensor | Strategic | Strategic |
+| **Data** | ShipInstance + ShipView | ShipInstance | SensorContact struct | FleetData struct | DormantRecord |
 | **AI** | Full BT | Full BT | State Machine | Fleet-level | None |
-| **Physics** | Unity | DOTS | Simplified | Abstracted | None |
+| **Physics** | Unity Physics | Managed spatial hash | Velocity integration | Abstracted | None |
+| **Abilities** | Full unique abilities | Full unique abilities | None | None | None |
+| **Damage** | Full progressive destruction | Full progressive destruction | Aggregate HP only | Abstract combat | None |
+| **Visual** | Full render | None | Map dot | Map fleet icon | Sector marker |
 | **Update Rate** | Every frame | Every frame | Every 5-10 frames | Every ~1 second | Never |
-| **Collisions** | Unity Physics | DOTS Spatial | Major only | None | None |
-| **Visual** | Full render | None | None | None | None |
 | **Cost/Entity** | ~0.5ms | ~0.01ms | ~0.002ms | ~0.0005ms | ~0 |
-| **Max Entities** | ~20 | ~500 | ~2,000 | ~100 fleets | Unlimited |
+| **Max Entities** | ~20 | ~500 | ~200 | ~100 fleets | Unlimited |
 
 ---
 
-## Tier 0: Loaded (GameObject)
+## Tier 0: Loaded (Rich Layer + Visual)
 
 **Purpose:** Full fidelity for entities in camera view
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  TIER 0: LOADED                                                  │
-│                                                                  │
-│  Range: 0 - 5,000 units (camera view + buffer)                  │
-│                                                                  │
-│  Features:                                                       │
-│  ✓ Unity GameObject with full component hierarchy               │
-│  ✓ Unity Physics (Rigidbody2D)                                  │
-│  ✓ Full visual rendering (sprites, particles, effects)         │
-│  ✓ Full behavior tree evaluation every frame                    │
-│  ✓ Audio, trails, and all visual feedback                       │
-│  ✓ Full module updates (weapons, shields, sensors)             │
-│                                                                  │
-│  Transitions:                                                    │
-│  → Tier 1: When entity leaves camera view + buffer              │
-│  ← Tier 1: When entity enters camera view                       │
-│                                                                  │
-│  Data: Unity GameObject + ECS Entity (hybrid)                   │
-│                                                                  │
-│  Typical entities: Player ship, nearby enemies, projectiles     │
-└─────────────────────────────────────────────────────────────────┘
-```
+- **ShipInstance** C# class with full module system, unique abilities, behavior tree
+- **ShipView** MonoBehaviour for rendering (sprites, particles, audio, trails)
+- **Unity Physics** via Rigidbody2D for pixel-accurate collision
+- Full progressive destruction with hitbox zones
+- All visual effects active
+
+**Transition to Tier 1:** Entity leaves camera view + buffer
+- ShipView returned to object pool
+- ShipInstance remains (no data loss)
+
+**Transition from Tier 1:** Entity enters camera view
+- ShipView instantiated from pool
+- Synced to ShipInstance state
 
 ---
 
-## Tier 1: Active (Full DOTS Simulation)
+## Tier 1: Active (Rich Layer, No Visual)
 
 **Purpose:** Full simulation without rendering overhead
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  TIER 1: ACTIVE                                                  │
-│                                                                  │
-│  Range: 5,000 - 20,000 units (near sensor range)                │
-│                                                                  │
-│  Features:                                                       │
-│  ✓ Full DOTS physics integration every frame                    │
-│  ✓ Full behavior tree evaluation                                │
-│  ✓ Collision detection with Tier 0 and Tier 1 entities         │
-│  ✓ Full AI decision making                                      │
-│  ✓ Weapons can fire, shields regenerate                        │
-│  ✓ Damage and destruction processing                            │
-│                                                                  │
-│  Processing (Burst Jobs):                                        │
-│  - MovementSystem: Apply velocity, drag                         │
-│  - RotationSystem: Process rotation modes                       │
-│  - CollisionBroadPhase: Spatial hash population                 │
-│  - CollisionNarrowPhase: Circle-circle detection                │
-│  - BehaviorTreeSystem: Full BT evaluation                       │
-│  - WeaponSystem: Fire projectiles, track cooldowns              │
-│                                                                  │
-│  Transitions:                                                    │
-│  → Tier 0: Entity enters camera view                            │
-│  → Tier 2: Distance > 20,000 units                              │
-│  ← Tier 2: Distance ≤ 20,000 units                              │
-│                                                                  │
-│  Data: Pure ECS entities                                         │
-└─────────────────────────────────────────────────────────────────┘
-```
+- **ShipInstance** C# class (same object as Tier 0)
+- No GameObject, no rendering
+- **Managed spatial hash** for collision detection (circle-circle)
+- Full behavior tree evaluation
+- Full unique abilities active
+- Full module simulation
+- Weapons fire, shields regenerate, sensors scan
+
+**Transition to Tier 2:** Distance > 20k units
+- Create **ShipSnapshot** from ShipInstance (compressed state)
+- Create **SensorContact** struct with observable state
+- Store ShipSnapshot in SensorContact for later restoration
+- Destroy ShipInstance
+- Register SensorContact with SensorSimulationManager
+
+**Transition from Tier 2:** Distance < 17k units (hysteresis)
+- Load ShipConfig from ConfigRegistry
+- Create **ShipInstance** from config + ShipSnapshot
+- Restore module health, ability cooldowns, AI state
+- Destroy SensorContact
+- Register ShipInstance with RichEntityManager
 
 ---
 
-## Tier 2: Tactical (Simplified Individual Simulation)
+## Tier 2: Sensor (Sensor Simulation Layer)
 
-**Purpose:** Reduced fidelity but still individual behavior
+**Purpose:** Realistic behavior visible on the map - the "Star Trek sensor" experience
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  TIER 2: TACTICAL                                                │
-│                                                                  │
-│  Range: 20,000 - 100,000 units (medium sensor range)            │
-│                                                                  │
-│  Features:                                                       │
-│  ✓ State machine AI (not full behavior tree)                    │
-│  ✓ Updates every 5-10 frames (amortized)                        │
-│  ✓ Ships make course adjustments, pursue targets                │
-│  ✓ Simplified collision (only major impacts)                    │
-│  ✓ Can detect and respond to player presence                    │
-│                                                                  │
-│  AI States:                                                      │
-│  - Patrol: Follow waypoints                                      │
-│  - Pursue: Head toward target                                    │
-│  - Flee: Head away from threat                                   │
-│  - Orbit: Circle a point/entity                                  │
-│  - Idle: Drift with minor corrections                            │
-│  - Combat: Engage nearby enemies                                 │
-│                                                                  │
-│  Update Schedule:                                                │
-│  - Frame N: Update entities 0-99                                 │
-│  - Frame N+1: Update entities 100-199                           │
-│  - ... (round-robin across 5-10 frames)                         │
-│                                                                  │
-│  Transitions:                                                    │
-│  → Tier 1: Distance ≤ 20,000 units                              │
-│  → Tier 3: Distance > 100,000 units (Transient only)            │
-│  ← Tier 3: Distance ≤ 100,000 units                              │
-│                                                                  │
-│  Note: Critical entities stay at Tier 2 with full BT (reduced)  │
-└─────────────────────────────────────────────────────────────────┘
-```
+Each entity is an individual dot on the map. State machine AI creates observable, realistic behavior. Players can detect:
+- Ships changing heading
+- Warp signatures (a ship suddenly going to warp)
+- Combat engagements (two contacts converging, one fleeing)
+- Patrol patterns
+- Docking at stations
 
-### State Machine AI Detail
+### State Machine AI
 
 ```mermaid
 stateDiagram-v2
@@ -164,31 +130,63 @@ stateDiagram-v2
 
     Idle --> Patrol: Has waypoints
     Idle --> Pursue: Enemy detected
-    Idle --> Dock: Near station & needs service
+    Idle --> Dock: Near station + needs service
 
     Patrol --> Pursue: Enemy in range
     Patrol --> Idle: No waypoints
-    Patrol --> Dock: Low fuel/health near station
+    Patrol --> Dock: Low hull near station
 
     Pursue --> Combat: In weapon range
     Pursue --> Flee: Low health
     Pursue --> Patrol: Target lost
 
-    Combat --> Flee: Low health
+    Combat --> Flee: HullPercent < 0.3
     Combat --> Pursue: Target fled
-    Combat --> Orbit: Maintaining engagement distance
 
+    Flee --> Warp: Has warp + safe to charge
     Flee --> Idle: Safe distance
-    Flee --> Patrol: Health recovered
 
-    Orbit --> Pursue: Enemy detected
-    Orbit --> Combat: Target in range
-    Orbit --> Idle: Orbit complete
+    Warp --> Patrol: Arrived at destination
+    Warp --> Idle: Warp dropped
 
     Dock --> Idle: Docking complete
+
+    Orbit --> Pursue: Enemy detected
+    Orbit --> Idle: Orbit complete
 ```
 
-**Note:** All states from `AIStateEnum` (Idle, Patrol, Pursue, Combat, Flee, Orbit, Dock) are now represented.
+### Sensor Detection Levels
+
+What the player's sensors reveal depends on range and sensor module capability:
+
+| Detection Level | Range Factor | Info Shown on Map |
+|----------------|-------------|-------------------|
+| Blip | Max range | Dot, faction unknown |
+| Contact | 75% range | Faction color, heading arrow, speed |
+| Identified | 50% range | Ship class icon, hull/shield bars |
+| Full Read | 25% range | Weapons, warp state, who they're targeting |
+
+### Processing
+
+~200 contacts, ~30 updated per frame = full cycle every ~7 frames (~8.5 updates/second per entity). Enough for realistic-looking movement and observable state changes.
+
+### Critical Entities at Tier 2
+
+Critical entities (quest targets, allies) at Tier 2 receive enhanced simulation:
+- Full behavior tree evaluation (at reduced rate, every ~0.5s)
+- Individual tracking (never fleet-grouped)
+- Always show as Identified or better on map regardless of range
+
+**Transition to Tier 3:** Distance > 100k units (Transient entities only)
+- Group same-faction contacts within grouping radius into FleetData
+- Store each contact's ShipSnapshot in FleetMember
+- Create fleet entity with FleetData + FleetMember list
+
+**Transition from Tier 3:** Distance < 85k units (hysteresis)
+- Unpack fleet: create SensorContact per FleetMember
+- Calculate positions from formation offsets + fleet rotation
+- Restore observable state from ShipSnapshot
+- Destroy fleet
 
 ---
 
@@ -196,178 +194,78 @@ stateDiagram-v2
 
 **Purpose:** Group entities for efficient long-range simulation
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  TIER 3: STRATEGIC                                               │
-│                                                                  │
-│  Range: 100,000 - 200,000 units (long range sensors)            │
-│                                                                  │
-│  Features:                                                       │
-│  ✓ Transient entities GROUPED INTO FLEETS                       │
-│  ✓ Fleet-level AI decisions                                     │
-│  ✓ Updates every ~1 second                                       │
-│  ✓ Abstract combat resolution (strength vs strength)            │
-│  ✓ Persistent/Critical entities remain individual               │
-│                                                                  │
-│  Fleet AI Behaviors:                                             │
-│  - Patrol: Move between sector waypoints                        │
-│  - Intercept: Move to engage enemy fleet                        │
-│  - Retreat: Flee from superior force                            │
-│  - Hold: Maintain position                                       │
-│  - Escort: Follow another fleet/entity                          │
-│                                                                  │
-│  Combat Resolution:                                              │
-│  - When fleets engage: compare TotalStrength                    │
-│  - Calculate casualties per second                               │
-│  - Reduce MemberCount and TotalHP                               │
-│  - Losing fleet may retreat                                      │
-│                                                                  │
-│  Transitions:                                                    │
-│  → Tier 2: Distance ≤ 100,000 (fleet "unpacks")                 │
-│  → Tier 4: Distance > 200,000 (Transient only)                  │
-│  ← Tier 4: Distance ≤ 200,000                                    │
-│                                                                  │
-│  Note: Critical entities NEVER reach Tier 3 fleet grouping      │
-└─────────────────────────────────────────────────────────────────┘
-```
+### Transient Entities: Fleet Grouping
 
-### Fleet Grouping Process
+Same-faction transient entities within grouping radius form a fleet:
 
 ```mermaid
 sequenceDiagram
-    participant Ships as Individual Ships
-    participant System as Fleet System
+    participant Contacts as Individual Contacts
+    participant System as TierManager
     participant Fleet as Fleet Entity
 
-    Note over Ships: Ships at Tier 2, Distance > 100k
+    Note over Contacts: Contacts at Tier 2, Distance > 100k
+    System->>System: Find same-faction contacts within 5k radius
+    System->>Fleet: Create FleetData
+    System->>Fleet: Store FleetMembers with ShipSnapshots
+    System->>Contacts: Remove from SensorSimulationManager
 
-    Ships->>System: Check distance, same faction, nearby
-    System->>System: Calculate grouping (within 5k radius)
-    System->>Fleet: Create Fleet entity
-    System->>Ships: Add FleetMembership component
-    System->>Ships: Disable individual simulation
+    Note over Fleet: Fleet simulates at ~1 second intervals
 
-    Note over Fleet: Fleet simulates at Tier 3
-
-    Fleet->>Fleet: AI decision every ~1 second
-    Fleet->>Fleet: Move toward waypoint/target
-
-    Note over Ships: Player approaches (< 100k)
-
-    System->>Fleet: Detect promotion trigger
-    System->>Ships: Position = FleetCenter + FormationOffset[slot]
-    System->>Ships: Remove FleetMembership, enable Tier 2
-    System->>Fleet: Destroy fleet entity
-
-    Note over Ships: Ships resume individual simulation
+    Note over Contacts: Player approaches (< 85k)
+    System->>Contacts: Create SensorContacts from FleetMembers
+    System->>Contacts: Position = FleetCenter + rotated FormationOffset
+    System->>Fleet: Destroy fleet
 ```
 
-### Fleet Dissolution (Below Minimum Size)
+### Fleet AI
 
-When a fleet's `MemberCount` drops below `MinFleetSize` (default: 3) due to combat casualties:
+| Behavior | Description |
+|----------|-------------|
+| Patrol | Move between sector waypoints |
+| Intercept | Move to engage enemy fleet |
+| Retreat | Flee from superior force |
+| Hold | Maintain position |
+| Escort | Follow another fleet/entity |
 
-1. **Check dissolution threshold:** `FleetData.MemberCount < MinFleetSize`
-2. **Unpack remaining ships:** All surviving ships transition to Tier 2
-3. **Destroy fleet entity:** Fleet no longer needed
-4. **State restoration:** Ships receive `StateMachineState` with state derived from fleet behavior:
+### Abstract Combat
 
-| FleetBehavior | Maps to AIStateEnum |
-|---------------|---------------------|
+When fleets engage, combat is resolved abstractly:
+- Compare TotalStrength
+- Calculate casualties per second
+- Reduce MemberCount and TotalHP
+- Losing fleet may retreat
+
+### Fleet Casualty Selection
+
+When ships are destroyed in abstract combat:
+1. Never destroy Critical entities
+2. Prefer destroying weakest ships first
+3. Persistent entities get 50% survival bonus
+4. Deterministic random based on fleet seed
+
+### Persistent Entities at Tier 3
+
+Named NPCs (Persistent) at Tier 3:
+- Remain individual, not fleet-grouped
+- Update every ~1 second
+- Track position and basic state
+- Individual dot on far-range map
+
+### Fleet Dissolution
+
+When MemberCount drops below MinFleetSize (default: 3):
+- Unpack remaining ships to Tier 2
+- Destroy fleet entity
+- Map fleet behavior to SensorAIState
+
+| FleetBehavior | Maps to SensorAIState |
+|---------------|----------------------|
 | Patrol | Patrol |
 | Intercept | Pursue |
 | Retreat | Flee |
 | Hold | Idle |
 | Escort | Orbit |
-
-Ships are positioned using their stored `FleetMember.FormationOffset` transformed by `FleetData.Rotation`, same as normal fleet unpacking.
-
-### Abstract Combat Example
-
-```
-Fleet A (Pirates):         Fleet B (Traders):
-- 12 ships                 - 8 ships
-- TotalStrength: 8,000     - TotalStrength: 4,000
-- TotalHP: 15,000          - TotalHP: 10,000
-- Behavior: Intercept      - Behavior: Flee
-
-Combat Resolution (per second):
-- A deals: 8,000 * 0.1 = 800 damage to B
-- B deals: 4,000 * 0.1 = 400 damage to A
-
-After 10 seconds:
-- A: HP remaining ~11,000 (lost ~1 ship equivalent)
-- B: HP remaining ~2,000 (lost ~4 ships)
-- B triggers Retreat (HP < 30%)
-
-Result when player approaches:
-- Fleet A: 11 ships unpacked
-- Fleet B: 4 ships unpacked (scattered, fleeing)
-```
-
-### Fleet Casualty Selection Rules
-
-When a fleet takes abstract damage and ships are destroyed, the system must determine **which specific ships** are lost. This matters because fleets may contain a mix of Transient and Persistent members.
-
-```csharp
-public static class FleetCasualtySelector
-{
-    /// <summary>
-    /// Select which ships are destroyed when fleet takes casualties.
-    /// Rules (in priority order):
-    /// 1. Never destroy Critical entities (quest targets, allies)
-    /// 2. Prefer destroying weakest ships first (lowest HP contribution)
-    /// 3. Persistent entities (named NPCs) have 50% survival bonus
-    /// 4. Use deterministic random based on fleet seed for consistency
-    /// </summary>
-    public static NativeList<int> SelectCasualties(
-        ref FleetData fleet,
-        DynamicBuffer<FleetMember> members,
-        int casualtyCount,
-        uint randomSeed)
-    {
-        var casualties = new NativeList<int>(casualtyCount, Allocator.Temp);
-        var random = new Unity.Mathematics.Random(randomSeed);
-
-        // Build sorted list by priority (lowest = dies first)
-        var sortedMembers = new NativeList<(int index, float priority)>(
-            members.Length, Allocator.Temp);
-
-        for (int i = 0; i < members.Length; i++)
-        {
-            var member = members[i];
-            float priority = member.Strength;  // Base priority = combat strength
-
-            // Persistence modifiers
-            if (member.Persistence == EntityPersistence.Critical)
-                priority = float.MaxValue;  // Never select
-            else if (member.Persistence == EntityPersistence.Persistent)
-                priority *= 1.5f;  // 50% survival bonus
-
-            // Add some randomness (±20%)
-            priority *= random.NextFloat(0.8f, 1.2f);
-
-            sortedMembers.Add((i, priority));
-        }
-
-        // Sort by priority ascending (weakest first)
-        sortedMembers.Sort((a, b) => a.priority.CompareTo(b.priority));
-
-        // Select casualties from weakest
-        for (int i = 0; i < math.min(casualtyCount, sortedMembers.Length); i++)
-        {
-            if (sortedMembers[i].priority < float.MaxValue)  // Skip Critical
-            {
-                casualties.Add(sortedMembers[i].index);
-            }
-        }
-
-        sortedMembers.Dispose();
-        return casualties;
-    }
-}
-```
-
-**Important:** When a Persistent NPC is killed in abstract combat, their death is recorded in the PersistentEntityRegistry so they remain dead when their area is revisited.
 
 ---
 
@@ -375,161 +273,58 @@ public static class FleetCasualtySelector
 
 **Purpose:** Minimal overhead for very distant entities
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  TIER 4: DORMANT                                                 │
-│                                                                  │
-│  Range: 200,000+ units                                           │
-│                                                                  │
-│  Features:                                                       │
-│  ✓ Tracks existence only ("47 pirates in sector X")            │
-│  ✓ No simulation whatsoever                                      │
-│  ✓ No position updates                                          │
-│  ✓ Regenerated from procedural seed when player approaches     │
-│                                                                  │
-│  Data Stored:                                                    │
-│  - ChunkLocation (which chunk they're in)                       │
-│  - EntityType                                                    │
-│  - FactionIndex                                                  │
-│  - Count (for grouped transients)                               │
-│  - Seed (for procedural regeneration)                           │
-│                                                                  │
-│  What Happens When Player Approaches:                            │
-│  1. System detects chunk entering Tier 3 range                  │
-│  2. For grouped transients: Generate fleet from seed            │
-│  3. For persistent: Restore individual with last known state    │
-│  4. Promote to appropriate tier                                  │
-│                                                                  │
-│  CRITICAL ENTITIES NEVER REACH TIER 4                           │
-│  They stay at minimum Tier 2 regardless of distance             │
-│                                                                  │
-│  CRITICAL ENTITY BUDGET:                                        │
-│  - Max 50 Critical entities tracked globally                    │
-│  - If over budget: reduce update rate (0.5s intervals)          │
-│  - Oldest Critical tags can be demoted to Persistent            │
-└─────────────────────────────────────────────────────────────────┘
-```
+- Tracks existence only: "47 pirates in sector X"
+- No simulation whatsoever
+- Regenerated from procedural seed when player approaches
+- **Critical entities NEVER reach Tier 4**
 
-### Critical Entity Budget Management
-
-Critical entities (quest targets, allies) never demote below Tier 2, which could cause performance issues if too many exist. The system enforces a budget:
+### Dormant Data
 
 ```csharp
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-public partial struct CriticalEntityBudgetSystem : ISystem
+public struct DormantRecord
 {
-    private const int MAX_CRITICAL_ENTITIES = 50;
-    private const float REDUCED_UPDATE_RATE = 0.5f;  // seconds
-
-    public void OnUpdate(ref SystemState state)
-    {
-        var criticalEntities = new NativeList<(Entity, double createdTime)>(
-            Allocator.Temp);
-
-        // Count and collect critical entities
-        foreach (var (persistence, createdTime, entity) in
-            SystemAPI.Query<RefRO<EntityPersistenceData>, RefRO<CreatedTime>>()
-                     .WithEntityAccess())
-        {
-            if (persistence.ValueRO.Level == EntityPersistence.Critical)
-            {
-                criticalEntities.Add((entity, createdTime.ValueRO.Time));
-            }
-        }
-
-        int criticalCount = criticalEntities.Length;
-
-        if (criticalCount > MAX_CRITICAL_ENTITIES)
-        {
-            // Sort by age (oldest first)
-            criticalEntities.Sort((a, b) => a.createdTime.CompareTo(b.createdTime));
-
-            // Option 1: Reduce update rate for all critical entities
-            var settings = SystemAPI.GetSingletonRW<SimulationSettings>();
-            settings.ValueRW.CriticalUpdateInterval = REDUCED_UPDATE_RATE;
-
-            // Option 2: Demote oldest Critical → Persistent (if quest allows)
-            // This requires checking quest state to ensure we don't break active quests
-            int toDowngrade = criticalCount - MAX_CRITICAL_ENTITIES;
-            for (int i = 0; i < toDowngrade; i++)
-            {
-                var entity = criticalEntities[i].Item1;
-                var canDowngrade = CheckQuestAllowsDowngrade(entity);
-                if (canDowngrade)
-                {
-                    var persistence = SystemAPI.GetComponentRW<EntityPersistenceData>(entity);
-                    persistence.ValueRW.Level = EntityPersistence.Persistent;
-                }
-            }
-        }
-        else
-        {
-            // Under budget - restore normal update rate
-            var settings = SystemAPI.GetSingletonRW<SimulationSettings>();
-            settings.ValueRW.CriticalUpdateInterval = 0;  // Full rate
-        }
-
-        criticalEntities.Dispose();
-    }
-
-    private bool CheckQuestAllowsDowngrade(Entity entity)
-    {
-        // Check if entity is referenced by any active quest objective
-        if (!SystemAPI.HasSingleton<ActiveQuestData>())
-            return true;  // No quest system active, allow downgrade
-
-        var questData = SystemAPI.GetSingleton<ActiveQuestData>();
-
-        // Check if entity has an EntityId we can match against
-        if (!SystemAPI.HasComponent<EntityId>(entity))
-            return true;
-
-        var entityId = SystemAPI.GetComponent<EntityId>(entity);
-
-        // Check each active objective - if entity is a target, don't downgrade
-        var objectives = SystemAPI.GetBuffer<ActiveQuestObjective>(
-            SystemAPI.GetSingletonEntity<ActiveQuestData>());
-
-        foreach (var objective in objectives)
-        {
-            if (objective.TargetEntityId == entityId.Value &&
-                objective.Status == ObjectiveStatus.InProgress)
-            {
-                return false;  // Entity needed for active quest
-            }
-        }
-
-        return true;  // Safe to downgrade
-    }
+    public ChunkCoord Chunk;
+    public EntityTypeEnum EntityType;
+    public int FactionIndex;
+    public int Count;           // For grouped transients
+    public uint Seed;           // For procedural regeneration
+    public EntityPersistence Persistence;
+    public FixedString32Bytes UniqueId;
+    public ShipSnapshot Snapshot;   // Only for Persistent entities
 }
 ```
+
+### Restoration
+
+When player approaches (< 170k):
+- **Grouped transients:** Generate fleet from seed + count
+- **Persistent entities:** Restore individual from DormantRecord snapshot
+- Promote to appropriate tier
 
 ---
 
 ## Entity Persistence Behavior
 
-Different entity types degrade differently:
-
 ```mermaid
 graph TD
     subgraph "TRANSIENT (Generic Pirates, Patrols)"
-        TA[Tier 0-1: Full sim]
-        TB[Tier 2: State machine]
+        TA[Tier 0-1: Full OOP sim]
+        TB[Tier 2: State machine on map]
         TC[Tier 3: GROUPED INTO FLEET]
         TD[Tier 4: Can despawn/regenerate]
         TA --> TB --> TC --> TD
     end
 
     subgraph "PERSISTENT (Named NPCs, Merchants)"
-        PA[Tier 0-1: Full sim]
-        PB[Tier 2: State machine]
+        PA[Tier 0-1: Full OOP sim]
+        PB[Tier 2: State machine on map]
         PC[Tier 3: Individual, slow updates]
-        PD[Tier 4: Minimal tracking, no despawn]
+        PD[Tier 4: Tracked, no sim]
         PA --> PB --> PC --> PD
     end
 
     subgraph "CRITICAL (Quest Targets, Allies)"
-        CA[Tier 0-1: Full sim]
+        CA[Tier 0-1: Full OOP sim]
         CB[Tier 2: Full BT at reduced rate]
         CC[NEVER BELOW TIER 2]
         CA --> CB
@@ -540,21 +335,20 @@ graph TD
 ### Examples
 
 **Generic Pirate (Transient):**
+- At 80,000 units → Individual dot on map, state machine AI (Tier 2)
+- Player sees it patrolling, then pursuing something, then going to warp
 - At 150,000 units → Part of "Pirate Fleet #47" (Tier 3)
-- Player approaches to 80,000 → Fleet unpacks, pirate is individual (Tier 2)
-- Player approaches to 15,000 → Full behavior tree (Tier 1)
-- Player leaves to 250,000 → Returns to fleet or goes dormant (Tier 4)
+- Player approaches to 15,000 → Full ShipInstance with BT and abilities (Tier 1)
 
 **Captain Vex (Persistent):**
 - At 150,000 units → Individual entity, updates every ~1 second (Tier 3)
-- Never grouped into a fleet (named NPC)
-- Always trackable on minimap
+- Never grouped into a fleet
+- Always trackable on map
 - If destroyed far away, death is recorded
 
 **Quest Target "Stolen Cargo" (Critical):**
-- At ANY distance → Minimum Tier 2 simulation
-- Full behavior tree (reduced update rate when far)
-- Never dormant, never grouped
+- At ANY distance → Minimum Tier 2 with full BT
+- Always shows on map as identified contact
 - Quest state always accurate
 
 ---
@@ -565,75 +359,98 @@ graph TD
 stateDiagram-v2
     [*] --> Loaded: Spawned in view
     [*] --> Active: Spawned near player
-    [*] --> Tactical: Spawned at medium range
+    [*] --> Sensor: Spawned at medium range
     [*] --> Strategic: Spawned at long range
     [*] --> Dormant: Spawned very far
 
-    Loaded --> Active: Leaves camera view
+    Loaded --> Active: Exits camera view
     Active --> Loaded: Enters camera view
 
-    Active --> Tactical: Distance > 20k
-    Tactical --> Active: Distance ≤ 20k
+    Active --> Sensor: Distance > 20k (ShipSnapshot serialization)
+    Sensor --> Active: Distance < 17k (ShipSnapshot restoration)
 
-    Tactical --> Strategic: Distance > 100k (Transient)
-    Strategic --> Tactical: Distance ≤ 100k (Unpack)
-
-    Tactical --> Strategic: Distance > 100k (Persistent/Critical: Individual)
+    Sensor --> Strategic: Distance > 100k (Transient: fleet grouping)
+    Strategic --> Sensor: Distance < 85k (fleet unpack)
 
     Strategic --> Dormant: Distance > 200k (Transient only)
-    Dormant --> Strategic: Distance ≤ 200k (Regenerate)
+    Dormant --> Strategic: Distance < 170k (regenerate)
 
-    note right of Tactical: Critical entities stay here minimum
+    note right of Sensor: Critical entities stay here minimum
     note right of Dormant: Critical entities NEVER reach here
 ```
+
+### Hysteresis and Cooldowns
+
+- **15% hysteresis** on all tier boundaries to prevent oscillation
+- **2-second cooldown** after any tier change before the next change is allowed
+- Entity moving at boundary velocity does not rapidly flicker between tiers
+
+| Tier Boundary | Promote At | Demote At | Hysteresis |
+|--------------|-----------|-----------|-----------|
+| 0 ↔ 1 | 4,250 | 5,000 | 750 |
+| 1 ↔ 2 | 17,000 | 20,000 | 3,000 |
+| 2 ↔ 3 | 85,000 | 100,000 | 15,000 |
+| 3 ↔ 4 | 170,000 | 200,000 | 30,000 |
+
+---
+
+## Critical Entity Budget
+
+Critical entities never demote below Tier 2, which could cause performance issues if too many exist:
+
+- **Maximum:** 50 Critical entities globally
+- **Over budget:** Reduce update rate to 0.5s intervals
+- **Still over:** Oldest Critical tags demoted to Persistent (if quest allows)
+
+---
+
+## Minimap Integration
+
+| Tier | Minimap Display |
+|------|-----------------|
+| 0-1 (Rich) | Individual ship icons, real-time position |
+| 2 (Sensor) | Individual dots/icons based on detection level |
+| 3 (Strategic, Transient) | Fleet icon with member count badge |
+| 3 (Strategic, Persistent) | Individual icon, slow position updates |
+| 4 (Dormant) | Sector markers ("Pirates active in sector") |
 
 ---
 
 ## Quality Settings
 
-All tier boundaries are configurable for different hardware:
+All tier boundaries are configurable:
 
 ```csharp
 public class SimulationQualitySettings : ScriptableObject
 {
     [Header("Tier Boundaries (World Units)")]
-    public float Tier0MaxDistance = 5000;      // Loaded → Active
-    public float Tier1MaxDistance = 20000;     // Active → Tactical
-    public float Tier2MaxDistance = 100000;    // Tactical → Strategic
-    public float Tier3MaxDistance = 200000;    // Strategic → Dormant
+    public float Tier0MaxDistance = 5000;
+    public float Tier1MaxDistance = 20000;
+    public float Tier2MaxDistance = 100000;
+    public float Tier3MaxDistance = 200000;
 
-    [Header("Hysteresis Settings (15% of tier boundary to prevent oscillation)")]
-    // Hysteresis = 15% of tier boundary. Entity promotes at boundary, demotes at boundary - hysteresis.
-    // Example: Tier 1 boundary = 20k, hysteresis = 3k → promotes at 20k, demotes at 17k
-    public float Tier0Hysteresis = 750;        // 15% of 5k = 750 → demote at 4,250
-    public float Tier1Hysteresis = 3000;       // 15% of 20k = 3k → demote at 17,000
-    public float Tier2Hysteresis = 15000;      // 15% of 100k = 15k → demote at 85,000
-    public float Tier3Hysteresis = 30000;      // 15% of 200k = 30k → demote at 170,000
+    [Header("Hysteresis (15% of tier boundary)")]
+    public float Tier0Hysteresis = 750;
+    public float Tier1Hysteresis = 3000;
+    public float Tier2Hysteresis = 15000;
+    public float Tier3Hysteresis = 30000;
 
-    [Header("Hysteresis Cooldowns (prevent rapid tier changes)")]
-    public float TierChangeCooldown = 2.0f;    // Seconds before entity can change tier again
+    [Header("Cooldowns")]
+    public float TierChangeCooldown = 2.0f;
 
-    [Header("Update Rates")]
-    public int Tier2UpdateInterval = 5;        // Frames between updates
-    public float Tier3UpdateInterval = 1.0f;   // Seconds between updates
+    [Header("Sensor Layer")]
+    public int SensorUpdateBatchSize = 30;
 
-    [Header("Capacity Limits")]
+    [Header("Capacity")]
     public int Tier0MaxEntities = 20;
-    public int Tier1MaxEntities = 500;
-    public int Tier2MaxEntities = 2000;
-    public int Tier3MaxFleets = 100;
+    public int RichLayerMaxEntities = 500;
+    public int SensorLayerMaxEntities = 2000;
+    public int MaxFleets = 100;
+    public int MaxCriticalEntities = 50;
 
-    [Header("Critical Entity Limits")]
-    public int MaxCriticalEntities = 50;       // Cap to prevent budget blow-up
-    public float CriticalReducedUpdateRate = 0.5f;  // Update every 0.5s when over budget
-
-    [Header("Persistence Overrides")]
-    public float PersistentTier2MaxDistance = 150000;  // Larger range for named NPCs
-    public SimulationTier CriticalMinTier = SimulationTier.Tactical;
-
-    [Header("Fleet Settings")]
-    public int MinFleetSize = 3;               // Don't group fewer ships
-    public float FleetGroupingRadius = 5000;   // Ships within this form fleet
+    [Header("Fleet")]
+    public int MinFleetSize = 3;
+    public float FleetGroupingRadius = 5000;
 }
 ```
 
@@ -643,41 +460,23 @@ public class SimulationQualitySettings : ScriptableObject
 ```
 Tier1MaxDistance = 30000
 Tier2MaxDistance = 150000
-Tier2UpdateInterval = 3
-Tier1MaxEntities = 1000
+SensorUpdateBatchSize = 50
+RichLayerMaxEntities = 1000
 ```
 
 **Performance (Lower-end Hardware):**
 ```
 Tier1MaxDistance = 15000
 Tier2MaxDistance = 80000
-Tier2UpdateInterval = 10
-Tier1MaxEntities = 300
+SensorUpdateBatchSize = 20
+RichLayerMaxEntities = 300
 ```
-
----
-
-## Minimap Integration
-
-The minimap displays entities differently based on tier:
-
-| Tier | Minimap Display |
-|------|-----------------|
-| 0-1 | Individual ship icons, real-time position |
-| 2 | Individual dots, slightly delayed position |
-| 3 (Transient) | Fleet icon with member count badge |
-| 3 (Persistent) | Individual icon, slow position updates |
-| 4 | Sector markers ("Pirates active in sector") |
-
-**Zoom Behavior:**
-- Zoomed out: Shows fleet icons, abstracted movement
-- Zoomed in: Shows individual ships (queries Tier 3 for positions)
 
 ---
 
 ## Related Documents
 
-- [[01-component-model]] - Components for each tier
-- [[02-system-architecture]] - Systems that process each tier
-- [[04-archetype-strategy]] - How archetypes change between tiers
+- [[01-component-model]] - Data types for each tier
+- [[02-system-architecture]] - Processing pipeline per layer
+- [[04-archetype-strategy]] - Entity composition patterns
 - [[06-chunk-integration]] - How chunks trigger tier transitions

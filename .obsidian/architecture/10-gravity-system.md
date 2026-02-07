@@ -2,6 +2,8 @@
 
 This document defines the Newtonian gravity system for realistic orbital mechanics in Starfire.
 
+> **Architecture Note:** In the hybrid architecture, gravity operates across two layers. The **Mass Entity Layer** handles asteroid belt gravity via Burst Jobs (NativeArray<AsteroidData> + NativeArray<GravitySourceData>). The **Rich Entity Layer** applies gravity to nearby ships via the EnvironmentManager. GravitySourceData is shared between both layers as a read-only NativeArray. Celestial bodies (stars, planets) are managed by the EnvironmentManager and update their positions from pre-computed orbits each frame.
+
 ---
 
 ## Design Decisions Summary
@@ -14,7 +16,8 @@ This document defines the Newtonian gravity system for realistic orbital mechani
 | Stars | Pre-computed orbits | Can orbit black holes or each other (binary/triple) |
 | Multi-star planets | Circumbinary orbits | Orbit system barycenter |
 | Three-body stars | Pre-computed patterns | Known stable configurations (figure-8, hierarchical) |
-| Tier handling | Full T1, Keplerian T2 | Matches existing tier philosophy |
+| Asteroid gravity | Burst Jobs (Mass Layer) | Thousands of bodies, cache-coherent batch processing |
+| Ship gravity | Managed code (Rich Layer) | Few hundred ships, needs access to ShipInstance |
 
 ---
 
@@ -764,6 +767,8 @@ public class GravityConfig : ScriptableObject
 }
 ```
 
+`GravityConfig` values can be overridden by mods via the JSON config pipeline (see [[05-configuration-layer]]). This allows mods to adjust gravity scaling, SOI behavior, and orbit detection thresholds.
+
 ---
 
 ## Key Formulas Reference
@@ -809,3 +814,4 @@ r₂ = a × m₁ / (m₁ + m₂)    // Star 2 distance from barycenter
 - [[02-system-architecture]] - System execution order
 - [[03-tiered-simulation]] - Tier system behavior
 - [[11-heat-system]] - Thermal radiation (uses gravity source data)
+- [[12-modding-architecture]] - Moddable gravity configuration

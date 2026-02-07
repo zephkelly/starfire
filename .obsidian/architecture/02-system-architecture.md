@@ -1,838 +1,673 @@
 # System Architecture
 
-This document defines the ECS system execution order, responsibilities, and data flow for Starfire's DOTS architecture.
+This document defines the processing pipeline for each layer, execution order, and data flow.
 
 ---
 
-## System Execution Overview
+## Processing Overview
+
+Each layer has its own manager class that runs during Unity's update cycle. The layers execute in sequence, not as DOTS system groups.
 
 ```mermaid
 flowchart TB
-    subgraph INIT["Initialization Group"]
-        direction LR
-        CLS[ConfigLoadSystem] --> ESS[EntitySpawnSystem]
-        ESS --> TAS[TierAssignSystem]
+    subgraph FRAME["MonoBehaviour Update (Per Frame)"]
+        direction TB
+        GM["GameManager.Update()"]
+        INPUT["InputManager"]
+        RICH["RichEntityManager"]
+        SENSOR["SensorSimulationManager"]
+        MASS["MassEntityManager"]
+        ENV["EnvironmentManager"]
+        TIER["TierManager"]
+        SCRIPT["ScriptExecutionManager"]
+        PRESENT["PresentationManager"]
     end
 
-    subgraph INPUT["Input Group"]
-        direction LR
-        PIS[PlayerInputSystem] --> AIS[AIInputSystem]
-        AIS --> DSS[DriverStackSystem]
-    end
-
-    subgraph SIM["Simulation Group (Tier 0-1)"]
-        direction LR
-        MVS[MovementSystem] --> RTS[RotationSystem]
-        RTS --> PHS[PhysicsIntegrationSystem]
-    end
-
-    subgraph ENV["Environment Group"]
-        direction LR
-        SOUS[StarOrbitUpdateSystem] --> BCS[BarycenterCalcSystem]
-        BCS --> GSS[GravitySimulatorSystem]
-        GSS --> HSS[HeatSimulatorSystem]
-    end
-
-    subgraph PHYSICS["Physics Group"]
-        direction LR
-        BPC[BroadPhaseCollision] --> NPC[NarrowPhaseCollision]
-        NPC --> CRS[CollisionResponseSystem]
-    end
-
-    subgraph COMBAT["Combat Group"]
-        direction LR
-        WPS[WeaponSystem] --> PJS[ProjectileSystem]
-        PJS --> DLS[DamageLocalizationSystem]
-        DLS --> MDS[ModuleDamageSystem]
-        MDS --> HDS[HullDamageSystem]
-        HDS --> MRS[ModuleRepairSystem]
-        MRS --> ATPS[AITargetPrioritySystem]
-        ATPS --> QTS[QuestTrackingSystem]
-        QTS --> DECS[DamageEventCleanupSystem]
-        DECS --> DTS[DestructionSystem]
-    end
-
-    subgraph TIER["Tier Management Group"]
-        direction LR
-        DCS[DistanceCalcSystem] --> TTS[TierTransitionSystem]
-        TTS --> CMS[ChunkMigrationSystem]
-    end
-
-    subgraph BACKGROUND["Background Simulation Group"]
-        direction LR
-        T2S[Tier2TacticalSystem] --> T3S[Tier3StrategicSystem]
-        T3S --> FLS[FleetSystem]
-    end
-
-    subgraph RENDER["Presentation Group"]
-        direction LR
-        VMS[ViewManagerSystem] --> TRS[TransformSyncSystem]
-        TRS --> VES[VisualEffectsSystem]
-    end
-
-    INIT --> INPUT
-    INPUT --> SIM
-    SIM --> ENV
-    ENV --> PHYSICS
-    PHYSICS --> COMBAT
-    COMBAT --> TIER
-    TIER --> BACKGROUND
-    BACKGROUND --> RENDER
+    GM --> INPUT
+    INPUT --> RICH
+    RICH --> SENSOR
+    SENSOR --> MASS
+    MASS --> ENV
+    ENV --> TIER
+    TIER --> SCRIPT
+    SCRIPT --> PRESENT
 ```
 
 ---
 
-## System Groups
+## Layer Managers
 
-### 1. Initialization Group
+### 1. InputManager
 
-Runs once at startup and when loading save data.
+Collects input from the player and feeds it into the player's ShipInstance.
 
-```mermaid
-sequenceDiagram
-    participant Game as Game Start
-    participant CLS as ConfigLoadSystem
-    participant Blob as BlobAssets
-    participant ESS as EntitySpawnSystem
-    participant TAS as TierAssignSystem
-
-    Game->>CLS: Initialize
-    CLS->>Blob: Load JSON configs
-    Blob-->>CLS: BlobAssetReference<T>
-    CLS->>ESS: Configs ready
-    ESS->>ESS: Create entity archetypes
-    ESS->>TAS: Entities created
-    TAS->>TAS: Calculate initial tiers
-    TAS->>TAS: Enable tier tags
-```
-
-| System | Responsibility |
-|--------|---------------|
-| `ConfigLoadSystem` | Load JSON → BlobAsset conversion, validate schemas |
-| `EntitySpawnSystem` | Create entities from archetype definitions |
-| `TierAssignSystem` | Initial tier assignment based on player distance |
-
----
-
-### 2. Input Group
-
-Collects and resolves control inputs from all sources.
-
-```mermaid
-flowchart LR
-    subgraph Sources
-        KB[Keyboard/Mouse]
-        GP[Gamepad]
-        AI[AI System]
-    end
-
-    subgraph Processing
-        PIS[PlayerInputSystem]
-        AIS[AIInputSystem]
-        DSS[DriverStackSystem]
-    end
-
-    subgraph Output
-        CI[ControlInput Component]
-    end
-
-    KB --> PIS
-    GP --> PIS
-    AI --> AIS
-    PIS --> DSS
-    AIS --> DSS
-    DSS --> CI
-```
-
-| System | Responsibility |
-|--------|---------------|
-| `PlayerInputSystem` | Read Unity Input System, populate `PlayerControlInput` |
-| `AIInputSystem` | Execute behavior trees, populate `AIControlInput` |
-| `DriverStackSystem` | Resolve priority, write final `ControlInput` |
-
-**Driver Stack Resolution:**
 ```csharp
-// Pseudo-code for driver stack priority
-[BurstCompile]
-public void Execute(ref ControlInput output,
-                    in PlayerControlInput player,
-                    in AIControlInput ai,
-                    in DriverStack stack)
+public class InputManager : MonoBehaviour
 {
-    if (stack.PlayerPriority > stack.AIPriority && player.IsActive)
-        output = player.ToControlInput();
-    else if (ai.IsActive)
-        output = ai.ToControlInput();
-    else
-        output = ControlInput.None;
+    public ControlInput CurrentInput { get; private set; }
+
+    void Update()
+    {
+        // Read Unity Input System
+        // Detect keyboard/mouse vs gamepad
+        // Populate CurrentInput struct
+    }
+}
+```
+
+| Responsibility | Budget |
+|---------------|--------|
+| Read Unity Input System | 0.2ms |
+| Detect input device | 0.1ms |
+| Populate ControlInput | 0.1ms |
+| **Total** | **0.5ms** |
+
+---
+
+### 2. RichEntityManager
+
+Manages all Tier 0-1 ships and stations. This is the core gameplay simulation.
+
+```mermaid
+flowchart TB
+    subgraph RichUpdate["RichEntityManager.Update()"]
+        direction TB
+        AI["1. AI Evaluation\n(BehaviorController.Evaluate)"]
+        MOD["2. Module Updates\n(shields, weapons, sensors)"]
+        ABILITY["3. Ability Updates\n(per-ship unique abilities)"]
+        PHYS["4. Physics Integration\n(velocity, rotation, position)"]
+        COLL["5. Collision Detection\n(spatial hash)"]
+        COMBAT["6. Combat Processing\n(damage, destruction)"]
+    end
+
+    AI --> MOD --> ABILITY --> PHYS --> COLL --> COMBAT
+```
+
+```csharp
+public class RichEntityManager
+{
+    private Dictionary<int, ShipInstance> _ships;
+    private Dictionary<int, StationInstance> _stations;
+    private SpatialHashGrid _collisionGrid;
+    private SimulationContext _context;
+
+    public void Update(float deltaTime)
+    {
+        // 1. AI evaluation (behavior trees for AI ships)
+        foreach (var ship in _ships.Values)
+        {
+            if (ship.BehaviorController != null)
+            {
+                var input = ship.BehaviorController.Evaluate(ship, _context);
+                ship.ApplyControlInput(input);
+            }
+        }
+
+        // 2. Module updates (shields regen, weapon cooldowns, sensor scans)
+        foreach (var ship in _ships.Values)
+            ship.UpdateModules(deltaTime);
+
+        // 3. Ability updates (unique per-class abilities)
+        foreach (var ship in _ships.Values)
+            ship.UpdateAbilities(deltaTime);
+
+        // 4. Physics integration
+        foreach (var ship in _ships.Values)
+            ship.IntegratePhysics(deltaTime);
+
+        // 5. Collision detection
+        _collisionGrid.Clear();
+        _collisionGrid.InsertAll(_ships.Values);
+        _collisionGrid.DetectAndResolve();
+
+        // 6. Combat processing (damage routing, destruction)
+        ProcessCombat(deltaTime);
+    }
+}
+```
+
+| Step | Responsibility | Budget |
+|------|---------------|--------|
+| AI Evaluation | Behavior trees for AI ships | 1.0ms |
+| Module Updates | Shield regen, weapon cooldowns, sensors | 0.5ms |
+| Ability Updates | Per-class unique abilities | 0.3ms |
+| Physics Integration | Velocity, rotation, position updates | 0.3ms |
+| Collision Detection | Spatial hash broad + narrow phase | 0.5ms |
+| Combat Processing | Damage routing, destruction | 0.4ms |
+| **Total** | | **3.0ms** |
+
+**Collision System (Rich Layer):**
+
+| Tier | Collision Approach |
+|------|-------------------|
+| Tier 0 | Unity Physics (Rigidbody2D colliders) |
+| Tier 1 | Managed spatial hash with circle-circle tests |
+
+```csharp
+public class SpatialHashGrid
+{
+    private const float CellSize = 50f;
+    private const int MaxEntitiesPerCell = 64;
+
+    public void InsertAll(IEnumerable<ShipInstance> ships);
+    public void DetectAndResolve();
 }
 ```
 
 ---
 
-### 3. Simulation Group (Tier 0-1 Only)
+### 3. SensorSimulationManager
 
-Full physics simulation for nearby entities.
+Manages Tier 2 entities visible on sensors. Amortized updates for realistic but efficient simulation.
 
 ```mermaid
 flowchart TB
-    subgraph Input
-        CI[ControlInput]
-        PM[PropulsionModule]
-        RM[RotationModule]
+    subgraph SensorUpdate["SensorSimulationManager.Update()"]
+        direction TB
+        BATCH["1. Select Batch\n(round-robin cursor)"]
+        SM["2. State Machine AI\n(per contact in batch)"]
+        POS["3. Position Updates\n(velocity integration)"]
+        NOTIFY["4. Notify Map\n(state change events)"]
     end
 
-    subgraph Movement
-        MVS[MovementSystem]
-        AP[AbsolutePosition]
-        VEL[Velocity]
-    end
-
-    subgraph Rotation
-        RTS[RotationSystem]
-        ROT[Rotation Component]
-    end
-
-    subgraph Physics
-        PHS[PhysicsIntegrationSystem]
-        LP[LocalPosition]
-        WO[WorldOrigin]
-    end
-
-    CI --> MVS
-    PM --> MVS
-    MVS --> VEL
-    MVS --> AP
-
-    CI --> RTS
-    RM --> RTS
-    RTS --> ROT
-
-    AP --> PHS
-    WO --> PHS
-    PHS --> LP
+    BATCH --> SM --> POS --> NOTIFY
 ```
 
-| System | Responsibility | Query Filter |
-|--------|---------------|--------------|
-| `MovementSystem` | Apply thrust, update velocity | `ActiveTag` enabled |
-| `RotationSystem` | Apply rotation modes (instant/smooth/physics/thruster) | `ActiveTag` enabled |
-| `PhysicsIntegrationSystem` | Integrate velocity → position, update local coords | `ActiveTag` OR `LoadedTag` enabled |
+```csharp
+public class SensorSimulationManager
+{
+    private List<SensorContact> _contacts;
+    private int _updateCursor;
+    private int _batchSize = 30;
 
-**Rotation Mode State Machine:**
+    public void Update(float deltaTime)
+    {
+        float scaledDt = deltaTime * (_contacts.Count / (float)_batchSize);
+        int end = Math.Min(_updateCursor + _batchSize, _contacts.Count);
+
+        for (int i = _updateCursor; i < end; i++)
+        {
+            ref var contact = ref _contacts[i];
+            UpdateStateMachine(ref contact, scaledDt);
+            IntegratePosition(ref contact, scaledDt);
+            CheckStateChanges(ref contact);
+        }
+
+        _updateCursor = (end >= _contacts.Count) ? 0 : end;
+    }
+}
+```
+
+**State Machine AI:**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
-    Idle --> Accelerate: Input detected
-    Accelerate --> Coast: Max angular velocity reached
-    Coast --> Brake: Near target angle
-    Brake --> Settling: Low velocity
-    Settling --> Idle: At target
+    Idle --> Patrol: Has waypoints
+    Idle --> Pursue: Enemy detected
+    Idle --> Dock: Near station + needs service
 
-    note right of Accelerate: Apply torque
-    note right of Coast: Maintain velocity
-    note right of Brake: Counter-torque
-    note right of Settling: Damping
+    Patrol --> Pursue: Enemy in range
+    Patrol --> Idle: No waypoints
+    Patrol --> Dock: Low hull near station
+
+    Pursue --> Combat: In weapon range
+    Pursue --> Flee: Low health
+    Pursue --> Patrol: Target lost
+
+    Combat --> Flee: HullPercent < 0.3
+    Combat --> Pursue: Target fled
+
+    Flee --> Warp: Has warp + safe to charge
+    Flee --> Idle: Safe distance
+
+    Warp --> Patrol: Arrived at destination
+    Warp --> Idle: Warp dropped
+
+    Dock --> Idle: Docking complete
+
+    Orbit --> Pursue: Enemy detected
+    Orbit --> Idle: Orbit complete
 ```
+
+| Responsibility | Budget |
+|---------------|--------|
+| State machine evaluation (~30 contacts/frame) | 0.2ms |
+| Position integration | 0.1ms |
+| State change notifications | 0.1ms |
+| **Total** | **0.5ms** |
+
+At ~200 contacts / 30 per batch = full cycle every ~7 frames. At 60fps that is ~8.5 updates per second per entity.
 
 ---
 
-### 4. Environment Group
+### 4. MassEntityManager
 
-Gravity simulation, orbital mechanics, and heat systems. Runs between Simulation and Physics groups.
+Manages asteroids, debris, and projectiles using NativeArrays and Burst Jobs.
 
 ```mermaid
 flowchart TB
-    subgraph StarUpdate["Star Position Updates"]
-        SOUS[StarOrbitUpdateSystem]
-        PRE[Pre-computed Orbits]
-        SPOS[Star Positions]
+    subgraph MassUpdate["MassEntityManager.Update()"]
+        direction TB
+        PROJ["1. Projectile Update\n(IJobParallelFor, Burst)"]
+        AST["2. Asteroid Physics\n(gravity, position)"]
+        DEB["3. Debris Lifetime\n(decay, destroy)"]
+        COLL["4. Mass-Rich Collision\n(projectile vs ships)"]
     end
 
-    subgraph Barycenter["Barycenter Calculation"]
-        BCS[BarycenterCalculationSystem]
-        MULTI[Multi-star Systems]
-        BC[Barycenters]
-    end
-
-    subgraph Gravity["Gravity Simulation"]
-        GSS[GravitySimulatorSystem]
-        SOI[SOI Detection]
-        VERLET[Verlet Integration]
-    end
-
-    subgraph Heat["Heat Simulation"]
-        HSS[HeatSimulatorSystem]
-        RAD[Radiation Calc]
-        COOL[Stefan-Boltzmann]
-        DMG[Heat Damage]
-    end
-
-    SOUS --> PRE --> SPOS
-    SPOS --> BCS
-    BCS --> MULTI --> BC
-    BC --> GSS
-    GSS --> SOI --> VERLET
-    VERLET --> HSS
-    HSS --> RAD --> COOL --> DMG
+    PROJ --> AST --> DEB --> COLL
 ```
-
-| System | Responsibility | Query Filter |
-|--------|---------------|--------------|
-| `StarOrbitUpdateSystem` | Update star positions from pre-computed orbits | Stars with PrecomputedOrbit |
-| `BarycenterCalculationSystem` | Calculate barycenters for multi-star systems | StarSystemData |
-| `GravitySimulatorSystem` | Velocity Verlet integration, SOI transitions | `ActiveTag` OR `LoadedTag` enabled |
-| `HeatSimulatorSystem` | Calculate radiation, cooling, apply heat damage | `ActiveTag` OR `LoadedTag` enabled |
-
-**Gravity Simulation (Tier 0-1):**
-- Update star positions from pre-computed Keplerian orbits
-- Recalculate barycenters for binary/triple star systems
-- Detect SOI (Sphere of Influence) transitions
-- Apply Velocity Verlet integration with configurable substeps
-- Periodically update orbital elements for Tier 2 prediction
-
-**Heat Simulation (Tier 0-1):**
-- Query nearby stars (reuses gravity source data)
-- Calculate incoming radiation (inverse-square law)
-- Calculate radiative cooling (Stefan-Boltzmann)
-- Update hull temperature
-- Apply heat damage if exceeding MaxTemperature
-
-See [[10-gravity-system]] and [[11-heat-system]] for detailed documentation.
-
----
-
-### 5. Physics Group
-
-Collision detection and response.
-
-```mermaid
-flowchart TB
-    subgraph BroadPhase
-        BPC[BroadPhaseCollision]
-        SH[Spatial Hash]
-        CP[Collision Pairs]
-    end
-
-    subgraph NarrowPhase
-        NPC[NarrowPhaseCollision]
-        CC[Circle-Circle Test]
-        CM[Collision Manifold]
-    end
-
-    subgraph Response
-        CRS[CollisionResponseSystem]
-        IMP[Impulse Resolution]
-        DMG[Damage Events]
-    end
-
-    BPC --> SH
-    SH --> CP
-    CP --> NPC
-    NPC --> CC
-    CC --> CM
-    CM --> CRS
-    CRS --> IMP
-    CRS --> DMG
-```
-
-| System | Responsibility | Complexity |
-|--------|---------------|------------|
-| `BroadPhaseCollision` | Spatial hash grid, generate potential pairs | O(n) |
-| `NarrowPhaseCollision` | Circle-circle intersection tests | O(pairs) |
-| `CollisionResponseSystem` | Impulse resolution, damage event generation | O(collisions) |
-
-**Spatial Hash Configuration:**
-```csharp
-public struct SpatialHashConfig : IComponentData
-{
-    public float CellSize;      // 50 units (covers most entities)
-    public int MaxEntitiesPerCell;  // 64
-    public int GridDimension;   // 256 (12,800 unit coverage)
-}
-```
-
----
-
-### 6. Combat Group
-
-Weapons, projectiles, and damage processing including progressive destruction.
-
-```mermaid
-sequenceDiagram
-    participant WPS as WeaponSystem
-    participant PJS as ProjectileSystem
-    participant DLS as DamageLocalizationSystem
-    participant MDS as ModuleDamageSystem
-    participant DAS as HullDamageSystem
-    participant MRS as ModuleRepairSystem
-    participant DTS as DestructionSystem
-
-    WPS->>WPS: Check fire conditions
-    WPS->>PJS: Spawn projectile entity
-    PJS->>PJS: Update projectile positions
-    PJS->>DLS: On hit, queue PendingDamage with position
-    DLS->>DLS: Check shields, reduce damage
-    DLS->>DLS: Find hitbox zone from local impact position
-    DLS->>MDS: Route remaining damage to zone modules
-    MDS->>MDS: Apply damage to modules, update efficiency
-    MDS->>DAS: Pass module overflow to hull
-    DAS->>DAS: Apply armor reduction
-    DAS->>DAS: Update hull integrity
-    DAS->>DTS: If hull <= 0
-    DTS->>DTS: Destroy entity, spawn effects
-    MRS->>MRS: Auto-repair damaged modules
-```
-
-| System | Responsibility |
-|--------|---------------|
-| `WeaponSystem` | Cooldown management, fire commands, projectile spawning |
-| `ProjectileSystem` | Projectile movement, lifetime, hit detection, queue `PendingDamage` with world position |
-| `DamageLocalizationSystem` | **Shield absorption first**, calculate `LocalImpactPosition`, detect hitbox zone, set `HitZone` in `PendingDamage`. For Tier 2+, marks `IsLocalized = false` to skip zone routing. |
-| `ModuleDamageSystem` | Read `HitZone` from `PendingDamage`, distribute damage to modules via zone mappings, update `ModuleHealthElement` states, fire damage events, calculate overflow |
-| `HullDamageSystem` | Apply armor reduction to overflow damage, update `HullModule.CurrentIntegrity`, trigger destruction |
-| `ModuleRepairSystem` | Auto-repair modules over time, handle repair delays |
-| `AITargetPrioritySystem` | Recalculate AI target priority when modules disabled (reads damage events) |
-| `QuestTrackingSystem` | Track quest objectives involving module damage (reads damage events) |
-| `DamageEventCleanupSystem` | **Clear all damage event buffers** (`ModuleDamagedEvent`, `ModuleDisabledEvent`, `ModuleRepairedEvent`) - runs LAST in Combat Group |
-| `DestructionSystem` | Entity destruction, loot drops, explosion effects |
-
-**Damage Event Processing Order:**
-
-Damage events (`ModuleDamagedEvent`, `ModuleDisabledEvent`, `ModuleRepairedEvent`) are stored as buffers on damaged entities. Systems that consume these events:
-
-1. `AITargetPrioritySystem` (Combat Group) - AI recalculates target priority when modules disabled
-2. `QuestTrackingSystem` (Combat Group) - Tracks quest objectives involving damage
-
-**Note:** `DamageEffectsSystem` does NOT consume damage events. It runs in Presentation Group and reads `ModuleHealthElement` buffer directly, tracking state changes via `EntityDamageEffects.PreviousWorstState` comparison. This avoids timing issues with event cleanup.
-
-**Critical:** `DamageEventCleanupSystem` runs **last** in the Combat Group and clears all event buffers. All event consumers **must** run within Combat Group and use `[UpdateBefore(typeof(DamageEventCleanupSystem))]` attribute to ensure they process events before cleanup.
-
-See [[09-progressive-destruction]] for detailed documentation on the localized damage system.
-
-### Destruction Pipeline Detail
-
-When an entity's hull reaches 0, the following sequence executes:
-
-```mermaid
-sequenceDiagram
-    participant HDS as HullDamageSystem
-    participant DTS as DestructionSystem
-    participant LDS as LootDropSystem
-    participant ESS as EffectsSpawnSystem
-    participant AIS as AITargetInvalidationSystem
-    participant QTS as QuestTrackingSystem
-    participant ECS as EntityCleanupSystem
-
-    HDS->>DTS: Hull <= 0, add PendingDestructionTag
-    DTS->>LDS: Spawn loot based on entity type
-    DTS->>ESS: Spawn explosion/debris effects
-    DTS->>AIS: Invalidate AI target references
-    DTS->>QTS: Notify quest system (kills, objectives)
-    DTS->>ECS: Destroy entity
-```
-
-1. **DestructionSystem** marks entity with `PendingDestructionTag`
-2. **LootDropSystem** spawns loot based on entity type and inventory
-3. **EffectsSpawnSystem** creates explosion particles and debris entities
-4. **AITargetInvalidationSystem** clears references from AI entities targeting this entity
-5. **QuestTrackingSystem** updates quest objectives if entity was quest-relevant
-6. **EntityCleanupSystem** destroys the entity on next frame
-
-**Damage Pipeline (with Progressive Destruction):**
-```mermaid
-flowchart LR
-    subgraph Input
-        RAW[Raw Damage]
-        TYPE[Damage Type]
-        POS[Impact Position]
-    end
-
-    subgraph Shield
-        SM[ShieldModule]
-        SR[Shield Reduction]
-    end
-
-    subgraph Zone["Hitbox Zone (Tier 0-1)"]
-        ZONE[Zone Detection]
-        MOD[Module Damage]
-        EFF[Efficiency Reduction]
-    end
-
-    subgraph Hull
-        HM[HullModule]
-        AR[Armor Reduction]
-    end
-
-    subgraph Output
-        FD[Final Damage]
-        DEST[Destruction Check]
-    end
-
-    RAW --> SM
-    TYPE --> SM
-    POS --> ZONE
-    SM --> SR
-    SR -->|"Penetration"| ZONE
-    SR -->|"Shield down"| ZONE
-    ZONE --> MOD
-    MOD --> EFF
-    MOD -->|"Module overflow"| HM
-    HM --> AR
-    AR --> FD
-    FD --> DEST
-```
-
-**Note:** All damage routes through zone detection (Tier 0-1) regardless of shield state. Shields reduce incoming damage, then remaining damage goes to zone detection → module damage → hull overflow. For Tier 2+, damage bypasses zone detection and goes directly to hull.
-
----
-
-### 7. Tier Management Group
-
-Distance calculation and tier transitions.
-
-```mermaid
-flowchart TB
-    subgraph Distance
-        DCS[DistanceCalcSystem]
-        PP[Player Position]
-        EP[Entity Positions]
-        DIST[Distance²]
-    end
-
-    subgraph Transition
-        TTS[TierTransitionSystem]
-        QS[Quality Settings]
-        TAGS[Tier Tags]
-    end
-
-    subgraph Migration
-        CMS[ChunkMigrationSystem]
-        OLD[Old Chunk]
-        NEW[New Chunk]
-    end
-
-    PP --> DCS
-    EP --> DCS
-    DCS --> DIST
-    DIST --> TTS
-    QS --> TTS
-    TTS --> TAGS
-    TTS --> CMS
-    CMS --> OLD
-    CMS --> NEW
-```
-
-| System | Responsibility | Update Rate |
-|--------|---------------|-------------|
-| `DistanceCalcSystem` | Calculate squared distance to player | Every frame |
-| `TierTransitionSystem` | Enable/disable tier tags, handle persistence rules | Every frame |
-| `ChunkMigrationSystem` | Update ChunkLocation when entity crosses boundary | On transition |
-
-**Tier Transition Rules (with 15% hysteresis to prevent oscillation):**
-```mermaid
-stateDiagram-v2
-    [*] --> Tier0: distance < 5k
-    Tier0 --> Tier1: distance > 5k
-    Tier1 --> Tier0: distance < 4.25k
-    Tier1 --> Tier2: distance > 20k
-    Tier2 --> Tier1: distance < 17k
-    Tier2 --> Tier3: distance > 100k
-    Tier3 --> Tier2: distance < 85k
-    Tier3 --> Tier4: distance > 200k
-    Tier4 --> Tier3: distance < 170k
-
-    note right of Tier0: 15% hysteresis + 2s cooldown prevents oscillation
-```
-
-**Tier Change Cooldown:** After a tier change, entity cannot change tier again for 2 seconds. This prevents entities moving at boundary velocity from rapidly flickering between tiers.
-
----
-
-### 8. Background Simulation Group
-
-Reduced-fidelity simulation for distant entities.
-
-```mermaid
-flowchart TB
-    subgraph Tier2["Tier 2: Tactical"]
-        T2S[Tier2TacticalSystem]
-        SM[State Machine]
-        SIMP[Simplified Physics]
-    end
-
-    subgraph Tier3["Tier 3: Strategic"]
-        T3S[Tier3StrategicSystem]
-        FLS[FleetSystem]
-        ABS[Abstract Combat]
-    end
-
-    T2S --> SM
-    SM --> SIMP
-    T3S --> FLS
-    FLS --> ABS
-```
-
-| System | Responsibility | Update Rate |
-|--------|---------------|-------------|
-| `Tier2TacticalSystem` | State machine AI, simplified physics | Every 5-10 frames |
-| `Tier3StrategicSystem` | Fleet-level decisions, abstract combat | Every ~1 second |
-| `FleetSystem` | Fleet formation, member grouping/unpacking | On demand |
-
-**State Machine AI (Tier 2):**
-```mermaid
-stateDiagram-v2
-    [*] --> Patrol
-    Patrol --> Pursue: Enemy detected
-    Patrol --> Flee: Damaged + outmatched
-    Pursue --> Orbit: In range
-    Pursue --> Flee: Outmatched
-    Orbit --> Pursue: Target fled
-    Orbit --> Flee: Damaged
-    Flee --> Patrol: Safe distance
-
-    note right of Patrol: Random waypoints
-    note right of Pursue: Direct intercept
-    note right of Orbit: Engagement range
-    note right of Flee: Away from threat
-```
-
----
-
-### 9. Presentation Group
-
-GameObject synchronization and visual effects.
-
-```mermaid
-flowchart TB
-    subgraph ViewManager
-        VMS[ViewManagerSystem]
-        PROMO[Promote to View]
-        DEMO[Demote from View]
-    end
-
-    subgraph Transform
-        TRS[TransformSyncSystem]
-        LP[LocalPosition]
-        GO[GameObject Transform]
-    end
-
-    subgraph Effects
-        VES[VisualEffectsSystem]
-        THR[Thrusters]
-        SHD[Shields]
-        WPN[Weapon FX]
-    end
-
-    VMS --> PROMO
-    VMS --> DEMO
-    PROMO --> TRS
-    TRS --> LP
-    LP --> GO
-    TRS --> VES
-    VES --> THR
-    VES --> SHD
-    VES --> WPN
-```
-
-| System | Responsibility |
-|--------|---------------|
-| `ViewManagerSystem` | Create/destroy GameObjects for Tier 0 entities |
-| `TransformSyncSystem` | Copy ECS LocalPosition → GameObject Transform |
-| `VisualEffectsSystem` | Update particle systems, audio, visual state |
-
-### Audio Integration
-
-Audio is managed per-tier with priority-based mixing:
-
-| Tier | Audio Behavior |
-|------|----------------|
-| Tier 0 | Full 3D spatial audio, all sounds play |
-| Tier 1 | Distant sounds only (explosions, large weapons) |
-| Tier 2+ | No audio (too far to hear) |
-
-**AudioManager responsibilities:**
-- Spatial audio positioning relative to camera
-- Sound priority queue (max 32 concurrent sounds)
-- Volume attenuation by distance from player
-- Cross-fade when entities enter/exit Tier 0
-- Sound culling for off-screen entities beyond audio range
-
-**Tier 0 Distance:** Tier 0 (LoadedTag) is enabled for entities within 5,000 units of the player, OR within camera view (whichever is larger). The camera system should clamp maximum zoom to ensure visible range never exceeds the Tier 0 boundary, ensuring all visible entities have GameObjects.
-
-**View Lifecycle:**
-```mermaid
-sequenceDiagram
-    participant ECS as ECS Entity
-    participant VMS as ViewManagerSystem
-    participant Pool as Object Pool
-    participant GO as GameObject
-
-    Note over ECS: Entity enters Tier 0
-    ECS->>VMS: LoadedTag enabled
-    VMS->>Pool: Request prefab
-    Pool-->>VMS: GameObject instance
-    VMS->>GO: Set position, rotation
-    VMS->>ECS: Store Entity reference
-
-    Note over ECS: Entity exits Tier 0
-    ECS->>VMS: LoadedTag disabled
-    VMS->>GO: Read final state
-    VMS->>Pool: Return to pool
-    VMS->>ECS: Clear reference
-```
-
----
-
-## System Dependencies
-
-```mermaid
-graph TD
-    subgraph Core["Core Dependencies"]
-        WO[WorldOrigin Singleton]
-        QS[QualitySettings Singleton]
-        BA[BlobAssets]
-    end
-
-    subgraph Systems
-        PHS[PhysicsIntegrationSystem]
-        TTS[TierTransitionSystem]
-        CLS[ConfigLoadSystem]
-        ESS[EntitySpawnSystem]
-    end
-
-    WO --> PHS
-    QS --> TTS
-    BA --> CLS
-    BA --> ESS
-```
-
----
-
-## Job Scheduling Strategy
-
-### Parallel Jobs
-
-Systems that can run in parallel within their group:
 
 ```csharp
-// Movement and Rotation can run in parallel
-[BurstCompile]
-partial struct MovementJob : IJobEntity
+public class MassEntityManager
 {
-    public float DeltaTime;
+    private NativeArray<ProjectileData> _projectiles;
+    private NativeArray<AsteroidData> _asteroids;
+    private NativeArray<DebrisData> _debris;
+    private NativeArray<GravitySourceData> _gravitySources;
 
-    void Execute(ref Velocity vel, in PropulsionModule prop, in ControlInput input)
+    public void Update(float deltaTime)
     {
-        // Update velocity based on input
-    }
-}
+        // 1. Projectile position update (Burst)
+        new ProjectileUpdateJob
+        {
+            Projectiles = _projectiles,
+            DeltaTime = deltaTime
+        }.Schedule(_projectiles.Length, 64).Complete();
 
-[BurstCompile]
-partial struct RotationJob : IJobEntity
-{
-    public float DeltaTime;
+        // 2. Asteroid gravity + position (Burst)
+        new AsteroidGravityJob
+        {
+            Asteroids = _asteroids,
+            GravitySources = _gravitySources,
+            DeltaTime = deltaTime
+        }.Schedule(_asteroids.Length, 64).Complete();
 
-    void Execute(ref Rotation rot, in RotationModule rotMod, in ControlInput input)
-    {
-        // Update rotation based on input
+        // 3. Debris lifetime
+        new DebrisLifetimeJob
+        {
+            Debris = _debris,
+            DeltaTime = deltaTime
+        }.Schedule(_debris.Length, 64).Complete();
+
+        // 4. Projectile vs Rich entity collision (queries RichEntityManager)
+        CheckProjectileHits();
     }
 }
 ```
 
-### Sequential Dependencies
+**Burst Jobs:**
 
-Systems that must wait for previous completion:
+```csharp
+[BurstCompile]
+public struct AsteroidGravityJob : IJobParallelFor
+{
+    public NativeArray<AsteroidData> Asteroids;
+    [ReadOnly] public NativeArray<GravitySourceData> GravitySources;
+    public float DeltaTime;
 
-```mermaid
-flowchart LR
-    MV[MovementJob] --> PI[PhysicsIntegration]
-    RO[RotationJob] --> PI
-    PI --> BP[BroadPhaseCollision]
-    BP --> NP[NarrowPhaseCollision]
-    NP --> CR[CollisionResponse]
+    public void Execute(int index)
+    {
+        var asteroid = Asteroids[index];
+
+        // Velocity Verlet integration with gravity
+        double2 acceleration = CalculateGravity(asteroid.Position);
+        asteroid.Position += asteroid.Velocity * DeltaTime
+                          + 0.5 * acceleration * DeltaTime * DeltaTime;
+        double2 newAcceleration = CalculateGravity(asteroid.Position);
+        asteroid.Velocity += 0.5 * (acceleration + newAcceleration) * DeltaTime;
+
+        asteroid.Rotation += asteroid.AngularVelocity * DeltaTime;
+
+        Asteroids[index] = asteroid;
+    }
+
+    private double2 CalculateGravity(double2 position)
+    {
+        double2 totalAccel = double2.zero;
+        for (int i = 0; i < GravitySources.Length; i++)
+        {
+            var source = GravitySources[i];
+            double2 diff = source.AbsolutePosition - position;
+            double distSq = math.lengthsq(diff);
+            double dist = math.sqrt(distSq);
+            if (dist < source.SurfaceRadius) continue;
+            totalAccel += (source.GravitationalParameter / distSq)
+                        * (diff / dist);
+        }
+        return totalAccel;
+    }
+}
+
+[BurstCompile]
+public struct ProjectileUpdateJob : IJobParallelFor
+{
+    public NativeArray<ProjectileData> Projectiles;
+    public float DeltaTime;
+
+    public void Execute(int index)
+    {
+        var proj = Projectiles[index];
+        proj.Position += proj.Velocity * DeltaTime;
+        proj.ElapsedTime += DeltaTime;
+        Projectiles[index] = proj;
+    }
+}
 ```
+
+| Step | Responsibility | Budget |
+|------|---------------|--------|
+| Projectile update | Position integration (Burst) | 0.3ms |
+| Asteroid gravity | Velocity Verlet (Burst) | 1.0ms |
+| Debris lifetime | Decay and cleanup | 0.2ms |
+| Mass-Rich collision | Projectile hit detection | 0.5ms |
+| **Total** | | **2.0ms** |
 
 ---
 
-## Performance Budgets
+### 5. EnvironmentManager
 
-| Group | Target Budget | Notes |
-|-------|--------------|-------|
-| Input | 0.5ms | Minimal, mostly reading |
-| Simulation | 2ms | Tier 0-1 entities only |
-| Environment | 1ms | Gravity + Heat simulation |
-| Physics | 3ms | Burst-compiled spatial hash |
-| Combat | 1ms | Projectile-heavy scenarios |
-| Tier Management | 0.5ms | Distance checks are cheap |
-| Background | 1ms | Amortized across frames |
-| Presentation | 2ms | Transform sync, effects |
-| **Total** | **11ms** | 5ms headroom for 60 FPS |
+Gravity source updates and heat simulation. Applies to both Rich and Mass layers.
+
+```csharp
+public class EnvironmentManager
+{
+    private NativeArray<GravitySourceData> _gravitySources;
+    private List<StarSystemData> _starSystems;
+
+    public void Update(float deltaTime)
+    {
+        // 1. Update star positions from pre-computed orbits
+        UpdateStarOrbits(deltaTime);
+
+        // 2. Recalculate barycenters for multi-star systems
+        UpdateBarycenters();
+
+        // 3. Apply gravity to Rich layer ships
+        ApplyGravityToShips(deltaTime);
+
+        // 4. Apply heat to Rich layer ships
+        ApplyHeatToShips(deltaTime);
+    }
+}
+```
+
+See [[10-gravity-system]] and [[11-heat-system]] for detail.
+
+| Responsibility | Budget |
+|---------------|--------|
+| Star orbit updates | 0.1ms |
+| Barycenter calculation | 0.1ms |
+| Ship gravity (Rich layer) | 0.4ms |
+| Ship heat (Rich layer) | 0.2ms |
+| **Total** | **1.0ms** (asteroid gravity counted in Mass layer) |
+
+---
+
+### 6. TierManager
+
+Distance calculation and layer transitions.
+
+```mermaid
+flowchart TB
+    subgraph TierUpdate["TierManager.Update()"]
+        direction TB
+        DIST["1. Distance Calculation\n(player to all entities)"]
+        TRANS["2. Tier Transitions\n(promote/demote between layers)"]
+        CHUNK["3. Chunk Migration\n(entities crossing chunk boundaries)"]
+        STRAT["4. Strategic Updates\n(fleet AI, ~1s interval)"]
+    end
+
+    DIST --> TRANS --> CHUNK --> STRAT
+```
+
+```csharp
+public class TierManager
+{
+    private RichEntityManager _richLayer;
+    private SensorSimulationManager _sensorLayer;
+    private StrategicManager _strategicLayer;
+    private SimulationQualitySettings _settings;
+
+    public void Update(float deltaTime)
+    {
+        var playerPos = GetPlayerPosition();
+
+        // Check Rich layer entities for demotion to Sensor
+        CheckRichDemotions(playerPos);
+
+        // Check Sensor layer contacts for promotion to Rich
+        CheckSensorPromotions(playerPos);
+
+        // Check Sensor contacts for demotion to Strategic
+        CheckSensorDemotions(playerPos);
+
+        // Check Strategic for promotion to Sensor
+        CheckStrategicPromotions(playerPos);
+
+        // Update strategic layer (amortized, ~1s interval)
+        _strategicLayer.Update(deltaTime);
+    }
+}
+```
+
+**Transition with hysteresis:**
+- Demote at boundary distance
+- Promote at boundary - hysteresis (15%)
+- 2-second cooldown between tier changes per entity
+
+| Responsibility | Budget |
+|---------------|--------|
+| Distance calculation | 0.2ms |
+| Tier transitions | 0.2ms |
+| Strategic updates (amortized) | 0.1ms |
+| **Total** | **0.5ms** |
+
+---
+
+### 7. ScriptExecutionManager
+
+Dispatches game events to Lua mod scripts and processes Lua API calls. Runs after all game simulation is complete for the frame, so Lua callbacks see consistent world state.
+
+```csharp
+public class ScriptExecutionManager
+{
+    private LuaRuntime _lua;
+    private GameEventBus _eventBus;
+    private Queue<GameEvent> _pendingEvents;
+
+    public void Update(float deltaTime)
+    {
+        // 1. Dispatch buffered events to Lua callbacks
+        while (_pendingEvents.TryDequeue(out var evt))
+            _lua.DispatchEvent(evt);
+
+        // 2. Process Lua timer callbacks
+        _lua.UpdateTimers(deltaTime);
+
+        // 3. Execute any queued Lua API calls
+        // (e.g., starfire.spawn() requests from Lua)
+        _lua.ProcessPendingCommands();
+    }
+}
+```
+
+**Why events are buffered:** Most events originate from RichEntityManager (combat, spawning) and MassEntityManager (projectile hits) which run earlier in the frame. Events are queued to the `GameEventBus` during the frame and dispatched to Lua in a single batch during `ScriptExecutionManager.Update()`. This guarantees Lua callbacks see a consistent world state where all simulation for the frame is complete.
+
+**Burst constraint:** Mass layer events (projectile hits detected in Burst jobs) cannot call into managed code during the job. Instead, `MassEntityManager` collects hit results into a managed `NativeQueue` after the Burst job completes, then forwards them to `GameEventBus` for dispatch here.
+
+**Direct Rich layer access:** Since `ShipInstance` is a managed C# class (not an ECS entity), Lua scripts interact with entities through `LuaEntityProxy` wrappers that read/write fields directly. Changes take effect immediately within the same frame — no deferred buffer or 1-frame delay.
+
+| Responsibility | Budget |
+|---------------|--------|
+| Event dispatch to Lua | 0.2ms |
+| Timer callbacks | 0.1ms |
+| API call processing | 0.2ms |
+| **Total** | **0.5ms** |
+
+See [[12-modding-architecture]] for the full Lua API surface, sandbox configuration, and mod loading pipeline.
+
+---
+
+### 8. PresentationManager
+
+Syncs visual GameObjects for Tier 0 entities.
+
+```csharp
+public class PresentationManager
+{
+    private Dictionary<int, ShipView> _activeViews;
+    private GameObjectPool _pool;
+
+    public void Update()
+    {
+        // Sync ShipInstance data → ShipView MonoBehaviour
+        foreach (var (entityId, view) in _activeViews)
+        {
+            var ship = _richLayer.GetShip(entityId);
+            view.SyncFromShip(ship);
+        }
+    }
+
+    public void PromoteToView(ShipInstance ship)
+    {
+        var go = _pool.Get(ship.ShipConfigId);
+        var view = go.GetComponent<ShipView>();
+        view.Initialize(ship);
+        _activeViews[ship.Id.Value] = view;
+    }
+
+    public void DemoteFromView(int entityId)
+    {
+        if (_activeViews.TryGetValue(entityId, out var view))
+        {
+            _pool.Return(view.gameObject);
+            _activeViews.Remove(entityId);
+        }
+    }
+}
+```
+
+**ShipView MonoBehaviour (Tier 0 only):**
+
+```csharp
+public class ShipView : MonoBehaviour
+{
+    private ShipInstance _ship;
+    private SpriteRenderer _renderer;
+    private ParticleSystem _thrusterFX;
+    private ParticleSystem _shieldFX;
+
+    public void SyncFromShip(ShipInstance ship)
+    {
+        // Position (using LocalPosition relative to floating origin)
+        transform.position = WorldToLocal(ship.Position);
+        transform.rotation = Quaternion.Euler(0, 0, ship.Rotation);
+
+        // Visual effects based on ship state
+        UpdateThrusterFX(ship);
+        UpdateShieldFX(ship);
+        UpdateDamageEffects(ship);
+    }
+}
+```
+
+| Responsibility | Budget |
+|---------------|--------|
+| Transform sync | 0.5ms |
+| Visual effects update | 0.5ms |
+| Audio management | 0.3ms |
+| Map/minimap rendering | 0.7ms |
+| **Total** | **2.0ms** |
+
+---
+
+## Combat Pipeline Detail
+
+Combat runs within the RichEntityManager for Tier 0-1 entities.
+
+```mermaid
+sequenceDiagram
+    participant WPN as WeaponModule
+    participant MASS as MassEntityManager
+    participant PROJ as Projectile
+    participant DMG as DamageModel
+    participant HULL as HullModule
+    participant DEST as DestructionHandler
+
+    WPN->>MASS: Fire (spawn projectile)
+    MASS->>PROJ: Position update (Burst)
+    PROJ->>DMG: Hit detected → PendingDamage
+    DMG->>DMG: Shield absorption
+    DMG->>DMG: Hitbox zone detection
+    DMG->>DMG: Module damage routing
+    DMG->>HULL: Module overflow → hull
+    HULL->>HULL: Armor reduction
+    HULL->>DEST: If hull <= 0
+    DEST->>DEST: Loot, effects, cleanup
+```
+
+**Damage Flow:**
+1. Shields absorb damage first (reduce amount)
+2. Remaining damage → hitbox zone detection (from impact position)
+3. Zone → module mapping routes damage to specific modules
+4. Module overflow → hull damage (armor reduction applied)
+5. Hull <= 0 → destruction
+
+See [[09-progressive-destruction]] for detail.
+
+**Event dispatch:** Combat events (`OnEntityDamaged`, `OnEntityDestroyed`, `OnProjectileHit`) are queued to the `GameEventBus` during combat processing. They are not dispatched immediately — Lua callbacks receive them later in the frame during `ScriptExecutionManager.Update()`, after all simulation is complete.
 
 ---
 
 ## Warp Mode System Integration
 
-When warp is engaged, system execution changes:
-
-```mermaid
-flowchart TB
-    subgraph Normal["Normal Mode"]
-        ALL[All Systems Active]
-    end
-
-    subgraph Warp["Warp Mode"]
-        WIS[WarpInputSystem]
-        WMS[WarpMovementSystem]
-        WCS[WarpCollisionSystem]
-        WTS[WarpTierSystem]
-    end
-
-    Normal -->|Warp Engage| Warp
-    Warp -->|Warp Drop| Normal
-```
-
-**Warp Mode Changes:**
+When warp is engaged, processing changes across layers:
 
 | System | Normal Mode | Warp Mode |
 |--------|-------------|-----------|
-| `MovementSystem` | Standard physics | Disabled |
-| `WarpMovementSystem` | Disabled | High-speed trajectory |
-| `CollisionSystems` | Full detection | Swept raycast only |
-| `EntitySpawnSystem` | Active | Suspended |
-| `TierTransitionSystem` | Distance-based | Corridor entities → Tier 4 (Critical stays at Tier 2 min) |
+| Rich Layer physics | Standard integration | WarpMovementSystem (high-speed) |
+| Rich Layer collision | Full detection | Swept raycast only |
+| Sensor Layer | Normal updates | Updates continue normally |
+| Mass Entity spawning | Active | Suspended in warp corridor |
+| Tier transitions | Distance-based | Corridor entities freeze |
 
-See [07-warp-system.md](07-warp-system.md) for full warp mode documentation.
-
----
-
-## System Registration
-
-```csharp
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateBefore(typeof(RotationSystem))]
-public partial struct MovementSystem : ISystem
-{
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
-    {
-        var job = new MovementJob
-        {
-            DeltaTime = SystemAPI.Time.DeltaTime
-        };
-        job.ScheduleParallel();
-    }
-}
-```
+See [[07-warp-system]] for detail.
 
 ---
 
-## Related Documentation
+## Audio Integration
 
-- [01-component-model.md](01-component-model.md) - Component definitions
-- [03-tiered-simulation.md](03-tiered-simulation.md) - Tier system details
-- [04-archetype-strategy.md](04-archetype-strategy.md) - Entity archetypes
-- [07-warp-system.md](07-warp-system.md) - Warp mode systems
-- [09-progressive-destruction.md](09-progressive-destruction.md) - Localized damage and module degradation
-- [10-gravity-system.md](10-gravity-system.md) - Newtonian gravity and orbital mechanics
-- [11-heat-system.md](11-heat-system.md) - Thermal radiation and heat damage
+| Tier | Audio Behavior |
+|------|----------------|
+| Tier 0 | Full 3D spatial audio, all sounds |
+| Tier 1 | Distant sounds only (explosions, large weapons) |
+| Tier 2+ | No audio (too far) |
+
+---
+
+## Performance Budget Summary
+
+| Group | Target | Notes |
+|-------|--------|-------|
+| Input | 0.5ms | Player input collection |
+| Rich Layer | 3.0ms | AI, modules, abilities, physics, collision, combat |
+| Sensor Layer | 0.5ms | Amortized state machine (~30/frame) |
+| Mass Entities | 2.0ms | Burst gravity, projectiles, debris |
+| Environment | 1.0ms | Gravity sources, heat |
+| Tier Management | 0.5ms | Distance, transitions, strategic |
+| Script Execution | 0.5ms | Lua event dispatch, timer callbacks, mod API calls |
+| Presentation | 2.0ms | View sync, effects, audio, map |
+| **Total** | **10.0ms** | **6.5ms headroom for 60 FPS** |
+
+---
+
+## Related Documents
+
+- [[01-component-model]] - Data types processed by each system
+- [[03-tiered-simulation]] - Tier system driving layer membership
+- [[07-warp-system]] - Warp mode system changes
+- [[09-progressive-destruction]] - Combat damage pipeline
+- [[10-gravity-system]] - Gravity simulation detail
+- [[11-heat-system]] - Heat simulation detail
+- [[12-modding-architecture]] - Mod loading, Lua scripting, event bridge

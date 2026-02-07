@@ -2,6 +2,8 @@
 
 This document defines the progressive destruction system for Starfire, enabling localized damage to entity subsystems based on impact location, with modules experiencing gradual degradation rather than binary destruction.
 
+> **Architecture Note:** In the hybrid architecture, the DamageModel class on each ShipInstance handles progressive destruction. Since ships are C# objects with IShipModule interfaces, damage routing calls module methods directly (e.g., `shield.ApplyDamage()`, `propulsion.ApplyDamage()`). This is simpler than the ECS approach - no buffer elements or system ordering concerns. Full progressive destruction runs only for Rich Layer (Tier 0-1) entities. Sensor Layer entities track only aggregate HullPercent/ShieldPercent.
+
 ---
 
 ## Design Philosophy
@@ -10,12 +12,12 @@ This document defines the progressive destruction system for Starfire, enabling 
 1. **Localized damage** - Where a projectile hits matters; different areas protect different systems
 2. **Progressive degradation** - Modules degrade through states rather than instant destruction
 3. **Meaningful choices** - Targeting specific systems creates tactical depth
-4. **Performance-conscious** - Full simulation only for Tier 0-1 entities
+4. **Performance-conscious** - Full simulation only for Rich Layer (Tier 0-1) entities
 
 **Integration with Existing Systems:**
 - Extends the Shield → Hull damage pipeline with zone-based routing
-- Uses existing module architecture (IShipModule, ShipModuleCategory)
-- Respects tier system boundaries
+- Uses IShipModule interface for module health and efficiency
+- Only active in the Rich Entity Layer
 
 ---
 
@@ -98,13 +100,9 @@ public enum HitboxZoneType : byte
 }
 ```
 
-### Zone Component
+### Zone Data
 
 ```csharp
-/// <summary>
-/// Defines a hitbox zone's geometry and damage absorption.
-/// This is a plain struct embedded in HitboxZoneElement buffer, not a standalone component.
-/// </summary>
 public struct HitboxZone
 {
     public HitboxZoneType ZoneType;
@@ -112,18 +110,14 @@ public struct HitboxZone
     public float2 LocalExtents;          // Half-size for AABB
     public float DamageAbsorption;       // 0-1, percentage of damage routed to modules (remainder goes to hull)
 }
-
-// Buffer of zones per entity (typically 3-5 zones)
-public struct HitboxZoneElement : IBufferElementData
-{
-    public HitboxZone Zone;
-}
 ```
+
+Each ship's `DamageModel` stores its hitbox zones as a `List<HitboxZone>` loaded from JSON configuration at spawn time (typically 3-5 zones per entity).
 
 ### Zone-to-Module Mapping
 
 ```csharp
-public struct ZoneModuleMapping : IBufferElementData
+public struct ZoneModuleMapping
 {
     public HitboxZoneType Zone;
     public ShipModuleCategory TargetCategory;  // Which module category takes damage
@@ -131,6 +125,8 @@ public struct ZoneModuleMapping : IBufferElementData
     public float DamageWeight;                  // Weight when multiple modules in zone (0-1)
 }
 ```
+
+Zone-to-module mappings are stored as a `List<ZoneModuleMapping>` on the `DamageModel`, loaded alongside the hitbox zones from JSON configuration.
 
 ### Default Ship Zone Mappings
 
@@ -181,16 +177,17 @@ public enum ModuleDamageState : byte
 }
 ```
 
-### ModuleHealthElement Buffer
+### Module Health Tracking
 
-Per-module health is tracked via `DynamicBuffer<ModuleHealthElement>` on ship entities. Each damageable module (Propulsion, Rotation, Shield, Sensors, Weapons) has one entry in the buffer. See [[01-component-model#ModuleHealthElement (Buffer)]] for the full definition.
+Each `IShipModule` on a `ShipInstance` tracks its own health state directly:
 
-**Key fields:**
-- `Category` / `SlotIndex`: Identifies which module this health data applies to
+**Key properties on IShipModule:**
 - `MaxHealth` / `CurrentHealth`: Health values
-- `State`: Derived `ModuleDamageState` from health percentage
+- `DamageState`: Derived `ModuleDamageState` from health percentage
 - `TimeSinceLastDamage`: Used for auto-repair delay
 - `EfficiencyMultiplier`: Returns efficiency based on state (1.0, 0.75, 0.5, 0.0)
+
+The `DamageModel` iterates the ship's modules via `ShipInstance.AllModules` when routing damage. See [[01-component-model#IShipModule]] for the full interface.
 
 ### State Thresholds with Hysteresis
 
@@ -256,36 +253,36 @@ sequenceDiagram
     HULL->>HULL: Check destruction
 ```
 
-### HitPosition in PendingDamage
+### PendingDamage
 
-The `PendingDamage` buffer element includes hit position and zone information:
+Damage events are passed as plain structs to `DamageModel.ProcessDamage()`:
 
 ```csharp
-public struct PendingDamage : IBufferElementData
+public struct PendingDamage
 {
     public float Amount;
-    public Entity Source;
+    public int SourceEntityId;
     public DamageTypeEnum DamageType;
-    public double2 ImpactPosition;       // Absolute world position (set by ProjectileSystem)
-    public float2 LocalImpactPosition;   // Local position relative to target (set by DamageLocalizationSystem)
-    public HitboxZoneType HitZone;       // Which zone was hit (set by DamageLocalizationSystem)
+    public double2 ImpactPosition;       // Absolute world position (set by combat pipeline)
+    public float2 LocalImpactPosition;   // Local position relative to target (set by DamageModel)
+    public HitboxZoneType HitZone;       // Which zone was hit (set by DamageModel)
     public bool IsLocalized;             // True if damage should use zone system (false for Tier 2+)
 }
 ```
 
 **Field Population:**
-- `ProjectileSystem` sets: `Amount`, `Source`, `DamageType`, `ImpactPosition`
-- `DamageLocalizationSystem` sets: `LocalImpactPosition`, `HitZone`, `IsLocalized`
-- `ModuleDamageSystem` reads: `HitZone`, `Amount`, `IsLocalized` to distribute damage
+- Combat pipeline sets: `Amount`, `SourceEntityId`, `DamageType`, `ImpactPosition`
+- `DamageModel.ProcessDamage()` sets: `LocalImpactPosition`, `HitZone`, `IsLocalized`
+- `DamageModel` uses: `HitZone`, `Amount`, `IsLocalized` to distribute damage
 
 ### LocalImpactPosition Calculation
 
-The `LocalImpactPosition` is calculated by `DamageLocalizationSystem` when processing `PendingDamage` entries. It transforms the world-space `ImpactPosition` to local-space relative to the target entity's position and rotation:
+The `LocalImpactPosition` is calculated by `DamageModel.ProcessDamage()` when processing incoming damage. It transforms the world-space `ImpactPosition` to local-space relative to the target entity's position and rotation:
 
 ```csharp
 /// <summary>
 /// Transform world impact position to entity local space for zone detection.
-/// Called by DamageLocalizationSystem when processing PendingDamage.
+/// Called by DamageModel.ProcessDamage() when routing incoming damage.
 /// </summary>
 public static float2 WorldToLocalImpact(
     double2 impactWorldPos,
@@ -308,28 +305,18 @@ public static float2 WorldToLocalImpact(
 ```
 
 **When is this calculated?**
-- `ProjectileSystem` sets `ImpactPosition` (world space) when queuing `PendingDamage`
-- `DamageLocalizationSystem` calculates `LocalImpactPosition` using the target entity's `AbsolutePosition` and `Rotation` components before performing zone detection
+- The combat pipeline sets `ImpactPosition` (world space) when creating `PendingDamage`
+- `DamageModel.ProcessDamage()` calculates `LocalImpactPosition` using the ship's `AbsolutePosition` and `Rotation` before performing zone detection
 
 ### Zone Detection Algorithm
 
-Called by `DamageLocalizationSystem` to determine which zone was hit. The result is stored in `PendingDamage.HitZone` for `ModuleDamageSystem` to use.
+Called by `DamageModel.ProcessDamage()` to determine which zone was hit:
 
 ```csharp
-/// <summary>
-/// Find which hitbox zone contains the impact point.
-/// Uses local-space AABB tests for efficiency.
-/// Returns Center zone as fallback if no specific zone contains the point.
-/// Called by DamageLocalizationSystem, result stored in PendingDamage.HitZone.
-/// </summary>
-public static HitboxZoneType FindZoneAtPosition(
-    DynamicBuffer<HitboxZoneElement> zones,
-    float2 localPosition)
+public HitboxZoneType FindZoneAtPosition(float2 localPosition)
 {
-    // Check each zone's AABB
-    foreach (var element in zones)
+    foreach (var zone in _zones)
     {
-        var zone = element.Zone;
         float2 min = zone.LocalCenter - zone.LocalExtents;
         float2 max = zone.LocalCenter + zone.LocalExtents;
 
@@ -340,8 +327,6 @@ public static HitboxZoneType FindZoneAtPosition(
         }
     }
 
-    // Fallback to Center zone - this handles edge cases where impact is
-    // outside all defined zones (e.g., glancing hits at entity bounds)
     return HitboxZoneType.Center;
 }
 ```
@@ -375,23 +360,16 @@ Example: Zone with `DamageAbsorption = 0.7` hit for 100 damage:
 
 ### Zone Lookup by Type
 
-`PendingDamage.HitZone` contains only the `HitboxZoneType` enum (set by `DamageLocalizationSystem`). To access the full `HitboxZone` struct (which contains `DamageAbsorption`), `ModuleDamageSystem` must look it up from the entity's `HitboxZoneElement` buffer:
+`PendingDamage.HitZone` contains only the `HitboxZoneType` enum. To access the full `HitboxZone` struct (which contains `DamageAbsorption`), the `DamageModel` looks it up from its zone list:
 
 ```csharp
-/// <summary>
-/// Find a hitbox zone by type from the entity's zone buffer.
-/// Called by ModuleDamageSystem before distributing damage.
-/// </summary>
-public static bool TryGetZoneByType(
-    DynamicBuffer<HitboxZoneElement> zoneBuffer,
-    HitboxZoneType zoneType,
-    out HitboxZone zone)
+public bool TryGetZoneByType(HitboxZoneType zoneType, out HitboxZone zone)
 {
-    for (int i = 0; i < zoneBuffer.Length; i++)
+    for (int i = 0; i < _zones.Count; i++)
     {
-        if (zoneBuffer[i].Zone.ZoneType == zoneType)
+        if (_zones[i].ZoneType == zoneType)
         {
-            zone = zoneBuffer[i].Zone;
+            zone = _zones[i];
             return true;
         }
     }
@@ -401,111 +379,75 @@ public static bool TryGetZoneByType(
 }
 ```
 
-**Usage in ModuleDamageSystem:**
+**Usage in ProcessDamage:**
 ```csharp
-// Skip non-localized damage (Tier 2+ entities bypass zone routing)
-if (!pendingDamage.IsLocalized)
-    continue;
-
-if (!TryGetZoneByType(zoneBuffer, pendingDamage.HitZone, out var hitZone))
+if (!damage.IsLocalized)
 {
-    // Zone not found (config error) - pass all damage to hull
-    hullDamage += pendingDamage.Amount;
+    hullDamage += damage.Amount;
     continue;
 }
 
-float overflow = DistributeDamageToModules(
-    pendingDamage.Amount,
-    hitZone,
-    mappingBuffer,
-    healthBuffer);
+if (!TryGetZoneByType(damage.HitZone, out var hitZone))
+{
+    hullDamage += damage.Amount;
+    continue;
+}
+
+float overflow = DistributeDamageToModules(damage.Amount, hitZone);
 hullDamage += overflow;
 ```
 
-Called by `ModuleDamageSystem` using the `HitZone` from `PendingDamage`:
+### Damage Distribution to Modules
 
 ```csharp
-/// <summary>
-/// Distribute damage to modules protected by the hit zone.
-/// Returns overflow damage that should go to hull.
-/// Called by ModuleDamageSystem using PendingDamage.HitZone.
-/// </summary>
-public static float DistributeDamageToModules(
-    float incomingDamage,
-    in HitboxZone hitZone,
-    DynamicBuffer<ZoneModuleMapping> mappings,
-    DynamicBuffer<ModuleHealthElement> moduleHealth)
+private float DistributeDamageToModules(float incomingDamage, in HitboxZone hitZone)
 {
-    // Step 1: Split damage based on zone's absorption rate
     float absorbableDamage = incomingDamage * hitZone.DamageAbsorption;
     float directHullDamage = incomingDamage * (1f - hitZone.DamageAbsorption);
 
-    // Step 2: Calculate total weight for modules in this zone
     float totalWeight = 0f;
-    foreach (var mapping in mappings)
+    foreach (var mapping in _mappings)
     {
         if (mapping.Zone == hitZone.ZoneType)
             totalWeight += mapping.DamageWeight;
     }
 
-    // If no modules in zone, all absorbable damage also goes to hull
     if (totalWeight <= 0f)
         return incomingDamage;
 
-    // Step 3: Distribute absorbable damage to modules by weight
     float overflowDamage = 0f;
-    foreach (var mapping in mappings)
+    foreach (var mapping in _mappings)
     {
         if (mapping.Zone != hitZone.ZoneType)
             continue;
 
         float moduleDamage = absorbableDamage * (mapping.DamageWeight / totalWeight);
-        float absorbed = ApplyModuleDamage(
-            moduleHealth,
-            mapping.TargetCategory,
-            mapping.TargetSlotIndex,
-            moduleDamage);
 
-        // Damage not absorbed by module overflows to hull
+        var module = _ship.GetModule(mapping.TargetCategory, mapping.TargetSlotIndex);
+        if (module == null)
+        {
+            overflowDamage += moduleDamage;
+            continue;
+        }
+
+        float absorbed = module.ApplyDamage(moduleDamage);
         overflowDamage += (moduleDamage - absorbed);
     }
 
-    // Total hull damage = direct hull damage + module overflow
     return directHullDamage + overflowDamage;
 }
+```
 
-/// <summary>
-/// Apply damage to a specific module in the health buffer.
-/// Returns the amount of damage actually absorbed.
-/// </summary>
-private static float ApplyModuleDamage(
-    DynamicBuffer<ModuleHealthElement> healthBuffer,
-    ShipModuleCategory category,
-    int slotIndex,
-    float damage)
+**Module.ApplyDamage pattern:**
+```csharp
+// Inside each IShipModule implementation:
+public float ApplyDamage(float damage)
 {
-    for (int i = 0; i < healthBuffer.Length; i++)
-    {
-        var health = healthBuffer[i];
-        if (health.Category != category)
-            continue;
-        if (slotIndex >= 0 && health.SlotIndex != slotIndex)
-            continue;
-
-        // Module can only absorb up to its current health
-        float absorbed = math.min(damage, health.CurrentHealth);
-        health.CurrentHealth -= absorbed;
-        health.TimeSinceLastDamage = 0f;
-        health.State = ModuleDamageStateHelper.CalculateState(
-            health.HealthPercentage,
-            health.State);
-
-        healthBuffer[i] = health;
-        return absorbed;
-    }
-
-    // Module not found - damage not absorbed
-    return 0f;
+    float absorbed = math.min(damage, CurrentHealth);
+    CurrentHealth -= absorbed;
+    TimeSinceLastDamage = 0f;
+    DamageState = ModuleDamageStateHelper.CalculateState(HealthPercentage, DamageState);
+    return absorbed;
 }
 ```
 
@@ -552,60 +494,39 @@ Hull Overflow ─────────────► Non-absorbed + module o
 
 ## Module Efficiency Effects
 
-When modules are damaged, their efficiency affects their output. Systems query both the module component and the `ModuleHealthElement` buffer to calculate effective values.
+When modules are damaged, their efficiency affects their output. Since each `IShipModule` tracks its own health and efficiency, managers access the multiplier directly on the module instance.
 
 ### Accessing Efficiency Multipliers
 
-Since module health is stored in a buffer separate from module components, systems must look up the efficiency:
+Each `IShipModule` exposes its `EfficiencyMultiplier` property, derived from its `DamageState`:
 
 ```csharp
-/// <summary>
-/// Helper to get efficiency multiplier for a module category.
-/// </summary>
-public static float GetModuleEfficiency(
-    DynamicBuffer<ModuleHealthElement> healthBuffer,
-    ShipModuleCategory category,
-    int slotIndex = -1)
+// On any IShipModule:
+public float EfficiencyMultiplier => DamageState switch
 {
-    for (int i = 0; i < healthBuffer.Length; i++)
-    {
-        var health = healthBuffer[i];
-        if (health.Category == category &&
-            (slotIndex < 0 || health.SlotIndex == slotIndex))
-        {
-            return health.EfficiencyMultiplier;
-        }
-    }
-    return 1.0f;  // No health entry = assume operational
-}
+    ModuleDamageState.Operational => 1.0f,
+    ModuleDamageState.Damaged => 0.75f,
+    ModuleDamageState.Critical => 0.5f,
+    ModuleDamageState.Disabled => 0.0f,
+    _ => 1.0f
+};
 ```
 
-### System Query Pattern
+### Usage Pattern
 
-Systems that need efficiency multipliers query both components:
+Managers that need efficiency read it directly from the module:
 
 ```csharp
-[BurstCompile]
-public partial struct MovementSystem : ISystem
+// In RichEntityManager movement processing:
+foreach (var ship in _ships.Values)
 {
-    public void OnUpdate(ref SystemState state)
-    {
-        foreach (var (propulsion, healthBuffer, velocity) in
-            SystemAPI.Query<RefRO<PropulsionModule>,
-                           DynamicBuffer<ModuleHealthElement>,
-                           RefRW<Velocity>>()
-                     .WithAll<ActiveTag>())
-        {
-            float efficiency = GetModuleEfficiency(
-                healthBuffer,
-                ShipModuleCategory.Propulsion);
+    var propulsion = ship.GetModule<PropulsionModule>();
+    float efficiency = propulsion.EfficiencyMultiplier;
 
-            float effectiveAccel = propulsion.ValueRO.Acceleration * efficiency;
-            float effectiveMaxSpeed = propulsion.ValueRO.MaxSpeed * efficiency;
+    float effectiveAccel = propulsion.Acceleration * efficiency;
+    float effectiveMaxSpeed = propulsion.MaxSpeed * efficiency;
 
-            // Apply movement with effective values...
-        }
-    }
+    // Apply movement with effective values...
 }
 ```
 
@@ -622,32 +543,23 @@ public partial struct MovementSystem : ISystem
 ### PropulsionModule
 
 ```csharp
-// In MovementSystem:
-float efficiency = GetModuleEfficiency(healthBuffer, ShipModuleCategory.Propulsion);
-float effectiveMaxSpeed = propulsion.MaxSpeed * efficiency;
-float effectiveAcceleration = propulsion.Acceleration * efficiency;
-
+float effectiveMaxSpeed = propulsion.MaxSpeed * propulsion.EfficiencyMultiplier;
+float effectiveAcceleration = propulsion.Acceleration * propulsion.EfficiencyMultiplier;
 // Disabled (efficiency = 0): ship cannot accelerate, only drift
 ```
 
 ### RotationModule
 
 ```csharp
-// In RotationSystem:
-float efficiency = GetModuleEfficiency(healthBuffer, ShipModuleCategory.Rotation);
-float effectiveTurnRate = rotation.TurnRate * efficiency;
-float effectiveThrusterTorque = rotation.ThrusterTorque * efficiency;
-
+float effectiveTurnRate = rotation.TurnRate * rotation.EfficiencyMultiplier;
+float effectiveThrusterTorque = rotation.ThrusterTorque * rotation.EfficiencyMultiplier;
 // Disabled: ship cannot turn
 ```
 
 ### ShieldModule
 
 ```csharp
-// In ShieldRegenSystem:
-float efficiency = GetModuleEfficiency(healthBuffer, ShipModuleCategory.Defense);
-float effectiveRegenRate = shield.RegenRate * efficiency;
-
+float effectiveRegenRate = shield.RegenRate * shield.EfficiencyMultiplier;
 // Disabled: shields cannot regenerate
 // Note: Existing shield capacity remains until depleted
 ```
@@ -655,28 +567,21 @@ float effectiveRegenRate = shield.RegenRate * efficiency;
 ### WeaponModule
 
 ```csharp
-// In WeaponSystem:
-for (int i = 0; i < weaponBuffer.Length; i++)
+foreach (var weapon in ship.GetModules<WeaponModule>())
 {
-    float efficiency = GetModuleEfficiency(healthBuffer, ShipModuleCategory.Offense, i);
-
-    if (efficiency <= 0f)
+    if (weapon.EfficiencyMultiplier <= 0f)
         continue;  // Disabled weapon cannot fire
 
-    float effectiveFireRate = weapon.FireRate * efficiency;
-    float effectiveDamage = weapon.Damage * efficiency;
-    // ...
+    float effectiveFireRate = weapon.FireRate * weapon.EfficiencyMultiplier;
+    float effectiveDamage = weapon.Damage * weapon.EfficiencyMultiplier;
 }
 ```
 
 ### SensorModule
 
 ```csharp
-// In SensorSystem:
-float efficiency = GetModuleEfficiency(healthBuffer, ShipModuleCategory.Sensor);
-float effectiveRange = sensor.Range * efficiency;
-float effectiveRefreshRate = sensor.RefreshRate / math.max(0.1f, efficiency);  // Slower when damaged
-
+float effectiveRange = sensor.Range * sensor.EfficiencyMultiplier;
+float effectiveRefreshRate = sensor.RefreshRate / math.max(0.1f, sensor.EfficiencyMultiplier);
 // Disabled: no detection capability, entity is "blind"
 ```
 
@@ -706,7 +611,7 @@ flowchart TB
 ```
 
 ```csharp
-public struct RepairConfiguration : IComponentData
+public struct RepairConfiguration
 {
     public float RepairDelayAfterDamage;   // Seconds before auto-repair starts (default: 5s)
     public float BaseRepairRatePerSecond;  // Percentage of MaxHealth restored per second (0.02 = 2%)
@@ -714,6 +619,8 @@ public struct RepairConfiguration : IComponentData
     public bool RequiresOutOfCombat;       // Additional out-of-combat check beyond damage delay (default: false)
 }
 ```
+
+`RepairConfiguration` is stored on the `DamageModel` and loaded from JSON ship configuration at spawn time.
 
 **RepairDelayAfterDamage vs RequiresOutOfCombat:**
 
@@ -730,84 +637,43 @@ These are **separate conditions** that can be combined:
 
 **Implementation:**
 ```csharp
-bool canRepair = health.TimeSinceLastDamage >= config.RepairDelayAfterDamage;
+// In DamageModel.UpdateRepair():
+bool canRepair = module.TimeSinceLastDamage >= _repairConfig.RepairDelayAfterDamage;
 
-if (config.RequiresOutOfCombat && canRepair)
+if (_repairConfig.RequiresOutOfCombat && canRepair)
 {
-    // Additional check: query faction sensor pool for nearby hostiles
-    // NOTE: Uses base sensor range, NOT effective range (see edge case below)
-    float checkRange = GetRepairCheckRange(entity);
-    canRepair = !HasHostilesInRange(entity, checkRange);
+    float checkRange = GetRepairCheckRange();
+    canRepair = !HasHostilesInRange(checkRange);
 }
 
-/// <summary>
-/// Get the range to use for hostile proximity check during repair.
-/// Uses base sensor range if available, otherwise falls back to default.
-/// </summary>
-private float GetRepairCheckRange(Entity entity)
+private float GetRepairCheckRange()
 {
-    const float DEFAULT_REPAIR_CHECK_RANGE = 500f;  // Fallback if no sensor
+    const float DEFAULT_REPAIR_CHECK_RANGE = 500f;
 
-    if (SystemAPI.HasComponent<SensorModule>(entity))
-    {
-        return SystemAPI.GetComponent<SensorModule>(entity).Range;  // Base range, not effective
-    }
-    return DEFAULT_REPAIR_CHECK_RANGE;
+    var sensor = _ship.GetModule<SensorModule>();
+    return sensor != null ? sensor.Range : DEFAULT_REPAIR_CHECK_RANGE;
 }
 
-/// <summary>
-/// Check if any hostile entities are within the specified range.
-/// Queries the faction's shared detection pool.
-/// </summary>
-private bool HasHostilesInRange(Entity entity, float range)
+private bool HasHostilesInRange(float range)
 {
-    // Get entity's faction
-    if (!SystemAPI.HasComponent<FactionData>(entity))
-        return false;  // No faction = no hostiles
+    var faction = _ship.Faction;
+    var sensorPool = _ship.FactionSensorPool;
+    if (sensorPool == null) return false;
 
-    var faction = SystemAPI.GetComponent<FactionData>(entity);
-    var position = SystemAPI.GetComponent<AbsolutePosition>(entity);
-    double2 entityPos = new double2(position.X, position.Y);
-
-    // Get faction relationship matrix
-    var relations = SystemAPI.GetSingleton<FactionRelationshipMatrix>();
-
-    // Query faction's detection pool for nearby hostiles
-    foreach (var (pool, detections) in
-        SystemAPI.Query<RefRO<FactionSensorPool>, DynamicBuffer<FactionDetection>>())
+    foreach (var detection in sensorPool.GetDetections())
     {
-        // Only check our faction's detections
-        if (pool.ValueRO.FactionIndex != faction.FactionIndex)
+        if (detection.Distance > range)
             continue;
 
-        foreach (var detection in detections)
+        if (faction.IsHostile(detection.FactionIndex))
         {
-            // Skip invalid detections
-            if (detection.Distance > range)
-                continue;
-
-            // Check if detected entity is hostile
-            // Need to get the detected entity's faction
-            if (!SystemAPI.HasComponent<FactionData>(detection.DetectedEntity.Entity))
-                continue;
-
-            var detectedFaction = SystemAPI.GetComponent<FactionData>(
-                detection.DetectedEntity.Entity);
-
-            if (relations.IsHostile(faction.FactionIndex, detectedFaction.FactionIndex))
-            {
-                // Verify distance (detection.Distance may be stale)
-                var detectedPos = detection.Position;
-                double distSq = math.distancesq(entityPos, detectedPos);
-                if (distSq <= (double)range * range)
-                {
-                    return true;  // Hostile in range
-                }
-            }
+            double distSq = math.distancesq(_ship.AbsolutePosition, detection.Position);
+            if (distSq <= (double)range * range)
+                return true;
         }
     }
 
-    return false;  // No hostiles in range
+    return false;
 }
 ```
 
@@ -822,59 +688,39 @@ If `RequiresOutOfCombat = true` and the entity's `SensorModule` is disabled (eff
 
 Alternative design (not used): Allow repair with disabled sensors as a risk/reward trade-off. Document this if you prefer that behavior.
 
-### ModuleRepairSystem
+### DamageModel.UpdateRepair
+
+Called by `RichEntityManager` each frame for all Tier 0-1 ships:
 
 ```csharp
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(HullDamageSystem))]
-public partial struct ModuleRepairSystem : ISystem
+public void UpdateRepair(float deltaTime)
 {
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    foreach (var module in _ship.AllModules)
     {
-        float dt = SystemAPI.Time.DeltaTime;
+        module.TimeSinceLastDamage += deltaTime;
 
-        foreach (var (healthBuffer, config) in
-            SystemAPI.Query<DynamicBuffer<ModuleHealthElement>, RefRO<RepairConfiguration>>())
+        if (module.TimeSinceLastDamage < _repairConfig.RepairDelayAfterDamage)
+            continue;
+
+        if (module.DamageState == ModuleDamageState.Disabled &&
+            !_repairConfig.CanAutoRepairDisabled)
+            continue;
+
+        if (module.CurrentHealth >= module.MaxHealth)
+            continue;
+
+        float repairAmount = module.MaxHealth * _repairConfig.BaseRepairRatePerSecond * deltaTime;
+        module.CurrentHealth = math.min(module.CurrentHealth + repairAmount, module.MaxHealth);
+
+        var previousState = module.DamageState;
+        module.DamageState = ModuleDamageStateHelper.CalculateState(
+            module.HealthPercentage,
+            module.DamageState);
+
+        if (previousState == ModuleDamageState.Disabled &&
+            module.DamageState != ModuleDamageState.Disabled)
         {
-            // Process each module in the buffer
-            for (int i = 0; i < healthBuffer.Length; i++)
-            {
-                var health = healthBuffer[i];
-
-                // Update time since last damage
-                health.TimeSinceLastDamage += dt;
-
-                // Skip if recently damaged
-                if (health.TimeSinceLastDamage < config.ValueRO.RepairDelayAfterDamage)
-                {
-                    healthBuffer[i] = health;
-                    continue;
-                }
-
-                // Skip if disabled and auto-repair disabled modules not allowed
-                if (health.State == ModuleDamageState.Disabled &&
-                    !config.ValueRO.CanAutoRepairDisabled)
-                    continue;
-
-                // Skip if already at max health
-                if (health.CurrentHealth >= health.MaxHealth)
-                    continue;
-
-                // Apply repair (BaseRepairRatePerSecond is a percentage, e.g., 0.02 = 2%)
-                float repairAmount = health.MaxHealth *
-                                     config.ValueRO.BaseRepairRatePerSecond * dt;
-                health.CurrentHealth = math.min(
-                    health.CurrentHealth + repairAmount,
-                    health.MaxHealth);
-
-                // Update state
-                health.State = ModuleDamageStateHelper.CalculateState(
-                    health.HealthPercentage,
-                    health.State);
-
-                healthBuffer[i] = health;
-            }
+            GameEventBus.Raise(new ModuleRepairedEvent(_ship.EntityId, module.Category, module.SlotIndex, module.DamageState));
         }
     }
 }
@@ -910,31 +756,23 @@ Station repair can fix Disabled modules, unlike auto-repair.
 - Module damage states preserved but not updated
 - No visual effects (no GameObject)
 
-**System Flow for Tier 2+ Entities:**
+**Simplified Flow for Tier 2+ Entities:**
 
-When `DamageLocalizationSystem` processes a `PendingDamage` entry for a Tier 2+ entity:
+When `SensorSimulationManager` processes combat for a Tier 2+ entity:
 
-1. **DamageLocalizationSystem**: Detects entity lacks `ActiveTag` (Tier 2+)
-   - Performs shield absorption (shields still function at Tier 2+)
-   - **Skips** zone detection and module routing
-   - Passes remaining damage directly to `HullDamageSystem` via modified `PendingDamage`
-
-2. **ModuleDamageSystem**: **Skips** processing (no zone data in `PendingDamage`)
-
-3. **HullDamageSystem**: Applies armor reduction and updates hull integrity
+1. **Shield absorption**: Shield energy absorbs incoming damage (shields still function at Tier 2+)
+2. **Skip zone/module routing**: Damage goes directly to hull
+3. **Hull damage**: Apply armor reduction and update hull integrity
 
 ```csharp
-// In DamageLocalizationSystem:
-if (!SystemAPI.IsComponentEnabled<ActiveTag>(entity))
+// In SensorSimulationManager combat processing for Tier 2+:
+if (ship.CurrentTier >= 2)
 {
-    // Tier 2+: Shield absorption only, skip zone/module routing
-    float shieldAbsorbed = ApplyShieldAbsorption(ref shield, damage.Amount);
+    float shieldAbsorbed = ship.Shield.Absorb(damage.Amount);
     float remainingDamage = damage.Amount - shieldAbsorbed;
 
-    // Mark as non-localized so MDS skips it
-    damage.IsLocalized = false;
-    damage.Amount = remainingDamage;
-    // HullDamageSystem will process this directly
+    ship.Hull.ApplyDamage(remainingDamage);
+    // Module states unchanged — intentional simplification
 }
 ```
 
@@ -942,31 +780,29 @@ if (!SystemAPI.IsComponentEnabled<ActiveTag>(entity))
 
 ```mermaid
 sequenceDiagram
-    participant T01 as Tier 0-1 Entity
-    participant TTS as TierTransitionSystem
-    participant T2 as Tier 2+ Entity
+    participant T01 as Tier 0-1 ShipInstance
+    participant TM as TierManager
+    participant T2 as Tier 2+ ShipInstance
 
     Note over T01: Full damage simulation
-    T01->>TTS: Distance > Tier 1 boundary
-    TTS->>TTS: Preserve ModuleHealth states
-    TTS->>T2: Disable LoadedTag/ActiveTag
+    T01->>TM: Distance > Tier 1 boundary
+    TM->>TM: Module states persist on ShipInstance
 
     Note over T2: Simplified damage (hull only)
-    T2->>TTS: Distance < Tier 1 boundary
-    TTS->>TTS: Restore ModuleHealth states
-    TTS->>T01: Enable ActiveTag
-    TTS->>T01: Apply visual damage effects
+    T2->>TM: Distance < Tier 1 boundary
+    TM->>T01: Resume full damage simulation
+    TM->>T01: Sync visual damage effects
 ```
 
 **State Preservation Mechanism:**
 
 Module damage states are preserved across tier transitions because:
 
-1. **No Archetype Changes:** Tier tags use `IEnableableComponent` (see [[01-component-model#Tag Components]]), so tier transitions don't cause structural changes. All components, including `ModuleHealthElement` buffer, remain on the entity.
+1. **ShipInstance Persists:** The `ShipInstance` object (and its `DamageModel`) remains in memory across all tiers. Module health, damage states, and `TimeSinceLastDamage` are retained even when the entity is in Tier 2+.
 
-2. **Buffer Data Persists:** The `DynamicBuffer<ModuleHealthElement>` data persists in ECS memory. Health values, damage states, and `TimeSinceLastDamage` are retained even when the entity is in Tier 2+.
+2. **No Structural Changes:** Tier transitions only change which managers process the entity. The `ShipInstance` and all its `IShipModule` references remain intact.
 
-3. **Simplified Damage at Tier 2+:** While in Tier 2+, `DamageLocalizationSystem` marks `PendingDamage.IsLocalized = false`, bypassing zone routing. Damage goes directly to hull. **Module states are NOT updated by Tier 2 damage** - this is intentional simplification.
+3. **Simplified Damage at Tier 2+:** While in Tier 2+, combat bypasses zone routing. Damage goes directly to hull. **Module states are NOT updated by Tier 2 damage** — this is intentional simplification.
 
 **Implications:**
 
@@ -980,13 +816,13 @@ Module damage states are preserved across tier transitions because:
 **Trade-off:** This means a ship that takes heavy damage at Tier 2 won't have granular module damage when returning to Tier 1. The design prioritizes performance over simulation fidelity at distance. For Critical entities that stay at Tier 2 minimum, this ensures they maintain consistent module states when players approach.
 
 When demoting to Tier 2+:
-- `ModuleHealthElement` buffer remains on entity unchanged
-- Health values and states preserved in memory
-- No efficiency effects applied (systems don't query module health at Tier 2+)
+- `ShipInstance` and all `IShipModule` references persist unchanged
+- Health values and damage states preserved in memory
+- No efficiency effects applied (RichEntityManager skips Tier 2+ entities)
 
 When promoting to Tier 0-1:
-- `ModuleHealthElement` buffer read by systems again
-- Visual damage effects applied based on stored states
+- `DamageModel` and module health read by RichEntityManager again
+- PresentationManager syncs visual damage effects based on stored states
 - Efficiency multipliers become active
 
 ---
@@ -1002,102 +838,56 @@ When promoting to Tier 0-1:
 | **Critical** | Smoke particles | Alarm (configurable) | Heavy visual degradation |
 | **Disabled** | Fire/flames | Explosion on transition | Offline visuals |
 
-### DamageEffectsSystem
+### Damage Effects in PresentationManager
 
-**Note:** This system reads `ModuleHealthElement` buffer directly and tracks state changes via `EntityDamageEffects.PreviousWorstState` comparison. It does NOT consume damage event buffers (`ModuleDamagedEvent`, etc.). This design allows it to run in Presentation Group without timing conflicts with `DamageEventCleanupSystem` in Combat Group.
+Visual damage effects are handled by `PresentationManager` during Tier 0 visual sync. The `DamageModel` tracks the worst damage state across all modules for effect selection:
 
 ```csharp
-/// <summary>
-/// Tracks the worst damage state across all modules for visual effects.
-/// </summary>
-public struct EntityDamageEffects : IComponentData
+// On DamageModel:
+public ModuleDamageState WorstModuleState { get; private set; }
+public ModuleDamageState PreviousWorstState { get; private set; }
+public int DisabledModuleCount { get; private set; }
+
+public void UpdateDamageEffectState()
 {
-    public ModuleDamageState WorstModuleState;    // Most damaged module
-    public ModuleDamageState PreviousWorstState;  // For detecting state changes
-    public int DisabledModuleCount;               // How many modules are disabled
-}
+    var worstState = ModuleDamageState.Operational;
+    int disabledCount = 0;
 
-[UpdateInGroup(typeof(PresentationSystemGroup))]
-public partial struct DamageEffectsSystem : ISystem
-{
-    public void OnUpdate(ref SystemState state)
+    foreach (var module in _ship.AllModules)
     {
-        foreach (var (healthBuffer, effects, entity) in
-            SystemAPI.Query<DynamicBuffer<ModuleHealthElement>, RefRW<EntityDamageEffects>>()
-                     .WithAll<LoadedTag>()  // Only Tier 0
-                     .WithEntityAccess())
-        {
-            // Find worst state across all modules
-            var worstState = ModuleDamageState.Operational;
-            int disabledCount = 0;
-
-            for (int i = 0; i < healthBuffer.Length; i++)
-            {
-                var moduleState = healthBuffer[i].State;
-                if (moduleState > worstState)
-                    worstState = moduleState;
-                if (moduleState == ModuleDamageState.Disabled)
-                    disabledCount++;
-            }
-
-            effects.ValueRW.WorstModuleState = worstState;
-            effects.ValueRW.DisabledModuleCount = disabledCount;
-
-            // Check for state transitions
-            if (worstState != effects.ValueRO.PreviousWorstState)
-            {
-                UpdateEffectsForState(entity, worstState, effects.ValueRO.PreviousWorstState);
-                effects.ValueRW.PreviousWorstState = worstState;
-            }
-
-            // Update continuous effects (sparks, smoke intensity based on worst state)
-            UpdateContinuousEffects(entity, worstState, disabledCount);
-        }
+        if (module.DamageState > worstState)
+            worstState = module.DamageState;
+        if (module.DamageState == ModuleDamageState.Disabled)
+            disabledCount++;
     }
 
-    private void UpdateEffectsForState(Entity entity, ModuleDamageState newState, ModuleDamageState oldState)
-    {
-        // Trigger transition effects (explosion sound when module disables, etc.)
-    }
-
-    private void UpdateContinuousEffects(Entity entity, ModuleDamageState worstState, int disabledCount)
-    {
-        // Update particle intensity based on damage state
-        // More disabled modules = more fire/smoke effects
-    }
+    PreviousWorstState = WorstModuleState;
+    WorstModuleState = worstState;
+    DisabledModuleCount = disabledCount;
 }
 ```
+
+`PresentationManager` reads these values during visual sync to control particle effects, audio, and visual degradation. See [[02-system-architecture#8. PresentationManager]] for the sync pipeline.
 
 ---
 
 ## Configuration Layer
 
-### HitboxZoneConfiguration BlobAsset
+### HitboxZoneConfiguration
+
+Hitbox zone configurations are plain C# classes loaded from JSON at startup via the configuration pipeline (see [[05-configuration-layer]]):
 
 ```csharp
-public struct HitboxZoneConfigBlob
+public class HitboxZoneConfiguration
 {
-    public FixedString64Bytes ConfigId;
-    public BlobArray<HitboxZoneDef> Zones;
-    public BlobArray<ZoneModuleMappingDef> Mappings;
-}
-
-public struct HitboxZoneDef
-{
-    public HitboxZoneType Type;
-    public float2 LocalCenter;
-    public float2 LocalExtents;
-    public float DamageAbsorption;
-}
-
-public struct ZoneModuleMappingDef
-{
-    public HitboxZoneType Zone;
-    public ShipModuleCategory Category;
-    public int SlotIndex;
-    public float DamageWeight;
+    public string ConfigId;
+    public List<HitboxZone> Zones;
+    public List<ZoneModuleMapping> Mappings;
+    public RepairConfiguration Repair;
 }
 ```
+
+The `DamageModel` receives its `HitboxZoneConfiguration` from `ShipFactory` during spawn, which loads it from the ship's JSON config. Mods can override or add new hitbox configurations via the additive JSON pipeline.
 
 ### JSON Schema
 
@@ -1182,13 +972,11 @@ Asteroids use a single-zone model:
 - When integrity reaches threshold, asteroid breaks into smaller pieces
 
 ```csharp
-public struct AsteroidDamageData : IComponentData
-{
-    public float MaxIntegrity;
-    public float CurrentIntegrity;
-    public float FragmentThreshold;    // Break into pieces at this %
-    public int FragmentCount;          // How many pieces
-}
+// Fields on AsteroidData (Mass layer NativeArray struct):
+public float MaxIntegrity;
+public float CurrentIntegrity;
+public float FragmentThreshold;    // Break into pieces at this %
+public int FragmentCount;          // How many pieces
 ```
 
 ### Missiles/Projectiles (Minimal)
@@ -1202,66 +990,79 @@ No progressive destruction - single hit point:
 
 ## Combat Events
 
-Events are stored as buffer elements **on the damaged entity** to support multiple events per entity per frame (e.g., multiple modules damaged by an explosion). Systems should consume and clear these buffers each frame.
-
-**Storage Location:** These buffers are part of the `BaseShip` archetype (see [[04-archetype-strategy]]). Each ship entity has its own event buffers that track damage events occurring to that specific entity.
+Damage events fire via `GameEventBus` and are dispatched to Lua in `ScriptExecutionManager`. Events are raised by `DamageModel` as damage is processed.
 
 ### ModuleDamagedEvent
 
 ```csharp
-public struct ModuleDamagedEvent : IBufferElementData
+public struct ModuleDamagedEvent
 {
-    public Entity TargetEntity;
+    public int TargetEntityId;
     public ShipModuleCategory ModuleCategory;
     public int ModuleSlotIndex;
     public ModuleDamageState PreviousState;
     public ModuleDamageState NewState;
     public float DamageAmount;
-    public Entity SourceEntity;
+    public int SourceEntityId;
 }
 ```
 
 ### ModuleDisabledEvent
 
-Fired when a module transitions to Disabled state:
+Raised when a module transitions to Disabled state:
 
 ```csharp
-public struct ModuleDisabledEvent : IBufferElementData
+public struct ModuleDisabledEvent
 {
-    public Entity TargetEntity;
+    public int TargetEntityId;
     public ShipModuleCategory ModuleCategory;
     public int ModuleSlotIndex;
-    public Entity SourceEntity;
+    public int SourceEntityId;
 }
 ```
 
 ### ModuleRepairedEvent
 
-Fired when a module transitions out of Disabled state:
+Raised when a module transitions out of Disabled state:
 
 ```csharp
-public struct ModuleRepairedEvent : IBufferElementData
+public struct ModuleRepairedEvent
 {
-    public Entity TargetEntity;
+    public int TargetEntityId;
     public ShipModuleCategory ModuleCategory;
     public int ModuleSlotIndex;
     public ModuleDamageState NewState;
 }
 ```
 
-**Event Processing Pattern:**
+**Event Dispatch:**
 ```csharp
-// Systems consuming events should process and clear the buffer each frame:
-foreach (var (damagedEvents, entity) in
-    SystemAPI.Query<DynamicBuffer<ModuleDamagedEvent>>()
-             .WithEntityAccess())
+// In DamageModel.ProcessDamage():
+var previousState = module.DamageState;
+module.ApplyDamage(amount);
+
+if (module.DamageState != previousState)
 {
-    foreach (var evt in damagedEvents)
+    GameEventBus.Raise(new ModuleDamagedEvent(
+        _ship.EntityId, module.Category, module.SlotIndex,
+        previousState, module.DamageState, amount, damage.SourceEntityId));
+
+    if (module.DamageState == ModuleDamageState.Disabled)
     {
-        // Process event (trigger VFX, update AI, etc.)
+        GameEventBus.Raise(new ModuleDisabledEvent(
+            _ship.EntityId, module.Category, module.SlotIndex, damage.SourceEntityId));
     }
-    damagedEvents.Clear();  // Clear after processing
 }
+```
+
+Events are queued during the frame and dispatched to Lua callbacks in `ScriptExecutionManager.Update()`. Lua scripts can listen for these events:
+
+```lua
+starfire.on("module_damaged", function(event)
+    if event.new_state == "disabled" then
+        log("Module disabled on entity " .. event.target_id)
+    end
+end)
 ```
 
 ---
@@ -1296,16 +1097,27 @@ AI behavior trees can use this to make tactical decisions:
 |-----------|-------------|-------|
 | Zone detection | < 0.01ms | Simple AABB tests |
 | Damage distribution | < 0.05ms | Per-hit calculation |
-| State updates | < 0.1ms | Batched, Burst-compiled |
+| State updates | < 0.1ms | Batched per ship |
 | Effect updates | < 0.5ms | Only Tier 0 entities |
 | Repair updates | < 0.2ms | Amortized, all entities |
 
 ---
 
+## Modding Integration
+
+Damage and destruction are key modding extension points:
+
+- **Hitbox zone configurations** are fully moddable via JSON (see [[05-configuration-layer#Hitbox Zone JSON Schema]]). Mods can define new zone layouts for custom ship types.
+- **Damage events** (`module_damaged`, `module_disabled`, `module_repaired`) are dispatched to Lua via GameEventBus, enabling custom damage responses, UI notifications, or gameplay mechanics.
+- **Repair configurations** can be overridden per ship type via JSON config pipeline.
+
+---
+
 ## Related Documents
 
-- [[01-component-model]] - Base component definitions
-- [[02-system-architecture]] - System execution order (Combat Group)
+- [[01-component-model]] - IShipModule interface, module definitions
+- [[02-system-architecture]] - System execution order, PresentationManager
 - [[03-tiered-simulation]] - Tier system integration
 - [[04-archetype-strategy]] - Entity archetypes with damage components
 - [[05-configuration-layer]] - JSON configuration pipeline
+- [[12-modding-architecture]] - Lua event hooks and JSON overrides

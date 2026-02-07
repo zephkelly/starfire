@@ -2,6 +2,8 @@
 
 This document defines the thermal radiation and heat damage system for Starfire.
 
+> **Architecture Note:** In the hybrid architecture, heat simulation runs in the EnvironmentManager for Rich Layer ships. Each ShipInstance has a HeatState struct and HullThermalProperties derived from its HullModule. Heat damage routes through the DamageModel as environmental damage. Sensor Layer contacts do not simulate heat - when promoted to Rich Layer, their temperature is initialized to equilibrium based on distance from nearest star.
+
 ---
 
 ## Design Decisions Summary
@@ -11,8 +13,8 @@ This document defines the thermal radiation and heat damage system for Starfire.
 | Heat sources | Stars only (via Luminosity) | Simplifies system, most impactful source |
 | Heat sink | Hull module only | User preference, simpler than radiator modules |
 | Cooling model | Stefan-Boltzmann radiative | Realistic for space (no convection) |
-| Damage routing | Environmental damage type | Uses existing damage pipeline |
-| Tier handling | Full T1, equilibrium T2 | Matches gravity system philosophy |
+| Damage routing | Environmental damage type | Uses existing DamageModel pipeline |
+| Layer handling | Rich Layer only | Sensor layer uses equilibrium approximation |
 
 ---
 
@@ -459,6 +461,8 @@ public class HeatConfig : ScriptableObject
 }
 ```
 
+`HeatConfig` values can be overridden by mods via the JSON config pipeline (see [[05-configuration-layer]]). Heat damage routes through the `DamageModel` pipeline, which dispatches `OnEntityDamaged` events to Lua via GameEventBus (see [[09-progressive-destruction#Combat Events]]).
+
 ---
 
 ## System Execution Order
@@ -679,3 +683,4 @@ Damage = (T - MaxTemp - Margin) × DamagePerDegree × TickRate
 - [[02-system-architecture]] - System execution order
 - [[09-progressive-destruction]] - Damage routing
 - [[10-gravity-system]] - Gravity sources (provides star data)
+- [[12-modding-architecture]] - Moddable heat configuration
