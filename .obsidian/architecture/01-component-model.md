@@ -24,6 +24,9 @@ This document defines all data types across the three processing layers. The Ric
 | Mod entity types | Reuse existing `EntityTypeEnum` | Mods differentiate via ShipConfigId, not new enum values |
 | Per-entity script data | `Dictionary<string, float>` on ShipInstance | Lua scripts store custom state via `get_data()` / `set_data()` |
 | Override model | Additive + Override (last writer wins) | Already in ConfigRegistry; extensible to patching later |
+| Network replication struct | `NetworkShipState` (~51 bytes) | Compact; delta compressed with dirty flags for ongoing replication |
+| Sensor network format | `SensorContactSummary` (~17 bytes) | Server computes per-client, sends at 2-4 Hz |
+| Network initial state | Reuse `ShipSnapshot` | Already captures full state for tier transitions |
 
 ---
 
@@ -205,6 +208,58 @@ public struct AbilitySnapshotEntry
     public byte StateData;
 }
 ```
+
+### Network State Types
+
+Data structures used for network replication. See [[13-networking-architecture]] for full networking detail.
+
+**NetworkShipState** — Compact replication format for Rich layer entities (~51 bytes):
+
+```csharp
+public struct NetworkShipState
+{
+    public double2 Position;           // 16 bytes
+    public double2 Velocity;           // 16 bytes
+    public float Heading;              // 4 bytes
+    public float AngularVelocity;      // 4 bytes
+    public half HullPercent;           // 2 bytes
+    public half ShieldPercent;         // 2 bytes
+    public byte Flags;                 // 1 byte (shields active, transponder, in warp)
+    public byte ModuleDamageStates;    // 1 byte (packed 4×2-bit states)
+    public WarpPhase WarpPhase;        // 1 byte
+    public float WarpSpeed;            // 4 bytes (only when warping)
+}
+```
+
+**ShipStateDelta** — For ongoing replication, only changed fields are sent:
+
+```csharp
+public struct ShipStateDelta
+{
+    public byte DirtyFlags;
+    // Only include fields where corresponding flag is set
+    // Most ticks: Position only (~16 bytes)
+    // In combat: more fields change (~30-40 bytes)
+}
+```
+
+**SensorContactSummary** — Server sends per-client sensor results at 2-4 Hz:
+
+```csharp
+public struct SensorContactSummary
+{
+    public int EntityId;                // 4 bytes
+    public half2 RelativePosition;      // 4 bytes (relative to client, half precision)
+    public half Speed;                  // 2 bytes
+    public half Heading;                // 2 bytes
+    public byte FactionIndex;           // 1 byte
+    public DetectionLevel Level;        // 1 byte
+    public SensorAIState AIState;       // 1 byte (FullRead only)
+    public half HullPercent;            // 2 bytes (Identified+)
+}
+```
+
+`ShipSnapshot` (defined above) is reused for: initial spawn replication, reconnection recovery, and observer-gain events (when a new entity enters a client's view).
 
 ---
 
@@ -1037,6 +1092,8 @@ public class GameEventBus
 
 C# managers fire events during their update step. The ScriptExecutionManager collects these and dispatches them to registered Lua callbacks after all simulation is complete. This ensures Lua sees a consistent world state.
 
+**Multiplayer:** A `NetworkEventBridge` subscribes to gameplay events on the server and forwards relevant events to clients via ObserversRpc/TargetRpc for VFX and SFX. See [[13-networking-architecture]] for the full event routing table.
+
 ---
 
 ## Lua Entity Proxy
@@ -1119,3 +1176,4 @@ public class SimulationQualitySettings : ScriptableObject
 - [[10-gravity-system]] - Gravity components and orbital mechanics
 - [[11-heat-system]] - Heat components and thermal radiation
 - [[12-modding-architecture]] - Mod loading, Lua scripting, event bridge
+- [[13-networking-architecture]] - NetworkShipState, ShipStateDelta, SensorContactSummary, delta compression

@@ -2,6 +2,8 @@
 
 This document provides a high-level view of the Starfire hybrid architecture, showing how all systems work together across three processing layers.
 
+> **Multiplayer Architecture:** Starfire uses **Fishnet** for server-authoritative multiplayer (8-16 players). The server runs the full simulation; clients predict their own ship and render locally. Single-player is a local listen server — there is no separate offline code path. See [[13-networking-architecture]] for full detail.
+
 ---
 
 ## Design Philosophy
@@ -13,6 +15,8 @@ Starfire uses a **hybrid architecture** that matches the simulation approach to 
 - **Distant entities** visible on sensors use **lightweight C# structs** with state machine AI for realistic but efficient simulation.
 
 The simulation resolution matches the representation complexity. ECS-style batch processing is reserved for where it genuinely helps: mass uniform entities and simplified distant representations.
+
+The **networking architecture** adds a cross-cutting concern: the server runs authoritative simulation across all layers, while clients handle prediction (own ship only), interpolation (remote entities), and presentation. Fishnet's tick-based system (30 Hz) replaces frame-based `Update()` for all simulation.
 
 ---
 
@@ -48,31 +52,43 @@ graph TB
         PROJ["Projectile Management"]
     end
 
-    subgraph MOD["Modding Layer (Cross-cutting)"]
+    subgraph MOD["Modding Layer (Cross-cutting, Server-Only)"]
         direction LR
         MODLOAD["ModLoader"]
         LUA["Lua Runtime (MoonSharp)"]
         BRIDGE["Event Bridge"]
     end
 
+    subgraph NET["Networking Layer (Cross-cutting)"]
+        direction LR
+        FISHNET["Fishnet NetworkManager"]
+        REPL["State Replication"]
+        PRED["Client Prediction"]
+        OBS["Observer System"]
+    end
+
     RICH <-->|"ShipSnapshot"| SENSOR
     SENSOR <-->|"Fleet Grouping"| STRATEGIC
+    NET <-->|"NetworkShipState"| RICH
+    NET <-->|"SensorContactSummary"| SENSOR
 
     style RICH fill:#e1f5fe
     style SENSOR fill:#fff3e0
     style STRATEGIC fill:#f3e5f5
     style MASS fill:#e8f5e9
     style MOD fill:#fce4ec
+    style NET fill:#e8eaf6
 ```
 
 The Mass Entity Layer runs **in parallel** with the other layers at all distances - it is a separate processing path for uniform entities, not a tier.
 
 | Layer | Technology | Entity Types | Max Count | Update Rate |
 |-------|-----------|--------------|-----------|-------------|
-| **Rich** | C# classes, interfaces, MonoBehaviour | Ships, stations, named NPCs | ~500 | Every frame |
-| **Sensor** | C# structs in managed arrays | Medium-range contacts | ~200 | Every 5-10 frames |
+| **Rich** | C# classes, interfaces, MonoBehaviour | Ships, stations, named NPCs | ~500 | Every tick (30 Hz) |
+| **Sensor** | C# structs in managed arrays | Medium-range contacts | ~200 | Every 5-10 ticks |
 | **Strategic** | Fleet structs, dormant records | Far-range groups | ~100 fleets | Every ~1 second |
-| **Mass** | NativeArray + Burst Jobs | Asteroids, debris, projectiles | Thousands | Every frame (Burst) |
+| **Mass** | NativeArray + Burst Jobs | Asteroids, debris, projectiles | Thousands | Every tick (Burst) |
+| **Networking** | Fishnet (NetworkBehaviour, RPCs) | Cross-cutting | Per-player | Tier-dependent |
 
 ---
 
@@ -93,6 +109,7 @@ The Mass Entity Layer runs **in parallel** with the other layers at all distance
 | [[10-gravity-system]] | Mass + Rich | Newtonian gravity, orbital mechanics |
 | [[11-heat-system]] | Rich | Thermal radiation, hull temperature |
 | [[12-modding-architecture]] | Cross-cutting | Mod loading, Lua scripting, event bridge, mod API |
+| [[13-networking-architecture]] | Cross-cutting | Fishnet integration, server/client pipeline, prediction, observer system |
 
 ---
 
@@ -153,43 +170,49 @@ flowchart LR
 
 ## Processing Pipeline
 
-Each layer has its own update loop, running in sequence each frame:
+The simulation runs on Fishnet's `TimeManager.OnTick` (30 Hz). The pipeline splits into a **server pipeline** (authoritative simulation) and a **client pipeline** (prediction + rendering). See [[02-system-architecture]] for full detail.
 
 ```mermaid
 flowchart TB
-    subgraph FRAME["Per Frame"]
-        INPUT["1. Input Collection"]
-        RICH_UPDATE["2. Rich Layer Update\n(Ships, Stations)"]
-        SENSOR_UPDATE["3. Sensor Layer Update\n(Amortized batch)"]
-        MASS_UPDATE["4. Mass Entity Update\n(Burst Jobs)"]
-        ENV["5. Environment\n(Gravity, Heat)"]
-        TIER["6. Tier Management\n(Distance, Transitions)"]
-        SCRIPT["7. Script Execution\n(Lua callbacks, mod API)"]
-        PRESENT["8. Presentation\n(View sync, Effects)"]
+    subgraph SERVER["Server OnTick (30 Hz)"]
+        S1["1. NetworkInputCollector"]
+        S2["2. RichEntityManager"]
+        S3["3. SensorSimulationManager"]
+        S4["4. MassEntityManager"]
+        S5["5. EnvironmentManager"]
+        S6["6. TierManager (Multi-Viewpoint)"]
+        S7["7. ScriptExecutionManager"]
+        S8["8. NetworkStateReplicator"]
     end
 
-    INPUT --> RICH_UPDATE
-    RICH_UPDATE --> SENSOR_UPDATE
-    SENSOR_UPDATE --> MASS_UPDATE
-    MASS_UPDATE --> ENV
-    ENV --> TIER
-    TIER --> SCRIPT
-    SCRIPT --> PRESENT
+    subgraph CLIENT["Client OnTick + Update"]
+        C1["1. LocalInputManager"]
+        C2["2. ClientPredictionManager"]
+        C3["3. ClientEnvironmentManager"]
+        C4["4. NetworkStateReceiver"]
+        C5["5. InterpolationManager"]
+        C6["6. PresentationManager (Update)"]
+    end
+
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8
+    C1 --> C2 --> C3 --> C4 --> C5 -.-> C6
 ```
 
-**Performance Budgets:**
+**Performance Budgets (Server — 33ms available at 30 Hz):**
 
 | Group | Target | Notes |
 |-------|--------|-------|
-| Input | 0.5ms | Player + AI input collection |
+| Input Collection | 0.3ms | Gather inputs from N clients |
 | Rich Layer | 3ms | Ship simulation, abilities, combat |
 | Sensor Layer | 0.5ms | Amortized state machine updates |
 | Mass Entities | 2ms | Burst-compiled gravity + physics |
 | Environment | 1ms | Gravity sources, heat |
-| Tier Management | 0.5ms | Distance checks, transitions |
+| Tier Management | 0.9ms | Multi-viewpoint distance, transitions |
 | Script Execution | 0.5ms | Lua event dispatch, timer callbacks, mod API calls |
-| Presentation | 2ms | Visual sync, effects |
-| **Total** | **10ms** | 6.5ms headroom for 60 FPS |
+| State Replication | 0.6ms | Delta compression, observer filtering |
+| **Total** | **8.8ms** | 24.2ms headroom at 30 Hz tick |
+
+**Client budget:** ~1.3ms per tick (prediction, interpolation) + ~2ms per render frame (presentation).
 
 ---
 
@@ -273,6 +296,8 @@ stateDiagram-v2
 | `ModLoader` | Discovers mods, resolves load order, manages manifests | Initialization |
 | `LuaRuntime` | MoonSharp script engine, per-mod sandbox, API registration | Script Execution |
 | `GameEventBus` | Typed game events for C# and Lua subscribers | All managers, Lua scripts |
+| `NetworkManager` | Fishnet connection management, tick system | All networked managers |
+| `NetworkEventBridge` | Forwards server events to clients for VFX/SFX | PresentationManager, UI |
 
 ---
 
@@ -343,10 +368,11 @@ The game is its own first mod. Base game content loads through the **same pipeli
 7. Game loop begins - ScriptExecutionManager dispatches events each frame
 
 **Key constraints:**
-- Lua executes on the main thread, after all game simulation completes for the frame
+- Lua executes on the main thread, after all game simulation completes for the tick
 - Lua interacts with Rich layer entities directly via proxy wrappers (no deferred buffer - changes are immediate)
 - Burst jobs (Mass layer) cannot call Lua - events from Mass layer are queued and dispatched in the Script Execution step
 - Mods cannot define new C# types - custom state uses per-entity `ScriptData` dictionary
+- **Multiplayer:** Lua runs server-only. Changes made by Lua are replicated to clients via NetworkStateReplicator
 
 See [[05-configuration-layer]] for the JSON config pipeline and [[12-modding-architecture]] for the full scripting system.
 
@@ -357,8 +383,8 @@ See [[05-configuration-layer]] for the JSON config pipeline and [[12-modding-arc
 1. [[00-overview]] - This document (start here)
 2. [[01-component-model]] - Data models per layer
 3. [[04-archetype-strategy]] - Entity composition patterns
-4. [[02-system-architecture]] - Processing pipeline
-5. [[03-tiered-simulation]] - Tier system and transitions
+4. [[02-system-architecture]] - Processing pipeline (server/client split)
+5. [[03-tiered-simulation]] - Tier system and transitions (multi-viewpoint)
 6. [[08-control-modes]] - Player/AI control
 7. [[10-gravity-system]] - Orbital mechanics
 8. [[11-heat-system]] - Thermal radiation
@@ -367,6 +393,7 @@ See [[05-configuration-layer]] for the JSON config pipeline and [[12-modding-arc
 11. [[06-chunk-integration]] - World management
 12. [[07-warp-system]] - High-speed travel
 13. [[12-modding-architecture]] - Modding and Lua scripting
+14. [[13-networking-architecture]] - Multiplayer networking (Fishnet)
 
 ---
 
@@ -384,3 +411,4 @@ See [[05-configuration-layer]] for the JSON config pipeline and [[12-modding-arc
 - [[10-gravity-system]] - Newtonian gravity and orbital mechanics
 - [[11-heat-system]] - Thermal radiation and hull temperature
 - [[12-modding-architecture]] - Mod loading, Lua scripting, event bridge, mod API
+- [[13-networking-architecture]] - Fishnet integration, server/client pipeline, prediction, observer system

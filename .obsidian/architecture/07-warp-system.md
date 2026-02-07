@@ -4,6 +4,8 @@ This document defines the warp travel system for Starfire, enabling high-speed m
 
 > **Architecture Note:** In the hybrid architecture, warp is a state on the PlayerShipInstance (WarpState + WarpEngineModule). The RichEntityManager checks WarpState and switches to swept-raycast collision during warp. Sensor layer contacts can also enter warp (SensorAIState.Warp) - visible as a signature on the player's map. Warp mode changes are coordinated through the TierManager to freeze/unfreeze corridor entities.
 
+> **Multiplayer:** Warp is **server-authoritative**. The client sends a `WarpEngaged` ServerRpc; the server validates (fuel, cooldown, module health) and enters the charging phase. The client **predicts warp movement locally** for responsive feel. The server runs **swept collision detection authoritatively** — on hazard, the server sends `WarpDropped` and the client snaps to the server position (masked by warp-exit VFX deceleration effect). At 10,000 u/s and 100ms latency, the client predicts ~1,000 units ahead; the warp-exit deceleration animation hides this correction. See [[13-networking-architecture]].
+
 ---
 
 ## Design Philosophy
@@ -290,9 +292,38 @@ private static float EaseInCubic(float t) => t * t * t;
 
 ---
 
+### Warp Networking Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant Server as Server
+
+    Client->>Server: ServerRpc: WarpEngaged(direction)
+    Server->>Server: Validate (fuel, cooldown, module health)
+    Server->>Client: State update: WarpPhase.Charging
+
+    Note over Client: Client predicts warp movement locally
+
+    Server->>Server: Swept collision check each tick
+    alt Hazard detected
+        Server->>Client: WarpDropped(position, reason)
+        Client->>Client: Snap to server position (masked by decel VFX)
+    end
+
+    alt Player disengages
+        Client->>Server: ServerRpc: WarpDisengaged
+        Server->>Client: State update: WarpPhase.Dropping
+    end
+```
+
+**Latency analysis:** At 10,000 u/s and 100ms round-trip latency, the client predicts ~500 units ahead when the server detects a hazard. The warp-exit deceleration animation (0.5s) covers ~2,500 units of deceleration, which comfortably hides the correction snap.
+
+---
+
 ## Warp Collision System (Swept Raycast)
 
-At high speeds, frame-by-frame collision misses obstacles. Use swept collision.
+At high speeds, frame-by-frame collision misses obstacles. Use swept collision. All collision detection is **server-authoritative** — the client does not run collision checks during warp prediction.
 
 ```mermaid
 flowchart LR
@@ -608,24 +639,27 @@ public class WarpChunkLoader : MonoBehaviour
 
 ---
 
-## Warp Mode World State Changes
+## Warp Mode World State Changes (Server-Only)
+
+All warp world state coordination runs **server-side only**. When ANY player warps, the server adjusts the corridor for that player's path without affecting other players' simulation.
 
 ```mermaid
 sequenceDiagram
-    participant Player as Player
-    participant WM as WarpManager
-    participant CM as ChunkManager
-    participant TM as TierManager
-    participant REM as RichEntityManager
+    participant Client as Client (Player)
+    participant WM as WarpManager (Server)
+    participant CM as ChunkManager (Server)
+    participant TM as TierManager (Server)
+    participant REM as RichEntityManager (Server)
 
-    Player->>WM: Engage Warp
-    WM->>CM: Suspend spawning
-    WM->>TM: Set corridor to Tier 4
-    WM->>REM: Freeze AI near player
+    Client->>WM: ServerRpc: Engage Warp
+    WM->>WM: Validate (fuel, cooldown, module health)
+    WM->>CM: Suspend spawning in player's path
+    WM->>TM: Set corridor to Tier 4 (relative to this player)
+    WM->>REM: Freeze AI near this player
 
-    Note over Player: Traveling at warp...
+    Note over Client: Traveling at warp (client predicts locally)...
 
-    Player->>WM: Warp Drop
+    Client->>WM: ServerRpc: Warp Drop (or server forces drop)
     WM->>CM: Resume spawning
     WM->>TM: Recalculate tiers
     WM->>REM: Unfreeze AI
@@ -633,7 +667,7 @@ sequenceDiagram
 
 ### WarpManager World State Coordination
 
-The `WarpManager` coordinates world state changes when warp engages and drops:
+The `WarpManager` coordinates world state changes when warp engages and drops. In multiplayer, each player's warp is tracked independently:
 
 ```csharp
 public class WarpManager
@@ -875,3 +909,4 @@ Warp system modding extension points:
 - [[03-tiered-simulation]] - Tier system details
 - [[06-chunk-integration]] - Chunk loading during warp
 - [[12-modding-architecture]] - Lua event hooks and JSON overrides
+- [[13-networking-architecture]] - Warp prediction, server validation, correction masking

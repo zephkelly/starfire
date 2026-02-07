@@ -4,6 +4,8 @@ This document defines the thermal radiation and heat damage system for Starfire.
 
 > **Architecture Note:** In the hybrid architecture, heat simulation runs in the EnvironmentManager for Rich Layer ships. Each ShipInstance has a HeatState struct and HullThermalProperties derived from its HullModule. Heat damage routes through the DamageModel as environmental damage. Sensor Layer contacts do not simulate heat - when promoted to Rich Layer, their temperature is initialized to equilibrium based on distance from nearest star.
 
+> **Multiplayer:** Heat simulation is **server-only**. Clients do not compute heat — they receive temperature-driven VFX state (glow color, distortion intensity) via the `NetworkShipState.Flags` or gameplay events for heat damage. The client's `ClientEnvironmentManager` does NOT run heat — only gravity for prediction. See [[13-networking-architecture]].
+
 ---
 
 ## Design Decisions Summary
@@ -684,3 +686,4 @@ Damage = (T - MaxTemp - Margin) × DamagePerDegree × TickRate
 - [[09-progressive-destruction]] - Damage routing
 - [[10-gravity-system]] - Gravity sources (provides star data)
 - [[12-modding-architecture]] - Moddable heat configuration
+- [[13-networking-architecture]] - Server-only heat, client VFX state replication

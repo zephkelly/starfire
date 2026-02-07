@@ -4,6 +4,8 @@ This document defines the modding system for Starfire: mod structure, loading pi
 
 > **Design Principle:** The base game is its own first mod. Base game content in `StreamingAssets/data/` loads through the identical pipeline as mod content in `StreamingAssets/mods/`. There is no separate "engine" vs "content" boundary — mods have the same capabilities as the base game data layer.
 
+> **Multiplayer:** Lua scripts run **server-only**. MoonSharp executes only on the server for authority, determinism, and security. Changes made by Lua (e.g., `set_health()`) are picked up by `NetworkStateReplicator` and sent to clients automatically. Multiplayer mod authority model (server-enforced vs client cosmetic mods) is deferred for later design. See [[13-networking-architecture]].
+
 ---
 
 ## Overview
@@ -16,8 +18,8 @@ Starfire supports two tiers of modding:
 | **Tier 2: Scripting** | Lua scripts (MoonSharp) | Custom behaviors, event reactions, spawn logic, gameplay rules | Medium |
 
 **Key Constraints:**
-- Lua executes on the **main thread**, after all game simulation completes for the frame
-- Total script execution budget: **0.5ms per frame**
+- Lua executes on the **main thread**, after all game simulation completes for the tick (server-only)
+- Total script execution budget: **0.5ms per tick**
 - Each mod runs in a **sandboxed** MoonSharp Script instance — no filesystem or network access
 - Mods cannot define new C# types or modify Burst jobs
 - Lua interacts with Rich layer entities **directly** via proxy wrappers — changes are immediate
@@ -775,3 +777,4 @@ This mod:
 - [[09-progressive-destruction]] - Damage events dispatched to Lua, hitbox zone modding
 - [[10-gravity-system]] - Moddable gravity configuration
 - [[11-heat-system]] - Moddable heat configuration, heat damage routes to Lua events
+- [[13-networking-architecture]] - Lua server-only execution, NetworkEventBridge for client VFX

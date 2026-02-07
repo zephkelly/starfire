@@ -2,6 +2,8 @@
 
 This document defines how entities are composed in each layer. The Rich Entity Layer uses C# class composition with interfaces. The Mass Entity Layer uses simple data structs.
 
+> **Multiplayer:** Rich layer entities (Tier 0-1) that are observed by any connected player get a Fishnet `NetworkObject`. When an entity is Tier 2+ for ALL players, its `NetworkObject` is despawned. Player ships use **owner authority** for client-side prediction. AI ships and stations are **server-owned**. See [[13-networking-architecture]] for full detail.
+
 ---
 
 ## Composition Overview
@@ -374,6 +376,23 @@ The Rich layer trades cache coherency for expressiveness (virtual dispatch, mana
 
 ---
 
+## NetworkObject Composition (Multiplayer)
+
+In multiplayer, Rich layer entities gain a `NetworkObject` component for Fishnet replication:
+
+| Entity Type | NetworkObject | Authority | Replication |
+|-------------|:------------:|-----------|-------------|
+| Player ship | Yes (Tier 0-1 for any player) | Owner (client prediction) | ControlInput via ServerRpc, corrections via state sync |
+| AI ship | Yes (Tier 0-1 for any player) | Server | NetworkShipState to observers, interpolated on client |
+| Station | Yes (Tier 0-1 for any player) | Server | Low-frequency SyncVar updates |
+| Sensor contact | No | Server | SensorContactSummary via TargetRpc (2-4 Hz) |
+| Fleet | No | Server | FleetSummary via TargetRpc (0.5-1 Hz) |
+| Asteroid | No | Server | Deterministic from chunk seed; only modified asteroids send deltas |
+
+`NetworkObject` lifecycle is tied to the tier system: when an entity enters Tier 0-1 for any player, it gains a `NetworkObject`. When it leaves Tier 0-1 for ALL players, the `NetworkObject` is despawned.
+
+---
+
 ## Related Documents
 
 - [[01-component-model]] - Detailed data type definitions
@@ -381,3 +400,4 @@ The Rich layer trades cache coherency for expressiveness (virtual dispatch, mana
 - [[03-tiered-simulation]] - Tier transitions between layers
 - [[05-configuration-layer]] - JSON configuration for ship composition
 - [[09-progressive-destruction]] - Damage model details
+- [[13-networking-architecture]] - NetworkObject lifecycle, entity authority, replication strategy

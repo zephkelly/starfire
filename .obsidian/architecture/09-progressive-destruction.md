@@ -4,6 +4,8 @@ This document defines the progressive destruction system for Starfire, enabling 
 
 > **Architecture Note:** In the hybrid architecture, the DamageModel class on each ShipInstance handles progressive destruction. Since ships are C# objects with IShipModule interfaces, damage routing calls module methods directly (e.g., `shield.ApplyDamage()`, `propulsion.ApplyDamage()`). This is simpler than the ECS approach - no buffer elements or system ordering concerns. Full progressive destruction runs only for Rich Layer (Tier 0-1) entities. Sensor Layer entities track only aggregate HullPercent/ShieldPercent.
 
+> **Multiplayer:** All damage computation is **server-authoritative**. Hit detection, damage routing, and destruction all happen on the server. Clients receive damage results via `NetworkEventBridge` events (`OnEntityDamaged`, `OnModuleDamaged`, `OnEntityDestroyed`) for VFX/SFX. Module damage states are packed into `NetworkShipState.ModuleDamageStates` (1 byte, 4x2-bit) for compact replication. See [[13-networking-architecture]].
+
 ---
 
 ## Design Philosophy
@@ -1121,3 +1123,4 @@ Damage and destruction are key modding extension points:
 - [[04-archetype-strategy]] - Entity archetypes with damage components
 - [[05-configuration-layer]] - JSON configuration pipeline
 - [[12-modding-architecture]] - Lua event hooks and JSON overrides
+- [[13-networking-architecture]] - Server-authoritative damage, module state replication

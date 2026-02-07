@@ -4,6 +4,8 @@
 
 The simulation system uses **progressive degradation** across three processing layers. Entities closer to the player receive full OOP simulation with unique abilities; distant entities use increasingly abstracted representations.
 
+> **Multiplayer:** With 8-16 players, the same entity can be at different tiers for different players. The server maintains **per-player tier maps** and computes an **effective tier** (minimum across all players) for simulation fidelity. Each player receives data at their individual tier resolution. See [[13-networking-architecture]] for observer system mapping. The tier system runs **server-side only**.
+
 Each tier maps to a processing layer:
 
 | Tier | Layer | Range | Technology |
@@ -474,9 +476,73 @@ RichLayerMaxEntities = 300
 
 ---
 
+## Multi-Viewpoint Tier Management (Multiplayer)
+
+With multiple players, the single-player assumption of "one reference position" no longer holds. The server manages per-player tier maps:
+
+### Per-Player Tier Map
+
+```csharp
+// Server maintains: for each player, what tier is each entity at?
+Dictionary<int, Dictionary<int, int>> _playerEntityTiers;
+// connectionId -> (entityId -> tier)
+
+// Effective tier = min across all players (highest fidelity any player needs)
+Dictionary<int, int> _effectiveTiers;
+// entityId -> tier
+```
+
+**Effective tier** determines how the server simulates the entity. **Per-player tier** determines what data each player receives:
+
+| Player's Tier for Entity | Observer State | Data Sent | Rate |
+|--------------------------|---------------|-----------|------|
+| Tier 0-1 | Full observer | `NetworkShipState` (delta compressed) | 30 Hz |
+| Tier 2 | Sensor observer | `SensorContactSummary` batch | 2-4 Hz |
+| Tier 3 | Fleet observer | `FleetSummary` | 0.5-1 Hz |
+| Tier 4 | Not observed | Nothing | Never |
+
+### Example Scenario
+
+Player A is at position (10,000, 0). Player B is at position (80,000, 0). An entity at position (50,000, 0):
+- **Player A's tier for entity:** Tier 2 (40k away — sensor range)
+- **Player B's tier for entity:** Tier 1 (30k away — rich layer... wait, 30k > 20k so Tier 2)
+- Actually: Player A distance = 40k → Tier 2. Player B distance = 30k → Tier 2.
+- **Effective tier:** min(2, 2) = 2 → Server simulates at Sensor layer
+- If Player B moves to (45,000, 0): distance = 5k → Tier 0-1. Effective tier becomes 1, server promotes to Rich layer
+
+### Performance Mitigation
+
+Tier calculations multiply by N players:
+- **Spatial hashing** to quickly find which players are near which entities
+- **Amortize across ticks** — not all player×entity pairs checked every tick
+- **Hysteresis and cooldowns** still apply; reference = nearest player for each entity
+
+### Fishnet Observer Integration
+
+The tier system drives Fishnet's observer conditions. Entities at Tier 0-1 for a given player are `NetworkObject` observers for that player. Tier 2+ entities are NOT observers — they receive data through separate `TargetRpc` channels (sensor summaries, fleet summaries).
+
+```csharp
+public class TierBasedObserverCondition : ObserverCondition
+{
+    public override bool ConditionMet(
+        NetworkConnection connection, bool currentlyAdded, out bool notProcessed)
+    {
+        notProcessed = false;
+        int playerConnectionId = connection.ClientId;
+        int entityId = NetworkObject.ObjectId;
+        int tier = _tierManager.GetTierForPlayer(playerConnectionId, entityId);
+
+        return tier <= 1;
+    }
+}
+```
+
+---
+
 ## Related Documents
 
 - [[01-component-model]] - Data types for each tier
 - [[02-system-architecture]] - Processing pipeline per layer
 - [[04-archetype-strategy]] - Entity composition patterns
 - [[06-chunk-integration]] - How chunks trigger tier transitions
+- [[13-networking-architecture]] - Multi-viewpoint tier management, observer system mapping

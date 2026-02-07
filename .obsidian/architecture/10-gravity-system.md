@@ -2,7 +2,9 @@
 
 This document defines the Newtonian gravity system for realistic orbital mechanics in Starfire.
 
-> **Architecture Note:** In the hybrid architecture, gravity operates across two layers. The **Mass Entity Layer** handles asteroid belt gravity via Burst Jobs (NativeArray<AsteroidData> + NativeArray<GravitySourceData>). The **Rich Entity Layer** applies gravity to nearby ships via the EnvironmentManager. GravitySourceData is shared between both layers as a read-only NativeArray. Celestial bodies (stars, planets) are managed by the EnvironmentManager and update their positions from pre-computed orbits each frame.
+> **Architecture Note:** In the hybrid architecture, gravity operates across two layers. The **Mass Entity Layer** handles asteroid belt gravity via Burst Jobs (NativeArray<AsteroidData> + NativeArray<GravitySourceData>). The **Rich Entity Layer** applies gravity to nearby ships via the EnvironmentManager. GravitySourceData is shared between both layers as a read-only NativeArray. Celestial bodies (stars, planets) are managed by the EnvironmentManager and update their positions from pre-computed orbits each tick.
+
+> **Multiplayer:** Gravity sources are **deterministic** (pre-computed orbits) which is critical for client-side prediction. The server sends the `GravitySourceData` array **once at connection**. The client applies identical gravity during player ship prediction — no desync risk. Star position updates are only sent on actual changes (rare). A `ClientEnvironmentManager` runs the gravity calculation for the local player's ship only. See [[13-networking-architecture]].
 
 ---
 
@@ -815,3 +817,4 @@ r₂ = a × m₁ / (m₁ + m₂)    // Star 2 distance from barycenter
 - [[03-tiered-simulation]] - Tier system behavior
 - [[11-heat-system]] - Thermal radiation (uses gravity source data)
 - [[12-modding-architecture]] - Moddable gravity configuration
+- [[13-networking-architecture]] - Client gravity for prediction, GravitySourceData replication

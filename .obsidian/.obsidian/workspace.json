@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "architecture/12-modding-architecture.md",
+                "file": "architecture/00-overview.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "12-modding-architecture"
+              "title": "00-overview"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "architecture/12-modding-architecture.md",
+                "file": "architecture/00-overview.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 12-modding-architecture"
+              "title": "Backlinks for 00-overview"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "architecture/12-modding-architecture.md",
+                "file": "architecture/00-overview.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 12-modding-architecture"
+              "title": "Outgoing links from 00-overview"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "architecture/12-modding-architecture.md",
+                "file": "architecture/00-overview.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 12-modding-architecture"
+              "title": "Outline of 00-overview"
             }
           }
         ]
@@ -185,21 +185,24 @@
   },
   "active": "b52f802e5438ee82",
   "lastOpenFiles": [
+    "architecture/13-networking-architecture.md",
+    "Untitled.md",
+    "architecture/01-component-model.md",
     "architecture/00-overview.md",
+    "architecture/12-modding-architecture.md.tmp.411026.1770445159176",
+    "architecture/10-gravity-system.md.tmp.411026.1770445119877",
+    "architecture/08-control-modes.md.tmp.411026.1770445102605",
+    "architecture/04-archetype-strategy.md.tmp.411026.1770445058154",
+    "architecture/07-warp-system.md.tmp.411026.1770445029957",
+    "architecture/06-chunk-integration.md.tmp.411026.1770444976432",
+    "architecture/06-chunk-integration.md.tmp.411026.1770444968841",
+    "architecture/06-chunk-integration.md.tmp.411026.1770444950695",
+    "architecture/06-chunk-integration.md.tmp.411026.1770444939738",
+    "architecture/06-chunk-integration.md.tmp.411026.1770444933249",
     "architecture/12-modding-architecture.md",
     "architecture/10-gravity-system.md",
     "12-modding-architecture.md",
-    "architecture/12-modding-architecture.md.tmp.21022.1770423862930",
     "architecture/08-control-modes.md",
-    "architecture/11-heat-system.md",
-    "architecture/11-heat-system.md.tmp.21022.1770396490191",
-    "architecture/11-heat-system.md.tmp.21022.1770396483729",
-    "architecture/10-gravity-system.md.tmp.21022.1770396450626",
-    "architecture/10-gravity-system.md.tmp.21022.1770396444630",
-    "architecture/08-control-modes.md.tmp.21022.1770396432184",
-    "architecture/06-chunk-integration.md.tmp.21022.1770396381763",
-    "architecture/06-chunk-integration.md.tmp.21022.1770396370303",
-    "architecture/06-chunk-integration.md.tmp.21022.1770396363291",
-    "architecture/06-chunk-integration.md.tmp.21022.1770396334549"
+    "architecture/11-heat-system.md"
   ]
 }

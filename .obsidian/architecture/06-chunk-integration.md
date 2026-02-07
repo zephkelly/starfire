@@ -4,6 +4,8 @@ This document defines how the world chunk system integrates with the layer archi
 
 > **Architecture Note:** In the hybrid architecture, the ChunkManager coordinates with all three layers. When a chunk loads, it spawns entities into the appropriate layer based on distance: Rich layer (close), Sensor layer (medium), Strategic layer (far). When a chunk unloads, entities are serialized via ShipSnapshot and stored or demoted. The floating origin system applies to all layers uniformly.
 
+> **Multiplayer:** The `ChunkManager` runs **server-only**. Clients do NOT run chunk management — they receive entity spawns/despawns via Fishnet's observer system. For asteroids, the server sends **chunk seeds** and clients generate visuals deterministically. Each client maintains its own `WorldOrigin.Offset` based on camera position; the server uses `double2` absolute positions with no floating origin. See [[13-networking-architecture]].
+
 ---
 
 ## Overview
@@ -100,6 +102,8 @@ public static class ChunkCoordExtensions
 ## Floating Origin System
 
 Large worlds require floating origin to prevent floating-point precision loss.
+
+> **Multiplayer:** The server uses `double2` absolute positions for ALL entities — no floating origin, no precision loss issues (no rendering on server). Each **client** maintains its own `WorldOrigin.Offset` based on its camera position. The server tracks each client's current origin to optimize position transmission: instead of sending full `double2` (16 bytes), the server converts to client-relative `float2` (8 bytes) — precise within 100k units of the client's origin.
 
 ```mermaid
 sequenceDiagram
@@ -202,9 +206,9 @@ struct UpdateMassLocalPositionJob : IJobParallelFor
 
 ---
 
-## Chunk Manager
+## Chunk Manager (Server-Only)
 
-The `ChunkManager` orchestrates chunk loading/unloading and coordinates with the layer managers.
+The `ChunkManager` orchestrates chunk loading/unloading and coordinates with the layer managers. In multiplayer, the ChunkManager runs **server-side only** and loads chunks based on **ALL player positions** (not just one player). Clients receive entity spawns/despawns via Fishnet's observer system — they never run chunk logic.
 
 ```mermaid
 flowchart TB
@@ -261,30 +265,28 @@ public class ChunkManager
 
     public void Update()
     {
-        var playerChunk = GetPlayerChunk();
-        UpdateChunkQueues(playerChunk);
+        // Multiplayer: compute chunk set from ALL connected players
+        var targetChunks = GetAllPlayerChunkSets();
+        UpdateChunkQueues(targetChunks);
         ProcessLoadQueue();
         ProcessUnloadQueue();
     }
 
-    private (long, long) GetPlayerChunk()
+    private HashSet<(long, long)> GetAllPlayerChunkSets()
     {
-        var playerPos = GetPlayerAbsolutePosition();
-        return ChunkCoordExtensions.ToChunkCoord(playerPos);
+        var targetChunks = new HashSet<(long, long)>();
+        foreach (var playerPos in GetAllPlayerPositions())
+        {
+            var centerChunk = ChunkCoordExtensions.ToChunkCoord(playerPos);
+            for (long dx = -_viewRadiusChunks; dx <= _viewRadiusChunks; dx++)
+                for (long dy = -_viewRadiusChunks; dy <= _viewRadiusChunks; dy++)
+                    targetChunks.Add((centerChunk.Item1 + dx, centerChunk.Item2 + dy));
+        }
+        return targetChunks;
     }
 
-    private void UpdateChunkQueues((long, long) centerChunk)
+    private void UpdateChunkQueues(HashSet<(long, long)> targetChunks)
     {
-        // Determine which chunks should be loaded
-        var targetChunks = new HashSet<(long, long)>();
-
-        for (long dx = -_viewRadiusChunks; dx <= _viewRadiusChunks; dx++)
-        {
-            for (long dy = -_viewRadiusChunks; dy <= _viewRadiusChunks; dy++)
-            {
-                targetChunks.Add((centerChunk.Item1 + dx, centerChunk.Item2 + dy));
-            }
-        }
 
         // Queue chunks to load (O(1) lookup via HashSet instead of O(n) Queue.Contains)
         foreach (var chunk in targetChunks)
@@ -487,6 +489,8 @@ public class ChunkEntityBridge
 ---
 
 ## Procedural Generation Integration
+
+> **Multiplayer — Seed Replication:** The procedural generator uses deterministic seeds derived from chunk coordinates + world seed. For asteroids, the server sends `(chunkCoord, worldSeed)` to clients, which regenerate identical asteroid layouts locally — no per-asteroid replication needed. Only **modified** asteroids (mined, damaged) send deltas from the server. This dramatically reduces bandwidth for dense asteroid fields.
 
 ```mermaid
 flowchart TB
@@ -746,3 +750,4 @@ end)
 - [[03-tiered-simulation]] - Tier system details
 - [[07-warp-system]] - Warp mode chunk handling
 - [[12-modding-architecture]] - Lua event hooks and JSON zone configs
+- [[13-networking-architecture]] - Server-only ChunkManager, seed replication, per-client floating origin

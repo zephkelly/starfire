@@ -2,71 +2,94 @@
 
 This document defines the processing pipeline for each layer, execution order, and data flow.
 
+> **Multiplayer Architecture:** The simulation runs on Fishnet's `TimeManager.OnTick` (30 Hz) instead of `Update()`. The pipeline splits into a **server pipeline** (authoritative simulation) and a **client pipeline** (prediction + rendering). Single-player is a local listen server — the networking stack is always active. See [[13-networking-architecture]] for full detail.
+
 ---
 
 ## Processing Overview
 
-Each layer has its own manager class that runs during Unity's update cycle. The layers execute in sequence, not as DOTS system groups.
+Each layer has its own manager class. Simulation managers run on Fishnet's tick (30 Hz), while `PresentationManager` runs in `Update()` for smooth rendering decoupled from tick rate.
 
 ```mermaid
 flowchart TB
-    subgraph FRAME["MonoBehaviour Update (Per Frame)"]
+    subgraph SERVER["Server OnTick (30 Hz) — Authoritative"]
         direction TB
-        GM["GameManager.Update()"]
-        INPUT["InputManager"]
+        NIC["NetworkInputCollector"]
         RICH["RichEntityManager"]
         SENSOR["SensorSimulationManager"]
         MASS["MassEntityManager"]
         ENV["EnvironmentManager"]
-        TIER["TierManager"]
+        TIER["TierManager (Multi-Viewpoint)"]
         SCRIPT["ScriptExecutionManager"]
+        NSR["NetworkStateReplicator"]
+    end
+
+    subgraph CLIENT["Client OnTick (30 Hz) — Predictive"]
+        direction TB
+        LIM["LocalInputManager"]
+        CPM["ClientPredictionManager"]
+        CEM["ClientEnvironmentManager"]
+        NRECV["NetworkStateReceiver"]
+        INTERP["InterpolationManager"]
+    end
+
+    subgraph RENDER["Client Update() (Every Frame)"]
         PRESENT["PresentationManager"]
     end
 
-    GM --> INPUT
-    INPUT --> RICH
-    RICH --> SENSOR
-    SENSOR --> MASS
-    MASS --> ENV
-    ENV --> TIER
-    TIER --> SCRIPT
-    SCRIPT --> PRESENT
+    NIC --> RICH --> SENSOR --> MASS --> ENV --> TIER --> SCRIPT --> NSR
+    LIM --> CPM --> CEM --> NRECV --> INTERP
+    CLIENT -.->|"Decoupled"| RENDER
 ```
+
+On a listen server (including single-player), both pipelines execute in the same process. `IsServerStarted` and `IsClientStarted` flags determine which steps run.
 
 ---
 
 ## Layer Managers
 
-### 1. InputManager
+### 1. Input: NetworkInputCollector (Server) + LocalInputManager (Client)
 
-Collects input from the player and feeds it into the player's ShipInstance.
+In multiplayer, input handling splits into two roles:
+
+**Server — NetworkInputCollector:** Gathers `ControlInput` from per-client input buffers populated by ServerRpc calls. AI ships receive input from their `BehaviorController` as before.
 
 ```csharp
-public class InputManager : MonoBehaviour
+public class NetworkInputCollector : NetworkBehaviour
 {
-    public ControlInput CurrentInput { get; private set; }
+    private Dictionary<int, CircularBuffer<TickedInput>> _clientInputBuffers;
 
-    void Update()
+    [ServerRpc(RequireOwnership = false)]
+    private void SendInput(uint tick, ControlInput input, NetworkConnection sender)
     {
-        // Read Unity Input System
-        // Detect keyboard/mouse vs gamepad
-        // Populate CurrentInput struct
+        int clientId = sender.ClientId;
+        _clientInputBuffers[clientId].Add(new TickedInput { Tick = tick, Input = input });
+    }
+
+    public ControlInput GetInputForPlayer(int clientId, uint tick)
+    {
+        if (_clientInputBuffers[clientId].TryGet(tick, out var tickedInput))
+            return tickedInput.Input;
+
+        return _clientInputBuffers[clientId].Latest.Input;
     }
 }
 ```
 
-| Responsibility | Budget |
-|---------------|--------|
-| Read Unity Input System | 0.2ms |
-| Detect input device | 0.1ms |
-| Populate ControlInput | 0.1ms |
-| **Total** | **0.5ms** |
+**Client — LocalInputManager:** Reads Unity Input System, stores input in a replay buffer keyed by tick, sends to server via ServerRpc, and applies locally for prediction.
+
+| Responsibility | Budget (Server) | Budget (Client) |
+|---------------|----------------|-----------------|
+| Gather inputs from N clients | 0.3ms | — |
+| Read Unity Input System | — | 0.2ms |
+| Store in replay buffer + send ServerRpc | — | 0.1ms |
+| **Total** | **0.3ms** | **0.3ms** |
 
 ---
 
-### 2. RichEntityManager
+### 2. RichEntityManager (Server-Only)
 
-Manages all Tier 0-1 ships and stations. This is the core gameplay simulation.
+Manages all Tier 0-1 ships and stations. This is the core gameplay simulation. Runs **server-side only** — the server applies both AI and player inputs, simulates physics, and resolves combat. Clients receive the resulting state via `NetworkStateReplicator`.
 
 ```mermaid
 flowchart TB
@@ -136,6 +159,8 @@ public class RichEntityManager
 | Combat Processing | Damage routing, destruction | 0.4ms |
 | **Total** | | **3.0ms** |
 
+> **Multiplayer Note:** Player ships always use Rigidbody2D on the server (regardless of tier) to match the client's prediction physics. The server applies `ControlInput` received from `NetworkInputCollector` the same way the client applies it locally during prediction.
+
 **Collision System (Rich Layer):**
 
 | Tier | Collision Approach |
@@ -156,9 +181,9 @@ public class SpatialHashGrid
 
 ---
 
-### 3. SensorSimulationManager
+### 3. SensorSimulationManager (Server-Only)
 
-Manages Tier 2 entities visible on sensors. Amortized updates for realistic but efficient simulation.
+Manages Tier 2 entities visible on sensors. Amortized updates for realistic but efficient simulation. Runs **server-side only** — the server computes per-client sensor results based on each player's sensor module and sends `SensorContactSummary` batches via `TargetRpc` at 2-4 Hz.
 
 ```mermaid
 flowchart TB
@@ -241,9 +266,9 @@ At ~200 contacts / 30 per batch = full cycle every ~7 frames. At 60fps that is ~
 
 ---
 
-### 4. MassEntityManager
+### 4. MassEntityManager (Server-Authoritative)
 
-Manages asteroids, debris, and projectiles using NativeArrays and Burst Jobs.
+Manages asteroids, debris, and projectiles using NativeArrays and Burst Jobs. The server runs the **authoritative** Burst jobs for gameplay (hit detection, physics). Clients run **visual-only** Burst jobs for projectile animation and asteroid rendering from deterministic seeds — no gameplay impact on client.
 
 ```mermaid
 flowchart TB
@@ -363,11 +388,13 @@ public struct ProjectileUpdateJob : IJobParallelFor
 | Mass-Rich collision | Projectile hit detection | 0.5ms |
 | **Total** | | **2.0ms** |
 
+> **Multiplayer Note:** Player projectiles are predicted locally on the client (fire immediately, no wait for server). The server validates and runs authoritative hit detection. AI/remote projectiles arrive as spawn events (position, velocity, type) and the client runs local Burst for animation only. Debris is client-local cosmetic — not networked.
+
 ---
 
-### 5. EnvironmentManager
+### 5. EnvironmentManager (Server + Partial Client)
 
-Gravity source updates and heat simulation. Applies to both Rich and Mass layers.
+Gravity source updates and heat simulation. Applies to both Rich and Mass layers. The server runs the **full** environment simulation. The client runs a **partial** version — gravity only, for player ship prediction. Heat is server-only.
 
 ```csharp
 public class EnvironmentManager
@@ -394,31 +421,35 @@ public class EnvironmentManager
 
 See [[10-gravity-system]] and [[11-heat-system]] for detail.
 
-| Responsibility | Budget |
-|---------------|--------|
-| Star orbit updates | 0.1ms |
-| Barycenter calculation | 0.1ms |
-| Ship gravity (Rich layer) | 0.4ms |
-| Ship heat (Rich layer) | 0.2ms |
-| **Total** | **1.0ms** (asteroid gravity counted in Mass layer) |
+> **Multiplayer Note:** Gravity sources are deterministic (pre-computed orbits). The server sends the `GravitySourceData` array once at connection. A `ClientEnvironmentManager` applies identical gravity during player ship prediction — no desync risk. Star position updates only sent on actual changes. Heat is server-only; clients receive temperature-driven VFX state via events.
+
+| Responsibility | Budget (Server) | Budget (Client) |
+|---------------|----------------|-----------------|
+| Star orbit updates | 0.1ms | — |
+| Barycenter calculation | 0.1ms | — |
+| Ship gravity (Rich layer) | 0.4ms | 0.1ms (local ship only) |
+| Ship heat (Rich layer) | 0.2ms | — |
+| **Total** | **1.0ms** | **0.1ms** |
 
 ---
 
-### 6. TierManager
+### 6. TierManager (Server-Only, Multi-Viewpoint)
 
-Distance calculation and layer transitions.
+Distance calculation and layer transitions. Runs **server-side only**. In multiplayer, the same entity can be at different tiers for different players, so the server maintains per-player tier maps.
 
 ```mermaid
 flowchart TB
-    subgraph TierUpdate["TierManager.Update()"]
+    subgraph TierUpdate["TierManager.ServerTick()"]
         direction TB
-        DIST["1. Distance Calculation\n(player to all entities)"]
-        TRANS["2. Tier Transitions\n(promote/demote between layers)"]
-        CHUNK["3. Chunk Migration\n(entities crossing chunk boundaries)"]
-        STRAT["4. Strategic Updates\n(fleet AI, ~1s interval)"]
+        DIST["1. Distance Calculation\n(all players to all entities)"]
+        TIER["2. Per-Player Tier Map\n(update individual tier assignments)"]
+        EFF["3. Effective Tier\n(min tier across all players)"]
+        TRANS["4. Tier Transitions\n(promote/demote based on effective tier)"]
+        CHUNK["5. Chunk Migration\n(entities crossing chunk boundaries)"]
+        STRAT["6. Strategic Updates\n(fleet AI, ~1s interval)"]
     end
 
-    DIST --> TRANS --> CHUNK --> STRAT
+    DIST --> TIER --> EFF --> TRANS --> CHUNK --> STRAT
 ```
 
 ```csharp
@@ -428,46 +459,68 @@ public class TierManager
     private SensorSimulationManager _sensorLayer;
     private StrategicManager _strategicLayer;
     private SimulationQualitySettings _settings;
+    private Dictionary<int, Dictionary<int, int>> _playerEntityTiers;
+    private Dictionary<int, int> _effectiveTiers;
 
-    public void Update(float deltaTime)
+    public void ServerTick(float deltaTime)
     {
-        var playerPos = GetPlayerPosition();
+        foreach (var connectionId in _connectedPlayers)
+        {
+            var playerPos = GetPlayerPosition(connectionId);
+            UpdatePlayerTierMap(connectionId, playerPos);
+        }
 
-        // Check Rich layer entities for demotion to Sensor
-        CheckRichDemotions(playerPos);
+        RecalculateEffectiveTiers();
 
-        // Check Sensor layer contacts for promotion to Rich
-        CheckSensorPromotions(playerPos);
+        CheckRichDemotions();
+        CheckSensorPromotions();
+        CheckSensorDemotions();
+        CheckStrategicPromotions();
 
-        // Check Sensor contacts for demotion to Strategic
-        CheckSensorDemotions(playerPos);
-
-        // Check Strategic for promotion to Sensor
-        CheckStrategicPromotions(playerPos);
-
-        // Update strategic layer (amortized, ~1s interval)
         _strategicLayer.Update(deltaTime);
+    }
+
+    public int GetEffectiveTier(int entityId)
+    {
+        return _effectiveTiers.GetValueOrDefault(entityId, 4);
+    }
+
+    public int GetTierForPlayer(int connectionId, int entityId)
+    {
+        if (_playerEntityTiers.TryGetValue(connectionId, out var tiers))
+            return tiers.GetValueOrDefault(entityId, 4);
+        return 4;
     }
 }
 ```
+
+**Effective tier** = minimum tier across all players (highest fidelity any player needs). The server simulates at the effective tier but sends data at each player's individual tier resolution.
 
 **Transition with hysteresis:**
 - Demote at boundary distance
 - Promote at boundary - hysteresis (15%)
 - 2-second cooldown between tier changes per entity
+- Reference position = nearest player
+
+**Performance mitigation for N players:**
+- Spatial hashing to quickly find players near entities
+- Amortize checks across ticks (not all players every tick)
+- Hysteresis and cooldowns reduce transition churn
 
 | Responsibility | Budget |
 |---------------|--------|
-| Distance calculation | 0.2ms |
+| Distance calculation (N players) | 0.3ms |
+| Per-player tier map updates | 0.2ms |
+| Effective tier recalculation | 0.1ms |
 | Tier transitions | 0.2ms |
 | Strategic updates (amortized) | 0.1ms |
-| **Total** | **0.5ms** |
+| **Total** | **0.9ms** |
 
 ---
 
-### 7. ScriptExecutionManager
+### 7. ScriptExecutionManager (Server-Only)
 
-Dispatches game events to Lua mod scripts and processes Lua API calls. Runs after all game simulation is complete for the frame, so Lua callbacks see consistent world state.
+Dispatches game events to Lua mod scripts and processes Lua API calls. Runs after all game simulation is complete for the tick, so Lua callbacks see consistent world state. Runs **server-side only** — Lua mods execute on the server for authority, determinism, and security. Changes made by Lua (e.g., `set_health()`) are picked up by `NetworkStateReplicator` and sent to clients.
 
 ```csharp
 public class ScriptExecutionManager
@@ -492,7 +545,7 @@ public class ScriptExecutionManager
 }
 ```
 
-**Why events are buffered:** Most events originate from RichEntityManager (combat, spawning) and MassEntityManager (projectile hits) which run earlier in the frame. Events are queued to the `GameEventBus` during the frame and dispatched to Lua in a single batch during `ScriptExecutionManager.Update()`. This guarantees Lua callbacks see a consistent world state where all simulation for the frame is complete.
+**Why events are buffered:** Most events originate from RichEntityManager (combat, spawning) and MassEntityManager (projectile hits) which run earlier in the tick. Events are queued to the `GameEventBus` during the tick and dispatched to Lua in a single batch during `ScriptExecutionManager.ServerTick()`. This guarantees Lua callbacks see a consistent world state where all simulation for the tick is complete.
 
 **Burst constraint:** Mass layer events (projectile hits detected in Burst jobs) cannot call into managed code during the job. Instead, `MassEntityManager` collects hit results into a managed `NativeQueue` after the Burst job completes, then forwards them to `GameEventBus` for dispatch here.
 
@@ -509,9 +562,9 @@ See [[12-modding-architecture]] for the full Lua API surface, sandbox configurat
 
 ---
 
-### 8. PresentationManager
+### 8. PresentationManager (Client-Only)
 
-Syncs visual GameObjects for Tier 0 entities.
+Syncs visual GameObjects for Tier 0 entities. Runs **client-side only** in `Update()` (not OnTick) for smooth rendering decoupled from tick rate. On the client, entity positions come from two sources: the player's own ship from `ClientPredictionManager`, and all remote entities from `InterpolationManager`.
 
 ```csharp
 public class PresentationManager
@@ -582,9 +635,73 @@ public class ShipView : MonoBehaviour
 
 ---
 
+### 9. NetworkStateReplicator (Server-Only)
+
+Packages entity state and sends it to relevant observers based on per-player tier assignments. Runs as the final step of the server pipeline.
+
+| Player's Tier for Entity | Data Sent | Rate |
+|--------------------------|-----------|------|
+| Tier 0-1 | `ShipStateDelta` (dirty flags) | 30 Hz |
+| Tier 2 | `SensorContactSummary` batch | 2-4 Hz |
+| Tier 3 | `FleetSummary` | 0.5-1 Hz |
+| Tier 4 | Nothing | Never |
+
+Initial spawn replication and observer-gain events use full `ShipSnapshot`. Ongoing replication uses `ShipStateDelta` with dirty flags — most ticks only Position changes (~16 bytes per entity).
+
+| Responsibility | Budget |
+|---------------|--------|
+| Delta compression + packaging | 0.3ms |
+| Observer filtering | 0.2ms |
+| Network send | 0.1ms |
+| **Total** | **0.6ms** |
+
+---
+
+### 10. ClientPredictionManager (Client-Only)
+
+Predicts the local player's ship by applying input locally before the server confirms it. On server correction, replays buffered inputs from the corrected tick forward.
+
+| What Is Predicted | Notes |
+|-------------------|-------|
+| Player movement | Position, velocity, rotation |
+| Player weapons | Cooldowns only — fire events predicted, hit detection server-only |
+| Gravity | Client has gravity source data for identical calculation |
+
+| Responsibility | Budget |
+|---------------|--------|
+| Apply input to local ship | 0.1ms |
+| Reconciliation (when triggered) | 0.3ms |
+| **Total** | **0.4ms** |
+
+---
+
+### 11. InterpolationManager (Client-Only)
+
+Buffers 2-3 server snapshots for remote entities and lerps between them for smooth rendering. Remote entities are never predicted — only interpolated.
+
+| Responsibility | Budget |
+|---------------|--------|
+| Snapshot buffering | 0.1ms |
+| Interpolation calculation | 0.2ms |
+| **Total** | **0.3ms** |
+
+---
+
+### 12. NetworkStateReceiver (Client-Only)
+
+Processes incoming server state, triggers reconciliation when predicted and server states diverge beyond a threshold, and feeds remote entity state to `InterpolationManager`.
+
+| Responsibility | Budget |
+|---------------|--------|
+| State deserialization | 0.1ms |
+| Prediction comparison | 0.1ms |
+| **Total** | **0.2ms** |
+
+---
+
 ## Combat Pipeline Detail
 
-Combat runs within the RichEntityManager for Tier 0-1 entities.
+Combat runs within the RichEntityManager for Tier 0-1 entities. All combat is **server-authoritative** — hit detection, damage routing, and destruction happen on the server. Clients receive combat results via `NetworkEventBridge` for VFX/SFX (see [[13-networking-architecture]]).
 
 ```mermaid
 sequenceDiagram
@@ -616,7 +733,7 @@ sequenceDiagram
 
 See [[09-progressive-destruction]] for detail.
 
-**Event dispatch:** Combat events (`OnEntityDamaged`, `OnEntityDestroyed`, `OnProjectileHit`) are queued to the `GameEventBus` during combat processing. They are not dispatched immediately — Lua callbacks receive them later in the frame during `ScriptExecutionManager.Update()`, after all simulation is complete.
+**Event dispatch:** Combat events (`OnEntityDamaged`, `OnEntityDestroyed`, `OnProjectileHit`) are queued to the `GameEventBus` during combat processing. They are not dispatched immediately — Lua callbacks receive them later in the tick during `ScriptExecutionManager.ServerTick()`, after all simulation is complete. `NetworkEventBridge` also subscribes to forward relevant events to clients for VFX/SFX.
 
 ---
 
@@ -648,17 +765,34 @@ See [[07-warp-system]] for detail.
 
 ## Performance Budget Summary
 
+### Server Budget (30 Hz Tick — 33ms Available)
+
 | Group | Target | Notes |
 |-------|--------|-------|
-| Input | 0.5ms | Player input collection |
+| Input Collection | 0.3ms | Gather inputs from N clients |
 | Rich Layer | 3.0ms | AI, modules, abilities, physics, collision, combat |
-| Sensor Layer | 0.5ms | Amortized state machine (~30/frame) |
+| Sensor Layer | 0.5ms | Amortized state machine (~30/tick) |
 | Mass Entities | 2.0ms | Burst gravity, projectiles, debris |
 | Environment | 1.0ms | Gravity sources, heat |
-| Tier Management | 0.5ms | Distance, transitions, strategic |
+| Tier Management | 0.9ms | Multi-viewpoint distance, transitions, strategic |
 | Script Execution | 0.5ms | Lua event dispatch, timer callbacks, mod API calls |
-| Presentation | 2.0ms | View sync, effects, audio, map |
-| **Total** | **10.0ms** | **6.5ms headroom for 60 FPS** |
+| State Replication | 0.6ms | Delta compression, observer filtering, send |
+| **Total** | **8.8ms** | **24.2ms headroom at 30 Hz tick** |
+
+### Client Budget (30 Hz Tick + Unlocked Render)
+
+| Group | Target | Notes |
+|-------|--------|-------|
+| Input + Send | 0.3ms | Read input, store in buffer, send ServerRpc |
+| Prediction | 0.4ms | Apply input, reconciliation when needed |
+| Environment | 0.1ms | Gravity for local ship only |
+| State Receive | 0.2ms | Deserialize, compare predictions |
+| Interpolation | 0.3ms | Smooth remote entities |
+| **Tick Total** | **1.3ms** | Per 30 Hz tick |
+| Presentation | 2.0ms | View sync, effects, audio, map (per render frame) |
+| **Render Total** | **2.0ms** | Per render frame (unlocked) |
+
+> The client tick budget is intentionally lightweight — most simulation runs server-side. The client's main cost is `PresentationManager` which runs at the render framerate, not the tick rate.
 
 ---
 
@@ -671,3 +805,4 @@ See [[07-warp-system]] for detail.
 - [[10-gravity-system]] - Gravity simulation detail
 - [[11-heat-system]] - Heat simulation detail
 - [[12-modding-architecture]] - Mod loading, Lua scripting, event bridge
+- [[13-networking-architecture]] - Fishnet integration, server/client pipeline, prediction, observer system

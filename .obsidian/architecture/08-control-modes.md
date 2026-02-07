@@ -2,7 +2,9 @@
 
 This document describes the 3-mode entity control system that allows entities to be controlled via direct input, RTS-style commands, or fully autonomous AI.
 
-> **Architecture Note:** In the hybrid architecture, control modes are implemented through the `IBehaviorController` interface on ShipInstance. Direct mode uses `PlayerInputController`, Command mode uses `CommandExecutorController`, and Autonomous mode uses `BehaviorTreeController`. The DriverStack logic lives in ShipInstance, selecting which controller produces the ControlInput each frame. This only applies to Rich Entity Layer (Tier 0-1) ships.
+> **Architecture Note:** In the hybrid architecture, control modes are implemented through the `IBehaviorController` interface on ShipInstance. Direct mode uses `PlayerInputController`, Command mode uses `CommandExecutorController`, and Autonomous mode uses `BehaviorTreeController`. The DriverStack logic lives in ShipInstance, selecting which controller produces the ControlInput each tick. This only applies to Rich Entity Layer (Tier 0-1) ships.
+
+> **Multiplayer:** Each control mode has a distinct networking pattern. **Direct mode:** client sends `ControlInput` via ServerRpc each tick; server applies it authoritatively; client predicts locally. **Command mode:** client sends command events (`MoveTo`, `Attack`, `Stop`) via ServerRpc; server creates goals and runs the AI behavior tree; client sees result via state replication. **Autonomous mode:** fully server-side AI; client interpolates the result. The server validates authority — only the owning player can send input/commands for their ship. See [[13-networking-architecture]].
 
 ---
 
@@ -17,6 +19,14 @@ Each entity supports three distinct control modes:
 | **Autonomous** | Full AI behavior tree control, no player input | BehaviorTreeController |
 
 **Key Design Principle:** Control modes are per-entity. In a fleet scenario, the player can directly control one ship while issuing commands to others.
+
+### Network Authority Per Mode
+
+| Mode | Client Sends | Server Does | Client Sees |
+|------|-------------|-------------|-------------|
+| **Direct** | `ControlInput` via ServerRpc (30 Hz) | Applies input, simulates physics | Local prediction + server corrections |
+| **Command** | Command RPCs (`MoveTo`, `Attack`, `Stop`) | Creates goals, runs BT | State replication (interpolation) |
+| **Autonomous** | Nothing | Full AI via BehaviorTree | State replication (interpolation) |
 
 ---
 
@@ -507,3 +517,4 @@ When a controlled entity transitions to Tier 2+:
 - [[03-tiered-simulation]] - Tier-based control restrictions
 - [[04-archetype-strategy]] - Ship archetypes with control components
 - [[12-modding-architecture]] - Mod-defined behaviors and control overrides
+- [[13-networking-architecture]] - Input networking, command RPCs, prediction per control mode
