@@ -31,5 +31,7 @@ namespace Starfire.Core
         {
             return new float2((float)X, (float)Y);
         }
+
+        public static implicit operator double2(AbsolutePosition pos) => new double2(pos.X, pos.Y);
     }
 }

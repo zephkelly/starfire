@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 
 namespace Starfire.Core
 {
@@ -15,5 +16,7 @@ namespace Starfire.Core
             X = x;
             Y = y;
         }
+
+        public static implicit operator double2(Velocity vel) => new double2(vel.X, vel.Y);
     }
 }

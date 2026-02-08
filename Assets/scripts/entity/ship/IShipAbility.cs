@@ -12,8 +12,8 @@ namespace Starfire.Entity
 
         void Update(float deltaTime);
         void Deactivate();
-        
+
         byte[] CreateStateSnapshot();
-        void RestoreStateFromSnapshot(byte[] snapshot);      
+        void RestoreStateSnapshot(byte[] snapshot);      
     }
 }
