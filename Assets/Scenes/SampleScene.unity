@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -200,7 +201,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -225,7 +226,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 100
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -256,6 +257,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7540d24524fc9e142865f5e4604a7398, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Starfire::Starfire.Demo.CameraFollow
+  smoothSpeed: 10
+  cameraZ: -50
+  _showTierGizmos: 1
+  _gizmoT0: 5000
+  _gizmoT1: 20000
+  _gizmoT2: 100000
+  _gizmoT3: 200000
+  _gizmoT0Color: {r: 0, g: 1, b: 0, a: 0.5}
+  _gizmoT1Color: {r: 1, g: 1, b: 0, a: 0.4}
+  _gizmoT2Color: {r: 1, g: 0.5, b: 0, a: 0.3}
+  _gizmoT3Color: {r: 1, g: 0, b: 0, a: 0.2}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -340,9 +364,113 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &980274148
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 980274150}
+  - component: {fileID: 980274151}
+  - component: {fileID: 980274152}
+  m_Layer: 0
+  m_Name: DemoManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &980274150
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980274148}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &980274151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980274148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c3fa28bf95b02e43b1dfaf515acd390, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Starfire::Starfire.Demo.DemoSpawner
+  tier0Ships: 100
+  tier1Ships: 1000
+  tier2Ships: 2000
+  tier3Fleets: 2000
+  tier3MembersPerFleet: 2000
+  tier4Dormant: 100000
+  rebaseThreshold: 10000
+  worldBoundsRadius: 500000
+  tier0MaxDistance: 5000
+  tier1MaxDistance: 20000
+  tier2MaxDistance: 100000
+  tier3MaxDistance: 200000
+  defaultMaxSpeed: 200
+  defaultAcceleration: 60
+  defaultTurnRate: 180
+  defaultMaxHealth: 100
+  shipColliderRadius: 0.5
+  shipMass: 50
+  playerSensorRange: 8000
+  smallShipSensorRange: 1000
+  mediumShipSensorRange: 3000
+  largeShipSensorRange: 8000
+  shipMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  shipMaterial: {fileID: 2100000, guid: 8e17c8b35e72ee14c8f88df8eefccc51, type: 2}
+--- !u!114 &980274152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980274148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08fb20bd22345e14f88193ba00d6eafc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Starfire::Starfire.Demo.MinimapRenderer
+  _textureSize: 512
+  _minimapScreenSize: 250
+  _margin: 10
+  _updateInterval: 0.1
+  _viewRadius: 50000
+  _minViewRadius: 500
+  _maxViewRadius: 600000
+  _zoomSpeed: 0.15
+  _playerDotSize: 3
+  _shipDotSize: 2
+  _fleetDotSize: 3
+  _dormantDotSize: 1
+  _backgroundColor: {r: 0.02, g: 0.02, b: 0.06, a: 0.9}
+  _borderColor: {r: 0.1, g: 0.4, b: 0.1, a: 1}
+  _playerColor: {r: 0, g: 1, b: 0, a: 1}
+  _fleetColor: {r: 0.5, g: 0.7, b: 1, a: 1}
+  _dormantColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.6}
+  _shipTypeColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _stationTypeColor: {r: 0, g: 0.8, b: 1, a: 1}
+  _asteroidTypeColor: {r: 0.7, g: 0.5, b: 0.2, a: 1}
+  _debrisTypeColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.8}
+  _projectileTypeColor: {r: 1, g: 1, b: 0.3, a: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 519420032}
   - {fileID: 619394802}
+  - {fileID: 980274150}
