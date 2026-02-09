@@ -53,10 +53,10 @@ namespace Starfire.Demo
             if (configQuery.IsEmpty) return;
 
             var config = configQuery.GetSingleton<SimulationConfig>();
-            _gizmoT0 = config.Tier0MaxDistance;
-            _gizmoT1 = config.Tier1MaxDistance;
-            _gizmoT2 = config.Tier2MaxDistance;
-            _gizmoT3 = config.Tier3MaxDistance;
+            _gizmoT0 = config.Bounds.Tier0MaxDistance;
+            _gizmoT1 = config.Bounds.Tier1MaxDistance;
+            _gizmoT2 = config.Bounds.Tier2MaxDistance;
+            _gizmoT3 = config.Bounds.Tier3MaxDistance;
         }
 
         void OnDrawGizmos()

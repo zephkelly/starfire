@@ -10,6 +10,7 @@ using Starfire.Core;
 using Starfire.Entity;
 using Starfire.Sim;
 using Starfire.Simulation;
+using Starfire.Systems;
 using SphereCollider = Unity.Physics.SphereCollider;
 
 namespace Starfire.Demo
@@ -66,6 +67,9 @@ namespace Starfire.Demo
             var world = World.DefaultGameObjectInjectionWorld;
             _em = world.EntityManager;
 
+            var dispatch = world.GetExistingSystemManaged<TierDispatchSystem>();
+            dispatch.Register(new SnapshotTierHandler());
+
             CreateSingletons();
             CreateShipArchetype();
             CreateCollider();
@@ -96,26 +100,38 @@ namespace Starfire.Demo
             var configEntity = _em.CreateEntity();
             _em.AddComponentData(configEntity, new SimulationConfig
             {
-                Tier0MaxDistance = tier0MaxDistance,
-                Tier1MaxDistance = tier1MaxDistance,
-                Tier2MaxDistance = tier2MaxDistance,
-                Tier3MaxDistance = tier3MaxDistance,
-                Tier0Hysteresis = tier0MaxDistance * 0.15f,
-                Tier1Hysteresis = tier1MaxDistance * 0.15f,
-                Tier2Hysteresis = tier2MaxDistance * 0.15f,
-                Tier3Hysteresis = tier3MaxDistance * 0.15f,
-                TierChangeCooldown = 2f,
-                Tier0MaxEntities = 20,
-                RichLayerMaxEntities = 500,
-                SensorLayerMaxEntities = 2000,
-                MaxFleets = 100,
-                MaxCriticalEntities = 50,
-                SensorUpdateBatchSize = 30,
-                MinFleetSize = 3,
-                FleetGroupingRadius = 5000f,
-                DefaultSensorRange = 2000f,
-                EngagementBuffer = 2000f,
-                HysteresisPercent = 0.15f
+                Bounds = new TierBounds
+                {
+                    Tier0MaxDistance = tier0MaxDistance,
+                    Tier1MaxDistance = tier1MaxDistance,
+                    Tier2MaxDistance = tier2MaxDistance,
+                    Tier3MaxDistance = tier3MaxDistance,
+                    Tier0Hysteresis = tier0MaxDistance * 0.15f,
+                    Tier1Hysteresis = tier1MaxDistance * 0.15f,
+                    Tier2Hysteresis = tier2MaxDistance * 0.15f,
+                    Tier3Hysteresis = tier3MaxDistance * 0.15f,
+                    TierChangeCooldown = 2f,
+                    HysteresisPercent = 0.15f
+                },
+                Capacity = new TierCapacity
+                {
+                    Tier0MaxEntities = 20,
+                    RichLayerMaxEntities = 500,
+                    SensorLayerMaxEntities = 2000,
+                    MaxFleets = 100,
+                    MaxCriticalEntities = 50
+                },
+                Fleet = new FleetSettings
+                {
+                    MinFleetSize = 3,
+                    GroupingRadius = 5000f
+                },
+                Sensor = new SensorSettings
+                {
+                    DefaultRange = 2000f,
+                    EngagementBuffer = 2000f,
+                    UpdateBatchSize = 30
+                }
             });
         }
 
@@ -141,6 +157,7 @@ namespace Starfire.Demo
                 typeof(WorldPosition),
                 typeof(EntityIdentity),
                 typeof(SimulationTierData),
+                typeof(TierTransition),
                 typeof(ControlInput),
                 typeof(ShipTag),
                 typeof(ShipHull),
@@ -262,6 +279,8 @@ namespace Starfire.Demo
 
         void SetTierTags(Unity.Entities.Entity entity, SimulationTier tier)
         {
+            _em.SetComponentEnabled<TierTransition>(entity, false);
+
             switch (tier)
             {
                 case SimulationTier.Loaded:

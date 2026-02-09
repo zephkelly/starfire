@@ -414,7 +414,7 @@ MonoBehaviour:
   tier2Ships: 2000
   tier3Fleets: 2000
   tier3MembersPerFleet: 2000
-  tier4Dormant: 100000
+  tier4Dormant: 10000
   rebaseThreshold: 10000
   worldBoundsRadius: 500000
   tier0MaxDistance: 5000
