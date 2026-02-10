@@ -7,9 +7,7 @@ namespace Starfire.Entity
     {
         public float Size;
         public byte Composition;
-        public float AngularSpeed;
-        public float DriftSpeed;
-        public float2 DriftDirection;
         public int ParentStarId;
+        public float2 OrbitalVelocity;
     }
 }

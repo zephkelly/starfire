@@ -35,6 +35,8 @@ namespace Starfire.Systems
         const float FleetMinDistance = 85000f;
         const float AsteroidFieldMinDistance = 85000f;
         const float DormantMinDistance = 170000f;
+        const int MaxDormantIterations = 3000;
+        const int MaxStarIterations = 500;
 
         public NativeArray<Color32> Pixels;
         public NativeList<MinimapEntry> Entries;
@@ -72,6 +74,13 @@ namespace Starfire.Systems
 
         float _lastUpdateTime;
         int _lastTextureSize;
+        int _updatePhase = -1;
+
+        double _cachedViewRadiusSq;
+        double _cachedHalfInvRadius;
+        int _cachedTexSize;
+        int _adaptiveShipDot, _adaptiveFleetDot, _adaptiveDormantDot;
+        int _adaptiveAsteroidDot, _adaptiveStarDot, _adaptiveFieldDot;
 
         NativeArray<Color32> _backgroundPixels;
         bool _backgroundDirty = true;
@@ -244,14 +253,37 @@ namespace Starfire.Systems
         {
             Dependency.Complete();
 
-            float elapsed = (float)SystemAPI.Time.ElapsedTime;
-            if (elapsed - _lastUpdateTime < UpdateInterval)
+            if (_updatePhase < 0)
             {
-                DataReady = false;
-                return;
+                float elapsed = (float)SystemAPI.Time.ElapsedTime;
+                if (elapsed - _lastUpdateTime < UpdateInterval)
+                {
+                    DataReady = false;
+                    return;
+                }
+                _lastUpdateTime = elapsed;
+                _updatePhase = 0;
             }
-            _lastUpdateTime = elapsed;
 
+            switch (_updatePhase)
+            {
+                case 0:
+                    RunSetupPhase();
+                    break;
+                case 1:
+                    RunShipPhase();
+                    break;
+                case 2:
+                    RunAsteroidPhase();
+                    break;
+                case 3:
+                    RunFinalizePhase();
+                    break;
+            }
+        }
+
+        void RunSetupPhase()
+        {
             ReallocateIfNeeded();
             RebuildBackground();
             ClearDirtyPixels();
@@ -268,6 +300,7 @@ namespace Starfire.Systems
             if (_playerQuery.IsEmpty)
             {
                 DataReady = false;
+                _updatePhase = -1;
                 return;
             }
 
@@ -276,65 +309,81 @@ namespace Starfire.Systems
             {
                 playerPositions.Dispose();
                 DataReady = false;
+                _updatePhase = -1;
                 return;
             }
             PlayerWorldPos = playerPositions[0].Value;
             playerPositions.Dispose();
 
-            double viewRadiusSq = (double)ViewRadius * ViewRadius;
-            double halfInvRadius = 0.5 / ViewRadius;
-            int texSize = TextureSize;
+            _cachedViewRadiusSq = (double)ViewRadius * ViewRadius;
+            _cachedHalfInvRadius = 0.5 / ViewRadius;
+            _cachedTexSize = TextureSize;
             _occupiedPixels.Clear();
 
             bool highZoom = ViewRadius > 200000f;
-            int adaptiveShipDot = highZoom ? 1 : ShipDotSize;
-            int adaptiveFleetDot = highZoom ? math.max(FleetDotSize - 1, 1) : FleetDotSize;
-            int adaptiveDormantDot = highZoom ? 1 : DormantDotSize;
-            int adaptiveAsteroidDot = highZoom ? 0 : AsteroidDotSize;
-            int adaptiveStarDot = highZoom ? 1 : StarDotSize;
-            int adaptiveFieldDot = highZoom ? 1 : AsteroidFieldDotSize;
+            _adaptiveShipDot = highZoom ? 1 : ShipDotSize;
+            _adaptiveFleetDot = highZoom ? math.max(FleetDotSize - 1, 1) : FleetDotSize;
+            _adaptiveDormantDot = highZoom ? 1 : DormantDotSize;
+            _adaptiveAsteroidDot = highZoom ? 0 : AsteroidDotSize;
+            _adaptiveStarDot = highZoom ? 1 : StarDotSize;
+            _adaptiveFieldDot = highZoom ? 1 : AsteroidFieldDotSize;
 
+            _updatePhase = 1;
+        }
+
+        void RunShipPhase()
+        {
             var posHandle = GetComponentTypeHandle<WorldPosition>(true);
             var idHandle = GetComponentTypeHandle<EntityIdentity>(true);
             var tierHandle = GetComponentTypeHandle<SimulationTierData>(true);
             var sensorHandle = GetComponentTypeHandle<SensorContact>(true);
             ProcessShipEntities(ref posHandle, ref idHandle, ref tierHandle, ref sensorHandle,
-                viewRadiusSq, halfInvRadius, texSize, adaptiveShipDot);
+                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveShipDot);
 
+            _updatePhase = 2;
+        }
+
+        void RunAsteroidPhase()
+        {
+            var asteroidPosHandle = GetComponentTypeHandle<WorldPosition>(true);
+            var asteroidTierHandle = GetComponentTypeHandle<SimulationTierData>(true);
+            ProcessAsteroidEntities(ref asteroidPosHandle, ref asteroidTierHandle,
+                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveAsteroidDot);
+
+            _updatePhase = 3;
+        }
+
+        void RunFinalizePhase()
+        {
             if (ViewRadius >= FleetMinDistance)
             {
                 var fleetHandle = GetComponentTypeHandle<FleetData>(true);
-                ProcessFleetEntities(ref fleetHandle, viewRadiusSq, halfInvRadius, texSize, adaptiveFleetDot);
+                ProcessFleetEntities(ref fleetHandle,
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveFleetDot);
             }
 
             if (ViewRadius >= DormantMinDistance)
             {
                 var dormantHandle = GetComponentTypeHandle<DormantRecord>(true);
-                ProcessDormantEntities(ref dormantHandle, viewRadiusSq, halfInvRadius, texSize, adaptiveDormantDot);
-            }
-
-            {
-                var asteroidPosHandle = GetComponentTypeHandle<WorldPosition>(true);
-                var asteroidTierHandle = GetComponentTypeHandle<SimulationTierData>(true);
-                ProcessAsteroidEntities(ref asteroidPosHandle, ref asteroidTierHandle,
-                    viewRadiusSq, halfInvRadius, texSize, adaptiveAsteroidDot);
+                ProcessDormantEntities(ref dormantHandle,
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveDormantDot);
             }
 
             {
                 var starPosHandle = GetComponentTypeHandle<WorldPosition>(true);
                 var starDataHandle = GetComponentTypeHandle<StarData>(true);
                 ProcessStarEntities(ref starPosHandle, ref starDataHandle,
-                    viewRadiusSq, halfInvRadius, texSize, adaptiveStarDot);
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveStarDot);
             }
 
             if (ViewRadius >= AsteroidFieldMinDistance)
             {
                 var fieldDataHandle = GetComponentTypeHandle<AsteroidFieldData>(true);
                 ProcessAsteroidFieldEntities(ref fieldDataHandle,
-                    viewRadiusSq, halfInvRadius, texSize, adaptiveFieldDot);
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveFieldDot);
             }
 
-            int center = texSize / 2;
+            int center = _cachedTexSize / 2;
             DrawDot(center, center, PlayerDotSize, PlayerColor);
             Entries.Add(new MinimapEntry
             {
@@ -346,6 +395,7 @@ namespace Starfire.Systems
             });
 
             DataReady = true;
+            _updatePhase = -1;
         }
 
         void ProcessShipEntities(
@@ -450,6 +500,7 @@ namespace Starfire.Systems
             double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
         {
             var chunks = _dormantQuery.ToArchetypeChunkArray(Allocator.Temp);
+            int totalProcessed = 0;
 
             for (int c = 0; c < chunks.Length; c++)
             {
@@ -458,6 +509,8 @@ namespace Starfire.Systems
 
                 for (int i = 0; i < chunk.Count; i++)
                 {
+                    if (++totalProcessed > MaxDormantIterations) break;
+
                     var chunkCenter = new double2(
                         dormants[i].ChunkX * 1000.0 + 500.0,
                         dormants[i].ChunkY * 1000.0 + 500.0);
@@ -486,6 +539,7 @@ namespace Starfire.Systems
                         WorldPos = chunkCenter
                     });
                 }
+                if (totalProcessed > MaxDormantIterations) break;
             }
 
             chunks.Dispose();
@@ -543,6 +597,7 @@ namespace Starfire.Systems
             double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
         {
             var chunks = _starQuery.ToArchetypeChunkArray(Allocator.Temp);
+            int totalProcessed = 0;
 
             for (int c = 0; c < chunks.Length; c++)
             {
@@ -552,6 +607,8 @@ namespace Starfire.Systems
 
                 for (int i = 0; i < chunk.Count; i++)
                 {
+                    if (++totalProcessed > MaxStarIterations) break;
+
                     double2 rel = positions[i].Value - PlayerWorldPos;
                     double distSq = rel.x * rel.x + rel.y * rel.y;
                     if (distSq > viewRadiusSq) continue;
@@ -578,6 +635,7 @@ namespace Starfire.Systems
                         WorldPos = positions[i].Value
                     });
                 }
+                if (totalProcessed > MaxStarIterations) break;
             }
 
             chunks.Dispose();

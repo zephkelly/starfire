@@ -1,14 +1,13 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 using Starfire.Simulation;
 
 namespace Starfire.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
     [BurstCompile]
     public partial struct Constrain2DSystem : ISystem
     {

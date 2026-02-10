@@ -24,6 +24,7 @@ namespace Starfire.Systems
 
         public void OnCreate(ref SystemState state)
         {
+            _lastUpdateTime = -0.5f;
             state.RequireForUpdate<SimulationConfig>();
             state.RequireForUpdate<PlayerTag>();
         }
@@ -122,10 +123,8 @@ namespace Starfire.Systems
                     {
                         Size = member.Size,
                         Composition = member.Composition,
-                        AngularSpeed = member.AngularSpeed,
-                        DriftSpeed = member.DriftSpeed,
-                        DriftDirection = member.DriftDirection,
-                        ParentStarId = fieldData.ValueRO.ParentStarId
+                        ParentStarId = fieldData.ValueRO.ParentStarId,
+                        OrbitalVelocity = member.OrbitalVelocity
                     });
 
                     ecb.SetComponent(asteroidEntity, new SensorContact
@@ -134,7 +133,7 @@ namespace Starfire.Systems
                         SensorRange = 0f
                     });
 
-                    ecb.SetComponent(asteroidEntity, new PhysicsDamping { Linear = 0.01f, Angular = 0.5f });
+                    ecb.SetComponent(asteroidEntity, new PhysicsDamping { Linear = 0f, Angular = 0f });
                     ecb.SetComponent(asteroidEntity, new PhysicsGravityFactor { Value = 0f });
 
                     ecb.SetComponentEnabled<RichTierTag>(asteroidEntity, false);

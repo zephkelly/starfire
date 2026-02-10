@@ -16,13 +16,9 @@ namespace Starfire.Systems
         {
             foreach (var (transition, entity) in
                 SystemAPI.Query<RefRO<TierTransition>>()
-                    .WithPresent<TierTransition>()
                     .WithAll<ShipHull>()
                     .WithEntityAccess())
             {
-                if (!SystemAPI.IsComponentEnabled<TierTransition>(entity))
-                    continue;
-
                 var from = transition.ValueRO.PreviousTier;
                 var to = transition.ValueRO.NewTier;
 

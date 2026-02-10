@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Starfire.Core;
 using Starfire.Entity;
 using Starfire.Simulation;
@@ -10,7 +9,7 @@ using Starfire.Simulation;
 namespace Starfire.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
+    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     [UpdateAfter(typeof(PlayerInputSystem))]
     [BurstCompile]
     public partial struct ShipThrustSystem : ISystem
@@ -27,12 +26,13 @@ namespace Starfire.Systems
         }
 
         [BurstCompile]
+        [WithAll(typeof(RichTierTag))]
         partial struct ThrustJob : IJobEntity
         {
             public float DeltaTime;
 
             void Execute(in ControlInput input, in ShipPropulsion propulsion, ref PhysicsVelocity velocity,
-                in ShipTag tag, EnabledRefRO<RichTierTag> richEnabled)
+                in ShipTag tag)
             {
                 if (input.Throttle <= 0f || math.lengthsq(input.MovementDirection) < 0.001f)
                     return;

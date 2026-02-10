@@ -13,10 +13,13 @@ namespace Starfire.Systems
     [UpdateAfter(typeof(TierTransitionCleanupSystem))]
     public partial struct ShipFleetFormationSystem : ISystem
     {
+        const int MaxFleetsPerTick = 5;
+
         float _lastUpdateTime;
 
         public void OnCreate(ref SystemState state)
         {
+            _lastUpdateTime = -1.0f;
             state.RequireForUpdate<SimulationConfig>();
             state.RequireForUpdate<PlayerTag>();
         }
@@ -84,9 +87,11 @@ namespace Starfire.Systems
             }
 
             var grouped = new NativeArray<bool>(candidates.Length, Allocator.Temp);
+            int fleetsCreated = 0;
 
             for (int i = 0; i < candidates.Length; i++)
             {
+                if (fleetsCreated >= MaxFleetsPerTick) break;
                 if (grouped[i]) continue;
 
                 var group = new NativeList<int>(Allocator.Temp);
@@ -119,7 +124,10 @@ namespace Starfire.Systems
                 }
 
                 if (group.Length >= config.Fleet.MinFleetSize)
+                {
                     CreateFleet(candidates, group, ecb, elapsedTime);
+                    fleetsCreated++;
+                }
 
                 group.Dispose();
             }

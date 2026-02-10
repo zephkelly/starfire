@@ -1,7 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using Unity.Physics.Systems;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Starfire.Core;
@@ -10,7 +9,7 @@ using Starfire.Entity;
 namespace Starfire.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
+    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     public partial class PlayerInputSystem : SystemBase
     {
         Camera _mainCamera;

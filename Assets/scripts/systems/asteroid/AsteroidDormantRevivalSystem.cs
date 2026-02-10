@@ -37,6 +37,19 @@ namespace Starfire.Systems
                 break;
             }
 
+            var stars = new NativeList<StarInfo>(Allocator.Temp);
+            foreach (var (starData, starWorldPos) in
+                SystemAPI.Query<RefRO<StarData>, RefRO<WorldPosition>>()
+                    .WithAll<StarTag>())
+            {
+                stars.Add(new StarInfo
+                {
+                    Position = starWorldPos.ValueRO.Value,
+                    GravityStrength = starData.ValueRO.GravityStrength,
+                    GravityRangeSq = starData.ValueRO.GravityRange * starData.ValueRO.GravityRange
+                });
+            }
+
             double threshold = config.Bounds.Tier3MaxDistance - config.Bounds.Tier3Hysteresis;
             double thresholdSq = threshold * threshold;
 
@@ -59,8 +72,22 @@ namespace Starfire.Systems
                 if (distSq >= thresholdSq)
                     continue;
 
+                int nearestStar = -1;
+                double nearestDistSq = double.MaxValue;
+                for (int s = 0; s < stars.Length; s++)
+                {
+                    double2 sd = chunkCenter - stars[s].Position;
+                    double sdSq = sd.x * sd.x + sd.y * sd.y;
+                    if (sdSq < nearestDistSq && sdSq <= stars[s].GravityRangeSq)
+                    {
+                        nearestDistSq = sdSq;
+                        nearestStar = s;
+                    }
+                }
+
                 int count = math.max(dormantRecord.ValueRO.Count, 3);
                 var rng = new Random(dormantRecord.ValueRO.Seed);
+                bool clockwise = rng.NextBool();
 
                 var fieldEntity = ecb.CreateEntity();
                 ecb.AddComponent(fieldEntity, new AsteroidFieldTag());
@@ -83,23 +110,44 @@ namespace Starfire.Systems
                     float dist = rng.NextFloat(100f, 2000f);
                     var memberPos = chunkCenter + new double2(math.cos(angle) * dist, math.sin(angle) * dist);
 
+                    float2 orbitalVelocity = float2.zero;
+                    if (nearestStar >= 0)
+                    {
+                        var star = stars[nearestStar];
+                        float2 radial = (float2)(memberPos - star.Position);
+                        float radialDist = math.length(radial);
+                        if (radialDist > 1f)
+                        {
+                            float speed = math.sqrt(star.GravityStrength / radialDist);
+                            float2 tangent = new float2(-radial.y, radial.x) / radialDist;
+                            if (clockwise) tangent = -tangent;
+                            orbitalVelocity = tangent * speed;
+                        }
+                    }
+
                     buffer.Add(new AsteroidFieldMember
                     {
                         EntityId = rng.NextInt(100000, 999999),
                         Position = memberPos,
                         Size = rng.NextFloat(0.3f, 3.0f),
                         Composition = (byte)rng.NextInt(0, 4),
-                        AngularSpeed = rng.NextFloat() < 0.15f ? rng.NextFloat(5f, 45f) : 0f,
-                        DriftSpeed = rng.NextFloat() < 0.05f ? rng.NextFloat(1f, 10f) : 0f,
-                        DriftDirection = rng.NextFloat2Direction()
+                        OrbitalVelocity = orbitalVelocity
                     });
                 }
 
                 ecb.DestroyEntity(entity);
             }
 
+            stars.Dispose();
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+        }
+
+        struct StarInfo
+        {
+            public double2 Position;
+            public float GravityStrength;
+            public double GravityRangeSq;
         }
     }
 }

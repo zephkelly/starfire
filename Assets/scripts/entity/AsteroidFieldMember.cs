@@ -10,8 +10,6 @@ namespace Starfire.Entity
         public double2 Position;
         public float Size;
         public byte Composition;
-        public float AngularSpeed;
-        public float DriftSpeed;
-        public float2 DriftDirection;
+        public float2 OrbitalVelocity;
     }
 }

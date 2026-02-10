@@ -153,7 +153,7 @@ namespace Starfire.Demo
             {
                 SimulationType = SimulationType.UnityPhysics,
                 Gravity = new float3(0f, 0f, 0f),
-                SolverIterationCount = 4,
+                SolverIterationCount = 2,
                 MultiThreaded = 1
             });
 
@@ -417,10 +417,8 @@ namespace Starfire.Demo
             {
                 Size = data.Size,
                 Composition = data.Composition,
-                AngularSpeed = data.AngularSpeed,
-                DriftSpeed = data.DriftSpeed,
-                DriftDirection = data.DriftDirection,
-                ParentStarId = data.ParentStarId
+                ParentStarId = data.ParentStarId,
+                OrbitalVelocity = data.OrbitalVelocity
             });
 
             _em.SetComponentData(entity, new SensorContact
@@ -433,7 +431,11 @@ namespace Starfire.Demo
             var mass = PhysicsMass.CreateDynamic(MassProperties.UnitSphere, data.Size * 10f);
             mass.InverseInertia = new float3(0f, 0f, mass.InverseInertia.z);
             _em.SetComponentData(entity, mass);
-            _em.SetComponentData(entity, new PhysicsDamping { Linear = 0.01f, Angular = 0.5f });
+            _em.SetComponentData(entity, new PhysicsVelocity
+            {
+                Linear = new float3(data.OrbitalVelocity.x, data.OrbitalVelocity.y, 0f)
+            });
+            _em.SetComponentData(entity, new PhysicsDamping { Linear = 0f, Angular = 0f });
             _em.SetComponentData(entity, new PhysicsGravityFactor { Value = 0f });
 
             SetTierTags(entity, tier);
@@ -489,9 +491,7 @@ namespace Starfire.Demo
                     Position = a.Position,
                     Size = a.Size,
                     Composition = a.Composition,
-                    AngularSpeed = a.AngularSpeed,
-                    DriftSpeed = a.DriftSpeed,
-                    DriftDirection = a.DriftDirection
+                    OrbitalVelocity = a.OrbitalVelocity
                 });
             }
         }

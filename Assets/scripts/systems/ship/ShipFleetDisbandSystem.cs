@@ -25,6 +25,7 @@ namespace Starfire.Systems
 
         public void OnCreate(ref SystemState state)
         {
+            _lastUpdateTime = -0.667f;
             state.RequireForUpdate<SimulationConfig>();
             state.RequireForUpdate<PlayerTag>();
         }

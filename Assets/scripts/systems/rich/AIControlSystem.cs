@@ -1,7 +1,6 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 using Starfire.Core;
 using Starfire.Entity;
@@ -10,7 +9,7 @@ using Starfire.Simulation;
 namespace Starfire.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
+    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
     [UpdateAfter(typeof(PlayerInputSystem))]
     [UpdateBefore(typeof(ShipThrustSystem))]
     [BurstCompile]
@@ -36,7 +35,7 @@ namespace Starfire.Systems
         }
 
         [BurstCompile]
-        [WithAll(typeof(ShipTag))]
+        [WithAll(typeof(ShipTag), typeof(RichTierTag))]
         [WithNone(typeof(PlayerTag))]
         partial struct AIControlJob : IJobEntity
         {
@@ -47,8 +46,7 @@ namespace Starfire.Systems
                 ref ControlInput input,
                 ref SensorContact sensor,
                 in WorldPosition worldPos,
-                in ShipRotation rotation,
-                EnabledRefRO<RichTierTag> richTag)
+                in ShipRotation rotation)
             {
                 if (input.DriverType != 1)
                     return;

@@ -2,14 +2,13 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Starfire.Entity;
 using Starfire.Simulation;
 
 namespace Starfire.Systems
 {
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
     [UpdateAfter(typeof(Constrain2DSystem))]
     [BurstCompile]
     public partial struct SpeedLimitSystem : ISystem

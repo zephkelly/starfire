@@ -22,10 +22,8 @@ namespace Starfire.Demo
         public double2 Position;
         public float Size;
         public byte Composition;
-        public float AngularSpeed;
-        public float DriftSpeed;
-        public float2 DriftDirection;
         public int ParentStarId;
+        public float2 OrbitalVelocity;
     }
 
     public static class SolarSystemGenerator
@@ -123,7 +121,7 @@ namespace Starfire.Demo
                     SystemRadius = systemRadius,
                     Seed = starSeed,
                     GravityRange = systemRadius * 0.8f,
-                    GravityStrength = mass * 100f,
+                    GravityStrength = mass * 100_000_000f,
                     RadiationRadius = radius * 3f
                 });
             }
@@ -174,6 +172,7 @@ namespace Starfire.Demo
                 float beltInner = minBeltRadius + beltSpan * b + beltRng.NextFloat(0f, beltSpan * 0.1f);
                 float beltOuter = beltInner + beltSpan * beltRng.NextFloat(0.3f, 0.8f);
                 byte beltComposition = (byte)beltRng.NextInt(0, 4);
+                bool clockwise = beltRng.NextBool();
 
                 int beltAsteroids = b < beltCount - 1 ? remaining / (beltCount - b) : remaining;
                 beltAsteroids = math.min(beltAsteroids, remaining);
@@ -184,8 +183,8 @@ namespace Starfire.Demo
                     float dist = rng.NextFloat(beltInner, beltOuter);
                     var pos = star.Position + new double2(math.cos(angle) * dist, math.sin(angle) * dist);
 
-                    float size = rng.NextFloat(0.2f, 4.0f);
                     float sizeRoll = rng.NextFloat();
+                    float size;
                     if (sizeRoll < 0.6f) size = rng.NextFloat(0.2f, 1.0f);
                     else if (sizeRoll < 0.9f) size = rng.NextFloat(1.0f, 2.5f);
                     else size = rng.NextFloat(2.5f, 5.0f);
@@ -194,31 +193,18 @@ namespace Starfire.Demo
                         ? beltComposition
                         : (byte)rng.NextInt(0, 4);
 
-                    float angularSpeed = 0f;
-                    float driftSpeed = 0f;
-                    float2 driftDirection = float2.zero;
-
-                    float behaviorRoll = rng.NextFloat();
-                    if (behaviorRoll < 0.15f)
-                    {
-                        angularSpeed = rng.NextFloat(5f, 60f);
-                    }
-                    else if (behaviorRoll < 0.20f)
-                    {
-                        angularSpeed = rng.NextFloat(5f, 30f);
-                        driftSpeed = rng.NextFloat(1f, 15f);
-                        driftDirection = rng.NextFloat2Direction();
-                    }
+                    float orbitalSpeed = math.sqrt(star.GravityStrength / dist);
+                    float2 radial = new float2(math.cos(angle), math.sin(angle));
+                    float2 tangent = new float2(-radial.y, radial.x);
+                    if (clockwise) tangent = -tangent;
 
                     asteroids.Add(new AsteroidSpawnData
                     {
                         Position = pos,
                         Size = size,
                         Composition = composition,
-                        AngularSpeed = angularSpeed,
-                        DriftSpeed = driftSpeed,
-                        DriftDirection = driftDirection,
-                        ParentStarId = starIndex
+                        ParentStarId = starIndex,
+                        OrbitalVelocity = tangent * orbitalSpeed
                     });
                 }
 

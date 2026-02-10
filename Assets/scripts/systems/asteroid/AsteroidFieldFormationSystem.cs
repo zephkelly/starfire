@@ -13,10 +13,13 @@ namespace Starfire.Systems
     [UpdateAfter(typeof(TierTransitionCleanupSystem))]
     public partial struct AsteroidFieldFormationSystem : ISystem
     {
+        const int MaxFieldsPerTick = 5;
+
         float _lastUpdateTime;
 
         public void OnCreate(ref SystemState state)
         {
+            _lastUpdateTime = -0.833f;
             state.RequireForUpdate<SimulationConfig>();
             state.RequireForUpdate<PlayerTag>();
         }
@@ -62,9 +65,7 @@ namespace Starfire.Systems
                     EntityId = identity.ValueRO.Id,
                     Size = asteroid.ValueRO.Size,
                     Composition = asteroid.ValueRO.Composition,
-                    AngularSpeed = asteroid.ValueRO.AngularSpeed,
-                    DriftSpeed = asteroid.ValueRO.DriftSpeed,
-                    DriftDirection = asteroid.ValueRO.DriftDirection,
+                    OrbitalVelocity = asteroid.ValueRO.OrbitalVelocity,
                     ParentStarId = asteroid.ValueRO.ParentStarId
                 });
             }
@@ -87,9 +88,11 @@ namespace Starfire.Systems
             }
 
             var grouped = new NativeArray<bool>(candidates.Length, Allocator.Temp);
+            int fieldsCreated = 0;
 
             for (int i = 0; i < candidates.Length; i++)
             {
+                if (fieldsCreated >= MaxFieldsPerTick) break;
                 if (grouped[i]) continue;
 
                 var group = new NativeList<int>(Allocator.Temp);
@@ -121,7 +124,10 @@ namespace Starfire.Systems
                 }
 
                 if (group.Length >= 3)
+                {
                     CreateField(candidates, group, ecb, elapsedTime);
+                    fieldsCreated++;
+                }
 
                 group.Dispose();
             }
@@ -195,9 +201,7 @@ namespace Starfire.Systems
                     Position = c.Position,
                     Size = c.Size,
                     Composition = c.Composition,
-                    AngularSpeed = c.AngularSpeed,
-                    DriftSpeed = c.DriftSpeed,
-                    DriftDirection = c.DriftDirection
+                    OrbitalVelocity = c.OrbitalVelocity
                 });
 
                 ecb.DestroyEntity(c.Entity);
@@ -211,9 +215,7 @@ namespace Starfire.Systems
             public int EntityId;
             public float Size;
             public byte Composition;
-            public float AngularSpeed;
-            public float DriftSpeed;
-            public float2 DriftDirection;
+            public float2 OrbitalVelocity;
             public int ParentStarId;
         }
     }

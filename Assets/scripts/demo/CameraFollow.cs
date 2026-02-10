@@ -23,6 +23,9 @@ namespace Starfire.Demo
         [SerializeField] Color _gizmoT2Color = new Color(1f, 0.5f, 0f, 0.3f);
         [SerializeField] Color _gizmoT3Color = new Color(1f, 0f, 0f, 0.2f);
 
+        EntityQuery _playerQuery;
+        EntityQuery _configQuery;
+
         void LateUpdate()
         {
             var world = World.DefaultGameObjectInjectionWorld;
@@ -30,12 +33,14 @@ namespace Starfire.Demo
                 return;
 
             var em = world.EntityManager;
-            var query = em.CreateEntityQuery(typeof(PlayerTag), typeof(LocalTransform));
 
-            if (query.IsEmpty)
+            if (_playerQuery == default)
+                _playerQuery = em.CreateEntityQuery(typeof(PlayerTag), typeof(LocalTransform));
+
+            if (_playerQuery.IsEmpty)
                 return;
 
-            var entity = query.GetSingletonEntity();
+            var entity = _playerQuery.GetSingletonEntity();
             var transform = em.GetComponentData<LocalTransform>(entity);
 
             var targetPos = new Vector3(transform.Position.x, transform.Position.y, cameraZ);
@@ -49,10 +54,12 @@ namespace Starfire.Demo
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
 
-            var configQuery = world.EntityManager.CreateEntityQuery(typeof(SimulationConfig));
-            if (configQuery.IsEmpty) return;
+            if (_configQuery == default)
+                _configQuery = world.EntityManager.CreateEntityQuery(typeof(SimulationConfig));
 
-            var config = configQuery.GetSingleton<SimulationConfig>();
+            if (_configQuery.IsEmpty) return;
+
+            var config = _configQuery.GetSingleton<SimulationConfig>();
             _gizmoT0 = config.Bounds.Tier0MaxDistance;
             _gizmoT1 = config.Bounds.Tier1MaxDistance;
             _gizmoT2 = config.Bounds.Tier2MaxDistance;
