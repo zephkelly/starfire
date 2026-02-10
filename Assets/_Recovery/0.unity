@@ -415,9 +415,6 @@ MonoBehaviour:
   tier3Fleets: 2000
   tier3MembersPerFleet: 2000
   tier4Dormant: 10000
-  worldSeed: 12345
-  targetStarCount: 1000
-  targetAsteroidCount: 100000
   rebaseThreshold: 10000
   worldBoundsRadius: 500000
   tier0MaxDistance: 5000
@@ -436,10 +433,6 @@ MonoBehaviour:
   largeShipSensorRange: 8000
   shipMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   shipMaterial: {fileID: 2100000, guid: 8e17c8b35e72ee14c8f88df8eefccc51, type: 2}
-  asteroidMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-  asteroidMaterial: {fileID: 2100000, guid: c252184c5d812394f82d72a74488b38e, type: 2}
-  starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-  starMaterial: {fileID: 2100000, guid: 4948c5aa69a413441974e124aa70e9e1, type: 2}
 --- !u!114 &980274152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -464,9 +457,6 @@ MonoBehaviour:
   _shipDotSize: 2
   _fleetDotSize: 3
   _dormantDotSize: 1
-  _asteroidDotSize: 1
-  _starDotSize: 3
-  _asteroidFieldDotSize: 2
   _backgroundColor: {r: 0.02, g: 0.02, b: 0.06, a: 0.9}
   _borderColor: {r: 0.1, g: 0.4, b: 0.1, a: 1}
   _playerColor: {r: 0, g: 1, b: 0, a: 1}
@@ -477,8 +467,6 @@ MonoBehaviour:
   _asteroidTypeColor: {r: 0.7, g: 0.5, b: 0.2, a: 1}
   _debrisTypeColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.8}
   _projectileTypeColor: {r: 1, g: 1, b: 0.3, a: 1}
-  _starTypeColor: {r: 1, g: 0.94, b: 0.78, a: 1}
-  _asteroidFieldColor: {r: 0.43, g: 0.37, b: 0.27, a: 0.55}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

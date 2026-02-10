@@ -11,4 +11,8 @@ namespace Starfire.Simulation
     public struct DormantTag : IComponentData { }
 
     public struct FleetTag : IComponentData { }
+
+    public struct StarTag : IComponentData { }
+
+    public struct AsteroidFieldTag : IComponentData { }
 }

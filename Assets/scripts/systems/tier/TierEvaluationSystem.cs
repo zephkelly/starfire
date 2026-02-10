@@ -32,8 +32,7 @@ namespace Starfire.Systems
                     ComponentType.ReadWrite<SimulationTierData>(),
                     ComponentType.ReadOnly<WorldPosition>(),
                     ComponentType.ReadOnly<EntityIdentity>(),
-                    ComponentType.ReadOnly<SensorContact>(),
-                    ComponentType.ReadOnly<ShipTag>()
+                    ComponentType.ReadOnly<SensorContact>()
                 },
                 None = new[]
                 {

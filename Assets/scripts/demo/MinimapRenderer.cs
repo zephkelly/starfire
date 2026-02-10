@@ -28,6 +28,9 @@ namespace Starfire.Demo
         [SerializeField] int _shipDotSize = 2;
         [SerializeField] int _fleetDotSize = 3;
         [SerializeField] int _dormantDotSize = 1;
+        [SerializeField] int _asteroidDotSize = 1;
+        [SerializeField] int _starDotSize = 3;
+        [SerializeField] int _asteroidFieldDotSize = 2;
 
         [Header("Colors")]
         [SerializeField] Color _backgroundColor = new Color(0.02f, 0.02f, 0.06f, 0.9f);
@@ -42,8 +45,10 @@ namespace Starfire.Demo
         [SerializeField] Color _asteroidTypeColor = new Color(0.7f, 0.5f, 0.2f, 1f);
         [SerializeField] Color _debrisTypeColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
         [SerializeField] Color _projectileTypeColor = new Color(1f, 1f, 0.3f, 1f);
+        [SerializeField] Color _starTypeColor = new Color(1f, 0.94f, 0.78f, 1f);
+        [SerializeField] Color _asteroidFieldColor = new Color(0.43f, 0.37f, 0.27f, 0.55f);
 
-        static readonly string[] TypeNames = { "Ship", "Station", "Asteroid", "Debris", "Projectile" };
+        static readonly string[] TypeNames = { "Ship", "Station", "Asteroid", "Debris", "Projectile", "Star" };
         static readonly string[] TierNames = { "Loaded", "Active", "Sensor", "Strategic", "Dormant" };
         static readonly string[] AIStateNames = { "Idle", "Patrol", "Pursue", "Combat", "Flee" };
         static readonly string[] FleetBehaviorNames = { "Patrol", "Intercept", "Retreat", "Hold" };
@@ -60,7 +65,7 @@ namespace Starfire.Demo
         int _hoveredIndex = -1;
         int _selectedIndex = -1;
         double2 _playerWorldPos;
-        int _shipCount, _fleetCount, _dormantCount;
+        int _shipCount, _fleetCount, _dormantCount, _asteroidCount, _starCount, _asteroidFieldCount;
         int[] _countByTier = new int[5];
 
         GUIStyle _labelStyle;
@@ -105,9 +110,15 @@ namespace Starfire.Demo
             _system.ShipDotSize = _shipDotSize;
             _system.FleetDotSize = _fleetDotSize;
             _system.DormantDotSize = _dormantDotSize;
+            _system.AsteroidDotSize = _asteroidDotSize;
+            _system.StarDotSize = _starDotSize;
+            _system.AsteroidFieldDotSize = _asteroidFieldDotSize;
             _system.PlayerColor = ToColor32(_playerColor);
             _system.FleetColor = ToColor32(_fleetColor);
             _system.DormantColor = ToColor32(_dormantColor);
+            _system.AsteroidColor = ToColor32(_asteroidTypeColor);
+            _system.StarColor = ToColor32(_starTypeColor);
+            _system.AsteroidFieldColor = ToColor32(_asteroidFieldColor);
             _system.BorderColor = ToColor32(_borderColor);
             _system.BackgroundColor = ToColor32(_backgroundColor);
             _system.TypeColors = new[]
@@ -116,7 +127,8 @@ namespace Starfire.Demo
                 ToColor32(_stationTypeColor),
                 ToColor32(_asteroidTypeColor),
                 ToColor32(_debrisTypeColor),
-                ToColor32(_projectileTypeColor)
+                ToColor32(_projectileTypeColor),
+                ToColor32(_starTypeColor)
             };
             _system.MarkBackgroundDirty();
         }
@@ -151,6 +163,9 @@ namespace Starfire.Demo
                 _shipCount = _system.ShipCount;
                 _fleetCount = _system.FleetCount;
                 _dormantCount = _system.DormantCount;
+                _asteroidCount = _system.AsteroidCount;
+                _starCount = _system.StarCount;
+                _asteroidFieldCount = _system.AsteroidFieldCount;
                 for (int i = 0; i < 5; i++)
                     _countByTier[i] = _system.CountByTier[i];
             }
@@ -299,12 +314,16 @@ namespace Starfire.Demo
 
             DrawSwatchLabel(startX, y, _playerColor, "Player", colWidth);
             DrawSwatchLabel(startX + colWidth, y, _shipTypeColor, "Ship", colWidth);
-            DrawSwatchLabel(startX + colWidth * 2f, y, _stationTypeColor, "Station", colWidth);
+            DrawSwatchLabel(startX + colWidth * 2f, y, _starTypeColor, "Star", colWidth);
             y += rowHeight;
 
             DrawSwatchLabel(startX, y, _asteroidTypeColor, "Asteroid", colWidth);
             DrawSwatchLabel(startX + colWidth, y, _fleetColor, "Fleet", colWidth);
             DrawSwatchLabel(startX + colWidth * 2f, y, _dormantColor, "Dormant", colWidth);
+            y += rowHeight;
+
+            DrawSwatchLabel(startX, y, _asteroidFieldColor, "A.Field", colWidth);
+            DrawSwatchLabel(startX + colWidth, y, _stationTypeColor, "Station", colWidth);
             y += rowHeight + 4f;
 
             return y;
@@ -329,9 +348,12 @@ namespace Starfire.Demo
             GUI.Label(new Rect(startX, y, width, 14f), tierLine, _statsStyle);
             y += 14f;
 
-            int total = _shipCount + _fleetCount + _dormantCount;
-            var totalLine = $"Ships:{_shipCount}  Fleets:{_fleetCount}  Dormant:{_dormantCount}  Total:{total}";
-            GUI.Label(new Rect(startX, y, width, 14f), totalLine, _statsStyle);
+            var shipLine = $"Ships:{_shipCount}  Fleets:{_fleetCount}  Dormant:{_dormantCount}";
+            GUI.Label(new Rect(startX, y, width, 14f), shipLine, _statsStyle);
+            y += 14f;
+
+            var celestialLine = $"Asteroids:{_asteroidCount}  Stars:{_starCount}  Fields:{_asteroidFieldCount}";
+            GUI.Label(new Rect(startX, y, width, 14f), celestialLine, _statsStyle);
             y += 16f;
 
             return y;
@@ -355,8 +377,15 @@ namespace Starfire.Demo
             var mouseGui = new Vector2(mouseScreen.x, Screen.height - mouseScreen.y);
 
             float tooltipWidth = 180f;
-            float tooltipHeight = entry.Category == MinimapDataSystem.CategoryShip ? 72f : 48f;
-            if (entry.Category == MinimapDataSystem.CategoryPlayer) tooltipHeight = 24f;
+            float tooltipHeight;
+            switch (entry.Category)
+            {
+                case MinimapDataSystem.CategoryShip: tooltipHeight = 72f; break;
+                case MinimapDataSystem.CategoryPlayer: tooltipHeight = 24f; break;
+                case MinimapDataSystem.CategoryAsteroid:
+                case MinimapDataSystem.CategoryStar: tooltipHeight = 36f; break;
+                default: tooltipHeight = 48f; break;
+            }
 
             float tx = mouseGui.x + 14f;
             float ty = mouseGui.y - tooltipHeight - 4f;
@@ -402,6 +431,17 @@ namespace Starfire.Demo
                     string countStr = entry.MemberCount > 1 ? $" ({entry.MemberCount})" : "";
                     return $"Dormant {dType}{countStr}\n" +
                            $"Dist: {distStr}";
+
+                case MinimapDataSystem.CategoryAsteroid:
+                    string aTier = entry.Tier < TierNames.Length ? TierNames[entry.Tier] : "?";
+                    return $"Asteroid | {aTier}\nDist: {distStr}";
+
+                case MinimapDataSystem.CategoryStar:
+                    return $"Star\nDist: {distStr}";
+
+                case MinimapDataSystem.CategoryAsteroidField:
+                    return $"Asteroid Field ({entry.MemberCount})\n" +
+                           $"Mass: {entry.TotalHP:F0}\nDist: {distStr}";
 
                 default:
                     return "Unknown";

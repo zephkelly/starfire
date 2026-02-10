@@ -23,7 +23,7 @@ namespace Starfire.Systems
         }
 
         [BurstCompile]
-        [WithAll(typeof(SensorTierTag))]
+        [WithAll(typeof(SensorTierTag), typeof(ShipTag))]
         partial struct SensorUpdateJob : IJobEntity
         {
             public float DeltaTime;

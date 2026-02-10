@@ -7,5 +7,6 @@ namespace Starfire.Entity
         Asteroid = 2,
         Debris = 3,
         Projectile = 4,
+        Star = 5,
     }
 }

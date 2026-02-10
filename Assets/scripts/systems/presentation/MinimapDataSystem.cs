@@ -28,8 +28,12 @@ namespace Starfire.Systems
         public const byte CategoryFleet = 1;
         public const byte CategoryDormant = 2;
         public const byte CategoryPlayer = 3;
+        public const byte CategoryAsteroid = 4;
+        public const byte CategoryStar = 5;
+        public const byte CategoryAsteroidField = 6;
 
         const float FleetMinDistance = 85000f;
+        const float AsteroidFieldMinDistance = 85000f;
         const float DormantMinDistance = 170000f;
 
         public NativeArray<Color32> Pixels;
@@ -38,6 +42,9 @@ namespace Starfire.Systems
         public int ShipCount;
         public int FleetCount;
         public int DormantCount;
+        public int AsteroidCount;
+        public int StarCount;
+        public int AsteroidFieldCount;
         public double2 PlayerWorldPos;
         public bool DataReady;
 
@@ -49,10 +56,16 @@ namespace Starfire.Systems
         public int ShipDotSize = 2;
         public int FleetDotSize = 3;
         public int DormantDotSize = 1;
+        public int AsteroidDotSize = 1;
+        public int StarDotSize = 3;
+        public int AsteroidFieldDotSize = 2;
 
         public Color32 PlayerColor;
         public Color32 FleetColor;
         public Color32 DormantColor;
+        public Color32 AsteroidColor;
+        public Color32 StarColor;
+        public Color32 AsteroidFieldColor;
         public Color32 BorderColor;
         public Color32 BackgroundColor;
         public Color32[] TypeColors;
@@ -71,12 +84,18 @@ namespace Starfire.Systems
         EntityQuery _shipQuery;
         EntityQuery _fleetQuery;
         EntityQuery _dormantQuery;
+        EntityQuery _asteroidQuery;
+        EntityQuery _starQuery;
+        EntityQuery _asteroidFieldQuery;
 
         protected override void OnCreate()
         {
             PlayerColor = new Color32(0, 255, 0, 255);
             FleetColor = new Color32(128, 179, 255, 255);
             DormantColor = new Color32(64, 64, 64, 153);
+            AsteroidColor = new Color32(140, 120, 90, 180);
+            StarColor = new Color32(255, 240, 200, 255);
+            AsteroidFieldColor = new Color32(110, 95, 70, 140);
             BorderColor = new Color32(26, 102, 26, 255);
             BackgroundColor = new Color32(5, 5, 15, 230);
             TypeColors = new Color32[]
@@ -85,7 +104,8 @@ namespace Starfire.Systems
                 new Color32(0, 204, 255, 255),
                 new Color32(179, 128, 51, 255),
                 new Color32(102, 102, 102, 204),
-                new Color32(255, 255, 77, 255)
+                new Color32(255, 255, 77, 255),
+                new Color32(255, 240, 200, 255)
             };
 
             AllocateBuffers();
@@ -114,6 +134,26 @@ namespace Starfire.Systems
             _dormantQuery = GetEntityQuery(
                 ComponentType.ReadOnly<DormantTag>(),
                 ComponentType.ReadOnly<DormantRecord>());
+
+            _asteroidQuery = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new[]
+                {
+                    ComponentType.ReadOnly<AsteroidTag>(),
+                    ComponentType.ReadOnly<WorldPosition>(),
+                    ComponentType.ReadOnly<SimulationTierData>()
+                },
+                None = new[] { ComponentType.ReadOnly<PlayerTag>() }
+            });
+
+            _starQuery = GetEntityQuery(
+                ComponentType.ReadOnly<StarTag>(),
+                ComponentType.ReadOnly<WorldPosition>(),
+                ComponentType.ReadOnly<StarData>());
+
+            _asteroidFieldQuery = GetEntityQuery(
+                ComponentType.ReadOnly<AsteroidFieldTag>(),
+                ComponentType.ReadOnly<AsteroidFieldData>());
 
             RequireForUpdate<PlayerTag>();
         }
@@ -220,6 +260,9 @@ namespace Starfire.Systems
             ShipCount = 0;
             FleetCount = 0;
             DormantCount = 0;
+            AsteroidCount = 0;
+            StarCount = 0;
+            AsteroidFieldCount = 0;
             for (int i = 0; i < 5; i++) CountByTier[i] = 0;
 
             if (_playerQuery.IsEmpty)
@@ -247,6 +290,9 @@ namespace Starfire.Systems
             int adaptiveShipDot = highZoom ? 1 : ShipDotSize;
             int adaptiveFleetDot = highZoom ? math.max(FleetDotSize - 1, 1) : FleetDotSize;
             int adaptiveDormantDot = highZoom ? 1 : DormantDotSize;
+            int adaptiveAsteroidDot = highZoom ? 0 : AsteroidDotSize;
+            int adaptiveStarDot = highZoom ? 1 : StarDotSize;
+            int adaptiveFieldDot = highZoom ? 1 : AsteroidFieldDotSize;
 
             var posHandle = GetComponentTypeHandle<WorldPosition>(true);
             var idHandle = GetComponentTypeHandle<EntityIdentity>(true);
@@ -265,6 +311,27 @@ namespace Starfire.Systems
             {
                 var dormantHandle = GetComponentTypeHandle<DormantRecord>(true);
                 ProcessDormantEntities(ref dormantHandle, viewRadiusSq, halfInvRadius, texSize, adaptiveDormantDot);
+            }
+
+            {
+                var asteroidPosHandle = GetComponentTypeHandle<WorldPosition>(true);
+                var asteroidTierHandle = GetComponentTypeHandle<SimulationTierData>(true);
+                ProcessAsteroidEntities(ref asteroidPosHandle, ref asteroidTierHandle,
+                    viewRadiusSq, halfInvRadius, texSize, adaptiveAsteroidDot);
+            }
+
+            {
+                var starPosHandle = GetComponentTypeHandle<WorldPosition>(true);
+                var starDataHandle = GetComponentTypeHandle<StarData>(true);
+                ProcessStarEntities(ref starPosHandle, ref starDataHandle,
+                    viewRadiusSq, halfInvRadius, texSize, adaptiveStarDot);
+            }
+
+            if (ViewRadius >= AsteroidFieldMinDistance)
+            {
+                var fieldDataHandle = GetComponentTypeHandle<AsteroidFieldData>(true);
+                ProcessAsteroidFieldEntities(ref fieldDataHandle,
+                    viewRadiusSq, halfInvRadius, texSize, adaptiveFieldDot);
             }
 
             int center = texSize / 2;
@@ -417,6 +484,140 @@ namespace Starfire.Systems
                         EntityType = dormants[i].EntityType,
                         MemberCount = dormants[i].Count,
                         WorldPos = chunkCenter
+                    });
+                }
+            }
+
+            chunks.Dispose();
+        }
+
+        void ProcessAsteroidEntities(
+            ref ComponentTypeHandle<WorldPosition> posHandle,
+            ref ComponentTypeHandle<SimulationTierData> tierHandle,
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+        {
+            var chunks = _asteroidQuery.ToArchetypeChunkArray(Allocator.Temp);
+
+            for (int c = 0; c < chunks.Length; c++)
+            {
+                var chunk = chunks[c];
+                var positions = chunk.GetNativeArray(ref posHandle);
+                var tiers = chunk.GetNativeArray(ref tierHandle);
+
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    double2 rel = positions[i].Value - PlayerWorldPos;
+                    double distSq = rel.x * rel.x + rel.y * rel.y;
+                    if (distSq > viewRadiusSq) continue;
+
+                    if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
+
+                    int centerIdx = py * texSize + px;
+                    if (!_occupiedPixels.Add(centerIdx)) continue;
+
+                    DrawDot(px, py, dotSize, AsteroidColor);
+
+                    byte tier = (byte)tiers[i].Tier;
+                    CountByTier[math.min(tier, 4)]++;
+                    AsteroidCount++;
+
+                    Entries.Add(new MinimapEntry
+                    {
+                        PixelX = px,
+                        PixelY = py,
+                        DotRadius = dotSize,
+                        Category = CategoryAsteroid,
+                        EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
+                        Tier = tier,
+                        WorldPos = positions[i].Value
+                    });
+                }
+            }
+
+            chunks.Dispose();
+        }
+
+        void ProcessStarEntities(
+            ref ComponentTypeHandle<WorldPosition> posHandle,
+            ref ComponentTypeHandle<StarData> starHandle,
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+        {
+            var chunks = _starQuery.ToArchetypeChunkArray(Allocator.Temp);
+
+            for (int c = 0; c < chunks.Length; c++)
+            {
+                var chunk = chunks[c];
+                var positions = chunk.GetNativeArray(ref posHandle);
+                var stars = chunk.GetNativeArray(ref starHandle);
+
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    double2 rel = positions[i].Value - PlayerWorldPos;
+                    double distSq = rel.x * rel.x + rel.y * rel.y;
+                    if (distSq > viewRadiusSq) continue;
+
+                    if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
+
+                    int centerIdx = py * texSize + px;
+                    if (!_occupiedPixels.Add(centerIdx)) continue;
+
+                    int lumDot = stars[i].Luminosity > 1f
+                        ? dotSize + (int)math.log2(stars[i].Luminosity)
+                        : dotSize;
+                    int starDot = math.min(lumDot, dotSize + 3);
+                    DrawDot(px, py, starDot, StarColor);
+                    StarCount++;
+
+                    Entries.Add(new MinimapEntry
+                    {
+                        PixelX = px,
+                        PixelY = py,
+                        DotRadius = starDot,
+                        Category = CategoryStar,
+                        EntityType = (byte)Starfire.Entity.EntityType.Star,
+                        WorldPos = positions[i].Value
+                    });
+                }
+            }
+
+            chunks.Dispose();
+        }
+
+        void ProcessAsteroidFieldEntities(
+            ref ComponentTypeHandle<AsteroidFieldData> fieldHandle,
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+        {
+            var chunks = _asteroidFieldQuery.ToArchetypeChunkArray(Allocator.Temp);
+
+            for (int c = 0; c < chunks.Length; c++)
+            {
+                var chunk = chunks[c];
+                var fields = chunk.GetNativeArray(ref fieldHandle);
+
+                for (int i = 0; i < chunk.Count; i++)
+                {
+                    double2 rel = fields[i].Position - PlayerWorldPos;
+                    double distSq = rel.x * rel.x + rel.y * rel.y;
+                    if (distSq > viewRadiusSq) continue;
+
+                    if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
+
+                    int centerIdx = py * texSize + px;
+                    if (!_occupiedPixels.Add(centerIdx)) continue;
+
+                    DrawDot(px, py, dotSize, AsteroidFieldColor);
+                    CountByTier[3]++;
+                    AsteroidFieldCount++;
+
+                    Entries.Add(new MinimapEntry
+                    {
+                        PixelX = px,
+                        PixelY = py,
+                        DotRadius = dotSize,
+                        Category = CategoryAsteroidField,
+                        MemberCount = fields[i].Count,
+                        TotalHP = fields[i].TotalMass,
+                        WorldPos = fields[i].Position
                     });
                 }
             }

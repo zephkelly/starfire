@@ -25,6 +25,11 @@ namespace Starfire.Demo
         [SerializeField] int tier3MembersPerFleet = 10;
         [SerializeField] int tier4Dormant = 50;
 
+        [Header("Celestial Generation")]
+        [SerializeField] uint worldSeed = 12345;
+        [SerializeField] int targetStarCount = 1000;
+        [SerializeField] int targetAsteroidCount = 100000;
+
         [Header("World")]
         [SerializeField] float rebaseThreshold = 10000f;
         [SerializeField] float worldBoundsRadius = 500000f;
@@ -50,10 +55,18 @@ namespace Starfire.Demo
         [Header("Rendering")]
         [SerializeField] Mesh shipMesh;
         [SerializeField] UnityEngine.Material shipMaterial;
+        [SerializeField] Mesh asteroidMesh;
+        [SerializeField] UnityEngine.Material asteroidMaterial;
+        [SerializeField] Mesh starMesh;
+        [SerializeField] UnityEngine.Material starMaterial;
 
         EntityManager _em;
         EntityArchetype _shipArchetype;
+        EntityArchetype _asteroidArchetype;
+        EntityArchetype _starArchetype;
         BlobAssetReference<Unity.Physics.Collider> _shipCollider;
+        BlobAssetReference<Unity.Physics.Collider> _asteroidCollider;
+        BlobAssetReference<Unity.Physics.Collider> _starCollider;
         int _nextEntityId = 1;
 
         void Start()
@@ -67,14 +80,12 @@ namespace Starfire.Demo
             var world = World.DefaultGameObjectInjectionWorld;
             _em = world.EntityManager;
 
-            var dispatch = world.GetExistingSystemManaged<TierDispatchSystem>();
-            dispatch.Register(new SnapshotTierHandler());
-
             CreateSingletons();
-            CreateShipArchetype();
-            CreateCollider();
+            CreateArchetypes();
+            CreateColliders();
             ConfigurePhysics(world);
 
+            SpawnCelestialBodies();
             SpawnPlayer();
             SpawnTier0Ships();
             SpawnTier1Ships();
@@ -84,7 +95,7 @@ namespace Starfire.Demo
 
             int total = 1 + tier0Ships + tier1Ships + tier2Ships +
                         tier3Fleets + (tier3Fleets * tier3MembersPerFleet) + tier4Dormant;
-            Debug.Log($"[DemoSpawner] Spawned {total} entities across all tiers");
+            Debug.Log($"[DemoSpawner] Spawned {total} ship entities + celestial bodies across all tiers");
         }
 
         void CreateSingletons()
@@ -149,7 +160,7 @@ namespace Starfire.Demo
             world.MaximumDeltaTime = 1f / 30f;
         }
 
-        void CreateShipArchetype()
+        void CreateArchetypes()
         {
             _shipArchetype = _em.CreateArchetype(
                 typeof(LocalTransform),
@@ -175,17 +186,331 @@ namespace Starfire.Demo
                 typeof(PhysicsGravityFactor),
                 typeof(PhysicsWorldIndex)
             );
+
+            _asteroidArchetype = _em.CreateArchetype(
+                typeof(LocalTransform),
+                typeof(LocalToWorld),
+                typeof(WorldPosition),
+                typeof(EntityIdentity),
+                typeof(SimulationTierData),
+                typeof(TierTransition),
+                typeof(AsteroidTag),
+                typeof(AsteroidData),
+                typeof(SensorContact),
+                typeof(RichTierTag),
+                typeof(VisualTierTag),
+                typeof(SensorTierTag),
+                typeof(PhysicsCollider),
+                typeof(PhysicsMass),
+                typeof(PhysicsVelocity),
+                typeof(PhysicsDamping),
+                typeof(PhysicsGravityFactor),
+                typeof(PhysicsWorldIndex)
+            );
+
+            _starArchetype = _em.CreateArchetype(
+                typeof(LocalTransform),
+                typeof(LocalToWorld),
+                typeof(WorldPosition),
+                typeof(EntityIdentity),
+                typeof(SimulationTierData),
+                typeof(TierTransition),
+                typeof(StarTag),
+                typeof(StarData),
+                typeof(SensorContact),
+                typeof(RichTierTag),
+                typeof(VisualTierTag),
+                typeof(SensorTierTag),
+                typeof(PhysicsCollider),
+                typeof(PhysicsMass),
+                typeof(PhysicsVelocity),
+                typeof(PhysicsDamping),
+                typeof(PhysicsGravityFactor),
+                typeof(PhysicsWorldIndex)
+            );
         }
 
-        void CreateCollider()
+        void CreateColliders()
         {
             _shipCollider = SphereCollider.Create(
-                new SphereGeometry
-                {
-                    Center = float3.zero,
-                    Radius = shipColliderRadius
-                },
+                new SphereGeometry { Center = float3.zero, Radius = shipColliderRadius },
                 CollisionFilter.Default);
+
+            _asteroidCollider = SphereCollider.Create(
+                new SphereGeometry { Center = float3.zero, Radius = 1f },
+                CollisionFilter.Default);
+
+            _starCollider = SphereCollider.Create(
+                new SphereGeometry { Center = float3.zero, Radius = 50f },
+                CollisionFilter.Default);
+        }
+
+        void SpawnCelestialBodies()
+        {
+            SolarSystemGenerator.Generate(
+                worldSeed, worldBoundsRadius, targetStarCount, targetAsteroidCount,
+                out var stars, out var asteroidSpawns);
+
+            int starCount = 0;
+            int asteroidIndividual = 0;
+            int asteroidFieldCount = 0;
+            int asteroidDormant = 0;
+
+            for (int i = 0; i < stars.Length; i++)
+            {
+                var s = stars[i];
+                double2 delta = s.Position;
+                double distSq = delta.x * delta.x + delta.y * delta.y;
+
+                SimulationTier tier;
+                if (distSq < (double)tier0MaxDistance * tier0MaxDistance)
+                    tier = SimulationTier.Loaded;
+                else if (distSq < (double)tier1MaxDistance * tier1MaxDistance)
+                    tier = SimulationTier.Active;
+                else
+                    tier = SimulationTier.Sensor;
+
+                SpawnStar(s, i, tier);
+                starCount++;
+            }
+
+            var fieldCandidates = new NativeList<AsteroidSpawnData>(1024, Allocator.Temp);
+            int currentFieldStarId = -1;
+
+            for (int i = 0; i < asteroidSpawns.Length; i++)
+            {
+                var a = asteroidSpawns[i];
+                double2 delta = a.Position;
+                double distSq = delta.x * delta.x + delta.y * delta.y;
+
+                if (distSq < (double)tier0MaxDistance * tier0MaxDistance)
+                {
+                    SpawnAsteroid(a, SimulationTier.Loaded);
+                    asteroidIndividual++;
+                }
+                else if (distSq < (double)tier1MaxDistance * tier1MaxDistance)
+                {
+                    SpawnAsteroid(a, SimulationTier.Active);
+                    asteroidIndividual++;
+                }
+                else if (distSq < (double)tier2MaxDistance * tier2MaxDistance)
+                {
+                    SpawnAsteroid(a, SimulationTier.Sensor);
+                    asteroidIndividual++;
+                }
+                else if (distSq < (double)tier3MaxDistance * tier3MaxDistance)
+                {
+                    if (a.ParentStarId != currentFieldStarId && fieldCandidates.Length > 0)
+                    {
+                        FlushAsteroidField(fieldCandidates);
+                        asteroidFieldCount++;
+                        fieldCandidates.Clear();
+                    }
+                    currentFieldStarId = a.ParentStarId;
+                    fieldCandidates.Add(a);
+                }
+                else
+                {
+                    SpawnAsteroidDormant(a);
+                    asteroidDormant++;
+                }
+            }
+
+            if (fieldCandidates.Length > 0)
+            {
+                FlushAsteroidField(fieldCandidates);
+                asteroidFieldCount++;
+            }
+
+            fieldCandidates.Dispose();
+            stars.Dispose();
+            asteroidSpawns.Dispose();
+
+            Debug.Log($"[DemoSpawner] Celestial: {starCount} stars, {asteroidIndividual} individual asteroids, " +
+                      $"{asteroidFieldCount} asteroid fields, {asteroidDormant} dormant asteroid records");
+        }
+
+        void SpawnStar(StarSpawnData data, int starIndex, SimulationTier tier)
+        {
+            var entity = _em.CreateEntity(_starArchetype);
+            int id = _nextEntityId++;
+
+            var localPos = (float2)data.Position;
+            _em.SetComponentData(entity, LocalTransform.FromPositionRotation(
+                new float3(localPos.x, localPos.y, 0f), quaternion.identity));
+
+            _em.SetComponentData(entity, new WorldPosition { Value = data.Position });
+
+            _em.SetComponentData(entity, new EntityIdentity
+            {
+                Id = id,
+                EntityType = (byte)Starfire.Entity.EntityType.Star,
+                Persistence = 2,
+                FactionId = 0,
+                ConfigId = starIndex
+            });
+
+            _em.SetComponentData(entity, new SimulationTierData
+            {
+                Tier = tier,
+                LastUpdatedTime = 0f
+            });
+
+            _em.SetComponentData(entity, new StarData
+            {
+                SpectralType = data.SpectralType,
+                Luminosity = data.Luminosity,
+                Mass = data.Mass,
+                Radius = data.Radius,
+                SystemRadius = data.SystemRadius,
+                Seed = data.Seed,
+                GravityRange = data.GravityRange,
+                GravityStrength = data.GravityStrength,
+                RadiationRadius = data.RadiationRadius
+            });
+
+            _em.SetComponentData(entity, new SensorContact
+            {
+                HullPercent = 1f,
+                SensorRange = data.SystemRadius
+            });
+
+            _em.SetComponentData(entity, new PhysicsCollider { Value = _starCollider });
+            var mass = PhysicsMass.CreateKinematic(MassProperties.UnitSphere);
+            _em.SetComponentData(entity, mass);
+            _em.SetComponentData(entity, new PhysicsDamping { Linear = 1f, Angular = 1f });
+            _em.SetComponentData(entity, new PhysicsGravityFactor { Value = 0f });
+
+            SetTierTags(entity, tier);
+
+            if (tier == SimulationTier.Loaded && starMesh != null && starMaterial != null)
+                AddRendering(entity, starMesh, starMaterial);
+        }
+
+        void SpawnAsteroid(AsteroidSpawnData data, SimulationTier tier)
+        {
+            var entity = _em.CreateEntity(_asteroidArchetype);
+            int id = _nextEntityId++;
+
+            var localPos = (float2)data.Position;
+            _em.SetComponentData(entity, LocalTransform.FromPositionRotation(
+                new float3(localPos.x, localPos.y, 0f), quaternion.identity));
+
+            _em.SetComponentData(entity, new WorldPosition { Value = data.Position });
+
+            _em.SetComponentData(entity, new EntityIdentity
+            {
+                Id = id,
+                EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
+                Persistence = 0,
+                FactionId = 0,
+                ConfigId = 0
+            });
+
+            _em.SetComponentData(entity, new SimulationTierData
+            {
+                Tier = tier,
+                LastUpdatedTime = 0f
+            });
+
+            _em.SetComponentData(entity, new AsteroidData
+            {
+                Size = data.Size,
+                Composition = data.Composition,
+                AngularSpeed = data.AngularSpeed,
+                DriftSpeed = data.DriftSpeed,
+                DriftDirection = data.DriftDirection,
+                ParentStarId = data.ParentStarId
+            });
+
+            _em.SetComponentData(entity, new SensorContact
+            {
+                HullPercent = 1f,
+                SensorRange = 0f
+            });
+
+            _em.SetComponentData(entity, new PhysicsCollider { Value = _asteroidCollider });
+            var mass = PhysicsMass.CreateDynamic(MassProperties.UnitSphere, data.Size * 10f);
+            mass.InverseInertia = new float3(0f, 0f, mass.InverseInertia.z);
+            _em.SetComponentData(entity, mass);
+            _em.SetComponentData(entity, new PhysicsDamping { Linear = 0.01f, Angular = 0.5f });
+            _em.SetComponentData(entity, new PhysicsGravityFactor { Value = 0f });
+
+            SetTierTags(entity, tier);
+
+            if (tier == SimulationTier.Loaded && asteroidMesh != null && asteroidMaterial != null)
+                AddRendering(entity, asteroidMesh, asteroidMaterial);
+        }
+
+        void FlushAsteroidField(NativeList<AsteroidSpawnData> candidates)
+        {
+            if (candidates.Length == 0) return;
+
+            double2 avgPos = double2.zero;
+            float totalMass = 0f;
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                avgPos += candidates[i].Position;
+                totalMass += candidates[i].Size * candidates[i].Size;
+            }
+            avgPos /= candidates.Length;
+
+            float maxDist = 0f;
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                double2 d = candidates[i].Position - avgPos;
+                float dist = (float)math.length(d);
+                if (dist > maxDist) maxDist = dist;
+            }
+
+            uint seed = (uint)(candidates[0].ParentStarId * 73856093 + candidates.Length * 19349663);
+
+            var fieldEntity = _em.CreateEntity();
+            _em.AddComponent<AsteroidFieldTag>(fieldEntity);
+            _em.AddComponentData(fieldEntity, new AsteroidFieldData
+            {
+                Position = avgPos,
+                Radius = maxDist + 500f,
+                Count = candidates.Length,
+                DominantComposition = candidates[0].Composition,
+                TotalMass = totalMass,
+                Seed = seed,
+                ParentStarId = candidates[0].ParentStarId,
+                LastUpdateTime = 0f
+            });
+
+            var buffer = _em.AddBuffer<AsteroidFieldMember>(fieldEntity);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                var a = candidates[i];
+                buffer.Add(new AsteroidFieldMember
+                {
+                    EntityId = _nextEntityId++,
+                    Position = a.Position,
+                    Size = a.Size,
+                    Composition = a.Composition,
+                    AngularSpeed = a.AngularSpeed,
+                    DriftSpeed = a.DriftSpeed,
+                    DriftDirection = a.DriftDirection
+                });
+            }
+        }
+
+        void SpawnAsteroidDormant(AsteroidSpawnData data)
+        {
+            var dormantEntity = _em.CreateEntity();
+            _em.AddComponent<DormantTag>(dormantEntity);
+            _em.AddComponentData(dormantEntity, new DormantRecord
+            {
+                ChunkX = (long)(data.Position.x / 1000.0),
+                ChunkY = (long)(data.Position.y / 1000.0),
+                EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
+                FactionIndex = 0,
+                Count = 1,
+                Seed = (uint)(_nextEntityId++ * 73856093),
+                Persistence = 0,
+                Snapshot = default
+            });
         }
 
         Unity.Entities.Entity SpawnShipEntity(double2 worldPos, SimulationTier tier, int factionId, byte persistence, float sensorRange = 0f)
@@ -306,15 +631,20 @@ namespace Starfire.Demo
             }
         }
 
-        void AddRendering(Unity.Entities.Entity entity)
+        void AddRendering(Unity.Entities.Entity entity, Mesh mesh, UnityEngine.Material material)
         {
             var desc = new RenderMeshDescription(ShadowCastingMode.Off);
             var meshArray = new RenderMeshArray(
-                new UnityEngine.Material[] { shipMaterial },
-                new Mesh[] { shipMesh });
+                new UnityEngine.Material[] { material },
+                new Mesh[] { mesh });
 
             RenderMeshUtility.AddComponents(entity, _em, desc, meshArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+        }
+
+        void AddRendering(Unity.Entities.Entity entity)
+        {
+            AddRendering(entity, shipMesh, shipMaterial);
         }
 
         void SpawnPlayer()
@@ -519,6 +849,10 @@ namespace Starfire.Demo
         {
             if (_shipCollider.IsCreated)
                 _shipCollider.Dispose();
+            if (_asteroidCollider.IsCreated)
+                _asteroidCollider.Dispose();
+            if (_starCollider.IsCreated)
+                _starCollider.Dispose();
         }
     }
 }
