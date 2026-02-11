@@ -9,6 +9,7 @@ namespace Starfire.Systems
     [UpdateAfter(typeof(TierStateTransitionSystem))]
     [UpdateAfter(typeof(ShipTierTransitionSystem))]
     [UpdateAfter(typeof(AsteroidTierTransitionSystem))]
+    [UpdateAfter(typeof(AsteroidRenderingInitSystem))]
     public partial class TierTransitionCleanupSystem : SystemBase
     {
         protected override void OnUpdate()

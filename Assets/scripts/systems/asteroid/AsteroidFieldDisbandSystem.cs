@@ -123,6 +123,7 @@ namespace Starfire.Systems
                     {
                         Size = member.Size,
                         Composition = member.Composition,
+                        TypeId = member.TypeId,
                         ParentStarId = fieldData.ValueRO.ParentStarId,
                         OrbitalVelocity = member.OrbitalVelocity
                     });

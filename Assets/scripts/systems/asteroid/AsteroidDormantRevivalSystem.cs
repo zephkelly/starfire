@@ -18,6 +18,7 @@ namespace Starfire.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<SimulationConfig>();
+            state.RequireForUpdate<AsteroidConfig>();
             state.RequireForUpdate<PlayerTag>();
         }
 
@@ -29,6 +30,7 @@ namespace Starfire.Systems
             _lastUpdateTime = elapsedTime;
 
             var config = SystemAPI.GetSingleton<SimulationConfig>();
+            var asteroidConfig = SystemAPI.GetSingleton<AsteroidConfig>();
 
             double2 playerWorldPos = double2.zero;
             foreach (var (worldPos, _) in SystemAPI.Query<RefRO<WorldPosition>, RefRO<PlayerTag>>())
@@ -125,12 +127,16 @@ namespace Starfire.Systems
                         }
                     }
 
+                    float size = rng.NextFloat(0.3f, 3.0f);
+                    byte composition = (byte)rng.NextInt(0, 4);
                     buffer.Add(new AsteroidFieldMember
                     {
                         EntityId = rng.NextInt(100000, 999999),
                         Position = memberPos,
-                        Size = rng.NextFloat(0.3f, 3.0f),
-                        Composition = (byte)rng.NextInt(0, 4),
+                        Size = size,
+                        Composition = composition,
+                        TypeId = AsteroidConfig.ComputeTypeId(
+                            size, composition, asteroidConfig.Type0MaxSize, asteroidConfig.Type1MaxSize),
                         OrbitalVelocity = orbitalVelocity
                     });
                 }

@@ -70,6 +70,14 @@ namespace Starfire.Systems
             float t0Hysteresis = config.Bounds.Tier0MaxDistance * hysteresisPercent;
             double tier0Inner = config.Bounds.Tier0MaxDistance - t0Hysteresis;
 
+            float asteroidRefSize = 2f;
+            float asteroidMinFactor = 0.3f;
+            if (SystemAPI.TryGetSingleton<AsteroidConfig>(out var asteroidConfig))
+            {
+                asteroidRefSize = asteroidConfig.ReferenceSize > 0f ? asteroidConfig.ReferenceSize : 2f;
+                asteroidMinFactor = asteroidConfig.MinSizeFactor;
+            }
+
             state.Dependency = new EvaluateTierJob
             {
                 Entities = entities,
@@ -83,6 +91,9 @@ namespace Starfire.Systems
                 HysteresisPercent = hysteresisPercent,
                 TierChangeCooldown = config.Bounds.TierChangeCooldown,
                 ElapsedTime = elapsedTime,
+                AsteroidDataLookup = SystemAPI.GetComponentLookup<AsteroidData>(true),
+                AsteroidReferenceSize = asteroidRefSize,
+                AsteroidMinSizeFactor = asteroidMinFactor,
                 ChangedEntities = _pendingChanges.AsParallelWriter()
             }.ScheduleParallel(_evalQuery, state.Dependency);
 
@@ -144,6 +155,10 @@ namespace Starfire.Systems
             public float TierChangeCooldown;
             public float ElapsedTime;
 
+            [ReadOnly] public ComponentLookup<AsteroidData> AsteroidDataLookup;
+            public float AsteroidReferenceSize;
+            public float AsteroidMinSizeFactor;
+
             public NativeQueue<TierChange>.ParallelWriter ChangedEntities;
 
             void Execute(
@@ -158,6 +173,15 @@ namespace Starfire.Systems
 
                 double2 delta = worldPos.Value - PlayerWorldPos;
                 double distSq = delta.x * delta.x + delta.y * delta.y;
+
+                var entityRef = Entities[entityIndex];
+                if (AsteroidDataLookup.HasComponent(entityRef))
+                {
+                    float size = AsteroidDataLookup[entityRef].Size;
+                    float sizeFactor = math.clamp(size / AsteroidReferenceSize, AsteroidMinSizeFactor, 1f);
+                    distSq = distSq / ((double)sizeFactor * sizeFactor);
+                }
+
                 var currentTier = tierData.Tier;
                 var targetTier = currentTier;
 

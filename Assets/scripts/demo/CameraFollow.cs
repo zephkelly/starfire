@@ -8,7 +8,6 @@ namespace Starfire.Demo
 {
     public class CameraFollow : MonoBehaviour
     {
-        [SerializeField] float smoothSpeed = 10f;
         [SerializeField] float cameraZ = -50f;
 
         [Header("Tier Gizmos")]
@@ -44,7 +43,7 @@ namespace Starfire.Demo
             var transform = em.GetComponentData<LocalTransform>(entity);
 
             var targetPos = new Vector3(transform.Position.x, transform.Position.y, cameraZ);
-            this.transform.position = Vector3.Lerp(this.transform.position, targetPos, smoothSpeed * Time.deltaTime);
+            this.transform.position = targetPos;
 
             SyncGizmoDistancesFromConfig();
         }

@@ -65,6 +65,7 @@ namespace Starfire.Systems
                     EntityId = identity.ValueRO.Id,
                     Size = asteroid.ValueRO.Size,
                     Composition = asteroid.ValueRO.Composition,
+                    TypeId = asteroid.ValueRO.TypeId,
                     OrbitalVelocity = asteroid.ValueRO.OrbitalVelocity,
                     ParentStarId = asteroid.ValueRO.ParentStarId
                 });
@@ -201,6 +202,7 @@ namespace Starfire.Systems
                     Position = c.Position,
                     Size = c.Size,
                     Composition = c.Composition,
+                    TypeId = c.TypeId,
                     OrbitalVelocity = c.OrbitalVelocity
                 });
 
@@ -215,6 +217,7 @@ namespace Starfire.Systems
             public int EntityId;
             public float Size;
             public byte Composition;
+            public byte TypeId;
             public float2 OrbitalVelocity;
             public int ParentStarId;
         }

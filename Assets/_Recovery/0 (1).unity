@@ -436,29 +436,10 @@ MonoBehaviour:
   largeShipSensorRange: 8000
   shipMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   shipMaterial: {fileID: 2100000, guid: 8e17c8b35e72ee14c8f88df8eefccc51, type: 2}
+  asteroidMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  asteroidMaterial: {fileID: 2100000, guid: c252184c5d812394f82d72a74488b38e, type: 2}
   starMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   starMaterial: {fileID: 2100000, guid: 4948c5aa69a413441974e124aa70e9e1, type: 2}
-  asteroidTypes:
-  - Name: small
-    Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-    Material: {fileID: 2100000, guid: c252184c5d812394f82d72a74488b38e, type: 2}
-    ColliderRadius: 1
-    MinSize: 1
-    MaxSize: 1.5
-    Composition: 0
-  - Name: large
-    Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-    Material: {fileID: 2100000, guid: c252184c5d812394f82d72a74488b38e, type: 2}
-    ColliderRadius: 1
-    MinSize: 5
-    MaxSize: 10
-    Composition: 1
-  asteroidReferenceSize: 2
-  asteroidMinSizeFactor: 0.3
-  asteroidSmallThreshold: 1
-  asteroidLargeThreshold: 3
-  asteroidType0MaxSize: 5
-  asteroidType1MaxSize: 10
 --- !u!114 &980274152
 MonoBehaviour:
   m_ObjectHideFlags: 0

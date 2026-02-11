@@ -3,6 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using Starfire.Entity;
+using Starfire.Sim;
 using Starfire.Simulation;
 
 namespace Starfire.Systems
@@ -19,6 +20,7 @@ namespace Starfire.Systems
         public float TotalHP;
         public byte Behavior;
         public double2 WorldPos;
+        public float Size;
     }
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
@@ -150,7 +152,8 @@ namespace Starfire.Systems
                 {
                     ComponentType.ReadOnly<AsteroidTag>(),
                     ComponentType.ReadOnly<WorldPosition>(),
-                    ComponentType.ReadOnly<SimulationTierData>()
+                    ComponentType.ReadOnly<SimulationTierData>(),
+                    ComponentType.ReadOnly<AsteroidData>()
                 },
                 None = new[] { ComponentType.ReadOnly<PlayerTag>() }
             });
@@ -324,7 +327,7 @@ namespace Starfire.Systems
             _adaptiveShipDot = highZoom ? 1 : ShipDotSize;
             _adaptiveFleetDot = highZoom ? math.max(FleetDotSize - 1, 1) : FleetDotSize;
             _adaptiveDormantDot = highZoom ? 1 : DormantDotSize;
-            _adaptiveAsteroidDot = highZoom ? 0 : AsteroidDotSize;
+            _adaptiveAsteroidDot = highZoom ? 1 : AsteroidDotSize;
             _adaptiveStarDot = highZoom ? 1 : StarDotSize;
             _adaptiveFieldDot = highZoom ? 1 : AsteroidFieldDotSize;
 
@@ -347,8 +350,21 @@ namespace Starfire.Systems
         {
             var asteroidPosHandle = GetComponentTypeHandle<WorldPosition>(true);
             var asteroidTierHandle = GetComponentTypeHandle<SimulationTierData>(true);
-            ProcessAsteroidEntities(ref asteroidPosHandle, ref asteroidTierHandle,
-                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveAsteroidDot);
+            var asteroidDataHandle = GetComponentTypeHandle<AsteroidData>(true);
+
+            float refSize = 2f;
+            float smallThreshold = 1f;
+            float largeThreshold = 3f;
+            if (SystemAPI.TryGetSingleton<AsteroidConfig>(out var asteroidConfig))
+            {
+                refSize = asteroidConfig.ReferenceSize;
+                smallThreshold = asteroidConfig.SmallSizeThreshold;
+                largeThreshold = asteroidConfig.LargeSizeThreshold;
+            }
+
+            ProcessAsteroidEntities(ref asteroidPosHandle, ref asteroidTierHandle, ref asteroidDataHandle,
+                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveAsteroidDot,
+                refSize, smallThreshold, largeThreshold);
 
             _updatePhase = 3;
         }
@@ -548,18 +564,27 @@ namespace Starfire.Systems
         void ProcessAsteroidEntities(
             ref ComponentTypeHandle<WorldPosition> posHandle,
             ref ComponentTypeHandle<SimulationTierData> tierHandle,
-            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+            ref ComponentTypeHandle<AsteroidData> asteroidHandle,
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize,
+            float refSize, float smallThreshold, float largeThreshold)
         {
             var chunks = _asteroidQuery.ToArchetypeChunkArray(Allocator.Temp);
+            bool extremeZoom = ViewRadius > 200000f;
 
             for (int c = 0; c < chunks.Length; c++)
             {
                 var chunk = chunks[c];
                 var positions = chunk.GetNativeArray(ref posHandle);
                 var tiers = chunk.GetNativeArray(ref tierHandle);
+                var asteroids = chunk.GetNativeArray(ref asteroidHandle);
 
                 for (int i = 0; i < chunk.Count; i++)
                 {
+                    float size = asteroids[i].Size;
+
+                    if (extremeZoom && size < largeThreshold)
+                        continue;
+
                     double2 rel = positions[i].Value - PlayerWorldPos;
                     double distSq = rel.x * rel.x + rel.y * rel.y;
                     if (distSq > viewRadiusSq) continue;
@@ -569,7 +594,13 @@ namespace Starfire.Systems
                     int centerIdx = py * texSize + px;
                     if (!_occupiedPixels.Add(centerIdx)) continue;
 
-                    DrawDot(px, py, dotSize, AsteroidColor);
+                    int sizeOffset = size >= largeThreshold ? 1 : size < smallThreshold ? -1 : 0;
+                    int effectiveDot = math.max(dotSize + sizeOffset, 0);
+
+                    byte alpha = (byte)math.clamp(size / refSize * 180f, 80f, 255f);
+                    var color = new Color32(AsteroidColor.r, AsteroidColor.g, AsteroidColor.b, alpha);
+
+                    DrawDot(px, py, effectiveDot, color);
 
                     byte tier = (byte)tiers[i].Tier;
                     CountByTier[math.min(tier, 4)]++;
@@ -579,11 +610,12 @@ namespace Starfire.Systems
                     {
                         PixelX = px,
                         PixelY = py,
-                        DotRadius = dotSize,
+                        DotRadius = effectiveDot,
                         Category = CategoryAsteroid,
                         EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
                         Tier = tier,
-                        WorldPos = positions[i].Value
+                        WorldPos = positions[i].Value,
+                        Size = size
                     });
                 }
             }

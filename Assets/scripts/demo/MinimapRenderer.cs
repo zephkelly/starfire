@@ -382,7 +382,7 @@ namespace Starfire.Demo
             {
                 case MinimapDataSystem.CategoryShip: tooltipHeight = 72f; break;
                 case MinimapDataSystem.CategoryPlayer: tooltipHeight = 24f; break;
-                case MinimapDataSystem.CategoryAsteroid:
+                case MinimapDataSystem.CategoryAsteroid: tooltipHeight = 48f; break;
                 case MinimapDataSystem.CategoryStar: tooltipHeight = 36f; break;
                 default: tooltipHeight = 48f; break;
             }
@@ -434,7 +434,8 @@ namespace Starfire.Demo
 
                 case MinimapDataSystem.CategoryAsteroid:
                     string aTier = entry.Tier < TierNames.Length ? TierNames[entry.Tier] : "?";
-                    return $"Asteroid | {aTier}\nDist: {distStr}";
+                    string sizeLabel = entry.Size >= 3f ? "Large" : entry.Size >= 1f ? "Medium" : "Small";
+                    return $"Asteroid | {aTier}\nSize: {entry.Size:F1} ({sizeLabel})\nDist: {distStr}";
 
                 case MinimapDataSystem.CategoryStar:
                     return $"Star\nDist: {distStr}";

@@ -1,4 +1,8 @@
-We are creating a top down space shooter game set in space, using Unity3D latest LTS. The game uses unity's built-in physics system.
+We are creating a top down space shooter game set in space, using Unity3D latest LTS.
+
+Please examine my projects architecture. It is ECS DOTs based in Unity. There is a tier and simulation manager that is responsible for moving entities up and down different tiere levels where behaviours are different for the entities.
+
+There are a few types of entities, Ships, Stars, and Asteroids.
 
 Before writing any plans or code, please ask me any clarifying questions about the game mechanics, features, or design that will help you better understand the requirements and please scan the codebase to understand the existing structure and components.
 

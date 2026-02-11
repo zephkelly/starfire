@@ -10,6 +10,7 @@ namespace Starfire.Entity
         public double2 Position;
         public float Size;
         public byte Composition;
+        public byte TypeId;
         public float2 OrbitalVelocity;
     }
 }

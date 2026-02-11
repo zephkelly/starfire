@@ -55,17 +55,24 @@ namespace Starfire.Demo
         [Header("Rendering")]
         [SerializeField] Mesh shipMesh;
         [SerializeField] UnityEngine.Material shipMaterial;
-        [SerializeField] Mesh asteroidMesh;
-        [SerializeField] UnityEngine.Material asteroidMaterial;
         [SerializeField] Mesh starMesh;
         [SerializeField] UnityEngine.Material starMaterial;
+
+        [Header("Asteroid Types")]
+        [SerializeField] AsteroidTypeDefinition[] asteroidTypes;
+        [SerializeField] float asteroidReferenceSize = 2.0f;
+        [SerializeField] float asteroidMinSizeFactor = 0.3f;
+        [SerializeField] float asteroidSmallThreshold = 1.0f;
+        [SerializeField] float asteroidLargeThreshold = 3.0f;
+        [SerializeField] float asteroidType0MaxSize = 1.0f;
+        [SerializeField] float asteroidType1MaxSize = 2.5f;
 
         EntityManager _em;
         EntityArchetype _shipArchetype;
         EntityArchetype _asteroidArchetype;
         EntityArchetype _starArchetype;
         BlobAssetReference<Unity.Physics.Collider> _shipCollider;
-        BlobAssetReference<Unity.Physics.Collider> _asteroidCollider;
+        BlobAssetReference<Unity.Physics.Collider>[] _asteroidColliders;
         BlobAssetReference<Unity.Physics.Collider> _starCollider;
         int _nextEntityId = 1;
 
@@ -84,6 +91,7 @@ namespace Starfire.Demo
             CreateArchetypes();
             CreateColliders();
             ConfigurePhysics(world);
+            RegisterAsteroidTypes(world);
 
             SpawnCelestialBodies();
             SpawnPlayer();
@@ -144,6 +152,31 @@ namespace Starfire.Demo
                     UpdateBatchSize = 30
                 }
             });
+
+            var asteroidConfigEntity = _em.CreateEntity();
+            _em.AddComponentData(asteroidConfigEntity, new AsteroidConfig
+            {
+                ReferenceSize = asteroidReferenceSize,
+                MinSizeFactor = asteroidMinSizeFactor,
+                SmallSizeThreshold = asteroidSmallThreshold,
+                LargeSizeThreshold = asteroidLargeThreshold,
+                Type0MaxSize = asteroidType0MaxSize,
+                Type1MaxSize = asteroidType1MaxSize,
+                TypeCount = asteroidTypes != null ? asteroidTypes.Length : 0
+            });
+        }
+
+        void RegisterAsteroidTypes(World world)
+        {
+            if (asteroidTypes == null || asteroidTypes.Length == 0)
+            {
+                Debug.LogWarning("[DemoSpawner] No asteroid types defined. Asteroids will not render.");
+                return;
+            }
+
+            var renderInitSystem = world.GetExistingSystemManaged<AsteroidRenderingInitSystem>();
+            if (renderInitSystem != null)
+                renderInitSystem.SetTypeDefinitions(asteroidTypes);
         }
 
         void ConfigurePhysics(World world)
@@ -236,9 +269,21 @@ namespace Starfire.Demo
                 new SphereGeometry { Center = float3.zero, Radius = shipColliderRadius },
                 CollisionFilter.Default);
 
-            _asteroidCollider = SphereCollider.Create(
-                new SphereGeometry { Center = float3.zero, Radius = 1f },
-                CollisionFilter.Default);
+            int typeCount = asteroidTypes != null ? asteroidTypes.Length : 0;
+            _asteroidColliders = new BlobAssetReference<Unity.Physics.Collider>[math.max(typeCount, 1)];
+            for (int i = 0; i < typeCount; i++)
+            {
+                float radius = asteroidTypes[i].ColliderRadius;
+                _asteroidColliders[i] = SphereCollider.Create(
+                    new SphereGeometry { Center = float3.zero, Radius = radius },
+                    CollisionFilter.Default);
+            }
+            if (typeCount == 0)
+            {
+                _asteroidColliders[0] = SphereCollider.Create(
+                    new SphereGeometry { Center = float3.zero, Radius = 1f },
+                    CollisionFilter.Default);
+            }
 
             _starCollider = SphereCollider.Create(
                 new SphereGeometry { Center = float3.zero, Radius = 50f },
@@ -392,6 +437,9 @@ namespace Starfire.Demo
             var entity = _em.CreateEntity(_asteroidArchetype);
             int id = _nextEntityId++;
 
+            byte typeId = AsteroidConfig.ComputeTypeId(
+                data.Size, data.Composition, asteroidType0MaxSize, asteroidType1MaxSize);
+
             var localPos = (float2)data.Position;
             _em.SetComponentData(entity, LocalTransform.FromPositionRotation(
                 new float3(localPos.x, localPos.y, 0f), quaternion.identity));
@@ -417,6 +465,7 @@ namespace Starfire.Demo
             {
                 Size = data.Size,
                 Composition = data.Composition,
+                TypeId = typeId,
                 ParentStarId = data.ParentStarId,
                 OrbitalVelocity = data.OrbitalVelocity
             });
@@ -427,7 +476,8 @@ namespace Starfire.Demo
                 SensorRange = 0f
             });
 
-            _em.SetComponentData(entity, new PhysicsCollider { Value = _asteroidCollider });
+            int colliderIndex = math.min(typeId, _asteroidColliders.Length - 1);
+            _em.SetComponentData(entity, new PhysicsCollider { Value = _asteroidColliders[colliderIndex] });
             var mass = PhysicsMass.CreateDynamic(MassProperties.UnitSphere, data.Size * 10f);
             mass.InverseInertia = new float3(0f, 0f, mass.InverseInertia.z);
             _em.SetComponentData(entity, mass);
@@ -440,8 +490,12 @@ namespace Starfire.Demo
 
             SetTierTags(entity, tier);
 
-            if (tier == SimulationTier.Loaded && asteroidMesh != null && asteroidMaterial != null)
-                AddRendering(entity, asteroidMesh, asteroidMaterial);
+            if (tier == SimulationTier.Loaded && asteroidTypes != null && typeId < asteroidTypes.Length)
+            {
+                var def = asteroidTypes[typeId];
+                if (def.Mesh != null && def.Material != null)
+                    AddRendering(entity, def.Mesh, def.Material);
+            }
         }
 
         void FlushAsteroidField(NativeList<AsteroidSpawnData> candidates)
@@ -491,6 +545,8 @@ namespace Starfire.Demo
                     Position = a.Position,
                     Size = a.Size,
                     Composition = a.Composition,
+                    TypeId = AsteroidConfig.ComputeTypeId(
+                        a.Size, a.Composition, asteroidType0MaxSize, asteroidType1MaxSize),
                     OrbitalVelocity = a.OrbitalVelocity
                 });
             }
@@ -849,8 +905,14 @@ namespace Starfire.Demo
         {
             if (_shipCollider.IsCreated)
                 _shipCollider.Dispose();
-            if (_asteroidCollider.IsCreated)
-                _asteroidCollider.Dispose();
+            if (_asteroidColliders != null)
+            {
+                for (int i = 0; i < _asteroidColliders.Length; i++)
+                {
+                    if (_asteroidColliders[i].IsCreated)
+                        _asteroidColliders[i].Dispose();
+                }
+            }
             if (_starCollider.IsCreated)
                 _starCollider.Dispose();
         }
