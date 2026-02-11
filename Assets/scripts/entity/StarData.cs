@@ -1,17 +1,18 @@
 using Unity.Entities;
+using Unity.NetCode;
 
 namespace Starfire.Entity
 {
     public struct StarData : IComponentData
     {
-        public byte SpectralType;
-        public float Luminosity;
-        public float Mass;
-        public float Radius;
-        public float SystemRadius;
-        public uint Seed;
-        public float GravityRange;
-        public float GravityStrength;
-        public float RadiationRadius;
+        [GhostField] public byte SpectralType;
+        [GhostField(Quantization = 100)] public float Luminosity;
+        [GhostField(Quantization = 100)] public float Mass;
+        [GhostField(Quantization = 100)] public float Radius;
+        [GhostField(Quantization = 100)] public float SystemRadius;
+        [GhostField] public uint Seed;
+        [GhostField(Quantization = 100)] public float GravityRange;
+        [GhostField(Quantization = 100)] public float GravityStrength;
+        [GhostField(Quantization = 100)] public float RadiationRadius;
     }
 }

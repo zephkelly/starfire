@@ -1,14 +1,15 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 
 namespace Starfire.Entity
 {
     public struct AsteroidData : IComponentData
     {
-        public float Size;
-        public byte Composition;
-        public byte TypeId;
-        public int ParentStarId;
-        public float2 OrbitalVelocity;
+        [GhostField(Quantization = 100)] public float Size;
+        [GhostField] public byte Composition;
+        [GhostField] public byte TypeId;
+        [GhostField] public int ParentStarId;
+        [GhostField(Quantization = 100)] public float2 OrbitalVelocity;
     }
 }

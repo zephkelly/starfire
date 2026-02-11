@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.NetCode;
 
 namespace Starfire.Simulation
 {
@@ -13,7 +14,7 @@ namespace Starfire.Simulation
 
     public struct SimulationTierData : IComponentData
     {
-        public SimulationTier Tier;
+        [GhostField] public SimulationTier Tier;
         public float LastUpdatedTime;
     }
 }

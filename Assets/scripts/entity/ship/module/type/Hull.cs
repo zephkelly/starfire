@@ -1,16 +1,17 @@
 using Unity.Entities;
+using Unity.NetCode;
 
 namespace Starfire.Entity
 {
     public struct ShipHull : IComponentData
     {
-        public int ConfigId;
-        public float CurrentHealth;
-        public float MaxHealth;
+        [GhostField] public int ConfigId;
+        [GhostField(Quantization = 100)] public float CurrentHealth;
+        [GhostField(Quantization = 100)] public float MaxHealth;
         public float CurrentTemperature;
         public float MaxTemperature;
         public float EfficiencyCoefficient;
-        public byte HullType;
+        [GhostField] public byte HullType;
         public byte IsEnabled;
     }
 }

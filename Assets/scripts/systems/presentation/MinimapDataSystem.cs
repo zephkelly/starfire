@@ -40,6 +40,15 @@ namespace Starfire.Systems
         const int MaxDormantIterations = 3000;
         const int MaxStarIterations = 500;
 
+        const float ShipFadeStartFraction = 0.8f;
+        const float ZoomFadeStartFraction = 0.85f;
+        const float FleetBaseAlpha = 0.45f;
+        const float DormantBaseAlpha = 0.3f;
+        const float FieldBaseAlpha = 0.4f;
+        const int MaxFleetDotBonus = 4;
+        const int MaxDormantDotBonus = 2;
+        const int MaxShipDotBonus = 2;
+
         public NativeArray<Color32> Pixels;
         public NativeList<MinimapEntry> Entries;
         public NativeArray<int> CountByTier;
@@ -83,6 +92,11 @@ namespace Starfire.Systems
         int _cachedTexSize;
         int _adaptiveShipDot, _adaptiveFleetDot, _adaptiveDormantDot;
         int _adaptiveAsteroidDot, _adaptiveStarDot, _adaptiveFieldDot;
+
+        double _tier2MaxDist, _tier3MaxDist;
+        double _shipFadeStartDist, _shipFadeInvRange;
+        double _fleetDistInvRange;
+        float _fleetZoomAlpha, _dormantZoomAlpha, _fieldZoomAlpha;
 
         NativeArray<Color32> _backgroundPixels;
         bool _backgroundDirty = true;
@@ -323,6 +337,33 @@ namespace Starfire.Systems
             _cachedTexSize = TextureSize;
             _occupiedPixels.Clear();
 
+            _tier2MaxDist = 100000.0;
+            _tier3MaxDist = 200000.0;
+            if (SystemAPI.TryGetSingleton<SimulationConfig>(out var simConfig))
+            {
+                _tier2MaxDist = simConfig.Bounds.Tier2MaxDistance;
+                _tier3MaxDist = simConfig.Bounds.Tier3MaxDistance;
+            }
+
+            _shipFadeStartDist = _tier2MaxDist * ShipFadeStartFraction;
+            double shipFadeRange = _tier2MaxDist - _shipFadeStartDist;
+            _shipFadeInvRange = shipFadeRange > 0 ? 1.0 / shipFadeRange : 0.0;
+
+            double fleetDistRange = _tier3MaxDist - _tier2MaxDist;
+            _fleetDistInvRange = fleetDistRange > 0 ? 1.0 / fleetDistRange : 0.0;
+
+            float fleetFadeStart = FleetMinDistance * ZoomFadeStartFraction;
+            float fleetFadeRange = FleetMinDistance - fleetFadeStart;
+            _fleetZoomAlpha = fleetFadeRange > 0 ? math.saturate((ViewRadius - fleetFadeStart) / fleetFadeRange) : 0f;
+
+            float dormantFadeStart = DormantMinDistance * ZoomFadeStartFraction;
+            float dormantFadeRange = DormantMinDistance - dormantFadeStart;
+            _dormantZoomAlpha = dormantFadeRange > 0 ? math.saturate((ViewRadius - dormantFadeStart) / dormantFadeRange) : 0f;
+
+            float fieldFadeStart = AsteroidFieldMinDistance * ZoomFadeStartFraction;
+            float fieldFadeRange = AsteroidFieldMinDistance - fieldFadeStart;
+            _fieldZoomAlpha = fieldFadeRange > 0 ? math.saturate((ViewRadius - fieldFadeStart) / fieldFadeRange) : 0f;
+
             bool highZoom = ViewRadius > 200000f;
             _adaptiveShipDot = highZoom ? 1 : ShipDotSize;
             _adaptiveFleetDot = highZoom ? math.max(FleetDotSize - 1, 1) : FleetDotSize;
@@ -341,7 +382,8 @@ namespace Starfire.Systems
             var tierHandle = GetComponentTypeHandle<SimulationTierData>(true);
             var sensorHandle = GetComponentTypeHandle<SensorContact>(true);
             ProcessShipEntities(ref posHandle, ref idHandle, ref tierHandle, ref sensorHandle,
-                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveShipDot);
+                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveShipDot,
+                _shipFadeStartDist, _shipFadeInvRange);
 
             _updatePhase = 2;
         }
@@ -364,25 +406,36 @@ namespace Starfire.Systems
 
             ProcessAsteroidEntities(ref asteroidPosHandle, ref asteroidTierHandle, ref asteroidDataHandle,
                 _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveAsteroidDot,
-                refSize, smallThreshold, largeThreshold);
+                refSize, smallThreshold, largeThreshold,
+                _shipFadeStartDist, _shipFadeInvRange);
 
             _updatePhase = 3;
         }
 
         void RunFinalizePhase()
         {
-            if (ViewRadius >= FleetMinDistance)
+            if (_fleetZoomAlpha > 0.01f)
             {
                 var fleetHandle = GetComponentTypeHandle<FleetData>(true);
                 ProcessFleetEntities(ref fleetHandle,
-                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveFleetDot);
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveFleetDot,
+                    _fleetZoomAlpha, _tier2MaxDist, _fleetDistInvRange);
             }
 
-            if (ViewRadius >= DormantMinDistance)
+            if (_fieldZoomAlpha > 0.01f)
+            {
+                var fieldDataHandle = GetComponentTypeHandle<AsteroidFieldData>(true);
+                ProcessAsteroidFieldEntities(ref fieldDataHandle,
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveFieldDot,
+                    _fieldZoomAlpha, _tier2MaxDist, _fleetDistInvRange);
+            }
+
+            if (_dormantZoomAlpha > 0.01f)
             {
                 var dormantHandle = GetComponentTypeHandle<DormantRecord>(true);
                 ProcessDormantEntities(ref dormantHandle,
-                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveDormantDot);
+                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveDormantDot,
+                    _dormantZoomAlpha);
             }
 
             {
@@ -390,13 +443,6 @@ namespace Starfire.Systems
                 var starDataHandle = GetComponentTypeHandle<StarData>(true);
                 ProcessStarEntities(ref starPosHandle, ref starDataHandle,
                     _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveStarDot);
-            }
-
-            if (ViewRadius >= AsteroidFieldMinDistance)
-            {
-                var fieldDataHandle = GetComponentTypeHandle<AsteroidFieldData>(true);
-                ProcessAsteroidFieldEntities(ref fieldDataHandle,
-                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveFieldDot);
             }
 
             int center = _cachedTexSize / 2;
@@ -419,7 +465,8 @@ namespace Starfire.Systems
             ref ComponentTypeHandle<EntityIdentity> idHandle,
             ref ComponentTypeHandle<SimulationTierData> tierHandle,
             ref ComponentTypeHandle<SensorContact> sensorHandle,
-            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize,
+            double shipFadeStart, double shipFadeInvRange)
         {
             var chunks = _shipQuery.ToArchetypeChunkArray(Allocator.Temp);
 
@@ -442,9 +489,21 @@ namespace Starfire.Systems
                     int centerIdx = py * texSize + px;
                     if (!_occupiedPixels.Add(centerIdx)) continue;
 
+                    double dist = math.sqrt(distSq);
+                    double distNorm = math.saturate((dist - shipFadeStart) * shipFadeInvRange);
+                    float shipAlpha = (float)(1.0 - distNorm);
+                    int sizeBonus = (int)(distNorm * MaxShipDotBonus);
+                    int effectiveDot = dotSize + sizeBonus;
+
                     byte entityType = identities[i].EntityType;
                     Color32 color = entityType < TypeColors.Length ? TypeColors[entityType] : new Color32(255, 255, 255, 255);
-                    DrawDot(px, py, dotSize, color);
+
+                    if (shipAlpha >= 0.99f)
+                        DrawDot(px, py, effectiveDot, color);
+                    else if (shipAlpha > 0.02f)
+                        DrawDotBlend(px, py, effectiveDot, color, shipAlpha);
+                    else
+                        continue;
 
                     byte tier = (byte)tiers[i].Tier;
                     CountByTier[math.min(tier, 4)]++;
@@ -454,7 +513,7 @@ namespace Starfire.Systems
                     {
                         PixelX = px,
                         PixelY = py,
-                        DotRadius = dotSize,
+                        DotRadius = effectiveDot,
                         Category = CategoryShip,
                         EntityType = entityType,
                         Tier = tier,
@@ -471,7 +530,8 @@ namespace Starfire.Systems
         }
 
         void ProcessFleetEntities(ref ComponentTypeHandle<FleetData> fleetHandle,
-            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize,
+            float zoomAlpha, double tier2Max, double distInvRange)
         {
             var chunks = _fleetQuery.ToArchetypeChunkArray(Allocator.Temp);
 
@@ -488,10 +548,15 @@ namespace Starfire.Systems
 
                     if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
 
-                    int centerIdx = py * texSize + px;
-                    if (!_occupiedPixels.Add(centerIdx)) continue;
+                    double dist = math.sqrt(distSq);
+                    float distanceFade = (float)math.saturate(1.0 - (dist - tier2Max) * distInvRange);
+                    float alpha = FleetBaseAlpha * distanceFade * zoomAlpha;
+                    if (alpha < 0.015f) continue;
 
-                    DrawDot(px, py, dotSize, FleetColor);
+                    int memberBonus = math.clamp((int)math.log2(math.max(fleets[i].MemberCount, 1)), 0, MaxFleetDotBonus);
+                    int effectiveDot = dotSize + memberBonus;
+
+                    DrawDotBlend(px, py, effectiveDot, FleetColor, alpha);
                     CountByTier[3]++;
                     FleetCount++;
 
@@ -499,7 +564,7 @@ namespace Starfire.Systems
                     {
                         PixelX = px,
                         PixelY = py,
-                        DotRadius = dotSize,
+                        DotRadius = effectiveDot,
                         Category = CategoryFleet,
                         MemberCount = fleets[i].MemberCount,
                         TotalHP = fleets[i].TotalHP,
@@ -513,7 +578,8 @@ namespace Starfire.Systems
         }
 
         void ProcessDormantEntities(ref ComponentTypeHandle<DormantRecord> dormantHandle,
-            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize,
+            float zoomAlpha)
         {
             var chunks = _dormantQuery.ToArchetypeChunkArray(Allocator.Temp);
             int totalProcessed = 0;
@@ -537,10 +603,13 @@ namespace Starfire.Systems
 
                     if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
 
-                    int centerIdx = py * texSize + px;
-                    if (!_occupiedPixels.Add(centerIdx)) continue;
+                    float alpha = DormantBaseAlpha * zoomAlpha;
+                    if (alpha < 0.015f) continue;
 
-                    DrawDot(px, py, dotSize, DormantColor);
+                    int countBonus = math.clamp((int)math.log2(math.max(dormants[i].Count, 1)), 0, MaxDormantDotBonus);
+                    int effectiveDot = dotSize + countBonus;
+
+                    DrawDotBlend(px, py, effectiveDot, DormantColor, alpha);
                     CountByTier[4]++;
                     DormantCount++;
 
@@ -548,7 +617,7 @@ namespace Starfire.Systems
                     {
                         PixelX = px,
                         PixelY = py,
-                        DotRadius = dotSize,
+                        DotRadius = effectiveDot,
                         Category = CategoryDormant,
                         EntityType = dormants[i].EntityType,
                         MemberCount = dormants[i].Count,
@@ -566,7 +635,8 @@ namespace Starfire.Systems
             ref ComponentTypeHandle<SimulationTierData> tierHandle,
             ref ComponentTypeHandle<AsteroidData> asteroidHandle,
             double viewRadiusSq, double halfInvRadius, int texSize, int dotSize,
-            float refSize, float smallThreshold, float largeThreshold)
+            float refSize, float smallThreshold, float largeThreshold,
+            double fadeStartDist, double fadeInvRange)
         {
             var chunks = _asteroidQuery.ToArchetypeChunkArray(Allocator.Temp);
             bool extremeZoom = ViewRadius > 200000f;
@@ -597,10 +667,21 @@ namespace Starfire.Systems
                     int sizeOffset = size >= largeThreshold ? 1 : size < smallThreshold ? -1 : 0;
                     int effectiveDot = math.max(dotSize + sizeOffset, 0);
 
-                    byte alpha = (byte)math.clamp(size / refSize * 180f, 80f, 255f);
-                    var color = new Color32(AsteroidColor.r, AsteroidColor.g, AsteroidColor.b, alpha);
+                    float sizeAlpha = math.clamp(size / refSize * 180f, 80f, 255f) / 255f;
 
-                    DrawDot(px, py, effectiveDot, color);
+                    double dist = math.sqrt(distSq);
+                    double distNorm = math.saturate((dist - fadeStartDist) * fadeInvRange);
+                    float distFade = (float)(1.0 - distNorm);
+                    float finalAlpha = sizeAlpha * distFade;
+
+                    if (finalAlpha < 0.02f) continue;
+
+                    var color = new Color32(AsteroidColor.r, AsteroidColor.g, AsteroidColor.b, 255);
+
+                    if (finalAlpha >= 0.99f)
+                        DrawDot(px, py, effectiveDot, new Color32(AsteroidColor.r, AsteroidColor.g, AsteroidColor.b, (byte)(sizeAlpha * 255f)));
+                    else
+                        DrawDotBlend(px, py, effectiveDot, color, finalAlpha);
 
                     byte tier = (byte)tiers[i].Tier;
                     CountByTier[math.min(tier, 4)]++;
@@ -675,7 +756,8 @@ namespace Starfire.Systems
 
         void ProcessAsteroidFieldEntities(
             ref ComponentTypeHandle<AsteroidFieldData> fieldHandle,
-            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize)
+            double viewRadiusSq, double halfInvRadius, int texSize, int dotSize,
+            float zoomAlpha, double tier2Max, double distInvRange)
         {
             var chunks = _asteroidFieldQuery.ToArchetypeChunkArray(Allocator.Temp);
 
@@ -692,10 +774,15 @@ namespace Starfire.Systems
 
                     if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
 
-                    int centerIdx = py * texSize + px;
-                    if (!_occupiedPixels.Add(centerIdx)) continue;
+                    double dist = math.sqrt(distSq);
+                    float distanceFade = (float)math.saturate(1.0 - (dist - tier2Max) * distInvRange);
+                    float alpha = FieldBaseAlpha * distanceFade * zoomAlpha;
+                    if (alpha < 0.015f) continue;
 
-                    DrawDot(px, py, dotSize, AsteroidFieldColor);
+                    int countBonus = math.clamp((int)math.log2(math.max(fields[i].Count, 1)), 0, MaxFleetDotBonus);
+                    int effectiveDot = dotSize + countBonus;
+
+                    DrawDotBlend(px, py, effectiveDot, AsteroidFieldColor, alpha);
                     CountByTier[3]++;
                     AsteroidFieldCount++;
 
@@ -703,7 +790,7 @@ namespace Starfire.Systems
                     {
                         PixelX = px,
                         PixelY = py,
-                        DotRadius = dotSize,
+                        DotRadius = effectiveDot,
                         Category = CategoryAsteroidField,
                         MemberCount = fields[i].Count,
                         TotalHP = fields[i].TotalMass,
@@ -765,6 +852,59 @@ namespace Starfire.Systems
                 {
                     if (x * x + y * y > radiusSq) continue;
                     DrawPixel(cx + x, cy + y, size, color);
+                }
+            }
+        }
+
+        void DrawPixelBlend(int px, int py, int size, Color32 color, float alpha)
+        {
+            if (px < 0 || px >= size || py < 0 || py >= size) return;
+            int idx = py * size + px;
+
+            Color32 dst = Pixels[idx];
+            float sa = alpha;
+            float da = 1f - sa;
+
+            Pixels[idx] = new Color32(
+                (byte)(color.r * sa + dst.r * da),
+                (byte)(color.g * sa + dst.g * da),
+                (byte)(color.b * sa + dst.b * da),
+                (byte)math.min(alpha * 255f + dst.a * da, 255f));
+
+            if (_pixelDirtyFlag[idx] == 0)
+            {
+                _pixelDirtyFlag[idx] = 1;
+                _dirtyPixels.Add(idx);
+            }
+        }
+
+        void DrawDotBlend(int cx, int cy, int radius, Color32 color, float alpha)
+        {
+            int size = TextureSize;
+
+            if (radius <= 0)
+            {
+                DrawPixelBlend(cx, cy, size, color, alpha);
+                return;
+            }
+
+            if (radius == 1)
+            {
+                DrawPixelBlend(cx, cy, size, color, alpha);
+                DrawPixelBlend(cx - 1, cy, size, color, alpha);
+                DrawPixelBlend(cx + 1, cy, size, color, alpha);
+                DrawPixelBlend(cx, cy - 1, size, color, alpha);
+                DrawPixelBlend(cx, cy + 1, size, color, alpha);
+                return;
+            }
+
+            int radiusSq = radius * radius;
+            for (int y = -radius; y <= radius; y++)
+            {
+                for (int x = -radius; x <= radius; x++)
+                {
+                    if (x * x + y * y > radiusSq) continue;
+                    DrawPixelBlend(cx + x, cy + y, size, color, alpha);
                 }
             }
         }

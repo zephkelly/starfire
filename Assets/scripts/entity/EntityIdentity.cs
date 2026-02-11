@@ -1,13 +1,14 @@
 using Unity.Entities;
+using Unity.NetCode;
 
 namespace Starfire.Entity
 {
     public struct EntityIdentity : IComponentData
     {
-        public int Id;
-        public byte EntityType;
-        public byte Persistence;
-        public int FactionId;
-        public int ConfigId;
+        [GhostField] public int Id;
+        [GhostField] public byte EntityType;
+        [GhostField] public byte Persistence;
+        [GhostField] public int FactionId;
+        [GhostField] public int ConfigId;
     }
 }
