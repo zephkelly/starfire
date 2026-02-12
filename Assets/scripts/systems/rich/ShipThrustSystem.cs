@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Physics;
 using Starfire.Core;
 using Starfire.Entity;
@@ -8,9 +9,7 @@ using Starfire.Simulation;
 
 namespace Starfire.Systems
 {
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PlayerInputSystem))]
+    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
     [BurstCompile]
     public partial struct ShipThrustSystem : ISystem
     {
@@ -26,7 +25,7 @@ namespace Starfire.Systems
         }
 
         [BurstCompile]
-        [WithAll(typeof(RichTierTag))]
+    [WithAll(typeof(RichTierTag), typeof(Simulate))]
         partial struct ThrustJob : IJobEntity
         {
             public float DeltaTime;

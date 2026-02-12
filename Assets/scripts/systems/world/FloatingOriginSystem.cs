@@ -1,17 +1,18 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
+using Unity.NetCode;
 using Unity.Transforms;
 using Starfire.Entity;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
     [UpdateAfter(typeof(WorldBoundsWrapSystem))]
     [BurstCompile]
-    public partial struct FloatingOriginSystem : ISystem
+    public partial struct ServerFloatingOriginSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -62,6 +63,46 @@ namespace Starfire.Systems
             {
                 transform.Position -= Offset;
             }
+        }
+    }
+
+    [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateAfter(typeof(PredictedSimulationSystemGroup))]
+    [BurstCompile]
+    public partial struct ClientFloatingOriginSystem : ISystem
+    {
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<WorldOrigin>();
+            state.RequireForUpdate<PlayerTag>();
+        }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            double2 playerWorldPos = double2.zero;
+            bool foundPlayer = false;
+
+            foreach (var (worldPos, _) in SystemAPI.Query<RefRO<WorldPosition>, RefRO<PlayerTag>>())
+            {
+                playerWorldPos = worldPos.ValueRO.Value;
+                foundPlayer = true;
+                break;
+            }
+
+            if (!foundPlayer)
+                return;
+
+            var origin = SystemAPI.GetSingleton<WorldOrigin>();
+            double2 localDelta = playerWorldPos - origin.Value;
+
+            if (math.lengthsq(localDelta) <= (double)origin.RebaseThreshold * origin.RebaseThreshold)
+                return;
+
+            origin.Value = playerWorldPos;
+            SystemAPI.SetSingleton(origin);
         }
     }
 }

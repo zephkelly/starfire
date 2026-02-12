@@ -1,14 +1,14 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Starfire.Entity;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(TierEvaluationSystem))]
     public partial class ShipTierTransitionSystem : SystemBase
     {
@@ -34,13 +34,21 @@ namespace Starfire.Systems
             var hull = EntityManager.GetComponentData<ShipHull>(entity);
             var propulsion = EntityManager.GetComponentData<ShipPropulsion>(entity);
             var rotation = EntityManager.GetComponentData<ShipRotation>(entity);
-            var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
             var worldPos = EntityManager.GetComponentData<WorldPosition>(entity);
+
+            float speed = 0f;
+            float2 velocity = float2.zero;
+            if (EntityManager.HasComponent<PhysicsVelocity>(entity))
+            {
+                var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
+                speed = math.length(vel.Linear.xy);
+                velocity = vel.Linear.xy;
+            }
 
             var sensor = EntityManager.GetComponentData<SensorContact>(entity);
             sensor.HullPercent = hull.CurrentHealth / math.max(hull.MaxHealth, 0.001f);
             sensor.MaxSpeed = propulsion.MaxSpeed;
-            sensor.Speed = math.length(vel.Linear.xy);
+            sensor.Speed = speed;
             sensor.Heading = rotation.CurrentHeading;
             sensor.CurrentAIState = 0;
             sensor.StateTimer = 0f;
@@ -48,7 +56,7 @@ namespace Starfire.Systems
 
             var snapshot = EntityManager.GetComponentData<ShipSnapshot>(entity);
             snapshot.Position = worldPos.Value;
-            snapshot.Velocity = new double2(vel.Linear.x, vel.Linear.y);
+            snapshot.Velocity = new double2(velocity.x, velocity.y);
             snapshot.Heading = rotation.CurrentHeading;
             snapshot.HullPercent = sensor.HullPercent;
             snapshot.PropulsionEfficiency = propulsion.CurrentHealth / math.max(propulsion.MaxHealth, 0.001f);
@@ -59,10 +67,14 @@ namespace Starfire.Systems
         void RestoreFromSensor(Unity.Entities.Entity entity)
         {
             var snapshot = EntityManager.GetComponentData<ShipSnapshot>(entity);
-            var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
-            vel.Linear = new float3((float)snapshot.Velocity.x, (float)snapshot.Velocity.y, 0f);
-            vel.Angular = float3.zero;
-            EntityManager.SetComponentData(entity, vel);
+
+            if (EntityManager.HasComponent<PhysicsVelocity>(entity))
+            {
+                var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
+                vel.Linear = new float3((float)snapshot.Velocity.x, (float)snapshot.Velocity.y, 0f);
+                vel.Angular = float3.zero;
+                EntityManager.SetComponentData(entity, vel);
+            }
         }
     }
 }

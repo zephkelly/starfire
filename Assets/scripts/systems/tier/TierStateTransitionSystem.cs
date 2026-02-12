@@ -1,14 +1,14 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Rendering;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(TierEvaluationSystem))]
     public partial class TierStateTransitionSystem : SystemBase
     {

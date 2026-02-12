@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using UnityEngine;
 using Starfire.Entity;
 using Starfire.Sim;
@@ -23,7 +24,8 @@ namespace Starfire.Systems
         public float Size;
     }
 
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public partial class MinimapDataSystem : SystemBase
     {
         public const byte CategoryShip = 0;
@@ -38,7 +40,11 @@ namespace Starfire.Systems
         const float AsteroidFieldMinDistance = 85000f;
         const float DormantMinDistance = 170000f;
         const int MaxDormantIterations = 3000;
+        const int MaxDormantIterationsExtremeZoom = 500;
         const int MaxStarIterations = 500;
+        const float AdaptiveIntervalMax = 4f;
+        const float AdaptiveIntervalZoomStart = 100000f;
+        const float AdaptiveIntervalZoomRange = 500000f;
 
         const float ShipFadeStartFraction = 0.8f;
         const float ZoomFadeStartFraction = 0.85f;
@@ -85,7 +91,6 @@ namespace Starfire.Systems
 
         float _lastUpdateTime;
         int _lastTextureSize;
-        int _updatePhase = -1;
 
         double _cachedViewRadiusSq;
         double _cachedHalfInvRadius;
@@ -97,6 +102,8 @@ namespace Starfire.Systems
         double _shipFadeStartDist, _shipFadeInvRange;
         double _fleetDistInvRange;
         float _fleetZoomAlpha, _dormantZoomAlpha, _fieldZoomAlpha;
+        bool _skipEntries;
+        bool _extremeZoom;
 
         NativeArray<Color32> _backgroundPixels;
         bool _backgroundDirty = true;
@@ -270,37 +277,13 @@ namespace Starfire.Systems
         {
             Dependency.Complete();
 
-            if (_updatePhase < 0)
-            {
-                float elapsed = (float)SystemAPI.Time.ElapsedTime;
-                if (elapsed - _lastUpdateTime < UpdateInterval)
-                {
-                    DataReady = false;
-                    return;
-                }
-                _lastUpdateTime = elapsed;
-                _updatePhase = 0;
-            }
+            float elapsed = (float)SystemAPI.Time.ElapsedTime;
+            float zoomFactor = math.saturate((ViewRadius - AdaptiveIntervalZoomStart) / AdaptiveIntervalZoomRange);
+            float effectiveInterval = math.lerp(UpdateInterval, UpdateInterval * AdaptiveIntervalMax, zoomFactor);
+            if (elapsed - _lastUpdateTime < effectiveInterval)
+                return;
+            _lastUpdateTime = elapsed;
 
-            switch (_updatePhase)
-            {
-                case 0:
-                    RunSetupPhase();
-                    break;
-                case 1:
-                    RunShipPhase();
-                    break;
-                case 2:
-                    RunAsteroidPhase();
-                    break;
-                case 3:
-                    RunFinalizePhase();
-                    break;
-            }
-        }
-
-        void RunSetupPhase()
-        {
             ReallocateIfNeeded();
             RebuildBackground();
             ClearDirtyPixels();
@@ -317,7 +300,6 @@ namespace Starfire.Systems
             if (_playerQuery.IsEmpty)
             {
                 DataReady = false;
-                _updatePhase = -1;
                 return;
             }
 
@@ -326,7 +308,6 @@ namespace Starfire.Systems
             {
                 playerPositions.Dispose();
                 DataReady = false;
-                _updatePhase = -1;
                 return;
             }
             PlayerWorldPos = playerPositions[0].Value;
@@ -365,6 +346,8 @@ namespace Starfire.Systems
             _fieldZoomAlpha = fieldFadeRange > 0 ? math.saturate((ViewRadius - fieldFadeStart) / fieldFadeRange) : 0f;
 
             bool highZoom = ViewRadius > 200000f;
+            _extremeZoom = highZoom;
+            _skipEntries = highZoom;
             _adaptiveShipDot = highZoom ? 1 : ShipDotSize;
             _adaptiveFleetDot = highZoom ? math.max(FleetDotSize - 1, 1) : FleetDotSize;
             _adaptiveDormantDot = highZoom ? 1 : DormantDotSize;
@@ -372,11 +355,6 @@ namespace Starfire.Systems
             _adaptiveStarDot = highZoom ? 1 : StarDotSize;
             _adaptiveFieldDot = highZoom ? 1 : AsteroidFieldDotSize;
 
-            _updatePhase = 1;
-        }
-
-        void RunShipPhase()
-        {
             var posHandle = GetComponentTypeHandle<WorldPosition>(true);
             var idHandle = GetComponentTypeHandle<EntityIdentity>(true);
             var tierHandle = GetComponentTypeHandle<SimulationTierData>(true);
@@ -385,11 +363,6 @@ namespace Starfire.Systems
                 _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveShipDot,
                 _shipFadeStartDist, _shipFadeInvRange);
 
-            _updatePhase = 2;
-        }
-
-        void RunAsteroidPhase()
-        {
             var asteroidPosHandle = GetComponentTypeHandle<WorldPosition>(true);
             var asteroidTierHandle = GetComponentTypeHandle<SimulationTierData>(true);
             var asteroidDataHandle = GetComponentTypeHandle<AsteroidData>(true);
@@ -409,11 +382,11 @@ namespace Starfire.Systems
                 refSize, smallThreshold, largeThreshold,
                 _shipFadeStartDist, _shipFadeInvRange);
 
-            _updatePhase = 3;
-        }
+            var starPosHandle = GetComponentTypeHandle<WorldPosition>(true);
+            var starDataHandle = GetComponentTypeHandle<StarData>(true);
+            ProcessStarEntities(ref starPosHandle, ref starDataHandle,
+                _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveStarDot);
 
-        void RunFinalizePhase()
-        {
             if (_fleetZoomAlpha > 0.01f)
             {
                 var fleetHandle = GetComponentTypeHandle<FleetData>(true);
@@ -438,13 +411,6 @@ namespace Starfire.Systems
                     _dormantZoomAlpha);
             }
 
-            {
-                var starPosHandle = GetComponentTypeHandle<WorldPosition>(true);
-                var starDataHandle = GetComponentTypeHandle<StarData>(true);
-                ProcessStarEntities(ref starPosHandle, ref starDataHandle,
-                    _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveStarDot);
-            }
-
             int center = _cachedTexSize / 2;
             DrawDot(center, center, PlayerDotSize, PlayerColor);
             Entries.Add(new MinimapEntry
@@ -457,7 +423,6 @@ namespace Starfire.Systems
             });
 
             DataReady = true;
-            _updatePhase = -1;
         }
 
         void ProcessShipEntities(
@@ -509,20 +474,21 @@ namespace Starfire.Systems
                     CountByTier[math.min(tier, 4)]++;
                     ShipCount++;
 
-                    Entries.Add(new MinimapEntry
-                    {
-                        PixelX = px,
-                        PixelY = py,
-                        DotRadius = effectiveDot,
-                        Category = CategoryShip,
-                        EntityType = entityType,
-                        Tier = tier,
-                        HullPercent = sensors[i].HullPercent,
-                        Speed = sensors[i].Speed,
-                        SensorRange = sensors[i].SensorRange,
-                        AIState = sensors[i].CurrentAIState,
-                        WorldPos = positions[i].Value
-                    });
+                    if (!_skipEntries)
+                        Entries.Add(new MinimapEntry
+                        {
+                            PixelX = px,
+                            PixelY = py,
+                            DotRadius = effectiveDot,
+                            Category = CategoryShip,
+                            EntityType = entityType,
+                            Tier = tier,
+                            HullPercent = sensors[i].HullPercent,
+                            Speed = sensors[i].Speed,
+                            SensorRange = sensors[i].SensorRange,
+                            AIState = sensors[i].CurrentAIState,
+                            WorldPos = positions[i].Value
+                        });
                 }
             }
 
@@ -560,17 +526,18 @@ namespace Starfire.Systems
                     CountByTier[3]++;
                     FleetCount++;
 
-                    Entries.Add(new MinimapEntry
-                    {
-                        PixelX = px,
-                        PixelY = py,
-                        DotRadius = effectiveDot,
-                        Category = CategoryFleet,
-                        MemberCount = fleets[i].MemberCount,
-                        TotalHP = fleets[i].TotalHP,
-                        Behavior = fleets[i].CurrentBehavior,
-                        WorldPos = fleets[i].Position
-                    });
+                    if (!_skipEntries)
+                        Entries.Add(new MinimapEntry
+                        {
+                            PixelX = px,
+                            PixelY = py,
+                            DotRadius = effectiveDot,
+                            Category = CategoryFleet,
+                            MemberCount = fleets[i].MemberCount,
+                            TotalHP = fleets[i].TotalHP,
+                            Behavior = fleets[i].CurrentBehavior,
+                            WorldPos = fleets[i].Position
+                        });
                 }
             }
 
@@ -583,6 +550,7 @@ namespace Starfire.Systems
         {
             var chunks = _dormantQuery.ToArchetypeChunkArray(Allocator.Temp);
             int totalProcessed = 0;
+            int iterationCap = _extremeZoom ? MaxDormantIterationsExtremeZoom : MaxDormantIterations;
 
             for (int c = 0; c < chunks.Length; c++)
             {
@@ -591,7 +559,7 @@ namespace Starfire.Systems
 
                 for (int i = 0; i < chunk.Count; i++)
                 {
-                    if (++totalProcessed > MaxDormantIterations) break;
+                    if (++totalProcessed > iterationCap) break;
 
                     var chunkCenter = new double2(
                         dormants[i].ChunkX * 1000.0 + 500.0,
@@ -613,18 +581,19 @@ namespace Starfire.Systems
                     CountByTier[4]++;
                     DormantCount++;
 
-                    Entries.Add(new MinimapEntry
-                    {
-                        PixelX = px,
-                        PixelY = py,
-                        DotRadius = effectiveDot,
-                        Category = CategoryDormant,
-                        EntityType = dormants[i].EntityType,
-                        MemberCount = dormants[i].Count,
-                        WorldPos = chunkCenter
-                    });
+                    if (!_skipEntries)
+                        Entries.Add(new MinimapEntry
+                        {
+                            PixelX = px,
+                            PixelY = py,
+                            DotRadius = effectiveDot,
+                            Category = CategoryDormant,
+                            EntityType = dormants[i].EntityType,
+                            MemberCount = dormants[i].Count,
+                            WorldPos = chunkCenter
+                        });
                 }
-                if (totalProcessed > MaxDormantIterations) break;
+                if (totalProcessed > iterationCap) break;
             }
 
             chunks.Dispose();
@@ -639,7 +608,6 @@ namespace Starfire.Systems
             double fadeStartDist, double fadeInvRange)
         {
             var chunks = _asteroidQuery.ToArchetypeChunkArray(Allocator.Temp);
-            bool extremeZoom = ViewRadius > 200000f;
 
             for (int c = 0; c < chunks.Length; c++)
             {
@@ -652,7 +620,7 @@ namespace Starfire.Systems
                 {
                     float size = asteroids[i].Size;
 
-                    if (extremeZoom && size < largeThreshold)
+                    if (_extremeZoom && size < largeThreshold)
                         continue;
 
                     double2 rel = positions[i].Value - PlayerWorldPos;
@@ -687,17 +655,18 @@ namespace Starfire.Systems
                     CountByTier[math.min(tier, 4)]++;
                     AsteroidCount++;
 
-                    Entries.Add(new MinimapEntry
-                    {
-                        PixelX = px,
-                        PixelY = py,
-                        DotRadius = effectiveDot,
-                        Category = CategoryAsteroid,
-                        EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
-                        Tier = tier,
-                        WorldPos = positions[i].Value,
-                        Size = size
-                    });
+                    if (!_skipEntries)
+                        Entries.Add(new MinimapEntry
+                        {
+                            PixelX = px,
+                            PixelY = py,
+                            DotRadius = effectiveDot,
+                            Category = CategoryAsteroid,
+                            EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
+                            Tier = tier,
+                            WorldPos = positions[i].Value,
+                            Size = size
+                        });
                 }
             }
 
@@ -738,15 +707,16 @@ namespace Starfire.Systems
                     DrawDot(px, py, starDot, StarColor);
                     StarCount++;
 
-                    Entries.Add(new MinimapEntry
-                    {
-                        PixelX = px,
-                        PixelY = py,
-                        DotRadius = starDot,
-                        Category = CategoryStar,
-                        EntityType = (byte)Starfire.Entity.EntityType.Star,
-                        WorldPos = positions[i].Value
-                    });
+                    if (!_skipEntries)
+                        Entries.Add(new MinimapEntry
+                        {
+                            PixelX = px,
+                            PixelY = py,
+                            DotRadius = starDot,
+                            Category = CategoryStar,
+                            EntityType = (byte)Starfire.Entity.EntityType.Star,
+                            WorldPos = positions[i].Value
+                        });
                 }
                 if (totalProcessed > MaxStarIterations) break;
             }
@@ -786,16 +756,17 @@ namespace Starfire.Systems
                     CountByTier[3]++;
                     AsteroidFieldCount++;
 
-                    Entries.Add(new MinimapEntry
-                    {
-                        PixelX = px,
-                        PixelY = py,
-                        DotRadius = effectiveDot,
-                        Category = CategoryAsteroidField,
-                        MemberCount = fields[i].Count,
-                        TotalHP = fields[i].TotalMass,
-                        WorldPos = fields[i].Position
-                    });
+                    if (!_skipEntries)
+                        Entries.Add(new MinimapEntry
+                        {
+                            PixelX = px,
+                            PixelY = py,
+                            DotRadius = effectiveDot,
+                            Category = CategoryAsteroidField,
+                            MemberCount = fields[i].Count,
+                            TotalHP = fields[i].TotalMass,
+                            WorldPos = fields[i].Position
+                        });
                 }
             }
 

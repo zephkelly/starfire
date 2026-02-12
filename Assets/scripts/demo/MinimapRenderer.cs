@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Starfire.Systems;
@@ -57,6 +58,7 @@ namespace Starfire.Demo
         Texture2D _swatchTexture;
         Rect _screenRect;
 
+        World _serverWorld;
         MinimapDataSystem _system;
         bool _systemCached;
 
@@ -89,14 +91,25 @@ namespace Starfire.Demo
         {
             if (_systemCached) return _system != null;
 
-            var world = World.DefaultGameObjectInjectionWorld;
-            if (world == null || !world.IsCreated) return false;
+            foreach (var world in World.All)
+            {
+                if (world.IsServer())
+                {
+                    _serverWorld = world;
+                    break;
+                }
+            }
 
-            _system = world.GetExistingSystemManaged<MinimapDataSystem>();
+            if (_serverWorld == null || !_serverWorld.IsCreated) return false;
+
+            _system = _serverWorld.GetExistingSystemManaged<MinimapDataSystem>();
             _systemCached = _system != null;
 
             if (_systemCached)
+            {
+                Debug.Log($"[MinimapRenderer] Cached system from {_serverWorld.Name}");
                 PushConfig();
+            }
 
             return _systemCached;
         }
@@ -137,8 +150,7 @@ namespace Starfire.Demo
         {
             if (!TryCacheSystem()) return;
 
-            var world = World.DefaultGameObjectInjectionWorld;
-            if (world == null || !world.IsCreated)
+            if (_serverWorld == null || !_serverWorld.IsCreated)
             {
                 _systemCached = false;
                 return;

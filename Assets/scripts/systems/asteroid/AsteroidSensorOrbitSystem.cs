@@ -5,12 +5,14 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Starfire.Entity;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(WorldPositionSyncSystem))]
-    [UpdateAfter(typeof(FloatingOriginSystem))]
+    [UpdateAfter(typeof(ServerWorldPositionSyncSystem))]
+    [UpdateAfter(typeof(ServerFloatingOriginSystem))]
     [BurstCompile]
     public partial struct AsteroidSensorOrbitSystem : ISystem
     {

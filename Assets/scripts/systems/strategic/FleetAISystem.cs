@@ -1,13 +1,14 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 using Starfire.Entity;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
     public partial class FleetAISystem : SystemBase
     {
         protected override void OnUpdate()

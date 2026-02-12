@@ -1,22 +1,25 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 using Starfire.Entity;
 using Starfire.Sim;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(TierTransitionCleanupSystem))]
     public partial struct AsteroidDormantRevivalSystem : ISystem
     {
+        const int MaxRevivalsPerTick = 3;
+
         float _lastUpdateTime;
 
         public void OnCreate(ref SystemState state)
         {
+            _lastUpdateTime = -0.917f;
             state.RequireForUpdate<SimulationConfig>();
             state.RequireForUpdate<AsteroidConfig>();
             state.RequireForUpdate<PlayerTag>();
@@ -56,12 +59,16 @@ namespace Starfire.Systems
             double thresholdSq = threshold * threshold;
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
+            int revivalsThisTick = 0;
 
             foreach (var (dormantRecord, entity) in
                 SystemAPI.Query<RefRO<DormantRecord>>()
                     .WithAll<DormantTag>()
                     .WithEntityAccess())
             {
+                if (revivalsThisTick >= MaxRevivalsPerTick)
+                    break;
+
                 if (dormantRecord.ValueRO.EntityType != (byte)Starfire.Entity.EntityType.Asteroid)
                     continue;
 
@@ -142,6 +149,7 @@ namespace Starfire.Systems
                 }
 
                 ecb.DestroyEntity(entity);
+                revivalsThisTick++;
             }
 
             stars.Dispose();

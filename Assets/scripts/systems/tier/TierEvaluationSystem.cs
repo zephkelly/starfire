@@ -2,15 +2,15 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 using Starfire.Entity;
 using Starfire.Sim;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     public partial struct TierEvaluationSystem : ISystem
     {
         const int MaxChangesPerFrame = 8;

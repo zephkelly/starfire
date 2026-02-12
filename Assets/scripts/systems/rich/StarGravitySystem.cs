@@ -2,6 +2,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Physics;
 using Unity.Transforms;
 using Starfire.Entity;
@@ -9,8 +10,7 @@ using Starfire.Simulation;
 
 namespace Starfire.Systems
 {
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
     [BurstCompile]
     public partial struct StarGravitySystem : ISystem
     {
@@ -62,7 +62,7 @@ namespace Starfire.Systems
     }
 
     [BurstCompile]
-    [WithAll(typeof(RichTierTag))]
+    [WithAll(typeof(RichTierTag), typeof(Simulate))]
     partial struct GravityJob : IJobEntity
     {
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<StarGravityData> Stars;
@@ -78,7 +78,7 @@ namespace Starfire.Systems
                 float2 delta = star.Position - entityPos;
                 float distSq = delta.x * delta.x + delta.y * delta.y;
 
-                if (distSq > star.GravityRangeSq || distSq < star.RadiusSq)
+                if (distSq > star.GravityRangeSq || distSq < math.max(star.RadiusSq, 1f))
                     continue;
 
                 float invDist = math.rsqrt(distSq);

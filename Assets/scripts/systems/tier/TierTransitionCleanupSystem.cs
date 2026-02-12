@@ -1,15 +1,14 @@
 using Unity.Entities;
-using Unity.Physics.Systems;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(TierStateTransitionSystem))]
     [UpdateAfter(typeof(ShipTierTransitionSystem))]
     [UpdateAfter(typeof(AsteroidTierTransitionSystem))]
-    [UpdateAfter(typeof(AsteroidRenderingInitSystem))]
     public partial class TierTransitionCleanupSystem : SystemBase
     {
         protected override void OnUpdate()

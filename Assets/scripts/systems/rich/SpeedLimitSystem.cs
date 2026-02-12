@@ -1,14 +1,14 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Physics;
 using Starfire.Entity;
 using Starfire.Simulation;
 
 namespace Starfire.Systems
 {
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
     [UpdateAfter(typeof(Constrain2DSystem))]
     [BurstCompile]
     public partial struct SpeedLimitSystem : ISystem
@@ -20,7 +20,7 @@ namespace Starfire.Systems
         }
 
         [BurstCompile]
-        [WithAll(typeof(RichTierTag))]
+    [WithAll(typeof(RichTierTag), typeof(Simulate))]
         partial struct SpeedLimitJob : IJobEntity
         {
             void Execute(in ShipPropulsion propulsion, ref PhysicsVelocity velocity, in ShipTag tag)

@@ -1,15 +1,18 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Starfire.Core;
 using Starfire.Entity;
+using Starfire.Network;
+using NetPlayerInput = Starfire.Network.PlayerInput;
 
 namespace Starfire.Systems
 {
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
+    [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
+    [UpdateInGroup(typeof(GhostInputSystemGroup))]
     public partial class PlayerInputSystem : SystemBase
     {
         Camera _mainCamera;
@@ -41,22 +44,27 @@ namespace Starfire.Systems
             Vector2 mouseScreen = mouse.position.ReadValue();
             Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(new Vector3(mouseScreen.x, mouseScreen.y, -_mainCamera.transform.position.z));
 
-            byte fire = mouse.leftButton.isPressed ? (byte)1 : (byte)0;
-            byte warp = keyboard.leftShiftKey.isPressed ? (byte)1 : (byte)0;
-
             var mouseWorld2D = new float2(mouseWorldPos.x, mouseWorldPos.y);
 
-            foreach (var (input, transform) in SystemAPI.Query<RefRW<ControlInput>, RefRO<LocalTransform>>().WithAll<PlayerTag>())
+            foreach (var (playerInput, controlInput, transform) in
+                SystemAPI.Query<RefRW<NetPlayerInput>, RefRW<ControlInput>, RefRO<LocalTransform>>()
+                    .WithAll<PlayerTag, GhostOwner>())
             {
                 var shipPos = new float2(transform.ValueRO.Position.x, transform.ValueRO.Position.y);
                 var aimDir = math.normalizesafe(mouseWorld2D - shipPos);
 
-                input.ValueRW.Throttle = throttle;
-                input.ValueRW.MovementDirection = moveDir;
-                input.ValueRW.AimDirection = aimDir;
-                input.ValueRW.FirePressed = fire;
-                input.ValueRW.WarpPressed = warp;
-                input.ValueRW.DriverType = 0;
+                playerInput.ValueRW.Throttle = throttle;
+                playerInput.ValueRW.MovementDirection = moveDir;
+                playerInput.ValueRW.AimDirection = aimDir;
+                if (mouse.leftButton.isPressed) playerInput.ValueRW.Fire.Set();
+                if (keyboard.leftShiftKey.isPressed) playerInput.ValueRW.Warp.Set();
+
+                controlInput.ValueRW.Throttle = throttle;
+                controlInput.ValueRW.MovementDirection = moveDir;
+                controlInput.ValueRW.AimDirection = aimDir;
+                controlInput.ValueRW.FirePressed = mouse.leftButton.isPressed ? (byte)1 : (byte)0;
+                controlInput.ValueRW.WarpPressed = keyboard.leftShiftKey.isPressed ? (byte)1 : (byte)0;
+                controlInput.ValueRW.DriverType = 0;
             }
         }
     }

@@ -5,13 +5,12 @@ using Unity.Transforms;
 using Starfire.Core;
 using Starfire.Entity;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(FixedStepSimulationSystemGroup))]
-    [UpdateAfter(typeof(PlayerInputSystem))]
-    [UpdateBefore(typeof(ShipThrustSystem))]
     [BurstCompile]
     public partial struct AIControlSystem : ISystem
     {
@@ -35,8 +34,8 @@ namespace Starfire.Systems
         }
 
         [BurstCompile]
-        [WithAll(typeof(ShipTag), typeof(RichTierTag))]
-        [WithNone(typeof(PlayerTag))]
+    [WithAll(typeof(ShipTag), typeof(RichTierTag))]
+    [WithNone(typeof(PlayerTag))]
         partial struct AIControlJob : IJobEntity
         {
             public double2 PlayerWorldPos;

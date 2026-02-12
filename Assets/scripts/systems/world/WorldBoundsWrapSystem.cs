@@ -1,15 +1,16 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics.Systems;
 using Unity.Transforms;
 using Starfire.Entity;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(PhysicsSystemGroup))]
-    [UpdateAfter(typeof(WorldPositionSyncSystem))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(ServerWorldPositionSyncSystem))]
     [BurstCompile]
     public partial struct WorldBoundsWrapSystem : ISystem
     {

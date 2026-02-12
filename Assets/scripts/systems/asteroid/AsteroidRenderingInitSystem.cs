@@ -1,7 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.NetCode;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
@@ -12,9 +12,8 @@ using SphereCollider = Unity.Physics.SphereCollider;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
-    [UpdateAfter(typeof(TierStateTransitionSystem))]
     public partial class AsteroidRenderingInitSystem : SystemBase
     {
         const int MaxPerFrame = 16;
@@ -107,7 +106,8 @@ namespace Starfire.Systems
                 RenderMeshUtility.AddComponents(entity, EntityManager, desc, meshArray,
                     MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
-                if (typeIndex < _colliders.Length && _colliders[typeIndex].IsCreated)
+                if (typeIndex < _colliders.Length && _colliders[typeIndex].IsCreated
+                    && EntityManager.HasComponent<PhysicsCollider>(entity))
                     EntityManager.SetComponentData(entity, new PhysicsCollider { Value = _colliders[typeIndex] });
 
                 bool isVisual = EntityManager.IsComponentEnabled<VisualTierTag>(entity);

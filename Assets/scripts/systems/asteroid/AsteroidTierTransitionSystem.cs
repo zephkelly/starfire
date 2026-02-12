@@ -1,14 +1,14 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Physics.Systems;
 using Starfire.Entity;
 using Starfire.Simulation;
+using Unity.NetCode;
 
 namespace Starfire.Systems
 {
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateBefore(typeof(PhysicsSystemGroup))]
     [UpdateAfter(typeof(TierEvaluationSystem))]
     public partial class AsteroidTierTransitionSystem : SystemBase
     {
@@ -31,14 +31,19 @@ namespace Starfire.Systems
 
         void CaptureVelocity(Unity.Entities.Entity entity)
         {
-            var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
             var data = EntityManager.GetComponentData<AsteroidData>(entity);
-            data.OrbitalVelocity = vel.Linear.xy;
+            if (EntityManager.HasComponent<PhysicsVelocity>(entity))
+            {
+                var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
+                data.OrbitalVelocity = vel.Linear.xy;
+            }
             EntityManager.SetComponentData(entity, data);
         }
 
         void RestoreVelocity(Unity.Entities.Entity entity)
         {
+            if (!EntityManager.HasComponent<PhysicsVelocity>(entity))
+                return;
             var data = EntityManager.GetComponentData<AsteroidData>(entity);
             var vel = EntityManager.GetComponentData<PhysicsVelocity>(entity);
             vel.Linear = new float3(data.OrbitalVelocity.x, data.OrbitalVelocity.y, 0f);

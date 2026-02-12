@@ -1,7 +1,7 @@
 using Unity.Entities;
+using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
-using Starfire.Entity;
 using Starfire.Sim;
 
 namespace Starfire.Demo
@@ -23,27 +23,86 @@ namespace Starfire.Demo
         [SerializeField] Color _gizmoT3Color = new Color(1f, 0f, 0f, 0.2f);
 
         EntityQuery _playerQuery;
+        EntityQuery _networkIdQuery;
         EntityQuery _configQuery;
+        float _lastLogTime;
+        bool _foundPlayerOnce;
 
         void LateUpdate()
         {
+            bool shouldLog = !_foundPlayerOnce && Time.time - _lastLogTime > 2f;
+
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated)
+            {
+                if (shouldLog) { Debug.Log($"[CameraFollow] No world. DefaultGameObjectInjectionWorld={world?.Name ?? "null"}, IsCreated={world?.IsCreated}"); _lastLogTime = Time.time; }
                 return;
+            }
 
             var em = world.EntityManager;
 
-            if (_playerQuery == default)
-                _playerQuery = em.CreateEntityQuery(typeof(PlayerTag), typeof(LocalTransform));
+            if (_networkIdQuery == default)
+                _networkIdQuery = em.CreateEntityQuery(typeof(NetworkId));
 
-            if (_playerQuery.IsEmpty)
+            if (_networkIdQuery.IsEmpty)
+            {
+                if (shouldLog) { Debug.Log($"[CameraFollow] World='{world.Name}' — no NetworkId entity (client not connected yet?)"); _lastLogTime = Time.time; }
                 return;
+            }
 
-            var entity = _playerQuery.GetSingletonEntity();
-            var transform = em.GetComponentData<LocalTransform>(entity);
+            int localNetId = _networkIdQuery.GetSingleton<NetworkId>().Value;
 
-            var targetPos = new Vector3(transform.Position.x, transform.Position.y, cameraZ);
+            if (_playerQuery == default)
+                _playerQuery = em.CreateEntityQuery(typeof(GhostOwner), typeof(LocalTransform));
+
+            int ghostOwnerCount = _playerQuery.CalculateEntityCount();
+            if (_playerQuery.IsEmpty)
+            {
+                if (shouldLog) { Debug.Log($"[CameraFollow] World='{world.Name}' localNetId={localNetId} — no entities with GhostOwner+LocalTransform"); _lastLogTime = Time.time; }
+                return;
+            }
+
+            var entities = _playerQuery.ToEntityArray(Unity.Collections.Allocator.Temp);
+            Unity.Entities.Entity playerEntity = Unity.Entities.Entity.Null;
+
+            for (int i = 0; i < entities.Length; i++)
+            {
+                int ownerNetId = em.GetComponentData<GhostOwner>(entities[i]).NetworkId;
+                if (shouldLog && i < 5)
+                    Debug.Log($"[CameraFollow] GhostOwner entity[{i}]={entities[i]} NetworkId={ownerNetId} (looking for {localNetId})");
+                if (ownerNetId == localNetId)
+                {
+                    playerEntity = entities[i];
+                    break;
+                }
+            }
+
+            entities.Dispose();
+
+            if (playerEntity == Unity.Entities.Entity.Null)
+            {
+                if (shouldLog) { Debug.Log($"[CameraFollow] Found {ghostOwnerCount} GhostOwner entities but none match localNetId={localNetId}"); _lastLogTime = Time.time; }
+                return;
+            }
+
+            if (!_foundPlayerOnce)
+            {
+                _foundPlayerOnce = true;
+                Debug.Log($"[CameraFollow] Found player entity={playerEntity} in world='{world.Name}'");
+            }
+
+            var lt = em.GetComponentData<LocalTransform>(playerEntity);
+            if (float.IsNaN(lt.Position.x) || float.IsNaN(lt.Position.y))
+                return;
+            var targetPos = new Vector3(lt.Position.x, lt.Position.y, cameraZ);
             this.transform.position = targetPos;
+            this.transform.rotation = Quaternion.identity;
+
+            if (Time.time - _lastLogTime > 5f)
+            {
+                Debug.Log($"[CameraFollow] Tracking player at LocalTransform=({lt.Position.x:F1}, {lt.Position.y:F1}) Camera=({targetPos.x:F1}, {targetPos.y:F1}, {targetPos.z:F1})");
+                _lastLogTime = Time.time;
+            }
 
             SyncGizmoDistancesFromConfig();
         }
