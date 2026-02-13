@@ -10,11 +10,15 @@ Tier transitions use a reactive event pattern: TierEvaluationSystem (Burst paral
 Three entity types exist: Ships (full T0-T4 lifecycle, ShipSnapshot for sensor-tier state preservation, AI via AIControlSystem), Asteroids (full T0-T4, orbital physics at every tier via different systems per tier, size-based tier filtering that pushes small asteroids to higher tiers sooner), and Stars (capped at Sensor tier via Persistence=2, provide radial gravity to all rich-tier entities via StarGravitySystem).
 
 Netcode Integration
-The game uses Unity Netcode for Entities in a listen-server configuration. StarfireBootstrap (extending ClientServerBootstrap) creates both ServerWorld and ClientWorld in the same process, auto-connecting on port 7979. DefaultGameObjectInjectionWorld is set to ClientWorld so MonoBehaviours (camera, minimap renderer) attach there. Ship, Asteroid, and Star prefabs are ghost prefabs created via GetEntity(TransformUsageFlags.Dynamic) in their bakers.
+The game uses Unity Netcode for Entities in a listen-server configuration with a hybrid client-authoritative zone broadcast model. StarfireBootstrap (extending ClientServerBootstrap) creates both ServerWorld and ClientWorld in the same process, auto-connecting on port 7979. DefaultGameObjectInjectionWorld is set to ClientWorld so MonoBehaviours (camera, minimap renderer) attach there. Ship, Asteroid, and Star prefabs are ghost prefabs created via GetEntity(TransformUsageFlags.Dynamic) in their bakers.
 
-Systems are classified by world using WorldSystemFilter: server-only systems (19 total, including all tier evaluation, formation/disband, dormant conversion, AI, sensor batch update), client-only systems (3: PlayerInputSystem in GhostInputSystemGroup, MinimapDataSystem, AsteroidRenderingInitSystem), and predicted systems (5 in PredictedSimulationSystemGroup: ShipThrust, ShipAim, SpeedLimit, Constrain2D, StarGravity). FloatingOrigin and WorldPositionSync each have separate server and client variants.
+Player ships are the only ghost entities — they use standard Netcode prediction via PredictedSimulationSystemGroup. All other entities (NPCs, asteroids, stars) are simulated independently by each client from a deterministic seed, with no NPC ghost promotion/demotion. Multi-player consistency is achieved via zone broadcasts: each client broadcasts entity state for entities in its sensor range (10Hz, batched RPCs), the server relays relevant batches to other clients who apply corrections to their local entities.
 
-The player lifecycle works as follows: GoInGameClientSystem (client) sends a GoInGameRequest RPC when it detects a NetworkId without NetworkStreamInGame. GoInGameSystem (server) receives this, instantiates a ship ghost prefab at origin, adds PlayerTag and GhostOwner, and links the connection via CommandTarget. ClientPlayerTagSystem (client) finds the ghost entity matching the local NetworkId and adds PlayerTag + switches it to predicted mode via GhostPredictionSwitchingQueues. The server syncs LocalTransform → WorldPosition (after physics), while the client syncs WorldPosition → LocalTransform (after ghost snapshot application). MinimapDataSystem runs in the server world (where all entity data lives) and exposes pixel buffers that MinimapRenderer (client-world MonoBehaviour) reads cross-world via World.GetExistingSystemManaged.
+Authority rule: Each client is authoritative for non-player entities closest to its player. Ties break by lower NetworkId. 10% hysteresis on handoff.
+
+Systems are classified by world using WorldSystemFilter: server-only systems (ServerSpawnSystem, ServerEntityTracker, ServerZoneRelaySystem, ServerZoneEventRelaySystem, ServerPlayerBroadcastSystem, ServerWorldPositionSyncSystem, ServerFloatingOriginSystem, PlayerInputApplySystem, GoInGameSystem), client-only systems (PlayerInputSystem, MinimapDataSystem, AsteroidRenderingInitSystem, GhostRenderingInitSystem, ClientWorldSpawnSystem, ClientLocalPhysicsSystem, ClientZoneBroadcastSystem, ClientZoneCorrectionSystem, ClientWorldEventSystem, ClientPlayerPositionSystem, GoInGameClientSystem, ClientPlayerTagSystem), server+client systems (tier evaluation/transition, ship/asteroid formation/disband/dormant, AI, sensor, orbit, bounds wrap, physics config), and predicted systems (5 in PredictedSimulationSystemGroup: ShipThrust, ShipAim, SpeedLimit, Constrain2D, StarGravity). FloatingOrigin and WorldPositionSync each have separate server and client variants.
+
+The player lifecycle works as follows: GoInGameClientSystem (client) sends a GoInGameRequest RPC when it detects a NetworkId without NetworkStreamInGame. GoInGameSystem (server) receives this, instantiates a ship ghost prefab at origin, adds PlayerTag and GhostOwner, and links the connection via CommandTarget. ClientPlayerTagSystem (client) finds the ghost entity matching the local NetworkId and adds PlayerTag + switches it to predicted mode via GhostPredictionSwitchingQueues. The server syncs LocalTransform → WorldPosition (after physics), while the client syncs WorldPosition → LocalTransform (after ghost snapshot application). MinimapDataSystem runs on the client and includes remote observation of entities near other players via relayed zone corrections (desaturated colors, sensor-gated fidelity).
 
 Key DOTS API pitfalls to be aware of: the Starfire.Entity namespace shadows Unity.Entities.Entity — always use fully qualified Unity.Entities.Entity in type positions. DisableRendering is not IEnableableComponent — add/remove via ECB. For physics exclusion, remove PhysicsWorldIndex (ISharedComponentData, re-add with ecb.AddSharedComponent). WithPresent<T>() iterates all entities including disabled — omit it for one-frame events like TierTransition so the default query only matches enabled instances.
 
@@ -232,8 +236,8 @@ SimulationSystemGroup
 ├── ClientPlayerTagSystem ............ Tags player ghost with PlayerTag
 System Filter Summary
 Category	Count	Systems
-Server only	9	ServerSpawnSystem, ServerWorldPositionSyncSystem, ServerFloatingOriginSystem, PlayerInputApplySystem, GoInGameSystem, ServerEntityTracker, GhostPromotionSystem, ServerWorldEventSystem, MinimapDataSystem
-Client only	7	PlayerInputSystem, ClientWorldSpawnSystem, ClientWorldPositionSyncSystem, ClientFloatingOriginSystem, ClientLocalPhysicsSystem, AsteroidRenderingInitSystem, GhostRenderingInitSystem, ClientGhostSwapSystem, ClientWorldEventSystem, GoInGameClientSystem, ClientPlayerTagSystem
+Server only	9	ServerSpawnSystem, ServerWorldPositionSyncSystem, ServerFloatingOriginSystem, PlayerInputApplySystem, GoInGameSystem, ServerEntityTracker, ServerZoneRelaySystem, ServerZoneEventRelaySystem, ServerPlayerBroadcastSystem, ServerWorldEventSystem
+Client only	12	PlayerInputSystem, ClientWorldSpawnSystem, ClientWorldPositionSyncSystem, ClientFloatingOriginSystem, ClientLocalPhysicsSystem, AsteroidRenderingInitSystem, GhostRenderingInitSystem, ClientZoneBroadcastSystem, ClientZoneCorrectionSystem, ClientWorldEventSystem, ClientPlayerPositionSystem, GoInGameClientSystem, ClientPlayerTagSystem, MinimapDataSystem
 Server + Client	16	TierEvaluation, TierStateTransition, TierTransitionCleanup, ShipTierTransition, ShipFleetFormation/Disband, ShipDormantConversion/Revival, AsteroidTierTransition, AsteroidFieldFormation/Disband, AsteroidDormantConversion/Revival, AIControl, SensorBatchUpdate, AsteroidSensorOrbit, AsteroidFieldOrbit, FleetAI, WorldBoundsWrap, PhysicsConfig
 Predicted	5	ShipThrust, ShipAim, StarGravity, SpeedLimit, Constrain2D
 New Files Created (12)
@@ -244,10 +248,12 @@ network/PlayerInput.cs	Networked input component
 network/PlayerInputApplySystem.cs	Server input → ControlInput
 network/ClientWorldSpawnSystem.cs	Client-side deterministic world generation
 network/ServerEntityTracker.cs	Lightweight analytical tracking for T1+
-network/GhostPromotionSystem.cs	Server ghost spawn/despawn on T0 boundary
-network/ClientGhostSwapSystem.cs	Client local↔ghost swap on promotion/demotion
-network/PromotionRpcs.cs	Promoted/Demoted RPC definitions
-network/WorldEventRpcs.cs	Destroyed/Damaged RPC definitions
+network/ZoneEntityBatchRpc.cs	Batched entity state RPC (8 entities per batch) for zone broadcasts
+network/ZoneEventRpcs.cs	Zone damage/destroy RPC definitions (client-originated)
+network/ServerZoneRelaySystem.cs	Server relay of zone broadcasts between clients
+network/ServerZoneEventRelaySystem.cs	Server relay of zone damage/destroy events
+network/ClientZoneBroadcastSystem.cs	Client broadcasts authoritative entity state (10Hz, delta-tracked)
+network/ClientZoneCorrectionSystem.cs	Client applies relayed corrections from other players
 network/ServerWorldEventSystem.cs	Server damage/destroy broadcast
 network/ClientWorldEventSystem.cs	Client damage/destroy handling
 entity/LocalEntityTag.cs	Client-local entity marker

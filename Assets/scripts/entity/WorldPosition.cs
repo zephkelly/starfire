@@ -6,7 +6,7 @@ namespace Starfire.Entity
 {
     public struct WorldPosition : IComponentData
     {
-        [GhostField(Quantization = 0)]
+        [GhostField(Quantization = 0, Smoothing = SmoothingAction.InterpolateAndExtrapolate)]
         public double2 Value;
     }
 }

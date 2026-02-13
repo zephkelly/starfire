@@ -106,6 +106,16 @@ namespace Starfire.Systems
 
                 RenderMeshUtility.AddComponents(entity, EntityManager, desc, meshArray,
                     MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
+
+                if (EntityManager.HasComponent<PlayerColor>(entity))
+                {
+                    var playerColor = EntityManager.GetComponentData<PlayerColor>(entity);
+                    if (math.any(playerColor.Value != float4.zero))
+                    {
+                        EntityManager.AddComponentData(entity,
+                            new URPMaterialPropertyBaseColor { Value = playerColor.Value });
+                    }
+                }
             }
 
             entities.Dispose();

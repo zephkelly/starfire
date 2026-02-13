@@ -24,6 +24,10 @@ namespace Starfire.Authoring
         public float defaultAcceleration = 60f;
         public float defaultTurnRate = 180f;
         public float defaultMaxHealth = 100f;
+
+        [Header("Player Overrides")]
+        public float playerMaxSpeed = 400f;
+        public float playerAcceleration = 120f;
         public float shipColliderRadius = 0.5f;
         public float shipMass = 50f;
 
@@ -54,6 +58,8 @@ namespace Starfire.Authoring
                     DefaultAcceleration = authoring.defaultAcceleration,
                     DefaultTurnRate = authoring.defaultTurnRate,
                     DefaultMaxHealth = authoring.defaultMaxHealth,
+                    PlayerMaxSpeed = authoring.playerMaxSpeed,
+                    PlayerAcceleration = authoring.playerAcceleration,
                     ShipColliderRadius = authoring.shipColliderRadius,
                     ShipMass = authoring.shipMass,
                     PlayerSensorRange = authoring.playerSensorRange,

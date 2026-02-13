@@ -67,7 +67,6 @@ namespace Starfire.Systems
             }
 
             var config = SystemAPI.GetSingleton<SimulationConfig>();
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
 
             double2 playerWorldPos = double2.zero;
             foreach (var (worldPos, _) in SystemAPI.Query<RefRO<WorldPosition>, RefRO<PlayerTag>>())
@@ -101,7 +100,7 @@ namespace Starfire.Systems
                 {
                     var member = buffer[i];
                     var memberPos = fleetData.ValueRO.Position + (double2)member.FormationOffset;
-                    var localPos = (float2)(memberPos - origin.Value);
+                    var localPos = (float2)memberPos;
 
                     var shipEntity = ecb.CreateEntity(_shipArchetype);
 

@@ -25,7 +25,6 @@ namespace Starfire.Systems
 
             new WrapJob
             {
-                OriginValue = origin.Value,
                 BoundsRadius = origin.WorldBoundsRadius
             }.ScheduleParallel();
         }
@@ -33,7 +32,6 @@ namespace Starfire.Systems
         [BurstCompile]
         partial struct WrapJob : IJobEntity
         {
-            public double2 OriginValue;
             public float BoundsRadius;
 
             void Execute(ref WorldPosition worldPos, ref LocalTransform transform)
@@ -52,7 +50,7 @@ namespace Starfire.Systems
                 if (wrapped)
                 {
                     worldPos.Value = pos;
-                    var local = (float2)(pos - OriginValue);
+                    var local = (float2)pos;
                     transform.Position = new float3(local.x, local.y, 0f);
                 }
             }

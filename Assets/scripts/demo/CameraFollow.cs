@@ -11,6 +11,20 @@ namespace Starfire.Demo
     {
         [SerializeField] float cameraZ = -50f;
 
+        [Header("Look Ahead")]
+        [SerializeField] float _maxLookAhead = 150f;
+        [SerializeField] float _minLookAhead = 0f;
+        [SerializeField] float _innerLimit = 0.1f;
+        [SerializeField] float _outerLimit = 0.8f;
+        [SerializeField] float _lookAheadSmoothing = 0.15f;
+
+        [Header("Zoom")]
+        [SerializeField] float _minZoom = 10f;
+        [SerializeField] float _maxZoom = 500f;
+        [SerializeField] float _scrollSensitivity = 0.001f;
+        [SerializeField] float _gamepadZoomSpeed = 1.5f;
+        [SerializeField] float _zoomSmoothing = 0.15f;
+
         [Header("Tier Gizmos")]
         [SerializeField] bool _showTierGizmos = true;
         [SerializeField] float _gizmoT0 = 5000f;
@@ -30,6 +44,13 @@ namespace Starfire.Demo
         float _lastLogTime;
         bool _foundPlayerOnce;
 
+        Camera _camera;
+        Vector2 _currentAimOffset;
+        Vector2 _aimOffsetVelocity;
+        float _targetZoom;
+        float _zoomVelocity;
+        bool _zoomInitialized;
+
         void LateUpdate()
         {
             bool shouldLog = !_foundPlayerOnce && Time.time - _lastLogTime > 2f;
@@ -47,6 +68,8 @@ namespace Starfire.Demo
                 _networkIdQuery = default;
                 _configQuery = default;
                 _foundPlayerOnce = false;
+                _currentAimOffset = Vector2.zero;
+                _aimOffsetVelocity = Vector2.zero;
                 _cachedWorld = world;
             }
 
@@ -102,23 +125,118 @@ namespace Starfire.Demo
                 Debug.Log($"[CameraFollow] Found player entity={playerEntity} in world='{world.Name}'");
             }
 
+            if (_camera == null)
+                _camera = GetComponent<Camera>();
+
             var lt = em.GetComponentData<LocalTransform>(playerEntity);
             if (float.IsNaN(lt.Position.x) || float.IsNaN(lt.Position.y))
                 return;
-            var targetPos = new Vector3(lt.Position.x, lt.Position.y, cameraZ);
-            this.transform.position = targetPos;
-            this.transform.rotation = Quaternion.identity;
+
+            Vector2 playerPos = new Vector2(lt.Position.x, lt.Position.y);
+            Vector2 aimOffset = ComputeAimOffset();
+
+            if (_lookAheadSmoothing > 0f)
+            {
+                _currentAimOffset = Vector2.SmoothDamp(
+                    _currentAimOffset, aimOffset, ref _aimOffsetVelocity, _lookAheadSmoothing);
+            }
+            else
+            {
+                _currentAimOffset = aimOffset;
+            }
+
+            Vector2 finalPos = playerPos + _currentAimOffset;
+            transform.position = new Vector3(finalPos.x, finalPos.y, cameraZ);
+            transform.rotation = Quaternion.identity;
 
             if (PlayerController.Instance != null)
-                PlayerController.Instance.SetCamera(GetComponent<Camera>());
+                PlayerController.Instance.SetCamera(_camera);
+
+            UpdateZoom();
 
             if (Time.time - _lastLogTime > 5f)
             {
-                Debug.Log($"[CameraFollow] Tracking player at LocalTransform=({lt.Position.x:F1}, {lt.Position.y:F1}) Camera=({targetPos.x:F1}, {targetPos.y:F1}, {targetPos.z:F1})");
+                Debug.Log($"[CameraFollow] Tracking player at ({lt.Position.x:F1}, {lt.Position.y:F1}) AimOffset=({_currentAimOffset.x:F1}, {_currentAimOffset.y:F1}) Zoom={_camera.orthographicSize:F1}");
                 _lastLogTime = Time.time;
             }
 
             SyncGizmoDistancesFromConfig();
+        }
+
+        void UpdateZoom()
+        {
+            if (_camera == null) return;
+
+            if (!_zoomInitialized)
+            {
+                _targetZoom = Mathf.Clamp(_camera.orthographicSize, _minZoom, _maxZoom);
+                _zoomInitialized = true;
+            }
+
+            var pc = PlayerController.Instance;
+            if (pc == null) return;
+
+            float scrollInput = pc.ScrollDelta * _scrollSensitivity;
+            float gamepadInput = pc.GamepadZoomInput * _gamepadZoomSpeed * Time.deltaTime;
+            float totalInput = scrollInput + gamepadInput;
+
+            if (Mathf.Abs(totalInput) > 0.0001f)
+            {
+                float zoomDelta = -totalInput * _targetZoom;
+                float newTargetZoom = Mathf.Clamp(_targetZoom + zoomDelta, _minZoom, _maxZoom);
+
+                float currentDirection = _targetZoom - _camera.orthographicSize;
+                float newDirection = newTargetZoom - _camera.orthographicSize;
+                if (currentDirection * newDirection < 0f)
+                    _zoomVelocity = 0f;
+
+                _targetZoom = newTargetZoom;
+            }
+
+            if (_zoomSmoothing > 0f)
+            {
+                float diff = Mathf.Abs(_camera.orthographicSize - _targetZoom);
+                if (diff > 0.01f)
+                {
+                    _camera.orthographicSize = Mathf.SmoothDamp(
+                        _camera.orthographicSize, _targetZoom, ref _zoomVelocity, _zoomSmoothing);
+                }
+                else
+                {
+                    _camera.orthographicSize = _targetZoom;
+                    _zoomVelocity = 0f;
+                }
+            }
+            else
+            {
+                _camera.orthographicSize = _targetZoom;
+            }
+        }
+
+        Vector2 ComputeAimOffset()
+        {
+            if (_camera == null || _maxLookAhead <= 0f)
+                return Vector2.zero;
+
+            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            var pc = PlayerController.Instance;
+            if (pc == null) return Vector2.zero;
+            Vector2 mouseOffset = pc.MouseScreenPosition - screenCenter;
+            float halfScreen = Mathf.Min(Screen.width, Screen.height) * 0.5f;
+
+            if (halfScreen < 1f)
+                return Vector2.zero;
+
+            float normalizedDist = mouseOffset.magnitude / halfScreen;
+            float t = Mathf.InverseLerp(_innerLimit, _outerLimit, normalizedDist);
+            t = Mathf.Clamp01(t);
+
+            float lookAhead = Mathf.Lerp(_minLookAhead, _maxLookAhead, t);
+
+            if (lookAhead > 0f && mouseOffset.sqrMagnitude > 0.001f)
+                return mouseOffset.normalized * lookAhead;
+
+            return Vector2.zero;
         }
 
         void SyncGizmoDistancesFromConfig()

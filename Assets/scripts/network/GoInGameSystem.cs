@@ -77,8 +77,8 @@ namespace Starfire.Network
                     ConfigId = 0,
                     CurrentHealth = spawnConfig.DefaultMaxHealth,
                     MaxHealth = spawnConfig.DefaultMaxHealth,
-                    MaxSpeed = spawnConfig.DefaultMaxSpeed,
-                    Acceleration = spawnConfig.DefaultAcceleration,
+                    MaxSpeed = spawnConfig.PlayerMaxSpeed,
+                    Acceleration = spawnConfig.PlayerAcceleration,
                     DragCoefficient = 0.4f,
                     IsEnabled = 1
                 });
@@ -96,14 +96,25 @@ namespace Starfire.Network
                     ShieldPercent = 1f,
                     SensorRange = spawnConfig.PlayerSensorRange,
                     WeaponRange = 500f,
-                    MaxSpeed = spawnConfig.DefaultMaxSpeed
+                    MaxSpeed = spawnConfig.PlayerMaxSpeed
                 });
 
                 var request = SystemAPI.GetComponent<GoInGameRequest>(reqEntity);
                 ecb.SetComponent(playerShip, new PlayerName { Value = request.Username });
 
+                var colorRng = Unity.Mathematics.Random.CreateFromIndex((uint)networkId.Value);
+                float hue = colorRng.NextFloat();
+                float saturation = colorRng.NextFloat(0.6f, 0.9f);
+                float brightness = colorRng.NextFloat(0.8f, 1f);
+                Color rgb = Color.HSVToRGB(hue, saturation, brightness);
+                ecb.SetComponent(playerShip, new PlayerColor
+                {
+                    Value = new float4(rgb.r, rgb.g, rgb.b, 1f)
+                });
+
                 ecb.AddComponent<PlayerTag>(playerShip);
                 ecb.AddComponent(playerShip, new GhostOwner { NetworkId = networkId.Value });
+                ecb.AddComponent(playerShip, new AutoCommandTarget { Enabled = true });
 
                 ecb.SetComponentEnabled<RichTierTag>(playerShip, true);
                 ecb.SetComponentEnabled<VisualTierTag>(playerShip, true);

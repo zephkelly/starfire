@@ -16,6 +16,7 @@ namespace Starfire.Core
         InputAction _mousePositionAction;
         InputAction _escapeAction;
         InputAction _scrollAction;
+        InputAction _zoomAction;
 
         Camera _camera;
 
@@ -26,6 +27,7 @@ namespace Starfire.Core
         public bool WarpPressed { get; private set; }
         public bool EscapePressed { get; private set; }
         public float ScrollDelta { get; private set; }
+        public float GamepadZoomInput { get; private set; }
         public Vector2 MouseScreenPosition { get; private set; }
         public Vector3 MouseWorldPosition { get; private set; }
 
@@ -49,6 +51,7 @@ namespace Starfire.Core
             _fireAction = shipMap?.FindAction("Fire");
             _warpAction = shipMap?.FindAction("Warp");
             _mousePositionAction = shipMap?.FindAction("MousePosition");
+            _zoomAction = shipMap?.FindAction("Zoom");
 
             var uiMap = _inputActions.FindActionMap("UI");
             _escapeAction = uiMap?.FindAction("Escape");
@@ -116,6 +119,7 @@ namespace Starfire.Core
         {
             EscapePressed = _escapeAction != null && _escapeAction.WasPressedThisFrame();
             ScrollDelta = _scrollAction != null ? _scrollAction.ReadValue<Vector2>().y : 0f;
+            GamepadZoomInput = _zoomAction != null ? _zoomAction.ReadValue<float>() : 0f;
         }
     }
 }

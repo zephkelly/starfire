@@ -19,6 +19,9 @@ namespace Starfire.Sim
         public float DefaultAcceleration;
         public float DefaultTurnRate;
         public float DefaultMaxHealth;
+
+        public float PlayerMaxSpeed;
+        public float PlayerAcceleration;
         public float ShipColliderRadius;
         public float ShipMass;
 

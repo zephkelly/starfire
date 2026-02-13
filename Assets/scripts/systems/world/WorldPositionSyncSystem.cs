@@ -18,31 +18,23 @@ namespace Starfire.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<WorldOrigin>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
-
-            new ServerSyncJob
-            {
-                OriginValue = origin.Value
-            }.ScheduleParallel();
+            new ServerSyncJob().ScheduleParallel();
         }
 
         [BurstCompile]
         partial struct ServerSyncJob : IJobEntity
         {
-            public double2 OriginValue;
-
             void Execute(ref WorldPosition worldPos, in LocalTransform transform, in SimulationTierData tier)
             {
                 if (tier.Tier <= SimulationTier.Active)
                 {
                     if (!math.isnan(transform.Position.x) && !math.isnan(transform.Position.y))
-                        worldPos.Value = OriginValue + new double2(transform.Position.x, transform.Position.y);
+                        worldPos.Value = new double2(transform.Position.x, transform.Position.y);
                 }
             }
         }
@@ -50,55 +42,42 @@ namespace Starfire.Systems
 
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(ClientFloatingOriginSystem))]
+    [UpdateAfter(typeof(PredictedSimulationSystemGroup))]
     [BurstCompile]
     public partial struct ClientWorldPositionSyncSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<WorldOrigin>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
-
-            new GhostSyncJob
-            {
-                OriginValue = origin.Value
-            }.ScheduleParallel();
-
-            new LocalRichSyncJob
-            {
-                OriginValue = origin.Value
-            }.ScheduleParallel();
-        }
-
-        [BurstCompile]
-        [WithNone(typeof(PredictedGhost), typeof(LocalEntityTag))]
-        partial struct GhostSyncJob : IJobEntity
-        {
-            public double2 OriginValue;
-
-            void Execute(in WorldPosition worldPos, ref LocalTransform transform)
-            {
-                float2 localPos = (float2)(worldPos.Value - OriginValue);
-                transform.Position = new float3(localPos.x, localPos.y, 0f);
-            }
+            new LocalRichSyncJob().ScheduleParallel();
+            new PredictedPlayerSyncJob().ScheduleParallel();
         }
 
         [BurstCompile]
         [WithAll(typeof(LocalEntityTag), typeof(RichTierTag))]
         partial struct LocalRichSyncJob : IJobEntity
         {
-            public double2 OriginValue;
-
             void Execute(ref WorldPosition worldPos, in LocalTransform transform)
             {
                 if (!math.isnan(transform.Position.x) && !math.isnan(transform.Position.y))
-                    worldPos.Value = OriginValue + new double2(transform.Position.x, transform.Position.y);
+                    worldPos.Value = new double2(transform.Position.x, transform.Position.y);
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(PlayerTag))]
+        [WithNone(typeof(LocalEntityTag))]
+        partial struct PredictedPlayerSyncJob : IJobEntity
+        {
+            void Execute(ref WorldPosition worldPos, in LocalTransform transform)
+            {
+                if (!math.isnan(transform.Position.x) && !math.isnan(transform.Position.y))
+                    worldPos.Value = new double2(transform.Position.x, transform.Position.y);
             }
         }
     }

@@ -2,6 +2,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Physics;
 using Unity.Rendering;
+using Starfire.Entity;
 using Starfire.Simulation;
 using Unity.NetCode;
 
@@ -23,6 +24,7 @@ namespace Starfire.Systems
             {
                 var from = transition.ValueRO.PreviousTier;
                 var to = transition.ValueRO.NewTier;
+                bool isLocal = EntityManager.HasComponent<LocalEntityTag>(entity);
 
                 switch (to)
                 {
@@ -31,7 +33,7 @@ namespace Starfire.Systems
                         EntityManager.SetComponentEnabled<VisualTierTag>(entity, true);
                         EntityManager.SetComponentEnabled<SensorTierTag>(entity, false);
                         ecb.RemoveComponent<DisableRendering>(entity);
-                        if (from == SimulationTier.Sensor)
+                        if (from == SimulationTier.Sensor && !isLocal)
                             ecb.AddSharedComponent(entity, new PhysicsWorldIndex());
                         hasStructuralChanges = true;
                         break;
@@ -42,7 +44,7 @@ namespace Starfire.Systems
                         EntityManager.SetComponentEnabled<SensorTierTag>(entity, false);
                         if (from == SimulationTier.Loaded)
                             ecb.AddComponent<DisableRendering>(entity);
-                        if (from == SimulationTier.Sensor)
+                        if (from == SimulationTier.Sensor && !isLocal)
                             ecb.AddSharedComponent(entity, new PhysicsWorldIndex());
                         hasStructuralChanges = true;
                         break;
@@ -51,7 +53,8 @@ namespace Starfire.Systems
                         EntityManager.SetComponentEnabled<RichTierTag>(entity, false);
                         EntityManager.SetComponentEnabled<VisualTierTag>(entity, false);
                         EntityManager.SetComponentEnabled<SensorTierTag>(entity, true);
-                        ecb.RemoveComponent<PhysicsWorldIndex>(entity);
+                        if (!isLocal)
+                            ecb.RemoveComponent<PhysicsWorldIndex>(entity);
                         ecb.AddComponent<DisableRendering>(entity);
                         hasStructuralChanges = true;
                         break;

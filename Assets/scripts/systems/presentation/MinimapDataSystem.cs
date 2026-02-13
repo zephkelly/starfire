@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using Unity.NetCode;
 using UnityEngine;
 using Starfire.Entity;
+using Starfire.Network;
 using Starfire.Sim;
 using Starfire.Simulation;
 
@@ -37,6 +38,7 @@ namespace Starfire.Systems
         public const byte CategoryStar = 5;
         public const byte CategoryAsteroidField = 6;
         public const byte CategoryOtherPlayer = 7;
+        public const byte CategoryRelayed = 8;
 
         const float FleetMinDistance = 85000f;
         const float AsteroidFieldMinDistance = 85000f;
@@ -67,6 +69,7 @@ namespace Starfire.Systems
         public int StarCount;
         public int AsteroidFieldCount;
         public int OtherPlayerCount;
+        public int RelayedCount;
         public double2 PlayerWorldPos;
         public bool DataReady;
 
@@ -91,6 +94,9 @@ namespace Starfire.Systems
         public Color32 BorderColor;
         public Color32 BackgroundColor;
         public Color32 OtherPlayerColor;
+        public Color32 RelayedShipColor;
+        public Color32 RelayedAsteroidColor;
+        public Color32 RelayedStarColor;
         public Color32[] TypeColors;
 
         float _lastUpdateTime;
@@ -134,6 +140,9 @@ namespace Starfire.Systems
             AsteroidColor = new Color32(140, 120, 90, 180);
             StarColor = new Color32(255, 240, 200, 255);
             AsteroidFieldColor = new Color32(110, 95, 70, 140);
+            RelayedShipColor = new Color32(180, 140, 140, 200);
+            RelayedAsteroidColor = new Color32(120, 110, 100, 150);
+            RelayedStarColor = new Color32(200, 190, 170, 200);
             BorderColor = new Color32(26, 102, 26, 255);
             BackgroundColor = new Color32(5, 5, 15, 230);
             TypeColors = new Color32[]
@@ -313,6 +322,7 @@ namespace Starfire.Systems
             StarCount = 0;
             AsteroidFieldCount = 0;
             OtherPlayerCount = 0;
+            RelayedCount = 0;
             for (int i = 0; i < 5; i++) CountByTier[i] = 0;
 
             if (_playerQuery.IsEmpty)
@@ -433,6 +443,8 @@ namespace Starfire.Systems
                     _cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize, _adaptiveDormantDot,
                     _dormantZoomAlpha);
             }
+
+            ProcessRelayedEntities(_cachedViewRadiusSq, _cachedHalfInvRadius, _cachedTexSize);
 
             int center = _cachedTexSize / 2;
             DrawDot(center, center, PlayerDotSize, PlayerColor);
@@ -841,6 +853,79 @@ namespace Starfire.Systems
             }
 
             chunks.Dispose();
+        }
+
+        void ProcessRelayedEntities(double viewRadiusSq, double halfInvRadius, int texSize)
+        {
+            var correctionSystem = World.GetExistingSystemManaged<ClientZoneCorrectionSystem>();
+            if (correctionSystem == null || !correctionSystem.RecentCorrections.IsCreated) return;
+
+            var corrections = correctionSystem.RecentCorrections;
+            if (corrections.Count == 0) return;
+
+            var keys = corrections.GetKeyArray(Allocator.Temp);
+
+            float localSensorRange = ViewRadius;
+            foreach (var (sensor, _) in
+                SystemAPI.Query<RefRO<SensorContact>, RefRO<PlayerTag>>())
+            {
+                if (sensor.ValueRO.SensorRange > 0f)
+                    localSensorRange = sensor.ValueRO.SensorRange;
+                break;
+            }
+
+            for (int i = 0; i < keys.Length; i++)
+            {
+                var entry = corrections[keys[i]];
+
+                double2 rel = entry.Position - PlayerWorldPos;
+                double distSq = rel.x * rel.x + rel.y * rel.y;
+                if (distSq > viewRadiusSq) continue;
+
+                double dist = math.sqrt(distSq);
+                if (dist < localSensorRange) continue;
+
+                if (!RelToPixel(rel, halfInvRadius, texSize, out int px, out int py)) continue;
+
+                int centerIdx = py * texSize + px;
+                if (!_occupiedPixels.Add(centerIdx)) continue;
+
+                float alpha = math.clamp(1.0f - (float)(dist / (localSensorRange * 1.5)), 0.2f, 0.8f);
+
+                Color32 color;
+                switch ((Starfire.Entity.EntityType)entry.EntityType)
+                {
+                    case Starfire.Entity.EntityType.Ship:
+                        color = RelayedShipColor;
+                        break;
+                    case Starfire.Entity.EntityType.Asteroid:
+                        color = RelayedAsteroidColor;
+                        break;
+                    case Starfire.Entity.EntityType.Star:
+                        color = RelayedStarColor;
+                        break;
+                    default:
+                        color = RelayedShipColor;
+                        break;
+                }
+
+                int dotSize = _extremeZoom ? 1 : 2;
+                DrawDotBlend(px, py, dotSize, color, alpha);
+                RelayedCount++;
+
+                if (!_skipEntries)
+                    Entries.Add(new MinimapEntry
+                    {
+                        PixelX = px,
+                        PixelY = py,
+                        DotRadius = dotSize,
+                        Category = CategoryRelayed,
+                        EntityType = entry.EntityType,
+                        WorldPos = entry.Position
+                    });
+            }
+
+            keys.Dispose();
         }
 
         static bool RelToPixel(double2 rel, double halfInvRadius, int texSize, out int px, out int py)

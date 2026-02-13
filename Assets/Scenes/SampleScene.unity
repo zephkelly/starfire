@@ -227,7 +227,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 100
+  orthographic size: 25
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -271,6 +271,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Starfire::Starfire.Demo.CameraFollow
   cameraZ: -50
+  _maxLookAhead: 5
+  _minLookAhead: 2
+  _innerLimit: 0.1
+  _outerLimit: 0.8
+  _lookAheadSmoothing: 0.15
+  _minZoom: 10
+  _maxZoom: 120
+  _scrollSensitivity: 0.1
+  _gamepadZoomSpeed: 1.5
+  _zoomSmoothing: 0.15
   _showTierGizmos: 1
   _gizmoT0: 5000
   _gizmoT1: 20000

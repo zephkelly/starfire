@@ -34,7 +34,6 @@ namespace Starfire.Network
         {
             RequireForUpdate<SpawnConfig>();
             RequireForUpdate<SimulationConfig>();
-            RequireForUpdate<WorldOrigin>();
             RequireForUpdate<AsteroidConfig>();
             RequireForUpdate<NetworkStreamInGame>();
         }
@@ -578,12 +577,11 @@ namespace Starfire.Network
         void SpawnTier4Dormant(SpawnConfig config, SimulationConfig simConfig)
         {
             var rng = new Unity.Mathematics.Random(1011);
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
 
             for (int i = 0; i < config.Tier4Dormant; i++)
             {
                 float angle = rng.NextFloat(0f, math.PI * 2f);
-                float dist = rng.NextFloat(simConfig.Bounds.Tier3MaxDistance, origin.WorldBoundsRadius * 0.5f);
+                float dist = rng.NextFloat(simConfig.Bounds.Tier3MaxDistance, simConfig.Bounds.Tier3MaxDistance * 2.5f);
                 var pos = new double2(math.cos(angle) * dist, math.sin(angle) * dist);
 
                 var dormantEntity = EntityManager.CreateEntity();

@@ -62,7 +62,6 @@ namespace Starfire.Systems
             }
 
             var config = SystemAPI.GetSingleton<SimulationConfig>();
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
 
             double2 playerWorldPos = double2.zero;
             foreach (var (worldPos, _) in SystemAPI.Query<RefRO<WorldPosition>, RefRO<PlayerTag>>())
@@ -95,7 +94,7 @@ namespace Starfire.Systems
                 for (int i = 0; i < buffer.Length; i++)
                 {
                     var member = buffer[i];
-                    var localPos = (float2)(member.Position - origin.Value);
+                    var localPos = (float2)member.Position;
 
                     var asteroidEntity = ecb.CreateEntity(_asteroidArchetype);
 

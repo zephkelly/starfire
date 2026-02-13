@@ -31,7 +31,6 @@ namespace Starfire.Demo
         [SerializeField] int targetAsteroidCount = 100000;
 
         [Header("World")]
-        [SerializeField] float rebaseThreshold = 10000f;
         [SerializeField] float worldBoundsRadius = 500000f;
 
         [Header("Tier Distances")]
@@ -111,8 +110,6 @@ namespace Starfire.Demo
             var originEntity = _em.CreateEntity();
             _em.AddComponentData(originEntity, new WorldOrigin
             {
-                Value = double2.zero,
-                RebaseThreshold = rebaseThreshold,
                 WorldBoundsRadius = worldBoundsRadius
             });
 

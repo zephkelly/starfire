@@ -18,7 +18,6 @@ namespace Starfire.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<StarTag>();
-            state.RequireForUpdate<WorldOrigin>();
         }
 
         [BurstCompile]
@@ -45,13 +44,10 @@ namespace Starfire.Systems
                 };
             }
 
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
-
             new SensorOrbitJob
             {
                 Stars = starData,
-                DeltaTime = SystemAPI.Time.DeltaTime,
-                Origin = origin.Value
+                DeltaTime = SystemAPI.Time.DeltaTime
             }.ScheduleParallel();
         }
     }
@@ -69,7 +65,6 @@ namespace Starfire.Systems
     {
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<StarOrbitInfo> Stars;
         public float DeltaTime;
-        public double2 Origin;
 
         void Execute(ref WorldPosition worldPos, ref LocalTransform transform, ref AsteroidData asteroid)
         {
@@ -112,7 +107,7 @@ namespace Starfire.Systems
                 vel.x * sinAf + vel.y * cosAf
             );
 
-            float2 localPos = (float2)(worldPos.Value - Origin);
+            float2 localPos = (float2)worldPos.Value;
             transform.Position = new float3(localPos.x, localPos.y, 0f);
         }
     }
