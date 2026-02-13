@@ -7,6 +7,7 @@ using UnityEngine;
 using Starfire.Core;
 using Starfire.Entity;
 using Starfire.Sim;
+using Starfire.Demo;
 using Starfire.Simulation;
 
 namespace Starfire.Network
@@ -98,6 +99,9 @@ namespace Starfire.Network
                     MaxSpeed = spawnConfig.DefaultMaxSpeed
                 });
 
+                var request = SystemAPI.GetComponent<GoInGameRequest>(reqEntity);
+                ecb.SetComponent(playerShip, new PlayerName { Value = request.Username });
+
                 ecb.AddComponent<PlayerTag>(playerShip);
                 ecb.AddComponent(playerShip, new GhostOwner { NetworkId = networkId.Value });
 
@@ -117,14 +121,15 @@ namespace Starfire.Network
         }
     }
 
-    public struct GoInGameRequest : IRpcCommand { }
+    public struct GoInGameRequest : IRpcCommand
+    {
+        public FixedString64Bytes Username;
+    }
 
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct ClientPlayerTagSystem : ISystem
     {
-        bool _done;
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkId>();
@@ -133,12 +138,6 @@ namespace Starfire.Network
 
         public void OnUpdate(ref SystemState state)
         {
-            if (_done)
-            {
-                state.Enabled = false;
-                return;
-            }
-
             int localNetId = SystemAPI.GetSingleton<NetworkId>().Value;
             if (localNetId == 0)
                 return;
@@ -178,8 +177,6 @@ namespace Starfire.Network
                 {
                     Debug.LogWarning($"[ClientPlayerTagSystem] Tagged player entity={targetEntity} but GhostPredictionSwitchingQueues not available — player ship will be interpolated");
                 }
-
-                _done = true;
             }
         }
     }
@@ -188,8 +185,6 @@ namespace Starfire.Network
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct GoInGameClientSystem : ISystem
     {
-        bool _hasSentRequest;
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkId>();
@@ -197,22 +192,8 @@ namespace Starfire.Network
 
         public void OnUpdate(ref SystemState state)
         {
-            if (_hasSentRequest)
-            {
-                state.Enabled = false;
-                return;
-            }
-
-            var connectionQuery = SystemAPI.QueryBuilder()
-                .WithAll<NetworkId>()
-                .WithNone<NetworkStreamInGame>()
-                .Build();
-
-            if (connectionQuery.IsEmpty)
-                return;
-
-            _hasSentRequest = true;
             var ecb = new EntityCommandBuffer(Allocator.Temp);
+            bool sent = false;
 
             foreach (var (_, entity) in SystemAPI.Query<RefRO<NetworkId>>()
                 .WithNone<NetworkStreamInGame>()
@@ -222,16 +203,24 @@ namespace Starfire.Network
                 ecb.AddComponent(entity, new AutoCommandTarget { Enabled = true });
 
                 var reqEntity = ecb.CreateEntity();
-                ecb.AddComponent<GoInGameRequest>(reqEntity);
+                ecb.AddComponent(reqEntity, new GoInGameRequest
+                {
+                    Username = ConnectionUI.PlayerUsername
+                });
                 ecb.AddComponent(reqEntity, new SendRpcCommandRequest
                 {
                     TargetConnection = entity
                 });
 
+                sent = true;
+            }
+
+            if (sent)
+            {
+                ecb.Playback(state.EntityManager);
                 Debug.Log("[GoInGameClientSystem] Sending go-in-game request");
             }
 
-            ecb.Playback(state.EntityManager);
             ecb.Dispose();
         }
     }

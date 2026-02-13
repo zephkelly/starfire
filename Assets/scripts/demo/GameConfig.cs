@@ -18,10 +18,30 @@ namespace Starfire.Demo
         [Header("Asteroid Types")]
         [SerializeField] AsteroidTypeDefinition[] asteroidTypes;
 
+        Unity.Entities.World _registeredClientWorld;
+
         void Start()
+        {
+            RegisterAll();
+        }
+
+        void Update()
+        {
+            var clientWorld = Unity.Entities.World.DefaultGameObjectInjectionWorld;
+            if (clientWorld == null || !clientWorld.IsCreated || clientWorld == _registeredClientWorld)
+                return;
+
+            RegisterAll();
+        }
+
+        void RegisterAll()
         {
             RegisterAsteroidTypes();
             RegisterEntityRendering();
+
+            var clientWorld = Unity.Entities.World.DefaultGameObjectInjectionWorld;
+            if (clientWorld != null && clientWorld.IsCreated)
+                _registeredClientWorld = clientWorld;
         }
 
         void RegisterAsteroidTypes()

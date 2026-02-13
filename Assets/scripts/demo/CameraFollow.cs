@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
+using Starfire.Core;
 using Starfire.Sim;
 
 namespace Starfire.Demo
@@ -25,6 +26,7 @@ namespace Starfire.Demo
         EntityQuery _playerQuery;
         EntityQuery _networkIdQuery;
         EntityQuery _configQuery;
+        World _cachedWorld;
         float _lastLogTime;
         bool _foundPlayerOnce;
 
@@ -37,6 +39,15 @@ namespace Starfire.Demo
             {
                 if (shouldLog) { Debug.Log($"[CameraFollow] No world. DefaultGameObjectInjectionWorld={world?.Name ?? "null"}, IsCreated={world?.IsCreated}"); _lastLogTime = Time.time; }
                 return;
+            }
+
+            if (_cachedWorld != world)
+            {
+                _playerQuery = default;
+                _networkIdQuery = default;
+                _configQuery = default;
+                _foundPlayerOnce = false;
+                _cachedWorld = world;
             }
 
             var em = world.EntityManager;
@@ -97,6 +108,9 @@ namespace Starfire.Demo
             var targetPos = new Vector3(lt.Position.x, lt.Position.y, cameraZ);
             this.transform.position = targetPos;
             this.transform.rotation = Quaternion.identity;
+
+            if (PlayerController.Instance != null)
+                PlayerController.Instance.SetCamera(GetComponent<Camera>());
 
             if (Time.time - _lastLogTime > 5f)
             {

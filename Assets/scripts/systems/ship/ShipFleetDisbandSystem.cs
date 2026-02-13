@@ -12,7 +12,7 @@ using Unity.NetCode;
 
 namespace Starfire.Systems
 {
-    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation | WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(TierTransitionCleanupSystem))]
     public partial struct ShipFleetDisbandSystem : ISystem

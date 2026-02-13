@@ -9,10 +9,9 @@ using Unity.NetCode;
 
 namespace Starfire.Systems
 {
-    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation | WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(ServerWorldPositionSyncSystem))]
-    [UpdateAfter(typeof(ServerFloatingOriginSystem))]
+    [UpdateAfter(typeof(FixedStepSimulationSystemGroup))]
     [BurstCompile]
     public partial struct AsteroidSensorOrbitSystem : ISystem
     {

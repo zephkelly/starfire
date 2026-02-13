@@ -37,6 +37,7 @@ namespace Starfire.Demo
         [SerializeField] Color _backgroundColor = new Color(0.02f, 0.02f, 0.06f, 0.9f);
         [SerializeField] Color _borderColor = new Color(0.1f, 0.4f, 0.1f, 1f);
         [SerializeField] Color _playerColor = new Color(0f, 1f, 0f, 1f);
+        [SerializeField] Color _otherPlayerColor = new Color(0f, 0.78f, 1f, 1f);
         [SerializeField] Color _fleetColor = new Color(0.5f, 0.7f, 1f, 1f);
         [SerializeField] Color _dormantColor = new Color(0.25f, 0.25f, 0.25f, 0.6f);
 
@@ -58,7 +59,7 @@ namespace Starfire.Demo
         Texture2D _swatchTexture;
         Rect _screenRect;
 
-        World _serverWorld;
+        World _dataWorld;
         MinimapDataSystem _system;
         bool _systemCached;
 
@@ -89,25 +90,30 @@ namespace Starfire.Demo
 
         bool TryCacheSystem()
         {
-            if (_systemCached) return _system != null;
+            if (_systemCached)
+            {
+                if (_dataWorld != null && _dataWorld.IsCreated) return _system != null;
+                _systemCached = false;
+                _system = null;
+            }
 
             foreach (var world in World.All)
             {
-                if (world.IsServer())
+                if (world.IsClient())
                 {
-                    _serverWorld = world;
+                    _dataWorld = world;
                     break;
                 }
             }
 
-            if (_serverWorld == null || !_serverWorld.IsCreated) return false;
+            if (_dataWorld == null || !_dataWorld.IsCreated) return false;
 
-            _system = _serverWorld.GetExistingSystemManaged<MinimapDataSystem>();
+            _system = _dataWorld.GetExistingSystemManaged<MinimapDataSystem>();
             _systemCached = _system != null;
 
             if (_systemCached)
             {
-                Debug.Log($"[MinimapRenderer] Cached system from {_serverWorld.Name}");
+                Debug.Log($"[MinimapRenderer] Cached system from {_dataWorld.Name}");
                 PushConfig();
             }
 
@@ -127,6 +133,7 @@ namespace Starfire.Demo
             _system.StarDotSize = _starDotSize;
             _system.AsteroidFieldDotSize = _asteroidFieldDotSize;
             _system.PlayerColor = ToColor32(_playerColor);
+            _system.OtherPlayerColor = ToColor32(_otherPlayerColor);
             _system.FleetColor = ToColor32(_fleetColor);
             _system.DormantColor = ToColor32(_dormantColor);
             _system.AsteroidColor = ToColor32(_asteroidTypeColor);
@@ -150,7 +157,7 @@ namespace Starfire.Demo
         {
             if (!TryCacheSystem()) return;
 
-            if (_serverWorld == null || !_serverWorld.IsCreated)
+            if (_dataWorld == null || !_dataWorld.IsCreated)
             {
                 _systemCached = false;
                 return;
@@ -336,6 +343,7 @@ namespace Starfire.Demo
 
             DrawSwatchLabel(startX, y, _asteroidFieldColor, "A.Field", colWidth);
             DrawSwatchLabel(startX + colWidth, y, _stationTypeColor, "Station", colWidth);
+            DrawSwatchLabel(startX + colWidth * 2f, y, _otherPlayerColor, "Other", colWidth);
             y += rowHeight + 4f;
 
             return y;
@@ -394,6 +402,7 @@ namespace Starfire.Demo
             {
                 case MinimapDataSystem.CategoryShip: tooltipHeight = 72f; break;
                 case MinimapDataSystem.CategoryPlayer: tooltipHeight = 24f; break;
+                case MinimapDataSystem.CategoryOtherPlayer: tooltipHeight = 36f; break;
                 case MinimapDataSystem.CategoryAsteroid: tooltipHeight = 48f; break;
                 case MinimapDataSystem.CategoryStar: tooltipHeight = 36f; break;
                 default: tooltipHeight = 48f; break;
@@ -420,7 +429,14 @@ namespace Starfire.Demo
             switch (entry.Category)
             {
                 case MinimapDataSystem.CategoryPlayer:
-                    return "Player (You)";
+                    string localName = ConnectionUI.PlayerUsername.ToString();
+                    if (string.IsNullOrEmpty(localName)) localName = "Player";
+                    return $"{localName} (You)";
+
+                case MinimapDataSystem.CategoryOtherPlayer:
+                    string otherName = entry.PlayerUsername.ToString();
+                    if (string.IsNullOrEmpty(otherName)) otherName = "Unknown";
+                    return $"{otherName} (Player)\nDist: {distStr}";
 
                 case MinimapDataSystem.CategoryShip:
                     string typeName = entry.EntityType < TypeNames.Length ? TypeNames[entry.EntityType] : "Unknown";
@@ -468,6 +484,24 @@ namespace Starfire.Demo
                 (byte)(c.g * 255f),
                 (byte)(c.b * 255f),
                 (byte)(c.a * 255f));
+        }
+
+        public void ClearDisplay()
+        {
+            _systemCached = false;
+            _system = null;
+            _dataWorld = null;
+            _cachedEntryCount = 0;
+            _selectedIndex = -1;
+            _hoveredIndex = -1;
+
+            if (_texture != null)
+            {
+                var pixels = _texture.GetPixelData<Color32>(0);
+                for (int i = 0; i < pixels.Length; i++)
+                    pixels[i] = default;
+                _texture.Apply(false);
+            }
         }
 
         void OnDestroy()

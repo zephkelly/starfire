@@ -8,6 +8,7 @@ using UnityEngine;
 using Starfire.Core;
 using Starfire.Demo;
 using Starfire.Entity;
+using Starfire.Network;
 using Starfire.Sim;
 using Starfire.Simulation;
 using SphereCollider = Unity.Physics.SphereCollider;
@@ -71,21 +72,20 @@ namespace Starfire.Systems
             var spawnConfig = SystemAPI.GetSingleton<SpawnConfig>();
             var simConfig = SystemAPI.GetSingleton<SimulationConfig>();
             var asteroidConfig = SystemAPI.GetSingleton<AsteroidConfig>();
+            var origin = SystemAPI.GetSingleton<WorldOrigin>();
 
-            SpawnCelestialBodies(starPrefab, asteroidPrefab, spawnConfig, simConfig, asteroidConfig);
-            SpawnTierShips(shipPrefab, spawnConfig, simConfig);
-            SpawnTier3Fleets(spawnConfig, simConfig);
-            SpawnTier4Dormant(spawnConfig, simConfig);
+            var tracker = World.GetExistingSystemManaged<ServerEntityTracker>();
+            tracker.Initialize(spawnConfig, simConfig, asteroidConfig, origin);
 
-            int total = spawnConfig.Tier0Ships + spawnConfig.Tier1Ships + spawnConfig.Tier2Ships +
-                        spawnConfig.Tier3Fleets + (spawnConfig.Tier3Fleets * spawnConfig.Tier3MembersPerFleet) +
-                        spawnConfig.Tier4Dormant;
-            Debug.Log($"[ServerSpawnSystem] Spawned {total} NPC ship entities + celestial bodies (player spawns via GoInGameSystem)");
+            SpawnT0CelestialBodies(starPrefab, asteroidPrefab, spawnConfig, simConfig, asteroidConfig);
+            SpawnT0Ships(shipPrefab, spawnConfig, simConfig);
+
+            Debug.Log($"[ServerSpawnSystem] Spawned T0 ghost entities only. T1+ tracked analytically by ServerEntityTracker.");
 
             Enabled = false;
         }
 
-        void SpawnCelestialBodies(Unity.Entities.Entity starPrefab, Unity.Entities.Entity asteroidPrefab,
+        void SpawnT0CelestialBodies(Unity.Entities.Entity starPrefab, Unity.Entities.Entity asteroidPrefab,
             SpawnConfig spawnConfig, SimulationConfig simConfig, AsteroidConfig asteroidConfig)
         {
             SolarSystemGenerator.Generate(
@@ -94,35 +94,29 @@ namespace Starfire.Systems
                 out var stars, out var asteroidSpawns);
 
             float t0Sq = simConfig.Bounds.Tier0MaxDistance * simConfig.Bounds.Tier0MaxDistance;
-            float t1Sq = simConfig.Bounds.Tier1MaxDistance * simConfig.Bounds.Tier1MaxDistance;
-            float t2Sq = simConfig.Bounds.Tier2MaxDistance * simConfig.Bounds.Tier2MaxDistance;
-            float t3Sq = simConfig.Bounds.Tier3MaxDistance * simConfig.Bounds.Tier3MaxDistance;
 
             int starCount = 0;
-            int asteroidIndividual = 0;
-            int asteroidFieldCount = 0;
-            int asteroidDormant = 0;
+            int asteroidCount = 0;
 
             for (int i = 0; i < stars.Length; i++)
             {
                 var s = stars[i];
                 double2 delta = s.Position;
                 double distSq = delta.x * delta.x + delta.y * delta.y;
+                _nextEntityId++;
 
-                SimulationTier tier;
                 if (distSq < t0Sq)
-                    tier = SimulationTier.Loaded;
-                else if (distSq < t1Sq)
-                    tier = SimulationTier.Active;
-                else
-                    tier = SimulationTier.Sensor;
-
-                SpawnStar(starPrefab, s, i, tier);
-                starCount++;
+                {
+                    SpawnStar(starPrefab, s, i, SimulationTier.Loaded);
+                    starCount++;
+                }
             }
 
             var fieldCandidates = new NativeList<AsteroidSpawnData>(1024, Allocator.Temp);
             int currentFieldStarId = -1;
+            float t1Sq = simConfig.Bounds.Tier1MaxDistance * simConfig.Bounds.Tier1MaxDistance;
+            float t2Sq = simConfig.Bounds.Tier2MaxDistance * simConfig.Bounds.Tier2MaxDistance;
+            float t3Sq = simConfig.Bounds.Tier3MaxDistance * simConfig.Bounds.Tier3MaxDistance;
 
             for (int i = 0; i < asteroidSpawns.Length; i++)
             {
@@ -132,25 +126,19 @@ namespace Starfire.Systems
 
                 if (distSq < t0Sq)
                 {
+                    _nextEntityId++;
                     SpawnAsteroid(asteroidPrefab, a, SimulationTier.Loaded, asteroidConfig);
-                    asteroidIndividual++;
+                    asteroidCount++;
                 }
-                else if (distSq < t1Sq)
+                else if (distSq < t1Sq || distSq < t2Sq)
                 {
-                    SpawnAsteroid(asteroidPrefab, a, SimulationTier.Active, asteroidConfig);
-                    asteroidIndividual++;
-                }
-                else if (distSq < t2Sq)
-                {
-                    SpawnAsteroid(asteroidPrefab, a, SimulationTier.Sensor, asteroidConfig);
-                    asteroidIndividual++;
+                    _nextEntityId++;
                 }
                 else if (distSq < t3Sq)
                 {
                     if (a.ParentStarId != currentFieldStarId && fieldCandidates.Length > 0)
                     {
-                        FlushAsteroidField(fieldCandidates, asteroidConfig);
-                        asteroidFieldCount++;
+                        SkipFieldMemberIds(fieldCandidates);
                         fieldCandidates.Clear();
                     }
                     currentFieldStarId = a.ParentStarId;
@@ -158,29 +146,29 @@ namespace Starfire.Systems
                 }
                 else
                 {
-                    SpawnAsteroidDormant(a);
-                    asteroidDormant++;
+                    _nextEntityId++;
                 }
             }
 
             if (fieldCandidates.Length > 0)
-            {
-                FlushAsteroidField(fieldCandidates, asteroidConfig);
-                asteroidFieldCount++;
-            }
+                SkipFieldMemberIds(fieldCandidates);
 
             fieldCandidates.Dispose();
             stars.Dispose();
             asteroidSpawns.Dispose();
 
-            Debug.Log($"[ServerSpawnSystem] Celestial: {starCount} stars, {asteroidIndividual} individual asteroids, " +
-                      $"{asteroidFieldCount} asteroid fields, {asteroidDormant} dormant asteroid records");
+            Debug.Log($"[ServerSpawnSystem] T0 celestial: {starCount} stars, {asteroidCount} asteroids");
+        }
+
+        void SkipFieldMemberIds(NativeList<AsteroidSpawnData> candidates)
+        {
+            for (int i = 0; i < candidates.Length; i++)
+                _nextEntityId++;
         }
 
         void SpawnStar(Unity.Entities.Entity prefab, StarSpawnData data, int starIndex, SimulationTier tier)
         {
             var entity = EntityManager.Instantiate(prefab);
-            int id = _nextEntityId++;
 
             var localPos = (float2)data.Position;
             EntityManager.SetComponentData(entity, LocalTransform.FromPositionRotation(
@@ -190,7 +178,7 @@ namespace Starfire.Systems
 
             EntityManager.SetComponentData(entity, new EntityIdentity
             {
-                Id = id,
+                Id = _nextEntityId - 1,
                 EntityType = (byte)Starfire.Entity.EntityType.Star,
                 Persistence = 2,
                 FactionId = 0,
@@ -228,7 +216,6 @@ namespace Starfire.Systems
         void SpawnAsteroid(Unity.Entities.Entity prefab, AsteroidSpawnData data, SimulationTier tier, AsteroidConfig asteroidConfig)
         {
             var entity = EntityManager.Instantiate(prefab);
-            int id = _nextEntityId++;
 
             byte typeId = AsteroidConfig.ComputeTypeId(
                 data.Size, data.Composition, asteroidConfig.Type0MaxSize, asteroidConfig.Type1MaxSize);
@@ -241,7 +228,7 @@ namespace Starfire.Systems
 
             EntityManager.SetComponentData(entity, new EntityIdentity
             {
-                Id = id,
+                Id = _nextEntityId - 1,
                 EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
                 Persistence = 0,
                 FactionId = 0,
@@ -280,78 +267,7 @@ namespace Starfire.Systems
             SetTierTags(entity, tier);
         }
 
-        void FlushAsteroidField(NativeList<AsteroidSpawnData> candidates, AsteroidConfig asteroidConfig)
-        {
-            if (candidates.Length == 0) return;
-
-            double2 avgPos = double2.zero;
-            float totalMass = 0f;
-            for (int i = 0; i < candidates.Length; i++)
-            {
-                avgPos += candidates[i].Position;
-                totalMass += candidates[i].Size * candidates[i].Size;
-            }
-            avgPos /= candidates.Length;
-
-            float maxDist = 0f;
-            for (int i = 0; i < candidates.Length; i++)
-            {
-                double2 d = candidates[i].Position - avgPos;
-                float dist = (float)math.length(d);
-                if (dist > maxDist) maxDist = dist;
-            }
-
-            uint seed = (uint)(candidates[0].ParentStarId * 73856093 + candidates.Length * 19349663);
-
-            var fieldEntity = EntityManager.CreateEntity();
-            EntityManager.AddComponent<AsteroidFieldTag>(fieldEntity);
-            EntityManager.AddComponentData(fieldEntity, new AsteroidFieldData
-            {
-                Position = avgPos,
-                Radius = maxDist + 500f,
-                Count = candidates.Length,
-                DominantComposition = candidates[0].Composition,
-                TotalMass = totalMass,
-                Seed = seed,
-                ParentStarId = candidates[0].ParentStarId,
-                LastUpdateTime = 0f
-            });
-
-            var buffer = EntityManager.AddBuffer<AsteroidFieldMember>(fieldEntity);
-            for (int i = 0; i < candidates.Length; i++)
-            {
-                var a = candidates[i];
-                buffer.Add(new AsteroidFieldMember
-                {
-                    EntityId = _nextEntityId++,
-                    Position = a.Position,
-                    Size = a.Size,
-                    Composition = a.Composition,
-                    TypeId = AsteroidConfig.ComputeTypeId(
-                        a.Size, a.Composition, asteroidConfig.Type0MaxSize, asteroidConfig.Type1MaxSize),
-                    OrbitalVelocity = a.OrbitalVelocity
-                });
-            }
-        }
-
-        void SpawnAsteroidDormant(AsteroidSpawnData data)
-        {
-            var dormantEntity = EntityManager.CreateEntity();
-            EntityManager.AddComponent<DormantTag>(dormantEntity);
-            EntityManager.AddComponentData(dormantEntity, new DormantRecord
-            {
-                ChunkX = (long)(data.Position.x / 1000.0),
-                ChunkY = (long)(data.Position.y / 1000.0),
-                EntityType = (byte)Starfire.Entity.EntityType.Asteroid,
-                FactionIndex = 0,
-                Count = 1,
-                Seed = (uint)(_nextEntityId++ * 73856093),
-                Persistence = 0,
-                Snapshot = default
-            });
-        }
-
-        void SpawnTierShips(Unity.Entities.Entity shipPrefab, SpawnConfig config, SimulationConfig simConfig)
+        void SpawnT0Ships(Unity.Entities.Entity shipPrefab, SpawnConfig config, SimulationConfig simConfig)
         {
             var rng = new Unity.Mathematics.Random(42);
             for (int i = 0; i < config.Tier0Ships; i++)
@@ -368,158 +284,56 @@ namespace Starfire.Systems
                 EntityManager.SetComponentData(entity, input);
             }
 
-            rng = new Unity.Mathematics.Random(123);
+            SkipT1PlusShipIds(config, simConfig);
+        }
+
+        void SkipT1PlusShipIds(SpawnConfig config, SimulationConfig simConfig)
+        {
+            var rng = new Unity.Mathematics.Random(123);
             for (int i = 0; i < config.Tier1Ships; i++)
             {
-                float angle = rng.NextFloat(0f, math.PI * 2f);
-                float dist = rng.NextFloat(simConfig.Bounds.Tier0MaxDistance, simConfig.Bounds.Tier1MaxDistance * 0.9f);
-                var pos = new double2(math.cos(angle) * dist, math.sin(angle) * dist);
-                int faction = rng.NextInt(0, 3);
-                float range = rng.NextFloat(config.SmallShipSensorRange, config.MediumShipSensorRange);
-
-                var entity = SpawnShipEntity(shipPrefab, pos, SimulationTier.Active, faction, 0, range, config);
-                var input = EntityManager.GetComponentData<ControlInput>(entity);
-                input.DriverType = 1;
-                EntityManager.SetComponentData(entity, input);
+                rng.NextFloat(); rng.NextFloat();
+                rng.NextInt(0, 3);
+                rng.NextFloat(config.SmallShipSensorRange, config.MediumShipSensorRange);
+                _nextEntityId++;
             }
 
             rng = new Unity.Mathematics.Random(456);
             for (int i = 0; i < config.Tier2Ships; i++)
             {
-                float angle = rng.NextFloat(0f, math.PI * 2f);
-                float dist = rng.NextFloat(simConfig.Bounds.Tier1MaxDistance, simConfig.Bounds.Tier2MaxDistance * 0.9f);
-                var pos = new double2(math.cos(angle) * dist, math.sin(angle) * dist);
-                int faction = rng.NextInt(0, 3);
-                float range = rng.NextFloat(config.SmallShipSensorRange, config.MediumShipSensorRange);
-
-                var entity = SpawnShipEntity(shipPrefab, pos, SimulationTier.Sensor, faction, 0, range, config);
-
-                EntityManager.SetComponentData(entity, new SensorContact
-                {
-                    HullPercent = rng.NextFloat(0.3f, 1f),
-                    ShieldPercent = rng.NextFloat(0f, 1f),
-                    Speed = rng.NextFloat(0f, config.DefaultMaxSpeed),
-                    Heading = rng.NextFloat(0f, 360f),
-                    MaxSpeed = config.DefaultMaxSpeed,
-                    WeaponRange = 500f,
-                    SensorRange = range,
-                    CombatStrength = rng.NextFloat(10f, 100f),
-                    CurrentAIState = 0,
-                    PreviousAIState = 0,
-                    StateTimer = 0f,
-                    TargetEntityId = -1,
-                    Waypoint = pos + (double2)(rng.NextFloat2Direction() * rng.NextFloat(1000f, 5000f)),
-                    ShieldsActive = 1,
-                    WeaponsArmed = 1
-                });
-
-                EntityManager.SetComponentData(entity, new ShipSnapshot
-                {
-                    ConfigId = 0,
-                    FactionIndex = faction,
-                    Persistence = 0,
-                    HullPercent = 1f,
-                    ShieldPercent = 1f,
-                    PropulsionEfficiency = 1f,
-                    RotationEfficiency = 1f,
-                    Position = pos,
-                    Velocity = (double2)(rng.NextFloat2Direction() * rng.NextFloat(0f, config.DefaultMaxSpeed * 0.3f)),
-                    Heading = rng.NextFloat(0f, 360f),
-                    AIState = 0,
-                    TargetEntityId = -1,
-                    Waypoint = double2.zero
-                });
+                rng.NextFloat(); rng.NextFloat();
+                rng.NextInt(0, 3);
+                rng.NextFloat(config.SmallShipSensorRange, config.MediumShipSensorRange);
+                _nextEntityId++;
+                rng.NextFloat(0.3f, 1f); rng.NextFloat(0f, 1f);
+                rng.NextFloat(0f, config.DefaultMaxSpeed); rng.NextFloat(0f, 360f);
+                rng.NextFloat(10f, 100f);
+                rng.NextFloat2Direction(); rng.NextFloat(1000f, 5000f);
+                rng.NextFloat2Direction(); rng.NextFloat(0f, config.DefaultMaxSpeed * 0.3f);
+                rng.NextFloat(0f, 360f);
             }
-        }
 
-        void SpawnTier3Fleets(SpawnConfig config, SimulationConfig simConfig)
-        {
-            var rng = new Unity.Mathematics.Random(789);
-
+            rng = new Unity.Mathematics.Random(789);
             for (int i = 0; i < config.Tier3Fleets; i++)
             {
-                float angle = rng.NextFloat(0f, math.PI * 2f);
-                float dist = rng.NextFloat(simConfig.Bounds.Tier2MaxDistance, simConfig.Bounds.Tier3MaxDistance * 0.9f);
-                var pos = new double2(math.cos(angle) * dist, math.sin(angle) * dist);
-                int faction = rng.NextInt(0, 3);
-
-                var fleetEntity = EntityManager.CreateEntity();
-                EntityManager.AddComponent<FleetTag>(fleetEntity);
-                EntityManager.AddComponentData(fleetEntity, new FleetData
-                {
-                    FleetId = i,
-                    FactionIndex = faction,
-                    Position = pos,
-                    Velocity = (double2)(rng.NextFloat2Direction() * rng.NextFloat(10f, 50f)),
-                    Rotation = rng.NextFloat(0f, 360f),
-                    MemberCount = config.Tier3MembersPerFleet,
-                    Formation = 0,
-                    TotalStrength = config.Tier3MembersPerFleet * 50f,
-                    TotalHP = config.Tier3MembersPerFleet * config.DefaultMaxHealth,
-                    CurrentBehavior = 0,
-                    TargetFleetId = -1,
-                    LastUpdateTime = 0f
-                });
-
-                var buffer = EntityManager.AddBuffer<FleetMember>(fleetEntity);
+                rng.NextFloat(); rng.NextFloat();
+                rng.NextInt(0, 3);
+                rng.NextFloat2Direction(); rng.NextFloat(10f, 50f);
+                rng.NextFloat(0f, 360f);
                 for (int m = 0; m < config.Tier3MembersPerFleet; m++)
                 {
-                    float memberAngle = (float)m / config.Tier3MembersPerFleet * math.PI * 2f;
-                    var offset = new float2(math.cos(memberAngle), math.sin(memberAngle)) * 100f;
-
-                    buffer.Add(new FleetMember
-                    {
-                        EntityId = _nextEntityId++,
-                        FormationSlot = m,
-                        FormationOffset = offset,
-                        Strength = 50f,
-                        HP = config.DefaultMaxHealth,
-                        Persistence = 0,
-                        Snapshot = new ShipSnapshot
-                        {
-                            ConfigId = 0,
-                            FactionIndex = faction,
-                            Persistence = 0,
-                            HullPercent = 1f,
-                            ShieldPercent = 1f,
-                            PropulsionEfficiency = 1f,
-                            RotationEfficiency = 1f,
-                            Position = pos + (double2)offset,
-                            Velocity = double2.zero,
-                            Heading = rng.NextFloat(0f, 360f),
-                            AIState = 0,
-                            TargetEntityId = -1,
-                            Waypoint = double2.zero
-                        }
-                    });
+                    _nextEntityId++;
+                    rng.NextFloat(0f, 360f);
                 }
             }
-        }
 
-        void SpawnTier4Dormant(SpawnConfig config, SimulationConfig simConfig)
-        {
-            var rng = new Unity.Mathematics.Random(1011);
-            var origin = SystemAPI.GetSingleton<WorldOrigin>();
-
+            var dormantRng = new Unity.Mathematics.Random(1011);
             for (int i = 0; i < config.Tier4Dormant; i++)
             {
-                float angle = rng.NextFloat(0f, math.PI * 2f);
-                float dist = rng.NextFloat(simConfig.Bounds.Tier3MaxDistance, origin.WorldBoundsRadius * 0.5f);
-                var pos = new double2(math.cos(angle) * dist, math.sin(angle) * dist);
-
-                var dormantEntity = EntityManager.CreateEntity();
-                EntityManager.AddComponent<DormantTag>(dormantEntity);
-                EntityManager.AddComponentData(dormantEntity, new DormantRecord
-                {
-                    ChunkX = (long)(pos.x / 1000.0),
-                    ChunkY = (long)(pos.y / 1000.0),
-                    EntityType = (byte)Starfire.Entity.EntityType.Ship,
-                    FactionIndex = rng.NextInt(0, 3),
-                    Count = rng.NextInt(5, 20),
-                    Seed = rng.NextUInt(),
-                    Persistence = 0,
-                    Snapshot = default
-                });
+                dormantRng.NextFloat(); dormantRng.NextFloat();
+                dormantRng.NextInt(0, 3);
+                dormantRng.NextInt(5, 20);
+                dormantRng.NextUInt();
             }
         }
 

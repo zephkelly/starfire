@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
   - component: {fileID: 519420033}
+  - component: {fileID: 519420034}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -279,6 +280,46 @@ MonoBehaviour:
   _gizmoT1Color: {r: 1, g: 1, b: 0, a: 0.4}
   _gizmoT2Color: {r: 1, g: 0.5, b: 0, a: 0.3}
   _gizmoT3Color: {r: 1, g: 0, b: 0, a: 0.2}
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08fb20bd22345e14f88193ba00d6eafc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Starfire::Starfire.Demo.MinimapRenderer
+  _textureSize: 512
+  _minimapScreenSize: 250
+  _margin: 10
+  _updateInterval: 0.1
+  _viewRadius: 50000
+  _minViewRadius: 500
+  _maxViewRadius: 600000
+  _zoomSpeed: 0.15
+  _playerDotSize: 3
+  _shipDotSize: 2
+  _fleetDotSize: 3
+  _dormantDotSize: 1
+  _asteroidDotSize: 1
+  _starDotSize: 3
+  _asteroidFieldDotSize: 2
+  _backgroundColor: {r: 0.02, g: 0.02, b: 0.06, a: 0.9}
+  _borderColor: {r: 0.1, g: 0.4, b: 0.1, a: 1}
+  _playerColor: {r: 0, g: 1, b: 0, a: 1}
+  _otherPlayerColor: {r: 0, g: 0.78, b: 1, a: 1}
+  _fleetColor: {r: 0.5, g: 0.7, b: 1, a: 1}
+  _dormantColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.6}
+  _shipTypeColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  _stationTypeColor: {r: 0, g: 0.8, b: 1, a: 1}
+  _asteroidTypeColor: {r: 0.7, g: 0.5, b: 0.2, a: 1}
+  _debrisTypeColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.8}
+  _projectileTypeColor: {r: 1, g: 1, b: 0.3, a: 1}
+  _starTypeColor: {r: 1, g: 0.94, b: 0.78, a: 1}
+  _asteroidFieldColor: {r: 0.43, g: 0.37, b: 0.27, a: 0.55}
 --- !u!1 &579251048
 GameObject:
   m_ObjectHideFlags: 0
@@ -416,6 +457,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &955918774
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 955918775}
+  - component: {fileID: 955918776}
+  m_Layer: 0
+  m_Name: InputConfig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &955918775
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 955918774}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1263502727}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &955918776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 955918774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 149ba7f004a6e4c42abc913fe9e36ff3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Starfire::Starfire.Core.PlayerController
+  _inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!1 &964869423
 GameObject:
   m_ObjectHideFlags: 0
@@ -472,13 +558,91 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 964869423}
   serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1263502727}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1263502726
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1263502727}
+  m_Layer: 0
+  m_Name: Config
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1263502727
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1263502726}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 964869425}
+  - {fileID: 1490433020}
+  - {fileID: 955918775}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1490433019
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1490433020}
+  - component: {fileID: 1490433021}
+  m_Layer: 0
+  m_Name: UIConfig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1490433020
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490433019}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1263502727}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1490433021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1490433019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01cf03ddeb4f9bd4b9a3f9050fe86179, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Starfire::Starfire.Demo.ConnectionUI
 --- !u!1 &1888556152
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,4 +704,4 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 1888556154}
   - {fileID: 579251054}
-  - {fileID: 964869425}
+  - {fileID: 1263502727}

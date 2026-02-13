@@ -5,6 +5,7 @@ using Unity.NetCode;
 using Unity.Transforms;
 using Starfire.Entity;
 using Starfire.Simulation;
+using Unity.Collections;
 
 namespace Starfire.Systems
 {
@@ -64,15 +65,20 @@ namespace Starfire.Systems
         {
             var origin = SystemAPI.GetSingleton<WorldOrigin>();
 
-            new ClientSyncJob
+            new GhostSyncJob
+            {
+                OriginValue = origin.Value
+            }.ScheduleParallel();
+
+            new LocalRichSyncJob
             {
                 OriginValue = origin.Value
             }.ScheduleParallel();
         }
 
         [BurstCompile]
-        [WithNone(typeof(PredictedGhost))]
-        partial struct ClientSyncJob : IJobEntity
+        [WithNone(typeof(PredictedGhost), typeof(LocalEntityTag))]
+        partial struct GhostSyncJob : IJobEntity
         {
             public double2 OriginValue;
 
@@ -80,6 +86,19 @@ namespace Starfire.Systems
             {
                 float2 localPos = (float2)(worldPos.Value - OriginValue);
                 transform.Position = new float3(localPos.x, localPos.y, 0f);
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(LocalEntityTag), typeof(RichTierTag))]
+        partial struct LocalRichSyncJob : IJobEntity
+        {
+            public double2 OriginValue;
+
+            void Execute(ref WorldPosition worldPos, in LocalTransform transform)
+            {
+                if (!math.isnan(transform.Position.x) && !math.isnan(transform.Position.y))
+                    worldPos.Value = OriginValue + new double2(transform.Position.x, transform.Position.y);
             }
         }
     }

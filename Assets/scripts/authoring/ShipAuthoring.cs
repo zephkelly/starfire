@@ -47,6 +47,7 @@ namespace Starfire.Authoring
                 AddComponent(entity, new ControlInput());
                 AddComponent(entity, new PlayerInput());
                 AddComponent<ShipTag>(entity);
+                AddComponent(entity, new PlayerName());
 
                 AddComponent(entity, new ShipHull
                 {
